@@ -4345,7 +4345,7 @@ def write_vendor_key_manifest(metadata_dir: Path, entries) -> None:
     channel. Signer text comes from the connected-side verification, which is
     the only place the identity behind the key id was actually observed.
     """
-    rows = {}
+    rows: Dict[str, Tuple[str, str]] = {}
     for entry in entries or ():
         if entry.assurance != provenance.VERIFIED_VENDOR or not entry.signing_key_id:
             continue
