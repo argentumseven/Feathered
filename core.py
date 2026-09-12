@@ -4337,6 +4337,36 @@ def emit_rpm_repository(output_dir: Path, packages, reporter: RepositoryWriterRe
         encoding="utf-8")
 
 
+def write_vendor_key_manifest(metadata_dir: Path, entries) -> None:
+    """Record which vendor keys the target must already trust.
+
+    The installer refuses to import a key out of the bundle it is verifying, so
+    the operator needs to know which keys to establish through their own
+    channel. Signer text comes from the connected-side verification, which is
+    the only place the identity behind the key id was actually observed.
+    """
+    rows = {}
+    for entry in entries or ():
+        if entry.assurance != provenance.VERIFIED_VENDOR or not entry.signing_key_id:
+            continue
+        rows.setdefault(entry.signing_key_id, (entry.signer, entry.repository))
+    if not rows:
+        return
+    lines = ["Vendor signing keys required on the target", "",
+             "install-offline.sh enables gpgcheck and will refuse to run until these keys",
+             "are present in the target rpm keyring. Import them from the target",
+             "distribution's own material (for example /etc/pki/rpm-gpg) or another",
+             "trusted channel. Do not import a key carried by this bundle: it could only",
+             "vouch for the bundle that carried it.", ""]
+    for key_id, (signer, repo) in sorted(rows.items()):
+        short = "".join(c for c in key_id if c in "0123456789abcdefABCDEF")[-8:].lower()
+        lines.append(f"  key {key_id}  (rpm: gpg-pubkey-{short})")
+        lines.append(f"    signer:     {signer or 'not reported by the verifier'}")
+        lines.append(f"    repository: {repo}")
+    (Path(metadata_dir) / "VENDOR-SIGNING-KEYS.txt").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8")
+
+
 def _write_provenance(bundle_dir: Path, metadata_dir: Path, entries, already_present, options: BuildOptions,
                       reporter: Reporter, metadata: Dict[str, object]) -> None:
     """Emit payload-scoped provenance beside the package artifacts.
@@ -4704,7 +4734,9 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
             (metadata_dir / "REQUESTED-ROOTS.txt").write_text("\n".join(roots) + "\n", encoding="utf-8")
             if options.emit_repository:
                 from installer import write_installer
-                write_installer(output_dir, metadata_dir, result, options, 'rpm', metadata)
+                write_vendor_key_manifest(metadata_dir, prov_entries)
+                write_installer(output_dir, metadata_dir, result, options, 'rpm', metadata,
+                                provenance_entries=prov_entries)
             else:
                 (output_dir / "INSTALL-OFFLINE-NOTE.txt").write_text(
                     "Enable local repository metadata to generate the offline installer.\n", encoding="utf-8")

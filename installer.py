@@ -13,7 +13,44 @@ fi
 '''
 
 
-def write_installer(output, directory, result, options, family, metadata):
+def _rpm_short_key_ids(entries):
+    """rpm stores imported keys as gpg-pubkey-<lower 8 hex of key id>-<stamp>.
+
+    Verifier output gives a long key id or a full fingerprint, sometimes with
+    trailing punctuation, so normalize to the form rpm will actually answer a
+    query about.
+    """
+    out = []
+    for entry in entries or ():
+        raw = "".join(c for c in str(getattr(entry, "signing_key_id", "") or "")
+                      if c in "0123456789abcdefABCDEF")
+        if len(raw) >= 8:
+            short = raw[-8:].lower()
+            if short not in out:
+                out.append(short)
+    return out
+
+
+def _rpm_vendor_signed(result, entries):
+    """True only when every package this bundle ships verified against a vendor key.
+
+    ``entries`` covers the artifacts actually written into the bundle. Packages
+    the differential left on the target are not fetched by this transaction, so
+    they are not part of this question. ``None`` means the caller supplied no
+    provenance at all, which is not the same as "unsigned" and must not be
+    optimistically resolved either way.
+    """
+    from provenance import VERIFIED_VENDOR
+    if entries is None:
+        return False
+    entries = list(entries)
+    if not entries:
+        return False
+    return all(getattr(e, "assurance", "") == VERIFIED_VENDOR for e in entries)
+
+
+def write_installer(output, directory, result, options, family, metadata,
+                    provenance_entries=None):
     import core
     from transaction_model import installation_roots
     output, directory = Path(output), Path(directory)
@@ -84,7 +121,38 @@ sudo apt-get "${APT_OPTS[@]}" --simulate --no-remove install "${PLAN[@]}"
 sudo apt-get "${APT_OPTS[@]}" --no-remove install "${PLAN[@]}"
 '''
     elif family == 'rpm':
-        script += '''
+        signed = _rpm_vendor_signed(result, provenance_entries)
+        key_ids = _rpm_short_key_ids(provenance_entries) if signed else []
+        if not signed:
+            script += '''
+if [ "${FEATHERED_ALLOW_UNSIGNED:-0}" != 1 ]; then
+  echo 'ERROR: not every package in this bundle verified against a vendor key at build time.' >&2
+  echo '       Review metadata/provenance.json; set FEATHERED_ALLOW_UNSIGNED=1 only if you' >&2
+  echo '       accept installing those artifacts without RPM signature enforcement.' >&2
+  exit 1
+fi
+'''
+        gpgcheck = '1' if signed else '0'
+        if key_ids:
+            # The keys must already be in the target's rpmdb. A key shipped inside
+            # the bundle could only vouch for the bundle that carried it, which is
+            # the same circularity the receiver bootstrap refuses. Name the missing
+            # keys instead and let the operator import them from the target's own
+            # trusted source.
+            script += '''
+MISSING_KEYS=""
+for KEYID in ''' + ' '.join(key_ids) + '''; do
+  rpm -q "gpg-pubkey-$KEYID" >/dev/null 2>&1 || MISSING_KEYS="$MISSING_KEYS $KEYID"
+done
+if [ -n "$MISSING_KEYS" ]; then
+  echo "ERROR: vendor signing key(s) not present in the target rpm keyring:$MISSING_KEYS" >&2
+  echo '       See metadata/VENDOR-SIGNING-KEYS.txt for the signer of each key.' >&2
+  echo '       Import them from the target distribution (/etc/pki/rpm-gpg) or another' >&2
+  echo '       trusted channel, then re-run. Do not import a key from this bundle.' >&2
+  exit 1
+fi
+'''
+        script += f'''
 PM=dnf
 command -v dnf >/dev/null 2>&1 || PM=yum
 TMP_REPOS="$(mktemp -d)"
@@ -94,10 +162,16 @@ cat >"$TMP_REPOS/feathered.repo" <<EOF
 name=Feathered offline bundle
 baseurl=file://$HERE_URL
 enabled=1
-gpgcheck=0
+gpgcheck={gpgcheck}
+localpkg_gpgcheck={gpgcheck}
+# Feathered's generated repomd.xml is not OpenPGP-signed, so repository-level
+# metadata verification cannot be enabled here. Repository integrity for this
+# bundle comes from SHA256SUMS.txt and, when sealed, the operator-signed
+# bundle index -- not from repo_gpgcheck.
 repo_gpgcheck=0
 skip_if_unavailable=False
-EOF
+EOF'''
+        script += '''
 # DNF performs its native dependency/module/transaction checks before installation.
 # No automatic erasure, module switch, or remote repository fallback is allowed.
 # skip_if_unavailable=False keeps an unreadable bundle repository a hard failure
