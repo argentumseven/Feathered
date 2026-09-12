@@ -1,6 +1,12 @@
 {
-  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
   "nodes": [
+    "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+    "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
+    "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
     "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-True]",
     "tests/test_checksum_release_fixes.py::test_cancelled_pinned_fetch_does_not_fall_back",
     "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[False]",
@@ -14,12 +20,6 @@
     "tests/test_checksum_release_fixes.py::test_saved_release_observation_wins_over_bundled_seed",
     "tests/test_checksum_release_fixes.py::test_slow_previous_discovery_does_not_block_new_distribution",
     "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
-    "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
-    "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
-    "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
-    "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
-    "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
-    "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
-    "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds"
+    "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread"
   ]
 }

@@ -1,53 +1,45 @@
 {
   "schema": 1,
-  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
   "mode": "batch",
   "pytest_version": "9.1.1",
   "nodes": [
-    "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[4]",
-    "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[11]",
-    "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[rpm-noarch]",
-    "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[deb-all]",
-    "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[arch-any]",
-    "tests/test_transaction_contract.py::test_arch_root_source_scope[app]",
-    "tests/test_transaction_contract.py::test_arch_root_source_scope[other-app]",
-    "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[-False]",
-    "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[no-False]",
-    "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[same-False]",
-    "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[foreign-False]",
-    "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[allowed-True]",
-    "tests/test_transaction_contract.py::test_rpm_root_constraints_and_missing_root_only",
-    "tests/test_transaction_contract.py::test_root_only_and_conflicting_pins",
-    "tests/test_transaction_contract.py::test_optional_roots_and_exact_contract_reach_published_installer[1.2]",
-    "tests/test_transaction_contract.py::test_optional_roots_and_exact_contract_reach_published_installer[3:7.8-4]",
-    "tests/test_transaction_contract.py::test_receiver_baseline_and_post_install_are_exact",
-    "tests/test_transaction_contract.py::test_full_arch_upgrade_changes_with_target_inventory",
-    "tests/test_transaction_contract.py::test_retained_reverse_dependency_is_repaired_or_blocked[False]",
-    "tests/test_transaction_contract.py::test_retained_reverse_dependency_is_repaired_or_blocked[True]"
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
+    "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
+    "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\\\[0\\\\]]"
   ],
   "batch_excluded": [
-    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-lib-1-2]",
-    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-hyphenated-component-7.2-11.4]",
-    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-lib-1-2]",
-    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-hyphenated-component-7.2-11.4]",
-    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-lib-1-2]",
-    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-hyphenated-component-7.2-11.4]",
-    "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[1]",
-    "tests/test_transaction_contract.py::test_cache_survives_failure_but_rejects_tampering",
-    "tests/test_transaction_contract.py::test_additive_changed_retained_bytes_block_publication",
-    "tests/test_transaction_contract.py::test_repository_cache_tracks_participating_sources",
-    "tests/test_transaction_contract.py::test_rpm_module_streams_follow_defaults_and_captured_state",
-    "tests/test_transaction_contract.py::test_module_yaml_alias_bombs_are_rejected",
-    "tests/test_transaction_contract.py::test_live_matrix_runs_materialization_optionality_and_closure",
-    "tests/test_transaction_contract.py::test_inventory_relationships_reject_inconsistent_capture",
-    "tests/test_transaction_contract.py::test_modular_header_without_modulemd_is_rejected",
-    "tests/test_transaction_contract.py::test_rpm_module_label_survives_record_copy_without_changing_package_equality"
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-user:PRIVATE_PASSWORD@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-PRIVATE_BEARER@]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload8-evidence_relationship_hints]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload9-target.api_server_versions]",
+    "tests/test_spec_decoding.py::test_valid_draft_optional_fields_and_unknown_keys_remain_compatible",
+    "tests/test_spec_decoding.py::test_direct_api_rejects_wrong_dataclass_fields_before_any_work",
+    "tests/test_spec_decoding.py::test_direct_runtime_configuration_has_same_validation_as_json",
+    "tests/test_spec_decoding.py::test_cli_malformed_shape_is_invalid_request_without_traceback"
   ],
   "collection_issues": [],
   "deselected": [],
   "phases": [
     {
-      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[4]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -55,7 +47,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[4]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -63,7 +55,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[4]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -71,7 +63,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[11]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -79,7 +71,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[11]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -87,7 +79,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[11]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -95,7 +87,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[rpm-noarch]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -103,7 +95,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[rpm-noarch]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -111,7 +103,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[rpm-noarch]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -119,7 +111,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[deb-all]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -127,7 +119,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[deb-all]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -135,7 +127,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[deb-all]",
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -143,7 +135,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[arch-any]",
+      "nodeid": "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -151,7 +143,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[arch-any]",
+      "nodeid": "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -159,7 +151,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[arch-any]",
+      "nodeid": "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -167,7 +159,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_arch_root_source_scope[app]",
+      "nodeid": "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -175,7 +167,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_arch_root_source_scope[app]",
+      "nodeid": "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -183,7 +175,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_arch_root_source_scope[app]",
+      "nodeid": "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -191,7 +183,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_arch_root_source_scope[other-app]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -199,7 +191,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_arch_root_source_scope[other-app]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -207,7 +199,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_arch_root_source_scope[other-app]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -215,7 +207,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -223,7 +215,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -231,7 +223,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -239,7 +231,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[no-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -247,7 +239,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[no-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -255,7 +247,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[no-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -263,7 +255,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[same-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -271,7 +263,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[same-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -279,7 +271,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[same-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -287,7 +279,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[foreign-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -295,7 +287,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[foreign-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -303,7 +295,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[foreign-False]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -311,7 +303,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[allowed-True]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -319,7 +311,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[allowed-True]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -327,7 +319,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[allowed-True]",
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -335,7 +327,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_rpm_root_constraints_and_missing_root_only",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -343,7 +335,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_rpm_root_constraints_and_missing_root_only",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -351,7 +343,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_rpm_root_constraints_and_missing_root_only",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -359,7 +351,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_root_only_and_conflicting_pins",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -367,7 +359,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_root_only_and_conflicting_pins",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -375,7 +367,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_root_only_and_conflicting_pins",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -383,7 +375,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_optional_roots_and_exact_contract_reach_published_installer[1.2]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -391,7 +383,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_optional_roots_and_exact_contract_reach_published_installer[1.2]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -399,7 +391,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_optional_roots_and_exact_contract_reach_published_installer[1.2]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -407,7 +399,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_optional_roots_and_exact_contract_reach_published_installer[3:7.8-4]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -415,7 +407,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_optional_roots_and_exact_contract_reach_published_installer[3:7.8-4]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -423,7 +415,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_optional_roots_and_exact_contract_reach_published_installer[3:7.8-4]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -431,7 +423,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_receiver_baseline_and_post_install_are_exact",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -439,7 +431,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_receiver_baseline_and_post_install_are_exact",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -447,7 +439,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_receiver_baseline_and_post_install_are_exact",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -455,7 +447,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_full_arch_upgrade_changes_with_target_inventory",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -463,7 +455,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_full_arch_upgrade_changes_with_target_inventory",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -471,7 +463,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_full_arch_upgrade_changes_with_target_inventory",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -479,7 +471,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_retained_reverse_dependency_is_repaired_or_blocked[False]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -487,7 +479,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_retained_reverse_dependency_is_repaired_or_blocked[False]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -495,7 +487,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_retained_reverse_dependency_is_repaired_or_blocked[False]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,
@@ -503,7 +495,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_retained_reverse_dependency_is_repaired_or_blocked[True]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\\\[0\\\\]]",
       "when": "setup",
       "outcome": "passed",
       "wasxfail": null,
@@ -511,7 +503,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_retained_reverse_dependency_is_repaired_or_blocked[True]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\\\[0\\\\]]",
       "when": "call",
       "outcome": "passed",
       "wasxfail": null,
@@ -519,7 +511,7 @@
       "detail": ""
     },
     {
-      "nodeid": "tests/test_transaction_contract.py::test_retained_reverse_dependency_is_repaired_or_blocked[True]",
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\\\[0\\\\]]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,

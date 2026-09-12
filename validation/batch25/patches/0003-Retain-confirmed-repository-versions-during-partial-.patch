@@ -1,0 +1,281 @@
+From 83fb07b087e2be29d41d545adf2bde42e7112581 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sat, 12 Sep 2026 18:48:47 -0400
+Subject: [PATCH 3/5] Retain confirmed repository versions during partial
+ outages
+
+---
+ SOURCE-SHA256.json               |  5 +-
+ feathered_app/ui/kubernetes.py   | 21 +------
+ k8s_discovery.py                 | 97 +++++++++++++++++++++++++++-----
+ tests/test_discovery_recovery.py | 34 +++++++++++
+ 4 files changed, 122 insertions(+), 35 deletions(-)
+ create mode 100644 tests/test_discovery_recovery.py
+
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index 09db9ee..952b32d 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -69,7 +69,7 @@
+   "feathered_app/state.py": "3128c28c3a84ff368f74877193f8ed894b7ff3e8b94f61f623d2d804c271f081",
+   "feathered_app/status_text.py": "078bf0cb298238e111592b1988191edb32351ef27920c290dbedcad1aed8cbf7",
+   "feathered_app/ui/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+-  "feathered_app/ui/kubernetes.py": "b58843265dea1a1cd8dca42f0b6cf6177934269746df8560e92525517b3c42b2",
++  "feathered_app/ui/kubernetes.py": "1fbec37b5592b58b9f2dbac8313e21878d063a666f4e867536508e0615c01043",
+   "feathered_app/ui/layout.py": "5dfec088a57f617e9ac86477f5e9fa879b7e1f1aeca38ccb9f47bd58bc1f7019",
+   "feathered_app/ui/panes.py": "e40895e77fb21704e2fa8cb6ee3cf8ee64d3a40f3d629346b017ce6aa6fad945",
+   "feathered_app/ui/theme.py": "3e582bba99c65d1499d0b9fb2e4691c73340b3f26ee004f8ef1a30c40e0f297a",
+@@ -77,7 +77,7 @@
+   "install_python_deps.bat": "eb7741b34e588ebcbc2abdd1ce26aeb4b39e01d8d19f69b4c4b80d0ff560baba",
+   "installer.py": "a41df167abcd4cbff86196bdec1eae902f2a571d4ce890c121df5acae91f67df",
+   "inventory_relationships.py": "7f0e035e4093d3679222f157ed4fa2c952d3d17b081488b069397c171596bb10",
+-  "k8s_discovery.py": "32e686161c37aa4d757dafc487a85b044b547ecf1a9be1fd202d61185c65ad70",
++  "k8s_discovery.py": "bb685b7eac206acbecc1dcc2539066beb715d7c2c6d35541b7e9812201347d08",
+   "k8s_knowledge.py": "6271d15b4394cf002c018a43dce1e2462dff3abd9489b0a30b66cf227209e838",
+   "k8s_knowledge_seed.json": "1dbd42629d136424ec5e6a6d67da6dee4d333273785967d60b764008c42ef89f",
+   "k8s_policy.py": "8c2c2cf1d58daf8260ed8c3b5b22011dc5e2fc065948db250a52af8eca35de8f",
+@@ -142,6 +142,7 @@
+   "tests/test_chooser_stale_activation.py": "7dcf1c8c5e704f71ca7e179c1a4a02fa928386697da113dbd7cad1f6bc43b9cf",
+   "tests/test_cli_native_families.py": "3ec83717e3b3fc2252fef3992fcce616ecbc152361a519fbe48be4db7a0c9767",
+   "tests/test_cli_replay.py": "23131a3e936499261f36aea9ab6c5c0d1baaa41b2891c0c3dbb74afa3de69a36",
++  "tests/test_discovery_recovery.py": "0068db87fe126582a2f7d8196bdb8b90241ddca58aa142c8db630788ce484b18",
+   "tests/test_end_to_end_build.py": "05c4872ef68f4fdb7cd94cbc0f8a3a1d2529f13e83ff8e5dc14112a25c28c29b",
+   "tests/test_footer_status.py": "f018082a321b35f2b69229daf853548391df6fbede34017684352d06b31e630f",
+   "tests/test_headless_execution.py": "db8173650be32d161576aa371447b2e92afe52dd7e73fb92e587e9d3eec17f42",
+diff --git a/feathered_app/ui/kubernetes.py b/feathered_app/ui/kubernetes.py
+index 9b4dca8..b5814e8 100644
+--- a/feathered_app/ui/kubernetes.py
++++ b/feathered_app/ui/kubernetes.py
+@@ -118,22 +118,7 @@ class KubernetesWorkloadMixin:
+         path = self._release_cache_path().with_name('kubernetes-knowledge.json')
+         previous = self.__dict__.get('_k8s_knowledge') or k8s_knowledge.read(path) or k8s_knowledge.bundled()
+         def probe(url):
+-            # A HEAD that fails for a transient reason must still fall through
+-            # to the GET attempt. Returning False from the except block meant
+-            # one slow response made the minor look absent.
+-            for method in ('HEAD', 'GET'):
+-                request = Request(url, method=method, headers={'Range': 'bytes=0-0'} if method == 'GET' else {})
+-                try:
+-                    with urlopen(request, timeout=3) as response:
+-                        return 200 <= response.status < 300
+-                except HTTPError as exc:
+-                    # A definite answer from the server: only a refusal of the
+-                    # method itself is worth retrying with GET.
+-                    if exc.code not in (405, 501):
+-                        return False
+-                except Exception:
+-                    continue
+-            return False
++            return k8s_discovery.probe_repository(url, opener=urlopen)
+         def work():
+             knowledge = k8s_knowledge.refresh(path, previous, force=force)
+             events.put(('k8s_knowledge', knowledge))
+@@ -154,9 +139,7 @@ class KubernetesWorkloadMixin:
+         self.__dict__.setdefault('_k8s_discovery_running', set()).discard(family)
+         self.__dict__.setdefault('_k8s_observed_session', set()).add(family)
+         previous = self.__dict__.setdefault('_k8s_observations', {}).get(family)
+-        if observation.error and previous and previous.versions:
+-            from dataclasses import replace
+-            observation = replace(previous, error=observation.error + ' Retaining previously observed repositories.')
++        observation = k8s_discovery.retain(previous, observation)
+         self.__dict__.setdefault('_k8s_observations', {})[family] = observation
+         try:
+             k8s_discovery.save(self._release_cache_path().with_name('kubernetes-' + family + '.json'), observation)
+diff --git a/k8s_discovery.py b/k8s_discovery.py
+index 6c5ee19..c07cae8 100644
+--- a/k8s_discovery.py
++++ b/k8s_discovery.py
+@@ -1,11 +1,45 @@
+ """Bounded observation of available minor repositories, without a release list."""
+ from __future__ import annotations
+-from dataclasses import asdict, dataclass
++from dataclasses import asdict, dataclass, field, replace
+ from datetime import datetime, timezone
+ from pathlib import Path
+-from typing import Callable
++from typing import Callable, Literal, Any
+ from concurrent.futures import ThreadPoolExecutor, as_completed
+ import json
++import tempfile
++from urllib.error import HTTPError
++from urllib.request import Request, urlopen
++
++def _now() -> str:
++    return datetime.now(timezone.utc).isoformat()
++
++
++@dataclass(frozen=True)
++class ProbeResult:
++    status: Literal['available', 'absent', 'indeterminate']
++    reason: str = ''
++    observed_at: str = field(default_factory=_now)
++
++
++def probe_repository(url: str, opener: Callable[..., Any] = urlopen) -> ProbeResult:
++    for method in ('HEAD', 'GET'):
++        try:
++            request = Request(url, method=method, headers={'Range': 'bytes=0-0'} if method == 'GET' else {})
++            with opener(request, timeout=3) as response:
++                if 200 <= response.status < 300:
++                    return ProbeResult('available')
++                return ProbeResult('indeterminate', f'HTTP {response.status}')
++        except HTTPError as exc:
++            if exc.code in (404, 410):
++                return ProbeResult('absent', f'HTTP {exc.code}')
++            if exc.code not in (405, 501):
++                return ProbeResult('indeterminate', f'HTTP {exc.code}')
++        except Exception as exc:
++            reason = type(exc).__name__
++            if method == 'GET':
++                return ProbeResult('indeterminate', reason)
++    return ProbeResult('indeterminate', 'Repository probe did not produce an authoritative answer')
++
+ 
+ @dataclass(frozen=True)
+ class Observation:
+@@ -13,24 +47,30 @@ class Observation:
+     observed_at: str
+     source: str
+     error: str = ''
++    checks: tuple[tuple[str, ProbeResult], ...] = ()
+ 
+ 
+-def discover(family: str, probe: Callable[[str], bool],
++def discover(family: str, probe: Callable[[str], bool | ProbeResult],
+              progress: Callable[[Observation], None] | None = None,
+              candidates: tuple[str, ...] | None = None) -> Observation:
+     suffix = 'deb/Release' if family == 'deb' else 'rpm/repodata/repomd.xml'
+     source = 'https://pkgs.k8s.io/core:/stable:/v1.{n}/' + suffix
+     found: list[int] = []
+     misses = 0
+-    def check(minor: int) -> bool:
++    checks: dict[str, ProbeResult] = {}
++    def check(minor: int) -> ProbeResult:
+         try:
+-            return probe(source.format(n=minor))
+-        except Exception:
+-            return False
++            result = probe(source.format(n=minor))
++            return result if isinstance(result, ProbeResult) else ProbeResult('available' if result else 'absent')
++        except Exception as exc:
++            return ProbeResult('indeterminate', type(exc).__name__)
+ 
+     def observation(error: str = '') -> Observation:
++        uncertain = [minor for minor, result in checks.items() if result.status == 'indeterminate']
++        if uncertain:
++            error = 'Repository checks incomplete for ' + ', '.join(uncertain) + '; availability is unconfirmed.'
+         return Observation(tuple(f'1.{n}' for n in sorted(found, reverse=True)),
+-                           datetime.now(timezone.utc).isoformat(), source, error)
++                           _now(), source, error, tuple(checks.items()))
+ 
+     # Probe small bounded batches concurrently. Publish actual discoveries as
+     # they arrive, while retaining the ordered three-miss stopping rule.
+@@ -45,30 +85,59 @@ def discover(family: str, probe: Callable[[str], bool],
+             for future in as_completed(futures):
+                 minor = futures[future]
+                 results[minor] = future.result()
+-                if results[minor]:
++                checks[f'1.{minor}'] = results[minor]
++                if results[minor].status == 'available':
+                     found.append(minor)
+                     if progress:
+                         progress(observation())
+             for minor in sorted(results):
+-                misses = 0 if results[minor] else misses + 1
++                misses = misses + 1 if results[minor].status == 'absent' else 0
+                 if candidates is None and misses == 3:
+                     return observation('' if found else 'Minor repository discovery failed. Enter a Kubernetes minor explicitly; availability is not confirmed.')
+     return observation(
+         '' if found else 'Minor repository discovery failed. Enter a Kubernetes minor explicitly; availability is not confirmed.')
+ 
+ 
++def retain(previous: Observation | None, current: Observation) -> Observation:
++    if previous is None:
++        return current
++    absent = {minor for minor, result in current.checks if result.status == 'absent'}
++    retained = set(previous.versions) - set(current.versions) - absent
++    if not retained:
++        return current
++    from k8s_version import parse
++    versions = tuple(sorted(set(current.versions) | retained, key=lambda v: parse(v).minor, reverse=True))
++    # This conservative timestamp never labels retained entries freshly checked.
++    return replace(current, versions=versions, observed_at=min(previous.observed_at, current.observed_at),
++                   error=(current.error + ' ' if current.error else '') +
++                         'Retaining previously observed repositories whose availability is unconfirmed.')
++
++
+ def save(path: Path, observation: Observation) -> None:
+     path.parent.mkdir(parents=True, exist_ok=True)
+-    temporary = path.with_suffix('.tmp')
+-    temporary.write_text(json.dumps(asdict(observation)), encoding='utf-8')
+-    temporary.replace(path)
++    name = ''
++    try:
++        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=path.parent, delete=False) as f:
++            name = f.name
++            json.dump(asdict(observation), f)
++        Path(name).replace(path)
++    finally:
++        if name:
++            Path(name).unlink(missing_ok=True)
+ 
+ 
+ def read(path: Path) -> Observation | None:
+     try:
++        if path.stat().st_size > 512 * 1024:
++            return None
+         data = json.loads(path.read_text(encoding='utf-8'))
+         from k8s_version import parse
++        if not isinstance(data['versions'], list):
++            return None
+         versions = tuple(parse(v).line for v in data['versions'])
+-        return Observation(versions, str(data['observed_at']), str(data['source']), str(data.get('error', '')))
++        checks = tuple((parse(minor).line, ProbeResult(**result)) for minor, result in data.get('checks', ()))
++        if any(result.status not in ('available', 'absent', 'indeterminate') for _, result in checks):
++            return None
++        return Observation(versions, str(data['observed_at']), str(data['source']), str(data.get('error', '')), checks)
+     except (OSError, KeyError, TypeError, ValueError):
+         return None
+diff --git a/tests/test_discovery_recovery.py b/tests/test_discovery_recovery.py
+new file mode 100644
+index 0000000..15cf57e
+--- /dev/null
++++ b/tests/test_discovery_recovery.py
+@@ -0,0 +1,34 @@
++"""Partial outages and stale completions must retain authoritative observations."""
++from pathlib import Path
++from dataclasses import replace
++import pytest
++import k8s_discovery as d
++import k8s_knowledge as k
++from tests.test_k8s_knowledge import getter, knowledge, POLICY
++
++def test_partial_outage_is_not_a_successful_smaller_snapshot():
++    def probe(url):
++        if 'v1.34' in url: raise TimeoutError('offline')
++        return True
++    current=d.discover('deb',probe,candidates=('1.34','1.33'))
++    assert current.error
++
++@pytest.mark.parametrize('code,status',[(404,'absent'),(410,'absent'),(429,'indeterminate'),(503,'indeterminate'),(403,'indeterminate')])
++def test_probe_distinguishes_authoritative_absence(code,status):
++    from urllib.error import HTTPError
++    def opener(request,**kw):raise HTTPError(request.full_url,code,'fixture',{},None)
++    assert d.probe_repository('https://pkgs.k8s.io/fixture',opener).status==status
++
++def test_partial_merge_keeps_old_time_and_new_successes_and_removes_proven_absence(tmp_path):
++    previous=d.Observation(('1.34','1.32'),'2025-01-01T00:00:00+00:00','fixture')
++    def probe(url):
++        if 'v1.34' in url:return d.ProbeResult('indeterminate','timeout')
++        if 'v1.32' in url:return d.ProbeResult('absent','HTTP 404')
++        return d.ProbeResult('available')
++    current=d.discover('deb',probe,candidates=('1.35','1.34','1.32'))
++    merged=d.retain(previous,current)
++    assert merged.versions==('1.35','1.34') and merged.observed_at==previous.observed_at
++    assert merged.error and dict(merged.checks)['1.34'].status=='indeterminate'
++    path=tmp_path/'cache.json';d.save(path,merged)
++    assert d.read(path)==merged
++
+-- 
+2.51.1
+

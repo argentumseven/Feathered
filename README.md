@@ -208,7 +208,7 @@ python feathered_cli.py show --spec build.json
 python feathered_cli.py build --spec build.json --out ./bundles
 ```
 
-Portable build specifications intentionally do not carry local private-key paths or repository credentials. Runtime credentials and local trust material can be provided separately:
+Portable build specifications exclude local private-key paths. Saved repository URLs may contain credentials; displayed summaries redact those credentials while preserving the repository location. Runtime credentials and local trust material can be provided separately:
 
 ```bash
 python feathered_cli.py build \

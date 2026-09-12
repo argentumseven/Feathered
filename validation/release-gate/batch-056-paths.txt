@@ -1,1 +1,2 @@
+tests/test_review_findings.py
 tests/test_root_requests.py

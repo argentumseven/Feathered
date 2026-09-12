@@ -18,6 +18,7 @@ from feathered_app.context import (
 from feathered_app.activity_log import open_activity_log
 from feathered_app.status_text import condense_status_text
 from feathered_app.ui.theme import messagebox
+from background_jobs import BackgroundJobs, JobCompletion
 
 
 class OperationsMixin:
@@ -508,15 +509,47 @@ class OperationsMixin:
     def _progress(self, label, value):
         self.events.put(("progress", label, value))
 
+    def _query_jobs(self):
+        jobs = self.__dict__.get('_background_query_jobs')
+        if jobs is None:
+            jobs = BackgroundJobs(self.events.put)
+            self._background_query_jobs = jobs
+            bind = getattr(self, 'bind', None)
+            if callable(bind):
+                bind('<Destroy>', lambda event: jobs.close() if event.widget is self else None, add='+')
+        return jobs
+
     def _drain_events(self):
-        """Drain worker events without allowing one bad UI handler to kill the pump."""
+        """Yield after at most 100 dequeues; preserve all non-progress barriers."""
         try:
-            while True:
+            batch = []
+            for _ in range(100):
                 try:
-                    kind, *data = self.events.get_nowait()
+                    event = self.events.get_nowait()
                 except queue.Empty:
                     break
+                # Only adjacent progress for the same operation label is
+                # redundant. Decisions, results and callback events are barriers.
+                if (isinstance(event, tuple) and len(event) == 3
+                        and event[0] in {'progress', 'tool_progress'} and batch
+                        and isinstance(batch[-1], tuple) and batch[-1][:2] == event[:2]):
+                    batch[-1] = event
+                else:
+                    batch.append(event)
+            for event in batch:
+                kind = 'background_query'
                 try:
+                    if isinstance(event, JobCompletion):
+                        jobs = self.__dict__.get('_background_query_jobs')
+                        if jobs is None or not jobs.accepts(event):
+                            continue
+                        if event.error:
+                            self._query_failed(event.operation, redact_text(event.error))
+                            if self.active_operation is not None:
+                                self._lock_operation_controls()
+                            continue
+                        event = event.value
+                    kind, *data = event
                     if kind == "progress":
                         self._operation_status(data[0]); self.progress_var.set(data[1] * 100)
                     elif kind in {"checksum_inspection_finished", "checksum_inspection_progress"}:
@@ -525,6 +558,8 @@ class OperationsMixin:
                         self._receive_k8s_observation(*data)
                     elif kind == "k8s_knowledge":
                         self._receive_k8s_knowledge(*data)
+                    elif kind == "k8s_knowledge_finished":
+                        self._finish_k8s_knowledge_refresh(*data)
                     elif kind == "k8s_observation_progress":
                         self._receive_k8s_observation(*data, complete=False)
                     elif kind == "k8s_patch_versions":
@@ -591,7 +626,7 @@ class OperationsMixin:
             # Always preserve liveness.  TclError here normally means the root
             # has been destroyed, in which case there is intentionally no pump.
             try:
-                self.after(100, self._drain_events)
+                self.after(1 if not self.events.empty() else 100, self._drain_events)
             except tk.TclError:
                 pass
 

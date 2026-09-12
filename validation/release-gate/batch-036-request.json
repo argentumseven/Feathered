@@ -1,6 +1,12 @@
 {
-  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
   "nodes": [
+    "tests/test_build_spec.py::test_exact_package_roots_survive_a_round_trip",
+    "tests/test_build_spec.py::test_a_replayed_spec_produces_the_same_request_tuples",
+    "tests/test_build_spec.py::test_no_resolved_package_state_reaches_a_saved_spec",
+    "tests/test_build_worker_isolation.py::test_the_tripwire_detects_a_read_from_another_thread",
+    "tests/test_build_worker_isolation.py::test_main_thread_reads_are_not_flagged",
+    "tests/test_build_worker_isolation.py::test_the_snapshot_serves_the_values_the_worker_needs",
     "tests/test_build_worker_isolation.py::test_releasing_the_snapshot_returns_the_wizard_to_live_controls",
     "tests/test_build_worker_isolation.py::test_a_build_snapshot_is_taken_before_the_worker_is_created",
     "tests/test_build_worker_isolation.py::test_the_snapshot_is_dropped_when_the_operation_ends",
@@ -14,12 +20,6 @@
     "tests/test_build_worker_isolation.py::test_the_interactive_prompt_remains_the_default",
     "tests/test_build_worker_isolation.py::test_a_host_that_cannot_answer_declines",
     "tests/test_build_worker_isolation.py::test_the_download_plan_does_not_deadlock_without_a_consumer",
-    "tests/test_build_worker_isolation.py::test_an_injected_sink_replaces_the_queue_handshake",
-    "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
-    "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
-    "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
-    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
-    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
-    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]"
+    "tests/test_build_worker_isolation.py::test_an_injected_sink_replaces_the_queue_handshake"
   ]
 }

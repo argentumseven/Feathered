@@ -1,0 +1,33 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+___________ test_partial_outage_is_not_a_successful_smaller_snapshot ___________
+
+    def test_partial_outage_is_not_a_successful_smaller_snapshot():
+        def probe(url):
+            if 'v1.34' in url: raise TimeoutError('offline')
+            return True
+        current=d.discover('deb',probe,candidates=('1.34','1.33'))
+>       assert current.error
+E       AssertionError: assert ''
+E        +  where '' = Observation(versions=('1.33',), observed_at='2026-09-12T22:43:03.126816+00:00', source='https://pkgs.k8s.io/core:/stable:/v1.{n}/deb/Release', error='').error
+
+tests/test_discovery_recovery.py:14: AssertionError
+________________ test_stale_refresh_cannot_clear_policy_change _________________
+
+tmp_path = PosixPath('/workspace/scratch/f2c614fac6a1/review/tmp/pytest-of-root/pytest-406/test_stale_refresh_cannot_clea0')
+
+    def test_stale_refresh_cannot_clear_policy_change(tmp_path):
+        previous=knowledge();path=tmp_path/'knowledge.json'
+        newer=k.refresh(path,previous,getter=lambda u:POLICY+b'changed' if u==k.KUBEADM else getter(u),force=True)
+        assert newer.changed_policies
+        older=k.refresh(path,previous,getter=getter,force=True)
+>       assert k.KUBEADM in older.changed_policies
+E       AssertionError: assert 'https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm.md' in ()
+E        +  where 'https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm.md' = k.KUBEADM
+E        +  and   () = Knowledge(releases=(Release(minor='1.90', end_of_life='2099-01-01'), Release(minor='1.33', end_of_life='2099-01-01'), ...d5dd3', observed_at='2026-09-12T22:43:03.149811+00:00', digest_scope='response-bytes')), error='', changed_policies=()).changed_policies
+
+tests/test_discovery_recovery.py:21: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot
+FAILED tests/test_discovery_recovery.py::test_stale_refresh_cannot_clear_policy_change
+2 failed in 0.12s

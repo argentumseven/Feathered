@@ -1,0 +1,198 @@
+FFFFFF.F                                                                 [100%]
+=================================== FAILURES ===================================
+_ test_summary_keeps_repository_location_and_public_query[show-user:PRIVATE_PASSWORD@] _
+
+tmp_path = PosixPath('/workspace/scratch/f2c614fac6a1/review/tmp/pytest-of-root/pytest-401/test_summary_keeps_repository_0')
+capsys = <_pytest.capture.CaptureFixture object at 0x7fc13a3d7350>
+auth = 'user:PRIVATE_PASSWORD@', command = 'show'
+
+    @pytest.mark.parametrize('auth', ['user:PRIVATE_PASSWORD@', 'PRIVATE_BEARER@', ''])
+    @pytest.mark.parametrize('command', ['show', 'dry-run'])
+    def test_summary_keeps_repository_location_and_public_query(tmp_path, capsys, auth, command):
+        url = f'https://{auth}repo.example:8443/linux/ubuntu/dists/noble?arch=amd64&label=a%2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE'
+        spec = BuildSpec(sources=SourceSpec(repositories=(RepositoryRecord(name='Ubuntu origin',url=url),)))
+        path=tmp_path/'spec.json'; path.write_text(spec.to_json())
+        args=['show','--spec',str(path)] if command=='show' else ['build','--dry-run','--spec',str(path)]
+        assert cli.main(args)==0
+        shown=capsys.readouterr().out
+        for secret in ('PRIVATE_PASSWORD','PRIVATE_BEARER','PRIVATE_TOKEN','PRIVATE_SIGNATURE'):
+>           assert secret not in shown
+E           AssertionError: assert 'PRIVATE_PASSWORD' not in 'target     ...ndex=False\n'
+E             
+E             'PRIVATE_PASSWORD' is contained here:
+E               ps://user:PRIVATE_PASSWORD@repo.example:8443/linux/ubuntu/dists/noble?arch=amd64&label=a%2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE
+E             ?           ++++++++++++++++
+E                   identity: repo-sha256:f75a4dd9a93b6012d0984d7e2cf6f36f26ca063e8e4625788987ad3d5c701c3e
+E               output      
+E                           scheme= stamp= repo_metadata=True signed_index=False
+
+tests/test_source_visibility.py:23: AssertionError
+_ test_summary_keeps_repository_location_and_public_query[show-PRIVATE_BEARER@] _
+
+tmp_path = PosixPath('/workspace/scratch/f2c614fac6a1/review/tmp/pytest-of-root/pytest-401/test_summary_keeps_repository_1')
+capsys = <_pytest.capture.CaptureFixture object at 0x7fc13a3d7ad0>
+auth = 'PRIVATE_BEARER@', command = 'show'
+
+    @pytest.mark.parametrize('auth', ['user:PRIVATE_PASSWORD@', 'PRIVATE_BEARER@', ''])
+    @pytest.mark.parametrize('command', ['show', 'dry-run'])
+    def test_summary_keeps_repository_location_and_public_query(tmp_path, capsys, auth, command):
+        url = f'https://{auth}repo.example:8443/linux/ubuntu/dists/noble?arch=amd64&label=a%2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE'
+        spec = BuildSpec(sources=SourceSpec(repositories=(RepositoryRecord(name='Ubuntu origin',url=url),)))
+        path=tmp_path/'spec.json'; path.write_text(spec.to_json())
+        args=['show','--spec',str(path)] if command=='show' else ['build','--dry-run','--spec',str(path)]
+        assert cli.main(args)==0
+        shown=capsys.readouterr().out
+        for secret in ('PRIVATE_PASSWORD','PRIVATE_BEARER','PRIVATE_TOKEN','PRIVATE_SIGNATURE'):
+>           assert secret not in shown
+E           AssertionError: assert 'PRIVATE_BEARER' not in 'target     ...ndex=False\n'
+E             
+E             'PRIVATE_BEARER' is contained here:
+E               ] https://PRIVATE_BEARER@repo.example:8443/linux/ubuntu/dists/noble?arch=amd64&label=a%2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE
+E             ?           ++++++++++++++
+E                   identity: repo-sha256:4588a555f3c8b4ccd5b39b71ec71589299cfcd96ebbbd85719e2bbd1635e6c9b
+E               output      
+E                           scheme= stamp= repo_metadata=True signed_index=False
+
+tests/test_source_visibility.py:23: AssertionError
+________ test_summary_keeps_repository_location_and_public_query[show-] ________
+
+tmp_path = PosixPath('/workspace/scratch/f2c614fac6a1/review/tmp/pytest-of-root/pytest-401/test_summary_keeps_repository_2')
+capsys = <_pytest.capture.CaptureFixture object at 0x7fc13a2200b0>, auth = ''
+command = 'show'
+
+    @pytest.mark.parametrize('auth', ['user:PRIVATE_PASSWORD@', 'PRIVATE_BEARER@', ''])
+    @pytest.mark.parametrize('command', ['show', 'dry-run'])
+    def test_summary_keeps_repository_location_and_public_query(tmp_path, capsys, auth, command):
+        url = f'https://{auth}repo.example:8443/linux/ubuntu/dists/noble?arch=amd64&label=a%2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE'
+        spec = BuildSpec(sources=SourceSpec(repositories=(RepositoryRecord(name='Ubuntu origin',url=url),)))
+        path=tmp_path/'spec.json'; path.write_text(spec.to_json())
+        args=['show','--spec',str(path)] if command=='show' else ['build','--dry-run','--spec',str(path)]
+        assert cli.main(args)==0
+        shown=capsys.readouterr().out
+        for secret in ('PRIVATE_PASSWORD','PRIVATE_BEARER','PRIVATE_TOKEN','PRIVATE_SIGNATURE'):
+>           assert secret not in shown
+E           AssertionError: assert 'PRIVATE_TOKEN' not in 'target     ...ndex=False\n'
+E             
+E             'PRIVATE_TOKEN' is contained here:
+E               2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE
+E             ?           +++++++++++++
+E                   identity: repo-sha256:2b5c3e2159c70b05bf11893b702cb515b498378e1f2355fe7d3939dc1b048a49
+E               output      
+E                           scheme= stamp= repo_metadata=True signed_index=False
+
+tests/test_source_visibility.py:23: AssertionError
+_ test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@] _
+
+tmp_path = PosixPath('/workspace/scratch/f2c614fac6a1/review/tmp/pytest-of-root/pytest-401/test_summary_keeps_repository_3')
+capsys = <_pytest.capture.CaptureFixture object at 0x7fc13a236d50>
+auth = 'user:PRIVATE_PASSWORD@', command = 'dry-run'
+
+    @pytest.mark.parametrize('auth', ['user:PRIVATE_PASSWORD@', 'PRIVATE_BEARER@', ''])
+    @pytest.mark.parametrize('command', ['show', 'dry-run'])
+    def test_summary_keeps_repository_location_and_public_query(tmp_path, capsys, auth, command):
+        url = f'https://{auth}repo.example:8443/linux/ubuntu/dists/noble?arch=amd64&label=a%2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE'
+        spec = BuildSpec(sources=SourceSpec(repositories=(RepositoryRecord(name='Ubuntu origin',url=url),)))
+        path=tmp_path/'spec.json'; path.write_text(spec.to_json())
+        args=['show','--spec',str(path)] if command=='show' else ['build','--dry-run','--spec',str(path)]
+        assert cli.main(args)==0
+        shown=capsys.readouterr().out
+        for secret in ('PRIVATE_PASSWORD','PRIVATE_BEARER','PRIVATE_TOKEN','PRIVATE_SIGNATURE'):
+>           assert secret not in shown
+E           AssertionError: assert 'PRIVATE_PASSWORD' not in 'target     ...r written.\n'
+E             
+E             'PRIVATE_PASSWORD' is contained here:
+E               ps://user:PRIVATE_PASSWORD@repo.example:8443/linux/ubuntu/dists/noble?arch=amd64&label=a%2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE
+E             ?           ++++++++++++++++
+E                   identity: repo-sha256:f75a4dd9a93b6012d0984d7e2cf6f36f26ca063e8e4625788987ad3d5c701c3e
+E               output      
+E                           scheme= stamp= repo_metadata=True signed_index=False
+E               
+E               Dry run: nothing was fetched or written.
+
+tests/test_source_visibility.py:23: AssertionError
+_ test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@] _
+
+tmp_path = PosixPath('/workspace/scratch/f2c614fac6a1/review/tmp/pytest-of-root/pytest-401/test_summary_keeps_repository_4')
+capsys = <_pytest.capture.CaptureFixture object at 0x7fc13a220290>
+auth = 'PRIVATE_BEARER@', command = 'dry-run'
+
+    @pytest.mark.parametrize('auth', ['user:PRIVATE_PASSWORD@', 'PRIVATE_BEARER@', ''])
+    @pytest.mark.parametrize('command', ['show', 'dry-run'])
+    def test_summary_keeps_repository_location_and_public_query(tmp_path, capsys, auth, command):
+        url = f'https://{auth}repo.example:8443/linux/ubuntu/dists/noble?arch=amd64&label=a%2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE'
+        spec = BuildSpec(sources=SourceSpec(repositories=(RepositoryRecord(name='Ubuntu origin',url=url),)))
+        path=tmp_path/'spec.json'; path.write_text(spec.to_json())
+        args=['show','--spec',str(path)] if command=='show' else ['build','--dry-run','--spec',str(path)]
+        assert cli.main(args)==0
+        shown=capsys.readouterr().out
+        for secret in ('PRIVATE_PASSWORD','PRIVATE_BEARER','PRIVATE_TOKEN','PRIVATE_SIGNATURE'):
+>           assert secret not in shown
+E           AssertionError: assert 'PRIVATE_BEARER' not in 'target     ...r written.\n'
+E             
+E             'PRIVATE_BEARER' is contained here:
+E               ] https://PRIVATE_BEARER@repo.example:8443/linux/ubuntu/dists/noble?arch=amd64&label=a%2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE
+E             ?           ++++++++++++++
+E                   identity: repo-sha256:4588a555f3c8b4ccd5b39b71ec71589299cfcd96ebbbd85719e2bbd1635e6c9b
+E               output      
+E                           scheme= stamp= repo_metadata=True signed_index=False
+E               
+E               Dry run: nothing was fetched or written.
+
+tests/test_source_visibility.py:23: AssertionError
+______ test_summary_keeps_repository_location_and_public_query[dry-run-] _______
+
+tmp_path = PosixPath('/workspace/scratch/f2c614fac6a1/review/tmp/pytest-of-root/pytest-401/test_summary_keeps_repository_5')
+capsys = <_pytest.capture.CaptureFixture object at 0x7fc13a237da0>, auth = ''
+command = 'dry-run'
+
+    @pytest.mark.parametrize('auth', ['user:PRIVATE_PASSWORD@', 'PRIVATE_BEARER@', ''])
+    @pytest.mark.parametrize('command', ['show', 'dry-run'])
+    def test_summary_keeps_repository_location_and_public_query(tmp_path, capsys, auth, command):
+        url = f'https://{auth}repo.example:8443/linux/ubuntu/dists/noble?arch=amd64&label=a%2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE'
+        spec = BuildSpec(sources=SourceSpec(repositories=(RepositoryRecord(name='Ubuntu origin',url=url),)))
+        path=tmp_path/'spec.json'; path.write_text(spec.to_json())
+        args=['show','--spec',str(path)] if command=='show' else ['build','--dry-run','--spec',str(path)]
+        assert cli.main(args)==0
+        shown=capsys.readouterr().out
+        for secret in ('PRIVATE_PASSWORD','PRIVATE_BEARER','PRIVATE_TOKEN','PRIVATE_SIGNATURE'):
+>           assert secret not in shown
+E           AssertionError: assert 'PRIVATE_TOKEN' not in 'target     ...r written.\n'
+E             
+E             'PRIVATE_TOKEN' is contained here:
+E               2Bb&token=PRIVATE_TOKEN&X-Amz-Signature=PRIVATE_SIGNATURE
+E             ?           +++++++++++++
+E                   identity: repo-sha256:2b5c3e2159c70b05bf11893b702cb515b498378e1f2355fe7d3939dc1b048a49
+E               output      
+E                           scheme= stamp= repo_metadata=True signed_index=False
+E               
+E               Dry run: nothing was fetched or written.
+
+tests/test_source_visibility.py:23: AssertionError
+___________________ test_terminal_failure_scrubs_credentials ___________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x7fc13a25b980>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fc13a2595e0>
+
+    def test_terminal_failure_scrubs_credentials(capsys, monkeypatch):
+        import feathered_app.build_api as api
+        from feathered_app.build_outcome import BuildOutcome, BuildStatus
+        monkeypatch.setattr(api,'execute_build',lambda *a,**kw:BuildOutcome(BuildStatus.FAILED,'Failed https://u:PRIVATE_PASSWORD@repo.example/linux?token=PRIVATE_TOKEN'))
+        assert cli.run_build(BuildSpec())==1
+        shown=capsys.readouterr().err
+>       assert 'PRIVATE_PASSWORD' not in shown and 'PRIVATE_TOKEN' not in shown
+E       AssertionError: assert ('PRIVATE_PASSWORD' not in 'ERROR: Fail...VATE_TOKEN\n'
+E         
+E         'PRIVATE_PASSWORD' is contained here:
+E           ERROR: Failed https://u:PRIVATE_PASSWORD@repo.example/linux?token=PRIVATE_TOKEN
+E         ?                         ++++++++++++++++)
+
+tests/test_source_visibility.py:54: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-user:PRIVATE_PASSWORD@]
+FAILED tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-PRIVATE_BEARER@]
+FAILED tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]
+FAILED tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]
+FAILED tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]
+FAILED tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]
+FAILED tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials
+7 failed, 1 passed in 0.14s

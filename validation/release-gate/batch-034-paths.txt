@@ -1,2 +1,1 @@
 tests/test_build_request_module.py
-tests/test_build_spec.py

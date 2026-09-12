@@ -1,0 +1,762 @@
+From 217e02da27b74e9a414e7ddd436e9a056886d6c2 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sat, 12 Sep 2026 18:59:08 -0400
+Subject: [PATCH 5/5] Bound GUI event drains and coordinate replaceable
+ background queries
+
+---
+ BACKGROUND-REFRESH.md                   |  23 +++++
+ SOURCE-SHA256.json                      |  15 +--
+ VALIDATION.md                           |  24 ++++-
+ background_jobs.py                      | 120 ++++++++++++++++++++++++
+ feathered_app/application/operations.py |  41 +++++++-
+ feathered_app/ui/kubernetes.py          |  64 ++++++++-----
+ mypy.ini                                |   8 ++
+ tests/test_background_jobs.py           |  86 +++++++++++++++++
+ tests/test_discovery_recovery.py        |   6 +-
+ tests/test_ui_event_budget.py           |  95 +++++++++++++++++++
+ 10 files changed, 444 insertions(+), 38 deletions(-)
+ create mode 100644 background_jobs.py
+ create mode 100644 tests/test_background_jobs.py
+ create mode 100644 tests/test_ui_event_budget.py
+
+diff --git a/BACKGROUND-REFRESH.md b/BACKGROUND-REFRESH.md
+index b9d18a5..5921605 100644
+--- a/BACKGROUND-REFRESH.md
++++ b/BACKGROUND-REFRESH.md
+@@ -23,3 +23,26 @@ Refresh reconciles the newest recorded source observations and retains historica
+ release records. Policy-change flags are sticky across refreshes and restarts;
+ network data cannot clear them. Downloaded policy prose remains evidence for
+ human review and never replaces executable compatibility rules.
++
++## UI processing budget
++
++The event pump dequeues at most 100 events per callback, coalesces only adjacent
++progress updates with the same kind and label, then yields to Tk. A nonempty
++queue resumes after 1 ms; an idle queue is polled after 100 ms. Decision events,
++acknowledgements, terminal results, and ordering barriers are never coalesced.
++Control re-locking remains after each dispatched handler.
++
++Kubernetes knowledge, repository probes, and package-build queries now use a
++small typed completion envelope and a shared coordinator: two active jobs,
++one pending replacement per named operation, and at most eight operation names.
++Inputs are captured before dispatch. New patch requests cancel obsolete work
++cooperatively through the existing Reporter; both request generations and the
++existing full context comparison guard application of results. Destroying the
++root cancels active and pending queries. Transports without cancellation support
++finish their bounded request but their obsolete completion is ignored. Legacy
++tuple consumers can still unpack completion payloads.
++
++This is an incremental migration. Builds retain their existing operation lease;
++distribution refresh and other older query producers retain their existing
++context guards and are serviced by the bounded event pump. They are not claimed
++to have migrated to the new query coordinator in this batch.
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index bac1d38..4f4b6fa 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -5,7 +5,7 @@
+   ".github/workflows/windows-release.yml": "68ab87e9051e7cfaeb2dbd85fc4a80686cfa1d892a5b5c5fae9a45574c21dc2d",
+   ".github/workflows/workload-drift.yml": "ad6be6eb2007aa01082c6a54de5b08907d6d9085b0d4e47f3b9688df1aadaad6",
+   ".gitignore": "7af25837f3f8f7ae328b2e61ecdae35b3dbf101fe4e46bb9352961a3f43c2243",
+-  "BACKGROUND-REFRESH.md": "324cb831b10e38fa00e29b5b71daef87fd42833b3ee8fd06dba9af2339452f2b",
++  "BACKGROUND-REFRESH.md": "9719bf2f7d7ba6b95dbec4f5100c447c4773bdbf03b0c91d5a439a0a678d6d82",
+   "CHANGELOG.md": "c6d32c4099fa7e80b2a318fb22443e11c2d2a68d026855274a0ac591945465d0",
+   "CLI.md": "631ed89266c8ff5cacc35215d50110cad15591cca7c6e928519ae3c1bf169a49",
+   "KUBERNETES.md": "bdf620d825281c078b4a9939327303d1730a4c345de5c5fc8894b3aaec5bc6e0",
+@@ -13,12 +13,13 @@
+   "NOTICE.md": "35dc860c6112db9e7bbd493374db0a58a74af118dbfce3b6cd1ae99bc0af5679",
+   "README.md": "82a6d328333e244e9e165914295d2cbb91de00f48172d1cb7d497fc85f41eb8a",
+   "SECURITY.md": "62aa26ffb2f9e2c7f19bf5a3d8d33f0c5ae5ef4f5c45949c9d3de26a9b4ad444",
+-  "VALIDATION.md": "f00a5bcdbd4ee8f1171b7a96f1277284559dea94087dbb5b6ca7f26621a08379",
++  "VALIDATION.md": "a638adda8a7d1260ae269da04f5cc93917b6e113f790651c1b79922b7ba2dbb6",
+   "acquisition_model.py": "e90fca096aa320a8768fef39c21bbaa42e152f3c02a81926ec7a8f5397046b0e",
+   "app.py": "aa04ea4426571f5348a86eb70f7ea9357b993afb671bc43ebee16e6b5a9a50e7",
+   "apt_core.py": "436c7b4a0fddae2a1fd17f50da2c9482c0f73da547c35135f9e33264891ee599",
+   "arch_core.py": "d13e8f6a64181d8389d8fb8fa7356f8a578a47ac72fd7fdf543df52c6c899dea",
+   "artifact_cache.py": "2680caccc4e9fd517896aa19f445e61461099319c1ebac9ecafe1c9011b859f4",
++  "background_jobs.py": "f90e152b75b4ae995f78f71354ee1cf3045476948698f1f0c5e1cfe52f2258fd",
+   "build_exe.bat": "76fa33f0277a4fe60077514b7d4f6894073c9b29943fe8d5603048235861865c",
+   "build_exe_debug.bat": "0a782bcdf7b269183b62235e6d82a330723f02ea6ac1e3447e7c1de19204cac6",
+   "build_spec.py": "08a7b88434be5c9e09664d8c7213e092f92384da749bd803c47dba3ac2f8b489",
+@@ -36,7 +37,7 @@
+   "feathered_app/application/build.py": "8f2f0bac0f43b49c10ec8119ffd55bf91a28e4504e612b217dc978580840465c",
+   "feathered_app/application/discovery.py": "4a7e43dca49d55a4a464db345d0ca6621738d2454961e4e8df2bf115b9df396b",
+   "feathered_app/application/media.py": "9f3b0071051951db02fb5275381e46e5d8c93f9b5f4fca6896e51ffccd0c574d",
+-  "feathered_app/application/operations.py": "2a6de9924b459a4d7e40d065d577c8f8007cb2324355345d834dae5c6b4bba93",
++  "feathered_app/application/operations.py": "9235522fb5058699b49fe58b1b76b615b43c3068767cbc985332420e7550beaa",
+   "feathered_app/application/output.py": "d324c129c4c7aeb5fe510bb3df98b602c42dbd47882e234b5f02fd2e6d98aa17",
+   "feathered_app/application/provenance.py": "c3932a721350e5904246c22e11bc783755a9b80245f2b194af9ee0d2b813a420",
+   "feathered_app/application/repositories.py": "8a8f2bb95d492297607d897155c0a04fb99a76b4c2a64ec2aabc99bd03dd6502",
+@@ -70,7 +71,7 @@
+   "feathered_app/state.py": "3128c28c3a84ff368f74877193f8ed894b7ff3e8b94f61f623d2d804c271f081",
+   "feathered_app/status_text.py": "078bf0cb298238e111592b1988191edb32351ef27920c290dbedcad1aed8cbf7",
+   "feathered_app/ui/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+-  "feathered_app/ui/kubernetes.py": "a743a2ee81d76e8b7b21dd1ee1f34f1f3a03794aae6c3038eccac8ca5b51115f",
++  "feathered_app/ui/kubernetes.py": "206e116d28992612a1a307bdaba49a03e4f6d6aa4f988f87ba194dc0b376db81",
+   "feathered_app/ui/layout.py": "5dfec088a57f617e9ac86477f5e9fa879b7e1f1aeca38ccb9f47bd58bc1f7019",
+   "feathered_app/ui/panes.py": "e40895e77fb21704e2fa8cb6ee3cf8ee64d3a40f3d629346b017ce6aa6fad945",
+   "feathered_app/ui/theme.py": "3e582bba99c65d1499d0b9fb2e4691c73340b3f26ee004f8ef1a30c40e0f297a",
+@@ -102,7 +103,7 @@
+   "mirror_catalogs/ubuntu.json": "3e8e50c14d8f8071878eeea23aeaf830269f9bd34a7e12091c8dd1d91b42716f",
+   "mirror_unification.py": "cab2695063c2e4dad08ee34b402ea9d93346fb15d3f78ddef61c85e6def991b2",
+   "module_policy.py": "1b9bd38bda3429cd42b05e816922081c76baea45b62f4dc2b657a72fd0d58d2b",
+-  "mypy.ini": "4a2ad58b09b28f79666ad63ae450962efba0c4b62f6e9f543492e9b586486f06",
++  "mypy.ini": "8675b348136f910b2a34cf87f56ef6715210fb77cb340cd93b6914baef7204a8",
+   "native_conformance.py": "8f3185d89d30292745c1b10adb9b364cff129e8fc2943c061c67b401aeb53b40",
+   "profiles.py": "ec84c3249d75d19f697bb7f52bfd349ac53a028ca73f4fa8fd4804121555fc9e",
+   "provenance.py": "4332d08c1518b81bc66c60129d3b57b7d8dc1b1c7f5469f69f1653a2e1f2513d",
+@@ -134,6 +135,7 @@
+   "tests/test_application_startup.py": "154b33b7b46b2eec8e93f80faa6b0914877f8bbc369f14c4b05f1e8c331ca0f7",
+   "tests/test_architecture.py": "a92908c432be6f251d4a1dbf4b1c29dd067cc87282461d5305475ccf751704ea",
+   "tests/test_assurance_semantics.py": "93670259154832314496ed2573c10ce3309937fa96e88da23c89f0396518a039",
++  "tests/test_background_jobs.py": "cba76dcff69fd37b238ce2558e257e2ef645479cdf72ec7d2a347a8e6b39b30e",
+   "tests/test_build_host_contracts.py": "750732dec6699c7dbb36fe22852d5c6420f0c9141c87d67e32a248f529ff156f",
+   "tests/test_build_preparation.py": "913962a9fb0c189e38b29d752c77c8240925e9f5215f0ad1564f32d0024e640a",
+   "tests/test_build_request_module.py": "2a6f2d5e45830ac00b788e17f6d9de6da4de916aaba2b50326241629898733ba",
+@@ -143,7 +145,7 @@
+   "tests/test_chooser_stale_activation.py": "7dcf1c8c5e704f71ca7e179c1a4a02fa928386697da113dbd7cad1f6bc43b9cf",
+   "tests/test_cli_native_families.py": "3ec83717e3b3fc2252fef3992fcce616ecbc152361a519fbe48be4db7a0c9767",
+   "tests/test_cli_replay.py": "23131a3e936499261f36aea9ab6c5c0d1baaa41b2891c0c3dbb74afa3de69a36",
+-  "tests/test_discovery_recovery.py": "a3f3083aebedeefc3841bbd1fa3ca317ede8921064782340b22678b135a9d308",
++  "tests/test_discovery_recovery.py": "7b871cac6a8d110949af92f0c02436e01d805560016a254e2db0136cce40b2ee",
+   "tests/test_end_to_end_build.py": "05c4872ef68f4fdb7cd94cbc0f8a3a1d2529f13e83ff8e5dc14112a25c28c29b",
+   "tests/test_footer_status.py": "f018082a321b35f2b69229daf853548391df6fbede34017684352d06b31e630f",
+   "tests/test_headless_execution.py": "db8173650be32d161576aa371447b2e92afe52dd7e73fb92e587e9d3eec17f42",
+@@ -171,6 +173,7 @@
+   "tests/test_transaction_contract.py": "b62acc56444a7693796df0544a6e33ce200e52b79ab5e5e67baf0f6f0fe0937a",
+   "tests/test_transaction_inventory.py": "204e216ea81db84835c6c38784c5fc6b8f7e5f527b99860d7e537467df1b0a23",
+   "tests/test_transaction_resolution.py": "4be9eeed37cc4d3dd53b4e6b64a2a0c6d6ffc6ec1be1173f6c4266700fa9847a",
++  "tests/test_ui_event_budget.py": "b2a2d038cf9248f2c4c74375a9b295fbb1037a87d7b897ce9e1caf74cc28b0af",
+   "tests/test_version_ui_fixes.py": "027d821019d723255d2b7505e40f8fc15ec8556ab724a39181d945368368d591",
+   "tests/test_workload_version_ui.py": "0220c8817cd77b003a7a37d4477fce9ed4515355ad3627724184cba8a98a25e0",
+   "tools/move_methods.py": "f9ae152be705f34fd1a88b315ca93bd6737f143e21761d863db7d6d8aa873420",
+diff --git a/VALIDATION.md b/VALIDATION.md
+index abf5817..d18adc2 100644
+--- a/VALIDATION.md
++++ b/VALIDATION.md
+@@ -73,13 +73,31 @@ pytest argument file, avoiding command-line limits without omitting parameters.
+ 
+ ## Scope of local validation
+ 
++The follow-on batch implements instruction items 2–5: credential-safe display
++with source URLs visible, strict decoding of recognized spec fields and runtime
++preparation inputs, partial-outage recovery, shared release-knowledge ownership,
++and bounded UI event processing with incremental query coordination. Each
++behavioral repair has focused regression evidence in `validation/batch25/`;
++the complete final-tree result remains `validation/release-gate/SUMMARY.md`.
++Malformed specs formerly accepted by truthiness are intentionally rejected;
++valid older specs and incomplete drafts remain supported. See
++`BACKGROUND-REFRESH.md` for cache ownership, cancellation and migration scope.
++
++The new heartbeat test demonstrated queue starvation under a synthetic progress
++burst. It is a reproduction of that bounded scenario, not a claim that every
++historical UI hang had the same cause. No tests are deliberately deselected in
++the delivered full release gate. Diagnostics during development included a
++headless focused run and a display-harness setup failure; those are not counted
++as GUI validation.
++
+ The implementation review uses Linux, Python 3.12.14, pytest 9.1.1 and Tk/Xvfb.
+ Mypy and Ruff use the configured versions, 1.18.2 and 0.14.2. Local execution does
+ not establish Windows execution, Authenticode signing, frozen production builds,
+ staged gpgv behavior, native package-manager oracle acceptance or live upstream
+-availability. Those checks were not performed for this gate-only change. The
++availability. Those checks were not performed for this batch. The
+ existing CI requirements for native conformance and signed production remain in
+ place; a workflow definition is not evidence that its remote job has run.
+ 
+-No package resolver, publication implementation, transport policy, application UI,
+-saved-spec format or bundle layout is changed by item 1.
++Item 1 changed only release verification. The follow-on batch changes application
++input validation and discovery/event handling; it does not change package
++resolution, bundle layout, stored repository credentials or transport identity.
+diff --git a/background_jobs.py b/background_jobs.py
+new file mode 100644
+index 0000000..06a9802
+--- /dev/null
++++ b/background_jobs.py
+@@ -0,0 +1,120 @@
++"""Small Tk-free owner for bounded, replaceable background queries.
++
++Build execution keeps its existing operation lease. This coordinator is only for
++queries whose obsolete results can safely be ignored by the UI.
++"""
++from __future__ import annotations
++
++from collections import OrderedDict
++from dataclasses import dataclass
++from threading import Event, RLock, Thread
++from typing import Callable, Generic, Iterator, TypeVar
++
++T = TypeVar('T')
++
++
++@dataclass(frozen=True)
++class JobCompletion(Generic[T]):
++    operation: str
++    generation: int
++    value: T | None = None
++    error: str = ''
++    cancelled: bool = False
++
++    def __iter__(self) -> Iterator[object]:
++        """Keep legacy tuple consumers usable while the GUI checks the envelope."""
++        if not isinstance(self.value, tuple):
++            raise TypeError('This completion has no legacy tuple payload')
++        return iter(self.value)
++
++
++@dataclass(frozen=True)
++class _Job(Generic[T]):
++    operation: str
++    generation: int
++    work: Callable[[Event], T]
++    cancel: Event
++
++
++class BackgroundJobs(Generic[T]):
++    """At most two active queries and one pending replacement per named lane.
++
++    Deliver is a thread-safe queue sink, never a Tk callback. Every accepted job
++    gets one completion, including jobs replaced before starting. The receiver
++    must call accepts() immediately before applying a completion.
++    """
++    def __init__(self, deliver: Callable[[JobCompletion[T]], None], *,
++                 max_workers: int = 2, max_operations: int = 8) -> None:
++        if max_workers < 1 or max_operations < 1:
++            raise ValueError('Background job limits must be positive')
++        self._deliver = deliver
++        self._limit = max_workers
++        self._max_operations = max_operations
++        self._lock = RLock()
++        self._generations: dict[str, int] = {}
++        self._pending: OrderedDict[str, _Job[T]] = OrderedDict()
++        self._active: dict[tuple[str, int], _Job[T]] = {}
++        self._closed = False
++
++    def submit(self, operation: str, work: Callable[[Event], T]) -> int:
++        with self._lock:
++            if self._closed:
++                raise RuntimeError('Background queries are closed')
++            if operation not in self._generations and len(self._generations) >= self._max_operations:
++                raise ValueError('Too many background query operations')
++            self.cancel(operation)
++            generation = self._generations.get(operation, 0) + 1
++            self._generations[operation] = generation
++            self._pending[operation] = _Job(operation, generation, work, Event())
++            self._start_pending()
++            return generation
++
++    def cancel(self, operation: str) -> None:
++        with self._lock:
++            if operation in self._generations:
++                self._generations[operation] += 1
++            pending = self._pending.pop(operation, None)
++            if pending is not None:
++                self._deliver(JobCompletion(operation, pending.generation, cancelled=True))
++            for job in self._active.values():
++                if job.operation == operation:
++                    job.cancel.set()
++
++    def accepts(self, result: JobCompletion[T]) -> bool:
++        with self._lock:
++            return (not self._closed and not result.cancelled
++                    and self._generations.get(result.operation) == result.generation)
++
++    def close(self) -> None:
++        with self._lock:
++            self._closed = True
++            for operation in tuple(self._generations):
++                self.cancel(operation)
++
++    def _start_pending(self) -> None:
++        while self._pending and len(self._active) < self._limit:
++            _, job = self._pending.popitem(last=False)
++            key = (job.operation, job.generation)
++            self._active[key] = job
++            try:
++                Thread(target=self._run, args=(job,), daemon=True).start()
++            except Exception as exc:
++                del self._active[key]
++                self._deliver(JobCompletion(job.operation, job.generation,
++                                            error=f'{type(exc).__name__}: {exc}'))
++
++    def _run(self, job: _Job[T]) -> None:
++        value: T | None = None
++        error = ''
++        try:
++            if not job.cancel.is_set():
++                value = job.work(job.cancel)
++        except BaseException as exc:
++            # Worker exits must release capacity as well as normal failures.
++            error = f'{type(exc).__name__}: {exc}'
++        finally:
++            with self._lock:
++                del self._active[(job.operation, job.generation)]
++                self._deliver(JobCompletion(job.operation, job.generation, value,
++                                            error, job.cancel.is_set()))
++                self._start_pending()
+diff --git a/feathered_app/application/operations.py b/feathered_app/application/operations.py
+index 8e66c62..930ced5 100644
+--- a/feathered_app/application/operations.py
++++ b/feathered_app/application/operations.py
+@@ -18,6 +18,7 @@ from feathered_app.context import (
+ from feathered_app.activity_log import open_activity_log
+ from feathered_app.status_text import condense_status_text
+ from feathered_app.ui.theme import messagebox
++from background_jobs import BackgroundJobs, JobCompletion
+ 
+ 
+ class OperationsMixin:
+@@ -508,15 +509,47 @@ class OperationsMixin:
+     def _progress(self, label, value):
+         self.events.put(("progress", label, value))
+ 
++    def _query_jobs(self):
++        jobs = self.__dict__.get('_background_query_jobs')
++        if jobs is None:
++            jobs = BackgroundJobs(self.events.put)
++            self._background_query_jobs = jobs
++            bind = getattr(self, 'bind', None)
++            if callable(bind):
++                bind('<Destroy>', lambda event: jobs.close() if event.widget is self else None, add='+')
++        return jobs
++
+     def _drain_events(self):
+-        """Drain worker events without allowing one bad UI handler to kill the pump."""
++        """Yield after at most 100 dequeues; preserve all non-progress barriers."""
+         try:
+-            while True:
++            batch = []
++            for _ in range(100):
+                 try:
+-                    kind, *data = self.events.get_nowait()
++                    event = self.events.get_nowait()
+                 except queue.Empty:
+                     break
++                # Only adjacent progress for the same operation label is
++                # redundant. Decisions, results and callback events are barriers.
++                if (isinstance(event, tuple) and len(event) == 3
++                        and event[0] in {'progress', 'tool_progress'} and batch
++                        and isinstance(batch[-1], tuple) and batch[-1][:2] == event[:2]):
++                    batch[-1] = event
++                else:
++                    batch.append(event)
++            for event in batch:
++                kind = 'background_query'
+                 try:
++                    if isinstance(event, JobCompletion):
++                        jobs = self.__dict__.get('_background_query_jobs')
++                        if jobs is None or not jobs.accepts(event):
++                            continue
++                        if event.error:
++                            self._query_failed(event.operation, redact_text(event.error))
++                            if self.active_operation is not None:
++                                self._lock_operation_controls()
++                            continue
++                        event = event.value
++                    kind, *data = event
+                     if kind == "progress":
+                         self._operation_status(data[0]); self.progress_var.set(data[1] * 100)
+                     elif kind in {"checksum_inspection_finished", "checksum_inspection_progress"}:
+@@ -593,7 +626,7 @@ class OperationsMixin:
+             # Always preserve liveness.  TclError here normally means the root
+             # has been destroyed, in which case there is intentionally no pump.
+             try:
+-                self.after(100, self._drain_events)
++                self.after(1 if not self.events.empty() else 100, self._drain_events)
+             except tk.TclError:
+                 pass
+ 
+diff --git a/feathered_app/ui/kubernetes.py b/feathered_app/ui/kubernetes.py
+index c15bcea..b2f0714 100644
+--- a/feathered_app/ui/kubernetes.py
++++ b/feathered_app/ui/kubernetes.py
+@@ -1,5 +1,4 @@
+ """Small workload-specific adapters for existing Content/Repository/Review stages."""
+-import threading
+ from copy import deepcopy
+ from dataclasses import replace
+ from urllib.error import HTTPError
+@@ -15,6 +14,11 @@ import k8s_knowledge
+ 
+ 
+ class KubernetesWorkloadMixin:
++    def _query_jobs(self):
++        # Preserve use of this mixin by existing non-window adapters as well.
++        from feathered_app.application.operations import OperationsMixin
++        return OperationsMixin._query_jobs(self)
++
+     def _build_kubernetes_content_controls(self, parent):
+         self.k8s_minor_var = tk.StringVar(value='')
+         self.apiserver_oldest_minor_var = tk.StringVar(value='')
+@@ -77,6 +81,8 @@ class KubernetesWorkloadMixin:
+             return
+         key = self._workload().key
+         active = key in KUBERNETES_KEYS
++        if not active and '_background_query_jobs' in self.__dict__:
++            self._background_query_jobs.cancel('k8s-patches')
+         self.package_version_label.configure(text='Package patch / build' if active else 'Version')
+         self.k8s_minor_controls.grid() if active else self.k8s_minor_controls.grid_remove()
+         self.k8s_patch_status.grid() if active else self.k8s_patch_status.grid_remove()
+@@ -121,39 +127,54 @@ class KubernetesWorkloadMixin:
+         self._k8s_knowledge_refresh_running = True
+         generation = self.__dict__.get('_k8s_knowledge_generation', 0) + 1
+         self._k8s_knowledge_generation = generation
+-        events = self.events
+         path = self._release_cache_path().with_name('kubernetes-knowledge.json')
+         previous = self.__dict__.get('_k8s_knowledge') or k8s_knowledge.read(path) or k8s_knowledge.bundled()
+-        def work():
++        def work(cancel):
+             try:
+                 knowledge = k8s_knowledge.refresh(path, previous, force=force)
+             except Exception as exc:
+                 knowledge = replace(previous, error=core.redact_text(str(exc)))
+-            events.put(('k8s_knowledge_finished', generation, knowledge))
+-        threading.Thread(target=work, daemon=True).start()
++            return ('k8s_knowledge_finished', generation, knowledge)
++        self._query_jobs().submit('k8s-knowledge', work)
+ 
+     def _finish_k8s_knowledge_refresh(self, generation, knowledge):
+-        if generation != self.__dict__.get('_k8s_knowledge_generation'):
++        if (generation != self.__dict__.get('_k8s_knowledge_generation')
++                or not self.__dict__.get('_k8s_knowledge_refresh_running')):
+             return
+         self._k8s_knowledge_refresh_running = False
+         families = self.__dict__.pop('_k8s_knowledge_waiters', set())
+-        self._receive_k8s_knowledge(knowledge)
+-        for family in families:
+-            self._start_k8s_repository_discovery(family, knowledge)
++        try:
++            self._receive_k8s_knowledge(knowledge)
++        finally:
++            for family in families:
++                self._start_k8s_repository_discovery(family, knowledge)
+ 
+     def _start_k8s_repository_discovery(self, family, knowledge):
+         events = self.events
+         def probe(url):
+             return k8s_discovery.probe_repository(url, opener=urlopen)
+-        def work():
++        def work(cancel):
+             try:
+-                observation = k8s_discovery.discover(family, probe,
++                observation = k8s_discovery.discover(family,
++                    lambda url: k8s_discovery.ProbeResult('indeterminate', 'Cancelled') if cancel.is_set() else probe(url),
+                     lambda observation: events.put(('k8s_observation_progress', family, observation)),
+                     candidates=knowledge.repository_candidates or None)
+             except Exception as exc:
+                 observation = k8s_discovery.Observation((), '', 'https://pkgs.k8s.io', core.redact_text(str(exc)))
+-            events.put(('k8s_observation', family, observation))
+-        threading.Thread(target=work, daemon=True).start()
++            return ('k8s_observation', family, observation)
++        self._query_jobs().submit('k8s-repositories-' + family, work)
++
++    def _query_failed(self, operation, error):
++        """Release UI ownership even if a query could not start its worker."""
++        self._log('Background query failed: ' + error)
++        if operation == 'k8s-knowledge':
++            previous = self.__dict__.get('_k8s_knowledge') or k8s_knowledge.bundled()
++            self._finish_k8s_knowledge_refresh(self._k8s_knowledge_generation, replace(previous, error=error))
++        elif operation.startswith('k8s-repositories-'):
++            family = operation.removeprefix('k8s-repositories-')
++            self._receive_k8s_observation(family, k8s_discovery.Observation((), '', 'https://pkgs.k8s.io', error))
++        elif operation == 'k8s-patches':
++            self.k8s_patch_status_var.set('Could not load versions: ' + error + '. Use Refresh versions to retry.')
+ 
+     def _receive_k8s_observation(self, family, observation, complete=True):
+         if self._busy():
+@@ -225,6 +246,8 @@ class KubernetesWorkloadMixin:
+         self._update_k8s_knowledge_note()
+ 
+     def _queue_k8s_patch_scan(self):
++        if '_background_query_jobs' in self.__dict__:
++            self._background_query_jobs.cancel('k8s-patches')
+         pending = self.__dict__.pop('_k8s_patch_after', None)
+         if pending:
+             self.after_cancel(pending)
+@@ -251,31 +274,26 @@ class KubernetesWorkloadMixin:
+         cached = self.__dict__.setdefault('_k8s_patch_cache', {}).get(context)
+         if cached is not None and not refresh:
+             self._receive_k8s_patch_versions(context, cached, ''); return
+-        running = self.__dict__.setdefault('_k8s_patch_running', set())
+-        if context in running:
+-            return
+-        running.add(context)
+         self.k8s_patch_status_var.set('Loading available patch/build versions… You can keep using the other controls.')
+         backend = apt_core if self._profile().package_family == 'deb' else core
+         arch = self.arch_var.get()
+         names = tuple(self._workload().versioned_packages)
+         repos = deepcopy(repos)
+-        events = self.events
+-        def work():
++        def work(cancel):
+             try:
+                 packages = []
+                 for repo in repos:
+-                    packages.extend(backend.load_repository(repo, {arch, 'noarch', 'all'}, core.Reporter()))
++                    packages.extend(backend.load_repository(repo, {arch, 'noarch', 'all'}, core.Reporter(cancel_event=cancel)))
+                 versions = backend.package_versions(packages, names[0], role, arch)
+                 # Node components share the requested build; auxiliary CRI/CNI
+                 # packages retain their independent version numbering.
+                 for name in names[1:]:
+                     available = set(backend.package_versions(packages, name, role, arch))
+                     versions = [v for v in versions if v in available]
+-                events.put(('k8s_patch_versions', context, versions, ''))
++                return ('k8s_patch_versions', context, versions, '')
+             except Exception as exc:
+-                events.put(('k8s_patch_versions', context, [], core.redact_text(str(exc))))
+-        threading.Thread(target=work, daemon=True).start()
++                return ('k8s_patch_versions', context, [], core.redact_text(str(exc)))
++        self._query_jobs().submit('k8s-patches', work)
+ 
+     def _receive_k8s_patch_versions(self, context, versions, error):
+         self.__dict__.setdefault('_k8s_patch_running', set()).discard(context)
+diff --git a/mypy.ini b/mypy.ini
+index fd045c4..2ab3cd1 100644
+--- a/mypy.ini
++++ b/mypy.ini
+@@ -36,6 +36,7 @@ ignore_missing_imports = True
+ strict_optional = False
+ warn_unused_configs = True
+ files =
++    background_jobs.py,
+     acquisition_model.py,
+     checksum_inspection.py,
+     release_seed.py,
+@@ -99,3 +100,10 @@ check_untyped_defs = True
+ disallow_untyped_defs = True
+ strict_optional = True
+ warn_return_any = True
++
++[mypy-background_jobs]
++strict_optional = True
++disallow_any_generics = True
++disallow_untyped_defs = True
++check_untyped_defs = True
++warn_return_any = True
+diff --git a/tests/test_background_jobs.py b/tests/test_background_jobs.py
+new file mode 100644
+index 0000000..8001b00
+--- /dev/null
++++ b/tests/test_background_jobs.py
+@@ -0,0 +1,86 @@
++"""Bound worker concurrency and obsolete completions without depending on Tk."""
++from queue import Queue
++from threading import Event, Lock
++from unittest.mock import Mock
++
++import pytest
++from background_jobs import BackgroundJobs, JobCompletion
++
++
++def test_many_replacements_bound_workers_and_only_latest_result_is_current():
++    done=Queue();release=Event();entered=Event();lock=Lock();active=0;maximum=0
++    def slow(cancel):
++        nonlocal active,maximum
++        with lock:
++            active+=1;maximum=max(maximum,active)
++            if active==2:entered.set()
++        assert release.wait(5)
++        with lock:active-=1
++        return 'old'
++    jobs=BackgroundJobs(done.put)
++    jobs.submit('versions',slow);jobs.submit('versions',slow)
++    assert entered.wait(5)
++    for i in range(100):latest=jobs.submit('versions',lambda cancel,i=i:i)
++    release.set()
++    results=[done.get(timeout=5) for _ in range(102)]
++    current=[result for result in results if jobs.accepts(result)]
++    assert maximum==2
++    assert len(current)==1 and current[0].generation==latest and current[0].value==99
++    assert len({r.generation for r in results})==102
++    jobs.close()
++
++
++def test_cancel_is_cooperative_and_releases_capacity():
++    done=Queue();entered=Event()
++    def work(cancel):entered.set();assert cancel.wait(5);return 'obsolete'
++    jobs=BackgroundJobs(done.put,max_workers=1)
++    jobs.submit('versions',work);assert entered.wait(5)
++    jobs.cancel('versions')
++    old=done.get(timeout=5)
++    assert old.cancelled and not jobs.accepts(old)
++    jobs.submit('versions',lambda cancel:'recovered')
++    current=done.get(timeout=5)
++    assert jobs.accepts(current) and current.value=='recovered'
++    jobs.close()
++
++
++def test_failure_and_worker_exit_release_capacity():
++    done=Queue();jobs=BackgroundJobs(done.put,max_workers=1)
++    def failed(cancel):raise SystemExit('worker stopped')
++    jobs.submit('one',failed)
++    result=done.get(timeout=5);assert 'SystemExit' in result.error
++    jobs.submit('one',lambda cancel:'ok')
++    assert done.get(timeout=5).value=='ok'
++    jobs.close()
++
++
++def test_close_cancels_active_and_pending_and_rejects_new_work():
++    done=Queue();entered=Event()
++    def work(cancel):entered.set();assert cancel.wait(5);return 'old'
++    jobs=BackgroundJobs(done.put,max_workers=1)
++    jobs.submit('one',work);assert entered.wait(5)
++    jobs.submit('two',lambda cancel:pytest.fail('pending work started'))
++    jobs.close()
++    results=[done.get(timeout=5) for _ in range(2)]
++    assert all(r.cancelled and not jobs.accepts(r) for r in results)
++    with pytest.raises(RuntimeError):jobs.submit('one',lambda cancel:None)
++
++
++def test_thread_start_failure_is_reported_and_does_not_hold_capacity(monkeypatch):
++    import background_jobs as module
++    done=Queue();jobs=BackgroundJobs(done.put,max_workers=1)
++    real=module.Thread
++    monkeypatch.setattr(module,'Thread',Mock(side_effect=RuntimeError('cannot start')))
++    jobs.submit('one',lambda cancel:None)
++    assert 'cannot start' in done.get(timeout=5).error
++    monkeypatch.setattr(module,'Thread',real)
++    jobs.submit('one',lambda cancel:'ok')
++    assert done.get(timeout=5).value=='ok'
++    jobs.close()
++
++
++def test_operation_keys_are_bounded():
++    done=Queue();jobs=BackgroundJobs(done.put,max_operations=1)
++    jobs.submit('one',lambda cancel:None);done.get(timeout=5)
++    with pytest.raises(ValueError):jobs.submit('two',lambda cancel:None)
++    jobs.close()
+diff --git a/tests/test_discovery_recovery.py b/tests/test_discovery_recovery.py
+index a87aaea..5fd8af7 100644
+--- a/tests/test_discovery_recovery.py
++++ b/tests/test_discovery_recovery.py
+@@ -76,7 +76,7 @@ def test_family_switch_shares_one_knowledge_refresh(tmp_path,monkeypatch):
+     from feathered_app.ui.kubernetes import KubernetesWorkloadMixin
+     from feathered_app.ui import kubernetes as ui
+     workers=[]
+-    monkeypatch.setattr(ui.threading,'Thread',lambda target,**kw:SimpleNamespace(start=lambda:workers.append(target)))
++    jobs=SimpleNamespace(submit=lambda key,work:workers.append(work))
+     monkeypatch.setattr(k,'refresh',lambda *args,**kw:knowledge())
+     class Host(KubernetesWorkloadMixin):
+         family='rpm'
+@@ -84,12 +84,14 @@ def test_family_switch_shares_one_knowledge_refresh(tmp_path,monkeypatch):
+         k8s_observation_var=Mock()
+         def _profile(self):return SimpleNamespace(package_family=self.family)
+         def _release_cache_path(self):return tmp_path/'releases.json'
++        def _query_jobs(self):return jobs
+         _receive_k8s_knowledge=Mock()
+         _start_k8s_repository_discovery=Mock()
+     host=Host();host._discover_kubernetes_minors()
+     host.family='deb';host._discover_kubernetes_minors()
+     assert len(workers)==1
+-    workers[0]();kind,generation,result=host.events.get_nowait()
++    from threading import Event
++    kind,generation,result=workers[0](Event())
+     assert kind=='k8s_knowledge_finished'
+     host._finish_k8s_knowledge_refresh(generation-1,result)
+     assert host._k8s_knowledge_refresh_running
+diff --git a/tests/test_ui_event_budget.py b/tests/test_ui_event_budget.py
+new file mode 100644
+index 0000000..b78284a
+--- /dev/null
++++ b/tests/test_ui_event_budget.py
+@@ -0,0 +1,95 @@
++"""Event floods must yield without losing barriers, acknowledgements or results."""
++from queue import Queue
++from threading import Event
++from types import SimpleNamespace
++from unittest.mock import Mock
++
++from feathered_app.application.operations import OperationsMixin
++from tests import test_application_startup as startup
++
++application = startup.application
++isolated_state = startup.isolated_state
++requires_display = startup.requires_display
++
++
++def host():
++    value=SimpleNamespace(events=Queue(),active_operation=None,after=Mock(),
++        _operation_status=Mock(),progress_var=Mock(),_log=Mock(),_worker_done=Mock(),
++        _apply_download_plan=Mock(),_show_result=Mock())
++    value._drain_events=lambda: OperationsMixin._drain_events(value)
++    return value
++
++
++def test_progress_burst_yields_before_consuming_all_events():
++    value=host()
++    for i in range(1000):value.events.put(('progress','building',i/1000))
++    value._drain_events()
++    assert not value.events.empty()
++    assert value.after.call_args.args[0]<=10
++    assert value.progress_var.set.call_count<100
++
++
++def test_progress_coalescing_preserves_decision_and_completion_barriers():
++    value=host();ack=Event();seen=[]
++    value._apply_download_plan=lambda *args:seen.append('decision')
++    value._worker_done=lambda *args:seen.append('done')
++    value._show_result=lambda *args:seen.append('result')
++    for i in range(220):value.events.put(('progress','work',i/220))
++    value.events.put(('download_plan',[],[],ack))
++    value.events.put(('result','bundle'))
++    value.events.put(('done',True,''))
++    while not value.events.empty():value._drain_events()
++    assert ack.is_set() and seen==['decision','result','done']
++    assert value.progress_var.set.call_args.args[0]==219/220*100
++
++
++def test_failed_handler_acknowledges_and_does_not_strand_done():
++    value=host();ack=Event()
++    value._apply_download_plan=Mock(side_effect=RuntimeError('dialog closed'))
++    value.events.put(('download_plan',[],[],ack))
++    value.events.put(('done',False,'cancelled'))
++    value._drain_events()
++    assert ack.is_set()
++    value._worker_done.assert_called_once_with(False,'cancelled',None)
++    assert value.after.called
++
++
++@requires_display
++def test_real_gui_heartbeat_runs_before_a_progress_burst_finishes(application):
++    window=application;seen=[]
++    for i in range(5000):window.events.put(('progress','fixture',i/5000))
++    window.after(0,window._drain_events)
++    window.after(0,lambda:seen.append(window.events.qsize()))
++    window.update()
++    assert seen and seen[0]>0
++
++
++def test_typed_obsolete_results_do_not_reach_handlers():
++    from background_jobs import BackgroundJobs
++    value=host();done=Queue();jobs=BackgroundJobs(done.put)
++    value._background_query_jobs=jobs
++    jobs.submit('versions',lambda cancel:('result','obsolete'))
++    obsolete=done.get(timeout=5)
++    jobs.submit('versions',lambda cancel:('result','current'))
++    current=done.get(timeout=5)
++    value.events.put(current);value.events.put(obsolete)
++    value._drain_events()
++    value._show_result.assert_called_once_with('current')
++    jobs.close()
++
++
++@requires_display
++def test_destroying_window_cancels_discovery_ownership(application):
++    window=application;entered=Event();exited=Event()
++    def work(cancel):
++        entered.set()
++        try:assert cancel.wait(5)
++        finally:exited.set()
++        return ('result','obsolete')
++    jobs=window._query_jobs();jobs.submit('fixture',work)
++    assert entered.wait(5)
++    window.destroy()
++    assert exited.wait(5)
++    try:jobs.submit('fixture',lambda cancel:None)
++    except RuntimeError:pass
++    else:raise AssertionError('destroyed window accepted new discovery')
+-- 
+2.51.1
+

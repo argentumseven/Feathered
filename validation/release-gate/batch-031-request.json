@@ -1,6 +1,12 @@
 {
-  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
   "nodes": [
+    "tests/test_build_host_contracts.py::test_real_headless_host_uses_typed_services_and_caller_event_sink",
+    "tests/test_build_host_contracts.py::test_caller_cancellation_and_local_cancellation_are_independent",
+    "tests/test_build_host_contracts.py::test_trust_and_conflict_decisions_use_separate_policies",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers0-bundle-True-False]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers1-bundle-True-True]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers2-bundle-next-False-True]",
     "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers3-bundle-next-False-True]",
     "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers4-None-False-True]",
     "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers5-None-False-True]",
@@ -14,12 +20,6 @@
     "tests/test_build_preparation.py::test_explicit_sealing_without_key_is_rejected",
     "tests/test_build_preparation.py::test_credentials_are_attached_by_identity_without_mutating_spec",
     "tests/test_build_preparation.py::test_cancellation_and_timeout_are_distinct_from_invalid_request",
-    "tests/test_build_preparation.py::test_cancel_during_metadata_prevents_publication",
-    "tests/test_build_preparation.py::test_runner_returns_the_same_terminal_outcome_it_emits",
-    "tests/test_build_preparation.py::test_portable_source_scope_and_evidence_hints_survive_roundtrip",
-    "tests/test_build_preparation.py::test_runtime_vendor_requirement_is_never_downgraded",
-    "tests/test_build_preparation.py::test_timeout_during_metadata_has_a_timeout_outcome",
-    "tests/test_build_preparation.py::test_incompatible_repository_does_not_participate",
-    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data0]"
+    "tests/test_build_preparation.py::test_cancel_during_metadata_prevents_publication"
   ]
 }

@@ -1,31 +1,18 @@
 {
   "schema": 1,
-  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
   "mode": "batch",
   "pytest_version": "9.1.1",
   "nodes": [
-    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/100% full/bundle-/srv/100%25%20full/bundle]",
-    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/tag#3/bundle-/srv/tag%233/bundle]",
-    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/\\xfcn\\xefcode/bundle-/srv/%C3%BCn%C3%AFcode/bundle]",
-    "tests/test_installer_paths.py::test_apt_installer_refuses_an_unindexed_bundle_repository",
-    "tests/test_installer_paths.py::test_awkward_bundle_directory_still_produces_a_valid_script",
-    "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments0-0]",
-    "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\ndef test_case(): pytest.skip('no tool')\\n-arguments1-1]",
-    "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\npytest.skip('no module', allow_module_level=True)\\n-arguments2-1]",
-    "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments3-1]",
-    "tests/test_integration_gate.py::test_native_workflow_shell_steps_parse_individually",
-    "tests/test_k8s_knowledge.py::test_upstream_releases_extend_beyond_former_ceiling_and_skip_future_dates",
-    "tests/test_k8s_knowledge.py::test_known_repository_candidates_survive_missing_older_repositories",
-    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.19-19]",
-    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[19-19]",
-    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.61-61]",
-    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[133-133]",
-    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.0-0]",
-    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[abc]",
-    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[-1]",
-    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33 garbage]"
-  ],
-  "batch_excluded": [
+    "tests/test_footer_status.py::test_set_footer_status_is_safe_with_no_widget",
+    "tests/test_footer_status.py::test_status_label_height_is_pinned_in_the_layout",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[workload]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[exact]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[separate]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[unified]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[devuan]",
+    "tests/test_headless_execution.py::test_services_forward_progress_events_cancellation_and_conflict_details",
+    "tests/test_headless_execution.py::test_frozen_signing_and_baseline_options_never_fall_back_to_controls",
     "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[arch]",
     "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[deb]",
     "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[rpm]",
@@ -34,32 +21,439 @@
     "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[rpm]",
     "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/plain/bundle-path_1.0~rc-/plain/bundle-path_1.0~rc]",
     "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/media/user/My Passport/bundle-/media/user/My%20Passport/bundle]",
-    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[2.0]",
-    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33-rc.1]",
-    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[html-error]",
-    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[empty-list]",
-    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[wrong-shape]",
-    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[yaml-alias]",
-    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[invalid-date]",
-    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[oversized]",
-    "tests/test_k8s_knowledge.py::test_outage_keeps_good_cache_byte_for_byte_then_recovers",
-    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{]",
-    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{\"schema\":99}]",
-    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[[]]",
-    "tests/test_k8s_knowledge.py::test_fresh_cache_skips_network",
-    "tests/test_k8s_knowledge.py::test_policy_change_is_sticky_and_never_applied_as_rules",
-    "tests/test_k8s_knowledge.py::test_unknown_and_historical_versions_have_notices_not_rejection",
-    "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[30-33]",
-    "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[35-33]",
-    "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[34-33]",
-    "tests/test_k8s_knowledge.py::test_future_dated_or_foreign_cache_is_rejected",
-    "tests/test_k8s_knowledge.py::test_gui_refresh_keeps_minor_and_full_package_pin",
-    "tests/test_k8s_knowledge.py::test_gui_schedules_bounded_retry_and_pauses_it_during_build"
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/100% full/bundle-/srv/100%25%20full/bundle]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/tag#3/bundle-/srv/tag%233/bundle]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/\\xfcn\\xefcode/bundle-/srv/%C3%BCn%C3%AFcode/bundle]"
+  ],
+  "batch_excluded": [
+    "tests/test_footer_status.py::test_a_real_conflict_report_is_reduced_to_one_line",
+    "tests/test_footer_status.py::test_condensed_text_still_says_what_went_wrong",
+    "tests/test_footer_status.py::test_truncation_points_at_the_log_rather_than_just_stopping",
+    "tests/test_footer_status.py::test_short_messages_pass_through_untouched",
+    "tests/test_footer_status.py::test_embedded_newlines_are_collapsed_even_when_short",
+    "tests/test_footer_status.py::test_deliberate_space_runs_survive",
+    "tests/test_footer_status.py::test_truncation_prefers_a_word_boundary_but_survives_one_long_token",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[None]",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[]",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[   ]",
+    "tests/test_footer_status.py::test_first_line_skips_leading_blank_lines",
+    "tests/test_footer_status.py::test_every_status_write_goes_through_the_condenser",
+    "tests/test_footer_status.py::test_set_footer_status_condenses_and_returns_what_is_shown",
+    "tests/test_installer_paths.py::test_apt_installer_refuses_an_unindexed_bundle_repository",
+    "tests/test_installer_paths.py::test_awkward_bundle_directory_still_produces_a_valid_script"
   ],
   "collection_issues": [],
   "deselected": [],
   "phases": [
     {
+      "nodeid": "tests/test_footer_status.py::test_set_footer_status_is_safe_with_no_widget",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_set_footer_status_is_safe_with_no_widget",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_set_footer_status_is_safe_with_no_widget",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_status_label_height_is_pinned_in_the_layout",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_status_label_height_is_pinned_in_the_layout",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_status_label_height_is_pinned_in_the_layout",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[workload]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[workload]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[workload]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[exact]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[exact]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[exact]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[separate]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[separate]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[separate]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[unified]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[unified]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[unified]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[devuan]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[devuan]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[devuan]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_services_forward_progress_events_cancellation_and_conflict_details",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_services_forward_progress_events_cancellation_and_conflict_details",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_services_forward_progress_events_cancellation_and_conflict_details",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_frozen_signing_and_baseline_options_never_fall_back_to_controls",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_frozen_signing_and_baseline_options_never_fall_back_to_controls",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_headless_execution.py::test_frozen_signing_and_baseline_options_never_fall_back_to_controls",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/plain/bundle-path_1.0~rc-/plain/bundle-path_1.0~rc]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/plain/bundle-path_1.0~rc-/plain/bundle-path_1.0~rc]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/plain/bundle-path_1.0~rc-/plain/bundle-path_1.0~rc]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/media/user/My Passport/bundle-/media/user/My%20Passport/bundle]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/media/user/My Passport/bundle-/media/user/My%20Passport/bundle]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/media/user/My Passport/bundle-/media/user/My%20Passport/bundle]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
       "nodeid": "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/100% full/bundle-/srv/100%25%20full/bundle]",
       "when": "setup",
       "outcome": "passed",
@@ -125,414 +519,6 @@
     },
     {
       "nodeid": "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/\\xfcn\\xefcode/bundle-/srv/%C3%BCn%C3%AFcode/bundle]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_installer_paths.py::test_apt_installer_refuses_an_unindexed_bundle_repository",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_installer_paths.py::test_apt_installer_refuses_an_unindexed_bundle_repository",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_installer_paths.py::test_apt_installer_refuses_an_unindexed_bundle_repository",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_installer_paths.py::test_awkward_bundle_directory_still_produces_a_valid_script",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_installer_paths.py::test_awkward_bundle_directory_still_produces_a_valid_script",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_installer_paths.py::test_awkward_bundle_directory_still_produces_a_valid_script",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments0-0]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments0-0]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments0-0]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\ndef test_case(): pytest.skip('no tool')\\n-arguments1-1]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\ndef test_case(): pytest.skip('no tool')\\n-arguments1-1]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\ndef test_case(): pytest.skip('no tool')\\n-arguments1-1]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\npytest.skip('no module', allow_module_level=True)\\n-arguments2-1]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\npytest.skip('no module', allow_module_level=True)\\n-arguments2-1]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\npytest.skip('no module', allow_module_level=True)\\n-arguments2-1]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments3-1]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments3-1]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments3-1]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_native_workflow_shell_steps_parse_individually",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_native_workflow_shell_steps_parse_individually",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_integration_gate.py::test_native_workflow_shell_steps_parse_individually",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_upstream_releases_extend_beyond_former_ceiling_and_skip_future_dates",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_upstream_releases_extend_beyond_former_ceiling_and_skip_future_dates",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_upstream_releases_extend_beyond_former_ceiling_and_skip_future_dates",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_known_repository_candidates_survive_missing_older_repositories",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_known_repository_candidates_survive_missing_older_repositories",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_known_repository_candidates_survive_missing_older_repositories",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.19-19]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.19-19]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.19-19]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[19-19]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[19-19]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[19-19]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.61-61]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.61-61]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.61-61]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[133-133]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[133-133]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[133-133]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.0-0]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.0-0]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.0-0]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[abc]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[abc]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[abc]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[-1]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[-1]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[-1]",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33 garbage]",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33 garbage]",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33 garbage]",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,

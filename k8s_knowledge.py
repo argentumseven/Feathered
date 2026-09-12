@@ -1,6 +1,7 @@
 """Refresh release facts from Kubernetes; remote prose never becomes policy code."""
 from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, replace
 from datetime import date, datetime, timezone
 import hashlib
@@ -8,6 +9,8 @@ import json
 from pathlib import Path
 import re
 import tempfile
+import sys
+import threading
 from typing import Callable
 from urllib.request import Request, urlopen
 
@@ -20,6 +23,36 @@ URLS = (SCHEDULE, HISTORY, SKEW, KUBEADM)
 MAX_BYTES = 512 * 1024
 TTL_SECONDS = 6 * 60 * 60
 SEED_PATH = Path(__file__).with_name('k8s_knowledge_seed.json')
+_REFRESH_LOCK = threading.RLock()
+
+
+@contextmanager
+def _cache_lease(path: Path):
+    """One writer per cache, including separate application processes.
+
+    OS locks are released on process exit. A competing process uses its cached
+    knowledge and retries later; it never waits behind another network refresh.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.with_suffix(path.suffix + '.lock').open('a+b') as handle:
+        if sys.platform == 'win32':
+            import msvcrt
+            handle.seek(0, 2)
+            if not handle.tell():
+                handle.write(b'\0'); handle.flush()
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        try:
+            yield
+        finally:
+            if sys.platform == 'win32':
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(handle, fcntl.LOCK_UN)
 
 @dataclass(frozen=True)
 class Release:
@@ -153,9 +186,42 @@ def fresh(knowledge: Knowledge, now: datetime | None = None) -> bool:
         0 <= (now - datetime.fromisoformat(s.observed_at)).total_seconds() < TTL_SECONDS for s in knowledge.sources)
 
 
+def reconcile(previous: Knowledge | None, current: Knowledge) -> Knowledge:
+    """Merge observations by age, retaining sticky human-review signals."""
+    if previous is None:
+        return current
+    sources = {s.url: s for s in previous.sources}
+    for source in current.sources:
+        old = sources.get(source.url)
+        if old is None or source.observed_at >= old.observed_at:
+            sources[source.url] = source
+    # Release feeds are committed as a pair. Prefer the newer complete pair for
+    # overlapping records while retaining older historical releases.
+    def release_time(value):
+        return min((s.observed_at for s in value.sources if s.url in (SCHEDULE, HISTORY)), default='')
+    older, newer = sorted((previous, current), key=release_time)
+    releases = {r.minor: r for r in older.releases}
+    releases.update({r.minor: r for r in newer.releases})
+    return Knowledge(tuple(sorted(releases.values(), key=lambda r: int(r.minor.split('.')[1]), reverse=True)),
+        tuple(sources.values()), current.error,
+        tuple(sorted(set(previous.changed_policies) | set(current.changed_policies))))
+
+
 def refresh(path: Path, previous: Knowledge | None = None, *,
             getter: Callable[[str], bytes] = fetch, force: bool = False) -> Knowledge:
-    previous = previous or read(path) or bundled()
+    with _REFRESH_LOCK:
+        try:
+            with _cache_lease(path):
+                disk = read(path)
+                base = reconcile(disk, previous or disk or bundled())
+                return _refresh_owned(path, base, getter=getter, force=force)
+        except OSError:
+            base = reconcile(read(path), previous or bundled())
+            return replace(base, error='Knowledge cache is busy or unavailable; retaining observations and retrying later')
+
+
+def _refresh_owned(path: Path, previous: Knowledge, *,
+            getter: Callable[[str], bytes] = fetch, force: bool = False) -> Knowledge:
     if not force and not previous.error and fresh(previous):
         return previous
     bodies: dict[str, bytes] = {}
@@ -197,7 +263,8 @@ def refresh(path: Path, previous: Knowledge | None = None, *,
             except ValueError:
                 errors.append('Policy document format changed; keeping previous evidence')
     result = Knowledge(releases, tuple(sources.values()), '; '.join(errors), tuple(sorted(changed)))
-    if result.releases and (result.releases != previous.releases or result.sources != previous.sources):
+    if result.releases and (result.releases != previous.releases or result.sources != previous.sources
+                            or result.changed_policies != previous.changed_policies):
         try:
             save(path, result)
         except OSError:

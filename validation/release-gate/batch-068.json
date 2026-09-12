@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_workload_version_ui.py::test_generic_package_scan_result_cannot_replace_another_workload"
+  ],
+  "batch_excluded": [
+    "tests/test_workload_version_ui.py::test_minor_discovery_publishes_before_slowest_probe_finishes",
+    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-node-rpm]",
+    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-node-deb]",
+    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-client-rpm]",
+    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-client-deb]"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_workload_version_ui.py::test_generic_package_scan_result_cannot_replace_another_workload",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_workload_version_ui.py::test_generic_package_scan_result_cannot_replace_another_workload",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_workload_version_ui.py::test_generic_package_scan_result_cannot_replace_another_workload",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 1
+}

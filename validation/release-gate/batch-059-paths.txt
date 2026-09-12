@@ -1,2 +1,4 @@
+tests/test_root_requests.py
+tests/test_rpm_installer_gpgcheck.py
+tests/test_source_launch.py
 tests/test_source_manifest.py
-tests/test_source_scope.py

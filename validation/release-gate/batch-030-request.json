@@ -1,5 +1,5 @@
 {
-  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
   "nodes": [
     "tests/test_architecture.py::test_operation_unlock_reapplies_workload_version_semantics",
     "tests/test_architecture.py::test_component_modules_do_not_depend_on_an_injected_app_global",
@@ -15,11 +15,11 @@
     "tests/test_assurance_semantics.py::test_unknown_mode_gets_an_explicit_placeholder_not_a_guess",
     "tests/test_assurance_semantics.py::test_bundle_provenance_embeds_the_legend_for_its_own_modes",
     "tests/test_assurance_semantics.py::test_both_provenance_writers_emit_the_plain_text_legend",
-    "tests/test_build_host_contracts.py::test_real_headless_host_uses_typed_services_and_caller_event_sink",
-    "tests/test_build_host_contracts.py::test_caller_cancellation_and_local_cancellation_are_independent",
-    "tests/test_build_host_contracts.py::test_trust_and_conflict_decisions_use_separate_policies",
-    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers0-bundle-True-False]",
-    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers1-bundle-True-True]",
-    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers2-bundle-next-False-True]"
+    "tests/test_background_jobs.py::test_many_replacements_bound_workers_and_only_latest_result_is_current",
+    "tests/test_background_jobs.py::test_cancel_is_cooperative_and_releases_capacity",
+    "tests/test_background_jobs.py::test_failure_and_worker_exit_release_capacity",
+    "tests/test_background_jobs.py::test_close_cancels_active_and_pending_and_rejects_new_work",
+    "tests/test_background_jobs.py::test_thread_start_failure_is_reported_and_does_not_hold_capacity",
+    "tests/test_background_jobs.py::test_operation_keys_are_bounded"
   ]
 }

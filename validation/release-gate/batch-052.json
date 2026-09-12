@@ -1,12 +1,54 @@
 {
   "schema": 1,
-  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
   "mode": "batch",
   "pytest_version": "9.1.1",
   "nodes": [
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[status-mismatch]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[stale]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[duplicate-id]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[count-mismatch]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[bool-schema]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[bool-status]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[no-phases]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-teardown]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[duplicate-call]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[wrong-order]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-call]",
+    "tests/test_release_gate_outcomes.py::test_platform_skip_policy_is_scoped_and_has_required_linux_coverage",
+    "tests/test_release_integrity.py::test_frozen_release_rejects_missing_bundled_verifier",
+    "tests/test_release_integrity.py::test_frozen_release_rejects_missing_embedded_policy",
+    "tests/test_release_integrity.py::test_bundled_verifier_exact_hash_set_is_enforced",
+    "tests/test_release_integrity.py::test_bundled_verifier_rejects_unexpected_file",
+    "tests/test_release_integrity.py::test_build_requires_signing_iso_and_embedded_verifier_policy",
     "tests/test_release_integrity.py::test_production_build_lock_authenticates_every_pinned_requirement",
     "tests/test_release_integrity.py::test_windows_ci_contains_real_signed_production_release_gate",
-    "tests/test_release_integrity.py::test_project_is_mit_licensed_and_distribution_notice_is_present",
+    "tests/test_release_integrity.py::test_project_is_mit_licensed_and_distribution_notice_is_present"
+  ],
+  "batch_excluded": [
+    "tests/test_release_gate_outcomes.py::test_required_plugin_still_runs_with_release_plugin",
+    "tests/test_release_gate_outcomes.py::test_release_plugin_preserves_assertion_diagnostics",
+    "tests/test_release_gate_outcomes.py::test_runner_does_not_count_skips_as_passes",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[pass]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[assertion]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[setup]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[teardown]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[skip]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xfail]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xpass]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[strict-xpass]",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_collection_skip_and_records_reason",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_deselection",
+    "tests/test_release_gate_outcomes.py::test_gate_runs_long_node_id_without_command_line_expansion",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[terminated]",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[early-zero-exit]",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[timeout]",
+    "tests/test_release_gate_outcomes.py::test_normal_pytest_shutdown_runs_session_hooks_and_atexit",
+    "tests/test_release_gate_outcomes.py::test_no_passing_gate_without_a_collected_corpus[collection-error]",
+    "tests/test_release_gate_outcomes.py::test_no_passing_gate_without_a_collected_corpus[empty-corpus]",
+    "tests/test_release_gate_outcomes.py::test_missing_final_report_fails_even_after_zero_exit",
+    "tests/test_release_gate_outcomes.py::test_batches_account_for_every_id_without_counting_internal_selection_as_deselection",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[incomplete]",
     "tests/test_release_integrity.py::test_gpg_acquisition_is_pinned_to_expected_installer_hash",
     "tests/test_release_integrity.py::test_verifier_cache_still_catches_a_later_tamper",
     "tests/test_release_integrity.py::test_verifier_integrity_error_is_not_a_waivable_signature_failure",
@@ -20,30 +62,420 @@
     "tests/test_release_integrity.py::test_production_build_executes_release_checksum_verifier_before_success",
     "tests/test_release_integrity.py::test_windows_ci_rechecks_release_checksum_set_and_exe_independently",
     "tests/test_release_integrity.py::test_receiver_verifier_refuses_a_malformed_index_without_a_traceback",
-    "tests/test_release_integrity.py::test_source_tree_carries_no_superseded_working_copies",
-    "tests/test_reported_defects.py::test_the_reported_version_matches_the_newest_changelog_entry",
-    "tests/test_reported_defects.py::test_the_version_reaches_the_gui_and_provenance_identically",
-    "tests/test_reported_defects.py::test_rebuilding_the_repository_pane_drops_dead_widget_references"
-  ],
-  "batch_excluded": [
-    "tests/test_release_integrity.py::test_frozen_release_rejects_missing_bundled_verifier",
-    "tests/test_release_integrity.py::test_frozen_release_rejects_missing_embedded_policy",
-    "tests/test_release_integrity.py::test_bundled_verifier_exact_hash_set_is_enforced",
-    "tests/test_release_integrity.py::test_bundled_verifier_rejects_unexpected_file",
-    "tests/test_release_integrity.py::test_build_requires_signing_iso_and_embedded_verifier_policy",
-    "tests/test_reported_defects.py::test_live_lookup_refuses_a_destroyed_widget",
-    "tests/test_reported_defects.py::test_changing_source_method_after_a_rebuild_does_not_raise",
-    "tests/test_reported_defects.py::test_the_priority_rule_is_stated_where_the_column_is_shown",
-    "tests/test_reported_defects.py::test_lower_priority_number_actually_wins",
-    "tests/test_reported_defects.py::test_repository_metadata_is_not_preselected_for_package_workflows",
-    "tests/test_reported_defects.py::test_switching_intent_corrects_the_metadata_selection_both_ways",
-    "tests/test_reported_defects.py::test_an_incomplete_selection_does_not_flicker_the_metadata_checkbox",
-    "tests/test_reported_defects.py::test_a_deliberate_tick_survives_navigation_within_one_mode"
+    "tests/test_release_integrity.py::test_source_tree_carries_no_superseded_working_copies"
   ],
   "collection_issues": [],
   "deselected": [],
   "phases": [
     {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[status-mismatch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[status-mismatch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[status-mismatch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[stale]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[stale]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[stale]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[duplicate-id]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[duplicate-id]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[duplicate-id]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[count-mismatch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[count-mismatch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[count-mismatch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[bool-schema]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[bool-schema]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[bool-schema]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[bool-status]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[bool-status]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[bool-status]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[no-phases]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[no-phases]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[no-phases]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-teardown]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-teardown]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-teardown]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[duplicate-call]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[duplicate-call]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[duplicate-call]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[wrong-order]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[wrong-order]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[wrong-order]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-call]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-call]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-call]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_platform_skip_policy_is_scoped_and_has_required_linux_coverage",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_platform_skip_policy_is_scoped_and_has_required_linux_coverage",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_platform_skip_policy_is_scoped_and_has_required_linux_coverage",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_frozen_release_rejects_missing_bundled_verifier",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_frozen_release_rejects_missing_bundled_verifier",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_frozen_release_rejects_missing_bundled_verifier",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_frozen_release_rejects_missing_embedded_policy",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_frozen_release_rejects_missing_embedded_policy",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_frozen_release_rejects_missing_embedded_policy",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_exact_hash_set_is_enforced",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_exact_hash_set_is_enforced",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_exact_hash_set_is_enforced",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_rejects_unexpected_file",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_rejects_unexpected_file",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_rejects_unexpected_file",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_build_requires_signing_iso_and_embedded_verifier_policy",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_build_requires_signing_iso_and_embedded_verifier_policy",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_build_requires_signing_iso_and_embedded_verifier_policy",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
       "nodeid": "tests/test_release_integrity.py::test_production_build_lock_authenticates_every_pinned_requirement",
       "when": "setup",
       "outcome": "passed",
@@ -109,414 +541,6 @@
     },
     {
       "nodeid": "tests/test_release_integrity.py::test_project_is_mit_licensed_and_distribution_notice_is_present",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_gpg_acquisition_is_pinned_to_expected_installer_hash",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_gpg_acquisition_is_pinned_to_expected_installer_hash",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_gpg_acquisition_is_pinned_to_expected_installer_hash",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_verifier_cache_still_catches_a_later_tamper",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_verifier_cache_still_catches_a_later_tamper",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_verifier_cache_still_catches_a_later_tamper",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_verifier_integrity_error_is_not_a_waivable_signature_failure",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_verifier_integrity_error_is_not_a_waivable_signature_failure",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_verifier_integrity_error_is_not_a_waivable_signature_failure",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_source_checkout_keeps_path_fallback",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_source_checkout_keeps_path_fallback",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_source_checkout_keeps_path_fallback",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_backend_modules_can_resolve_every_module_qualified_reference",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_backend_modules_can_resolve_every_module_qualified_reference",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_backend_modules_can_resolve_every_module_qualified_reference",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_windows_release_smoke_executes_actual_mount_path",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_windows_release_smoke_executes_actual_mount_path",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_windows_release_smoke_executes_actual_mount_path",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_accepts_exact_distribution_and_rejects_tamper",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_accepts_exact_distribution_and_rejects_tamper",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_accepts_exact_distribution_and_rejects_tamper",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_requires_exact_file_set",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_requires_exact_file_set",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_requires_exact_file_set",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_unsafe_or_duplicate_paths",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_unsafe_or_duplicate_paths",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_unsafe_or_duplicate_paths",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_manifest_checksum_disagreement",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_manifest_checksum_disagreement",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_manifest_checksum_disagreement",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_production_build_executes_release_checksum_verifier_before_success",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_production_build_executes_release_checksum_verifier_before_success",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_production_build_executes_release_checksum_verifier_before_success",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_windows_ci_rechecks_release_checksum_set_and_exe_independently",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_windows_ci_rechecks_release_checksum_set_and_exe_independently",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_windows_ci_rechecks_release_checksum_set_and_exe_independently",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_receiver_verifier_refuses_a_malformed_index_without_a_traceback",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_receiver_verifier_refuses_a_malformed_index_without_a_traceback",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_receiver_verifier_refuses_a_malformed_index_without_a_traceback",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_source_tree_carries_no_superseded_working_copies",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_source_tree_carries_no_superseded_working_copies",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_release_integrity.py::test_source_tree_carries_no_superseded_working_copies",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_reported_defects.py::test_the_reported_version_matches_the_newest_changelog_entry",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_reported_defects.py::test_the_reported_version_matches_the_newest_changelog_entry",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_reported_defects.py::test_the_reported_version_matches_the_newest_changelog_entry",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_reported_defects.py::test_the_version_reaches_the_gui_and_provenance_identically",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_reported_defects.py::test_the_version_reaches_the_gui_and_provenance_identically",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_reported_defects.py::test_the_version_reaches_the_gui_and_provenance_identically",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_reported_defects.py::test_rebuilding_the_repository_pane_drops_dead_widget_references",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_reported_defects.py::test_rebuilding_the_repository_pane_drops_dead_widget_references",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_reported_defects.py::test_rebuilding_the_repository_pane_drops_dead_widget_references",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,

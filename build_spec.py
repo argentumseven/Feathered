@@ -9,8 +9,8 @@ JSON round-trip fidelity does not promise byte-identical repository contents.
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, field, fields, replace
-from typing import Any, Dict, Mapping, Optional, Tuple
+from dataclasses import asdict, dataclass, field, fields, replace, is_dataclass
+from typing import Any, Dict, Mapping, Optional, Tuple, Union, get_args, get_origin, get_type_hints
 
 SPEC_VERSION = 3
 
@@ -33,17 +33,36 @@ def _text(value: Any) -> str:
     return "" if value is None else str(value)
 
 
-def _restore(section_cls: Any, payload: Mapping[str, Any]) -> Any:
-    """Build one frozen section, dropping keys it does not know.
+def _decode(value: Any, shape: Any, path: str) -> Any:
+    origin, args = get_origin(shape), get_args(shape)
+    if origin is Union and type(None) in args:
+        if value is None:
+            return None
+        return _decode(value, next(arg for arg in args if arg is not type(None)), path)
+    if shape in (str, bool, int):
+        if type(value) is not shape:
+            raise ValueError(f"{path}: expected {shape.__name__}")
+        return value
+    if origin is tuple:
+        if not isinstance(value, (tuple, list)):
+            raise ValueError(f"{path}: expected an array")
+        if len(args) == 2 and args[1] is Ellipsis:
+            return tuple(_decode(item, args[0], f"{path}[{i}]") for i, item in enumerate(value))
+        if len(value) != len(args):
+            raise ValueError(f"{path}: expected {len(args)} entries")
+        return tuple(_decode(item, kind, f"{path}[{i}]") for i, (item, kind) in enumerate(zip(value, args)))
+    if isinstance(shape, type) and is_dataclass(shape):
+        return _restore(shape, value, path)
+    raise ValueError(f"{path}: unsupported field type")
 
-    Unknown keys are dropped rather than raising so a spec written by a newer
-    minor version still opens; a genuinely incompatible spec is caught by the
-    version check instead, where the message can say something useful.
-    """
-    known = getattr(section_cls, "__dataclass_fields__", {})
-    values = {key: (tuple(value) if isinstance(value, list) else value)
-              for key, value in dict(payload).items() if key in known}
-    return section_cls(**values)
+
+def _restore(section_cls: Any, payload: Any, path: str = "spec") -> Any:
+    """Validate recognized fields; preserve compatibility by ignoring unknown keys."""
+    if not isinstance(payload, Mapping):
+        raise ValueError(f"{path}: expected an object")
+    hints = get_type_hints(section_cls)
+    return section_cls(**{key: _decode(value, hints[key], f"{path}.{key}" if path != "spec" else key)
+                          for key, value in payload.items() if key in hints})
 
 
 @dataclass(frozen=True)
@@ -222,31 +241,25 @@ class BuildSpec:
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "BuildSpec":
-        version = int(data.get("spec_version", SPEC_VERSION))
+        if not isinstance(data, Mapping):
+            raise ValueError("spec: expected an object")
+        version = data.get("spec_version", SPEC_VERSION)
+        if type(version) is not int or version < 1:
+            raise ValueError("spec_version: expected a supported positive integer")
         if version > SPEC_VERSION:
-            raise ValueError(
-                f"Build spec version {version} was written by a newer Feathered "
-                f"than this one, which understands version {SPEC_VERSION}.")
+            raise ValueError(f"spec_version: Build spec version {version} was written by a newer Feathered "
+                             f"than this one, which understands version {SPEC_VERSION}.")
+        # Validate before migration so legacy transformations cannot coerce bad
+        # trust controls or fail with an implementation exception.
+        _restore(cls, data)
         if version < 3:
+            target = data.get('target', {})
+            for key in ('environment', 'kubernetes_purpose', 'kubernetes_version', 'api_server_versions',
+                        'platform_release', 'kubernetes_release', 'os_image'):
+                if key in target:
+                    _decode(target[key], str, 'target.' + key)
             data = _migrate_previous_spec(data)
-            version = 3
-        sections: Tuple[Tuple[str, Any], ...] = (
-            ("target", TargetSpec), ("content", ContentSpec), ("sources", SourceSpec),
-            ("mirror", MirrorSpec), ("output", OutputSpec), ("provenance", ProvenanceSpec),
-        )
-        built: Dict[str, Any] = {"spec_version": version}
-        for name, section_cls in sections:
-            payload = dict(data.get(name) or {})
-            if name == "sources":
-                payload["repositories"] = tuple(
-                    _restore(RepositoryRecord, row)
-                    for row in payload.get("repositories") or ())
-            if name == "content":
-                payload["exact_packages"] = tuple(
-                    _restore(ExactPackageRecord, row)
-                    for row in payload.get("exact_packages") or ())
-            built[name] = _restore(section_cls, payload)
-        return cls(**built)
+        return _restore(cls, data)
 
     @classmethod
     def from_json(cls, text: str) -> "BuildSpec":

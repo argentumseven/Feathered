@@ -1,6 +1,6 @@
 """Small workload-specific adapters for existing Content/Repository/Review stages."""
-import threading
 from copy import deepcopy
+from dataclasses import replace
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 import apt_core
@@ -14,6 +14,11 @@ import k8s_knowledge
 
 
 class KubernetesWorkloadMixin:
+    def _query_jobs(self):
+        # Preserve use of this mixin by existing non-window adapters as well.
+        from feathered_app.application.operations import OperationsMixin
+        return OperationsMixin._query_jobs(self)
+
     def _build_kubernetes_content_controls(self, parent):
         self.k8s_minor_var = tk.StringVar(value='')
         self.apiserver_oldest_minor_var = tk.StringVar(value='')
@@ -76,6 +81,8 @@ class KubernetesWorkloadMixin:
             return
         key = self._workload().key
         active = key in KUBERNETES_KEYS
+        if not active and '_background_query_jobs' in self.__dict__:
+            self._background_query_jobs.cancel('k8s-patches')
         self.package_version_label.configure(text='Package patch / build' if active else 'Version')
         self.k8s_minor_controls.grid() if active else self.k8s_minor_controls.grid_remove()
         self.k8s_patch_status.grid() if active else self.k8s_patch_status.grid_remove()
@@ -114,34 +121,60 @@ class KubernetesWorkloadMixin:
             return
         running.add(family)
         self.k8s_observation_var.set('Checking available minor repositories… You can select or type a minor while this runs.')
-        events = self.events
+        self.__dict__.setdefault('_k8s_knowledge_waiters', set()).add(family)
+        if self.__dict__.get('_k8s_knowledge_refresh_running'):
+            return
+        self._k8s_knowledge_refresh_running = True
+        generation = self.__dict__.get('_k8s_knowledge_generation', 0) + 1
+        self._k8s_knowledge_generation = generation
         path = self._release_cache_path().with_name('kubernetes-knowledge.json')
         previous = self.__dict__.get('_k8s_knowledge') or k8s_knowledge.read(path) or k8s_knowledge.bundled()
+        def work(cancel):
+            try:
+                knowledge = k8s_knowledge.refresh(path, previous, force=force)
+            except Exception as exc:
+                knowledge = replace(previous, error=core.redact_text(str(exc)))
+            return ('k8s_knowledge_finished', generation, knowledge)
+        self._query_jobs().submit('k8s-knowledge', work)
+
+    def _finish_k8s_knowledge_refresh(self, generation, knowledge):
+        if (generation != self.__dict__.get('_k8s_knowledge_generation')
+                or not self.__dict__.get('_k8s_knowledge_refresh_running')):
+            return
+        self._k8s_knowledge_refresh_running = False
+        families = self.__dict__.pop('_k8s_knowledge_waiters', set())
+        try:
+            self._receive_k8s_knowledge(knowledge)
+        finally:
+            for family in families:
+                self._start_k8s_repository_discovery(family, knowledge)
+
+    def _start_k8s_repository_discovery(self, family, knowledge):
+        events = self.events
         def probe(url):
-            # A HEAD that fails for a transient reason must still fall through
-            # to the GET attempt. Returning False from the except block meant
-            # one slow response made the minor look absent.
-            for method in ('HEAD', 'GET'):
-                request = Request(url, method=method, headers={'Range': 'bytes=0-0'} if method == 'GET' else {})
-                try:
-                    with urlopen(request, timeout=3) as response:
-                        return 200 <= response.status < 300
-                except HTTPError as exc:
-                    # A definite answer from the server: only a refusal of the
-                    # method itself is worth retrying with GET.
-                    if exc.code not in (405, 501):
-                        return False
-                except Exception:
-                    continue
-            return False
-        def work():
-            knowledge = k8s_knowledge.refresh(path, previous, force=force)
-            events.put(('k8s_knowledge', knowledge))
-            observation = k8s_discovery.discover(family, probe,
-                lambda observation: events.put(('k8s_observation_progress', family, observation)),
-                candidates=knowledge.repository_candidates or None)
-            events.put(('k8s_observation', family, observation))
-        threading.Thread(target=work, daemon=True).start()
+            return k8s_discovery.probe_repository(url, opener=urlopen)
+        def work(cancel):
+            try:
+                observation = k8s_discovery.discover(family,
+                    lambda url: k8s_discovery.ProbeResult('indeterminate', 'Cancelled') if cancel.is_set() else probe(url),
+                    lambda observation: events.put(('k8s_observation_progress', family, observation)),
+                    candidates=knowledge.repository_candidates or None)
+            except Exception as exc:
+                observation = k8s_discovery.Observation((), '', 'https://pkgs.k8s.io', core.redact_text(str(exc)))
+            return ('k8s_observation', family, observation)
+        self._query_jobs().submit('k8s-repositories-' + family, work)
+
+    def _query_failed(self, operation, error):
+        """Release UI ownership even if a query could not start its worker."""
+        self._log('Background query failed: ' + error)
+        if operation == 'k8s-knowledge':
+            previous = self.__dict__.get('_k8s_knowledge') or k8s_knowledge.bundled()
+            self._finish_k8s_knowledge_refresh(self._k8s_knowledge_generation, replace(previous, error=error))
+        elif operation.startswith('k8s-repositories-'):
+            family = operation.removeprefix('k8s-repositories-')
+            self._receive_k8s_observation(family, k8s_discovery.Observation((), '', 'https://pkgs.k8s.io', error))
+        elif operation == 'k8s-patches':
+            self.k8s_patch_status_var.set('Could not load versions: ' + error + '. Use Refresh versions to retry.')
 
     def _receive_k8s_observation(self, family, observation, complete=True):
         if self._busy():
@@ -154,9 +187,7 @@ class KubernetesWorkloadMixin:
         self.__dict__.setdefault('_k8s_discovery_running', set()).discard(family)
         self.__dict__.setdefault('_k8s_observed_session', set()).add(family)
         previous = self.__dict__.setdefault('_k8s_observations', {}).get(family)
-        if observation.error and previous and previous.versions:
-            from dataclasses import replace
-            observation = replace(previous, error=observation.error + ' Retaining previously observed repositories.')
+        observation = k8s_discovery.retain(previous, observation)
         self.__dict__.setdefault('_k8s_observations', {})[family] = observation
         try:
             k8s_discovery.save(self._release_cache_path().with_name('kubernetes-' + family + '.json'), observation)
@@ -169,7 +200,7 @@ class KubernetesWorkloadMixin:
     def _receive_k8s_knowledge(self, knowledge):
         if self._busy():
             self.after(500, lambda: self._receive_k8s_knowledge(knowledge)); return
-        self._k8s_knowledge = knowledge
+        self._k8s_knowledge = k8s_knowledge.reconcile(self.__dict__.get('_k8s_knowledge'), knowledge)
         self._update_k8s_knowledge_note()
         self._render_kubernetes_advice()
 
@@ -215,6 +246,8 @@ class KubernetesWorkloadMixin:
         self._update_k8s_knowledge_note()
 
     def _queue_k8s_patch_scan(self):
+        if '_background_query_jobs' in self.__dict__:
+            self._background_query_jobs.cancel('k8s-patches')
         pending = self.__dict__.pop('_k8s_patch_after', None)
         if pending:
             self.after_cancel(pending)
@@ -241,31 +274,26 @@ class KubernetesWorkloadMixin:
         cached = self.__dict__.setdefault('_k8s_patch_cache', {}).get(context)
         if cached is not None and not refresh:
             self._receive_k8s_patch_versions(context, cached, ''); return
-        running = self.__dict__.setdefault('_k8s_patch_running', set())
-        if context in running:
-            return
-        running.add(context)
         self.k8s_patch_status_var.set('Loading available patch/build versions… You can keep using the other controls.')
         backend = apt_core if self._profile().package_family == 'deb' else core
         arch = self.arch_var.get()
         names = tuple(self._workload().versioned_packages)
         repos = deepcopy(repos)
-        events = self.events
-        def work():
+        def work(cancel):
             try:
                 packages = []
                 for repo in repos:
-                    packages.extend(backend.load_repository(repo, {arch, 'noarch', 'all'}, core.Reporter()))
+                    packages.extend(backend.load_repository(repo, {arch, 'noarch', 'all'}, core.Reporter(cancel_event=cancel)))
                 versions = backend.package_versions(packages, names[0], role, arch)
                 # Node components share the requested build; auxiliary CRI/CNI
                 # packages retain their independent version numbering.
                 for name in names[1:]:
                     available = set(backend.package_versions(packages, name, role, arch))
                     versions = [v for v in versions if v in available]
-                events.put(('k8s_patch_versions', context, versions, ''))
+                return ('k8s_patch_versions', context, versions, '')
             except Exception as exc:
-                events.put(('k8s_patch_versions', context, [], core.redact_text(str(exc))))
-        threading.Thread(target=work, daemon=True).start()
+                return ('k8s_patch_versions', context, [], core.redact_text(str(exc)))
+        self._query_jobs().submit('k8s-patches', work)
 
     def _receive_k8s_patch_versions(self, context, versions, error):
         self.__dict__.setdefault('_k8s_patch_running', set()).discard(context)

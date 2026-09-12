@@ -1,6 +1,12 @@
 {
-  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
   "nodes": [
+    "tests/test_build_preparation.py::test_runner_returns_the_same_terminal_outcome_it_emits",
+    "tests/test_build_preparation.py::test_portable_source_scope_and_evidence_hints_survive_roundtrip",
+    "tests/test_build_preparation.py::test_runtime_vendor_requirement_is_never_downgraded",
+    "tests/test_build_preparation.py::test_timeout_during_metadata_has_a_timeout_outcome",
+    "tests/test_build_preparation.py::test_incompatible_repository_does_not_participate",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data0]",
     "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data1]",
     "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data2]",
     "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data3]",
@@ -14,12 +20,6 @@
     "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[repository_transport]",
     "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[checksum_inspection]",
     "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[release_seed]",
-    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[transaction_resolution]",
-    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[transaction_inventory]",
-    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[root_requests]",
-    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_version]",
-    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_policy]",
-    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_discovery]",
-    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[kubernetes_workflow]"
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[transaction_resolution]"
   ]
 }

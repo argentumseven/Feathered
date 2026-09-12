@@ -2,18 +2,18 @@
 
 Status: passed
 
-Commit: 7b745fb7186de5885d9b63f221acc3deef08da5f
+Commit: 217e02da27b74e9a414e7ddd436e9a056886d6c2
 Tracked source edits present: False
-Source-tree SHA-256: dc9d42d0ae2936bda116f79b24a11630f6634b64fa098d22babbc0dc4b674e94
+Source-tree SHA-256: eba1cf560dd633b062d5ecb44ded988ee884008600644e4e1c0e510e63a4194e
 Python: 3.12.14; pytest: 9.1.1
 Environment: Linux-6.18.35-x86_64-with-glibc2.39
-Finished: 2026-09-12T17:47:48.744070+00:00
+Finished: 2026-09-12T23:00:22.688996+00:00
 
-Collected: 1290
+Collected: 1341
 
 | Outcome | Count |
 |---|---|
-| passed | 1290 |
+| passed | 1341 |
 
 Permitted Windows capability skips: 0 (never counted as passes).
 

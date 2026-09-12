@@ -1029,7 +1029,7 @@ def redact_url(url: str) -> str:
     if "@" in netloc:
         userinfo, host = netloc.rsplit("@", 1)
         name = userinfo.split(":", 1)[0]
-        netloc = (f"{name}:REDACTED@{host}" if name else f"REDACTED@{host}")
+        netloc = (f"{name}:REDACTED@{host}" if name and ":" in userinfo else f"REDACTED@{host}")
     query = parsed.query
     if query:
         # Preserve every non-sensitive field byte-for-byte.  parse_qsl followed

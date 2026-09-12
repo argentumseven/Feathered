@@ -73,13 +73,31 @@ pytest argument file, avoiding command-line limits without omitting parameters.
 
 ## Scope of local validation
 
+The follow-on batch implements instruction items 2–5: credential-safe display
+with source URLs visible, strict decoding of recognized spec fields and runtime
+preparation inputs, partial-outage recovery, shared release-knowledge ownership,
+and bounded UI event processing with incremental query coordination. Each
+behavioral repair has focused regression evidence in `validation/batch25/`;
+the complete final-tree result remains `validation/release-gate/SUMMARY.md`.
+Malformed specs formerly accepted by truthiness are intentionally rejected;
+valid older specs and incomplete drafts remain supported. See
+`BACKGROUND-REFRESH.md` for cache ownership, cancellation and migration scope.
+
+The new heartbeat test demonstrated queue starvation under a synthetic progress
+burst. It is a reproduction of that bounded scenario, not a claim that every
+historical UI hang had the same cause. No tests are deliberately deselected in
+the delivered full release gate. Diagnostics during development included a
+headless focused run and a display-harness setup failure; those are not counted
+as GUI validation.
+
 The implementation review uses Linux, Python 3.12.14, pytest 9.1.1 and Tk/Xvfb.
 Mypy and Ruff use the configured versions, 1.18.2 and 0.14.2. Local execution does
 not establish Windows execution, Authenticode signing, frozen production builds,
 staged gpgv behavior, native package-manager oracle acceptance or live upstream
-availability. Those checks were not performed for this gate-only change. The
+availability. Those checks were not performed for this batch. The
 existing CI requirements for native conformance and signed production remain in
 place; a workflow definition is not evidence that its remote job has run.
 
-No package resolver, publication implementation, transport policy, application UI,
-saved-spec format or bundle layout is changed by item 1.
+Item 1 changed only release verification. The follow-on batch changes application
+input validation and discovery/event handling; it does not change package
+resolution, bundle layout, stored repository credentials or transport identity.

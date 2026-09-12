@@ -1,9 +1,15 @@
 {
   "schema": 1,
-  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
   "mode": "batch",
   "pytest_version": "9.1.1",
   "nodes": [
+    "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+    "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
+    "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
     "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-True]",
     "tests/test_checksum_release_fixes.py::test_cancelled_pinned_fetch_does_not_fall_back",
     "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[False]",
@@ -17,28 +23,175 @@
     "tests/test_checksum_release_fixes.py::test_saved_release_observation_wins_over_bundled_seed",
     "tests/test_checksum_release_fixes.py::test_slow_previous_discovery_does_not_block_new_distribution",
     "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
-    "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
-    "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
-    "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
-    "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
-    "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
-    "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
-    "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds"
+    "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread"
   ],
   "batch_excluded": [
-    "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
-    "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
-    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
-    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
-    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
-    "tests/test_chooser_stale_activation.py::test_inline_chooser_accumulates_several_packages",
-    "tests/test_chooser_stale_activation.py::test_inline_add_keeps_its_tree_reference",
-    "tests/test_chooser_stale_activation.py::test_re_adding_the_same_package_inline_reports_instead_of_re_rendering"
+    "tests/test_build_worker_isolation.py::test_the_tripwire_detects_a_read_from_another_thread",
+    "tests/test_build_worker_isolation.py::test_main_thread_reads_are_not_flagged",
+    "tests/test_build_worker_isolation.py::test_the_snapshot_serves_the_values_the_worker_needs",
+    "tests/test_build_worker_isolation.py::test_releasing_the_snapshot_returns_the_wizard_to_live_controls",
+    "tests/test_build_worker_isolation.py::test_a_build_snapshot_is_taken_before_the_worker_is_created",
+    "tests/test_build_worker_isolation.py::test_the_snapshot_is_dropped_when_the_operation_ends",
+    "tests/test_build_worker_isolation.py::test_the_wider_build_path_reads_no_widgets_from_the_worker",
+    "tests/test_build_worker_isolation.py::test_folder_naming_cannot_drift_between_confirmation_and_write",
+    "tests/test_build_worker_isolation.py::test_naming_follows_the_clock_when_no_build_is_running",
+    "tests/test_build_worker_isolation.py::test_the_build_path_has_exactly_one_ui_dependency",
+    "tests/test_build_worker_isolation.py::test_the_interactive_policy_is_still_the_default",
+    "tests/test_build_worker_isolation.py::test_an_injected_policy_replaces_the_dialog_entirely",
+    "tests/test_build_worker_isolation.py::test_every_mid_build_question_goes_through_a_policy",
+    "tests/test_build_worker_isolation.py::test_the_interactive_prompt_remains_the_default",
+    "tests/test_build_worker_isolation.py::test_a_host_that_cannot_answer_declines",
+    "tests/test_build_worker_isolation.py::test_the_download_plan_does_not_deadlock_without_a_consumer",
+    "tests/test_build_worker_isolation.py::test_an_injected_sink_replaces_the_queue_handshake"
   ],
   "collection_issues": [],
   "deselected": [],
   "phases": [
     {
+      "nodeid": "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
       "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-True]",
       "when": "setup",
       "outcome": "passed",
@@ -368,150 +521,6 @@
     },
     {
       "nodeid": "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
-      "when": "teardown",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds",
-      "when": "setup",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds",
-      "when": "call",
-      "outcome": "passed",
-      "wasxfail": null,
-      "reason": "",
-      "detail": ""
-    },
-    {
-      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds",
       "when": "teardown",
       "outcome": "passed",
       "wasxfail": null,

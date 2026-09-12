@@ -1,15 +1,25 @@
 {
-  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "run_id": "5eb459b8a77b46f598f9295c32fcb7e6",
   "nodes": [
-    "tests/test_version_ui_fixes.py::test_every_referenced_label_style_is_explicitly_configured",
-    "tests/test_version_ui_fixes.py::test_the_field_label_matches_the_card_it_sits_on",
-    "tests/test_version_ui_fixes.py::test_clearing_the_baseline_refreshes_what_depended_on_it",
-    "tests/test_version_ui_fixes.py::test_clearing_an_empty_baseline_does_nothing",
-    "tests/test_workload_version_ui.py::test_minor_discovery_publishes_before_slowest_probe_finishes",
-    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-node-rpm]",
-    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-node-deb]",
-    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-client-rpm]",
-    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-client-deb]",
-    "tests/test_workload_version_ui.py::test_generic_package_scan_result_cannot_replace_another_workload"
+    "tests/test_transaction_inventory.py::test_uncaptured_relationships_do_not_claim_reverse_validation[deb]",
+    "tests/test_transaction_inventory.py::test_uncaptured_relationships_do_not_claim_reverse_validation[arch]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[rpmlib(CompressedFileNames)-providers0-False]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(required if trigger)-providers1-True]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(required if trigger)-providers2-False]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(one or two)-providers3-False]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(one with two)-providers4-True]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(one with two)-providers5-False]",
+    "tests/test_transaction_inventory.py::test_deb_reverse_validation_checks_alternatives_and_predepends",
+    "tests/test_transaction_inventory.py::test_arch_reverse_validation_uses_versioned_provides",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_distinguishes_foreign_and_managed_missing_packages[False]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_distinguishes_foreign_and_managed_missing_packages[True]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[incomplete]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[older]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[pin]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[source]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_preserves_caller_roots_and_adds_source_pinned_requests",
+    "tests/test_transaction_resolution.py::test_stability_returns_original_result_and_preserves_caller_options",
+    "tests/test_transaction_resolution.py::test_package_order_does_not_prevent_stability",
+    "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[False]"
   ]
 }

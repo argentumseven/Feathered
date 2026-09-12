@@ -1,3 +1,2 @@
+tests/test_end_to_end_build.py
 tests/test_footer_status.py
-tests/test_headless_execution.py
-tests/test_installer_paths.py

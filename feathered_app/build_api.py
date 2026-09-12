@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import copy
 import time
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, replace, asdict
 from typing import Mapping
 
 from build_spec import BuildSpec, repositories_from
@@ -72,7 +72,22 @@ def prepare_build(spec: BuildSpec, services: BuildServices,
     It never publishes a bundle. Invalid requests raise PreparationRejected;
     refusal and cancellation remain distinguishable from execution failure.
     """
-    inputs = inputs or PreparationInputs()
+    try:
+        if not isinstance(spec, BuildSpec):
+            raise ValueError('spec: expected BuildSpec')
+        spec = BuildSpec.from_dict(asdict(spec))
+    except (ValueError, TypeError) as exc:
+        raise PreparationRejected(redact_text(str(exc))) from exc
+    inputs = inputs if inputs is not None else PreparationInputs()
+    if not isinstance(inputs, PreparationInputs):
+        raise PreparationRejected('Invalid preparation inputs.')
+    checked = PreparationInputs.from_dict({
+        'repository_credentials': inputs.repository_credentials,
+        'vendor_signature_profiles': inputs.vendor_signature_profiles,
+        'resolution_pass_budget': inputs.resolution_pass_budget})
+    if inputs.workloads is not None and not isinstance(inputs.workloads, Mapping):
+        raise PreparationRejected('Workload catalogue must be a mapping.')
+    inputs = replace(checked, workloads=inputs.workloads)
     if services.should_cancel():
         raise Cancelled('Operation cancelled')
     profiles = [p for p in PROFILES.values() if p.label == spec.target.distribution]

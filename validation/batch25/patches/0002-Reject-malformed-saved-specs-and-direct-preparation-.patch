@@ -1,0 +1,300 @@
+From bc2595a5e244ec4b5cd802bfb8683fdcd5a6f799 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sat, 12 Sep 2026 18:43:15 -0400
+Subject: [PATCH 2/5] Reject malformed saved specs and direct preparation
+ inputs
+
+---
+ SOURCE-SHA256.json          |  7 ++--
+ build_spec.py               | 83 +++++++++++++++++++++----------------
+ feathered_app/build_api.py  | 19 ++++++++-
+ feathered_cli.py            | 13 +++---
+ tests/test_spec_decoding.py | 49 ++++++++++++++++++++++
+ 5 files changed, 126 insertions(+), 45 deletions(-)
+ create mode 100644 tests/test_spec_decoding.py
+
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index eb4b634..09db9ee 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -20,7 +20,7 @@
+   "artifact_cache.py": "2680caccc4e9fd517896aa19f445e61461099319c1ebac9ecafe1c9011b859f4",
+   "build_exe.bat": "76fa33f0277a4fe60077514b7d4f6894073c9b29943fe8d5603048235861865c",
+   "build_exe_debug.bat": "0a782bcdf7b269183b62235e6d82a330723f02ea6ac1e3447e7c1de19204cac6",
+-  "build_spec.py": "720b6dd23669920395b72c8d92f78f26b4163b23443c8cc1a8e3a16f8115b3ba",
++  "build_spec.py": "08a7b88434be5c9e09664d8c7213e092f92384da749bd803c47dba3ac2f8b489",
+   "check_host_contracts.py": "3d344d6a6c5c04557ac6c7b97ca49a1e34210e90cdbf2df2f022e463be53e959",
+   "check_installer_syntax.py": "6e2272288f8ed468b0aaa43a66c94fc64e4190d4af43cdfbdc9bbc8c7bb456b8",
+   "checksum_inspection.py": "dd719fe78fcd82eb97463330ff7c8f0184d3de40a91ffac90d6a859d75c61601",
+@@ -43,7 +43,7 @@
+   "feathered_app/application/selection.py": "04470dc07dd335ef9c045fade491d16d895418a411e2da7cb7917a7dbdd47912",
+   "feathered_app/application/sources.py": "d93cb9b499519c51ec82716df8acfc270a3db7b00a7b9a478fbc59960f556db8",
+   "feathered_app/application/tools.py": "35c628c59a179fe58f6c62cb3ce12f4fce3be60d304871ae5b1d8b7eef645ed3",
+-  "feathered_app/build_api.py": "8f62b9b7ba5cacc0f29e85accd0d5c45c354582a97ebd43c5213ad38fc41763f",
++  "feathered_app/build_api.py": "2a782430b5c37a78f837eb95fbea73ba1b5a54419f8db26eef290d1532ab44a5",
+   "feathered_app/build_backend.py": "7e769b19d94ce6650a4df1f170a70bf9b8aaacdbbf3d9dcd416045277bb2e869",
+   "feathered_app/build_host_contracts.py": "5127c2b529c0467a1f39afb8026ad6e9a46fb223185b8066d26132a07d30a491",
+   "feathered_app/build_intent.py": "913f5e4fc5f91231acb4a6ffb7dc7d9abd331139526d6b6d33d98eec66a5f81a",
+@@ -73,7 +73,7 @@
+   "feathered_app/ui/layout.py": "5dfec088a57f617e9ac86477f5e9fa879b7e1f1aeca38ccb9f47bd58bc1f7019",
+   "feathered_app/ui/panes.py": "e40895e77fb21704e2fa8cb6ee3cf8ee64d3a40f3d629346b017ce6aa6fad945",
+   "feathered_app/ui/theme.py": "3e582bba99c65d1499d0b9fb2e4691c73340b3f26ee004f8ef1a30c40e0f297a",
+-  "feathered_cli.py": "5f401f592e75e07924ba2e74f039c4a49d82ebe3b4fd8598f365e8f0e2eb8bb9",
++  "feathered_cli.py": "521e42de9b7ce23082b7222f789084bab31c5bdee7b29c43edb011269efdfada",
+   "install_python_deps.bat": "eb7741b34e588ebcbc2abdd1ce26aeb4b39e01d8d19f69b4c4b80d0ff560baba",
+   "installer.py": "a41df167abcd4cbff86196bdec1eae902f2a571d4ce890c121df5acae91f67df",
+   "inventory_relationships.py": "7f0e035e4093d3679222f157ed4fa2c952d3d17b081488b069397c171596bb10",
+@@ -164,6 +164,7 @@
+   "tests/test_source_manifest.py": "93baadbd1deb2daac659a998bb3ebdb81e55e3d81477bde79817e46a42a2da2e",
+   "tests/test_source_scope.py": "b3fe0c6296a0eb8ae9743598cc6117067ac7af9b4293b6a02e7cb2c5f95e14ce",
+   "tests/test_source_visibility.py": "8947baf2ada709211d1b3221f6def7120a9f41d66ecafdff2548752079115182",
++  "tests/test_spec_decoding.py": "d3e6018968c5228091c0a7af07650ae9c1a8bc7b3ea722812e6befb5ef3a48de",
+   "tests/test_target_release_transition.py": "053d490fd090623e4201e0279d414dd02b1c2c4f9322538ee6d8b455d4733f04",
+   "tests/test_transaction_contract.py": "b62acc56444a7693796df0544a6e33ce200e52b79ab5e5e67baf0f6f0fe0937a",
+   "tests/test_transaction_inventory.py": "204e216ea81db84835c6c38784c5fc6b8f7e5f527b99860d7e537467df1b0a23",
+diff --git a/build_spec.py b/build_spec.py
+index 626962b..c920499 100644
+--- a/build_spec.py
++++ b/build_spec.py
+@@ -9,8 +9,8 @@ JSON round-trip fidelity does not promise byte-identical repository contents.
+ from __future__ import annotations
+ 
+ import json
+-from dataclasses import asdict, dataclass, field, fields, replace
+-from typing import Any, Dict, Mapping, Optional, Tuple
++from dataclasses import asdict, dataclass, field, fields, replace, is_dataclass
++from typing import Any, Dict, Mapping, Optional, Tuple, Union, get_args, get_origin, get_type_hints
+ 
+ SPEC_VERSION = 3
+ 
+@@ -33,17 +33,36 @@ def _text(value: Any) -> str:
+     return "" if value is None else str(value)
+ 
+ 
+-def _restore(section_cls: Any, payload: Mapping[str, Any]) -> Any:
+-    """Build one frozen section, dropping keys it does not know.
+-
+-    Unknown keys are dropped rather than raising so a spec written by a newer
+-    minor version still opens; a genuinely incompatible spec is caught by the
+-    version check instead, where the message can say something useful.
+-    """
+-    known = getattr(section_cls, "__dataclass_fields__", {})
+-    values = {key: (tuple(value) if isinstance(value, list) else value)
+-              for key, value in dict(payload).items() if key in known}
+-    return section_cls(**values)
++def _decode(value: Any, shape: Any, path: str) -> Any:
++    origin, args = get_origin(shape), get_args(shape)
++    if origin is Union and type(None) in args:
++        if value is None:
++            return None
++        return _decode(value, next(arg for arg in args if arg is not type(None)), path)
++    if shape in (str, bool, int):
++        if type(value) is not shape:
++            raise ValueError(f"{path}: expected {shape.__name__}")
++        return value
++    if origin is tuple:
++        if not isinstance(value, (tuple, list)):
++            raise ValueError(f"{path}: expected an array")
++        if len(args) == 2 and args[1] is Ellipsis:
++            return tuple(_decode(item, args[0], f"{path}[{i}]") for i, item in enumerate(value))
++        if len(value) != len(args):
++            raise ValueError(f"{path}: expected {len(args)} entries")
++        return tuple(_decode(item, kind, f"{path}[{i}]") for i, (item, kind) in enumerate(zip(value, args)))
++    if isinstance(shape, type) and is_dataclass(shape):
++        return _restore(shape, value, path)
++    raise ValueError(f"{path}: unsupported field type")
++
++
++def _restore(section_cls: Any, payload: Any, path: str = "spec") -> Any:
++    """Validate recognized fields; preserve compatibility by ignoring unknown keys."""
++    if not isinstance(payload, Mapping):
++        raise ValueError(f"{path}: expected an object")
++    hints = get_type_hints(section_cls)
++    return section_cls(**{key: _decode(value, hints[key], f"{path}.{key}" if path != "spec" else key)
++                          for key, value in payload.items() if key in hints})
+ 
+ 
+ @dataclass(frozen=True)
+@@ -222,31 +241,25 @@ class BuildSpec:
+ 
+     @classmethod
+     def from_dict(cls, data: Mapping[str, Any]) -> "BuildSpec":
+-        version = int(data.get("spec_version", SPEC_VERSION))
++        if not isinstance(data, Mapping):
++            raise ValueError("spec: expected an object")
++        version = data.get("spec_version", SPEC_VERSION)
++        if type(version) is not int or version < 1:
++            raise ValueError("spec_version: expected a supported positive integer")
+         if version > SPEC_VERSION:
+-            raise ValueError(
+-                f"Build spec version {version} was written by a newer Feathered "
+-                f"than this one, which understands version {SPEC_VERSION}.")
++            raise ValueError(f"spec_version: Build spec version {version} was written by a newer Feathered "
++                             f"than this one, which understands version {SPEC_VERSION}.")
++        # Validate before migration so legacy transformations cannot coerce bad
++        # trust controls or fail with an implementation exception.
++        _restore(cls, data)
+         if version < 3:
++            target = data.get('target', {})
++            for key in ('environment', 'kubernetes_purpose', 'kubernetes_version', 'api_server_versions',
++                        'platform_release', 'kubernetes_release', 'os_image'):
++                if key in target:
++                    _decode(target[key], str, 'target.' + key)
+             data = _migrate_previous_spec(data)
+-            version = 3
+-        sections: Tuple[Tuple[str, Any], ...] = (
+-            ("target", TargetSpec), ("content", ContentSpec), ("sources", SourceSpec),
+-            ("mirror", MirrorSpec), ("output", OutputSpec), ("provenance", ProvenanceSpec),
+-        )
+-        built: Dict[str, Any] = {"spec_version": version}
+-        for name, section_cls in sections:
+-            payload = dict(data.get(name) or {})
+-            if name == "sources":
+-                payload["repositories"] = tuple(
+-                    _restore(RepositoryRecord, row)
+-                    for row in payload.get("repositories") or ())
+-            if name == "content":
+-                payload["exact_packages"] = tuple(
+-                    _restore(ExactPackageRecord, row)
+-                    for row in payload.get("exact_packages") or ())
+-            built[name] = _restore(section_cls, payload)
+-        return cls(**built)
++        return _restore(cls, data)
+ 
+     @classmethod
+     def from_json(cls, text: str) -> "BuildSpec":
+diff --git a/feathered_app/build_api.py b/feathered_app/build_api.py
+index 2ae7444..1b38fbc 100644
+--- a/feathered_app/build_api.py
++++ b/feathered_app/build_api.py
+@@ -8,7 +8,7 @@ from __future__ import annotations
+ 
+ import copy
+ import time
+-from dataclasses import dataclass, field, replace
++from dataclasses import dataclass, field, replace, asdict
+ from typing import Mapping
+ 
+ from build_spec import BuildSpec, repositories_from
+@@ -72,7 +72,22 @@ def prepare_build(spec: BuildSpec, services: BuildServices,
+     It never publishes a bundle. Invalid requests raise PreparationRejected;
+     refusal and cancellation remain distinguishable from execution failure.
+     """
+-    inputs = inputs or PreparationInputs()
++    try:
++        if not isinstance(spec, BuildSpec):
++            raise ValueError('spec: expected BuildSpec')
++        spec = BuildSpec.from_dict(asdict(spec))
++    except (ValueError, TypeError) as exc:
++        raise PreparationRejected(redact_text(str(exc))) from exc
++    inputs = inputs if inputs is not None else PreparationInputs()
++    if not isinstance(inputs, PreparationInputs):
++        raise PreparationRejected('Invalid preparation inputs.')
++    checked = PreparationInputs.from_dict({
++        'repository_credentials': inputs.repository_credentials,
++        'vendor_signature_profiles': inputs.vendor_signature_profiles,
++        'resolution_pass_budget': inputs.resolution_pass_budget})
++    if inputs.workloads is not None and not isinstance(inputs.workloads, Mapping):
++        raise PreparationRejected('Workload catalogue must be a mapping.')
++    inputs = replace(checked, workloads=inputs.workloads)
+     if services.should_cancel():
+         raise Cancelled('Operation cancelled')
+     profiles = [p for p in PROFILES.values() if p.label == spec.target.distribution]
+diff --git a/feathered_cli.py b/feathered_cli.py
+index d25b23e..5aa5d1d 100644
+--- a/feathered_cli.py
++++ b/feathered_cli.py
+@@ -35,11 +35,11 @@ def load_spec(path: Path) -> BuildSpec:
+     try:
+         return BuildSpec.from_json(path.read_text(encoding="utf-8"))
+     except FileNotFoundError:
+-        raise SystemExit(redact_text(f"ERROR: no such build spec: {path}")) from None
++        raise ValueError(redact_text(f"ERROR: no such build spec: {path}")) from None
+     except json.JSONDecodeError as exc:
+-        raise SystemExit(redact_text(f"ERROR: {path} is not valid JSON: {exc}")) from None
++        raise ValueError(redact_text(f"ERROR: {path} is not valid JSON: {exc}")) from None
+     except ValueError as exc:
+-        raise SystemExit(redact_text(f"ERROR: {exc}")) from None
++        raise ValueError(redact_text(f"ERROR: {exc}")) from None
+ 
+ 
+ def describe(spec: BuildSpec) -> str:
+@@ -151,7 +151,11 @@ def main(argv=None) -> int:
+     show.add_argument("--spec", type=Path, required=True)
+ 
+     args = parser.parse_args(argv)
+-    spec = load_spec(args.spec)
++    try:
++        spec = load_spec(args.spec)
++    except (OSError, ValueError) as exc:
++        print(redact_text(str(exc)), file=sys.stderr)
++        return 5
+ 
+     if args.command == "show":
+         print(describe(spec))
+@@ -171,7 +175,6 @@ def main(argv=None) -> int:
+         try:
+             runtime_inputs = PreparationInputs.from_dict(json.loads(args.runtime_config.read_text(encoding="utf-8")))
+         except (OSError, ValueError, RuntimeError) as exc:
+-            from core import redact_text
+             print(f"ERROR: {redact_text(str(exc))}", file=sys.stderr)
+             return 5
+     return run_build(spec, runtime_inputs=runtime_inputs,
+diff --git a/tests/test_spec_decoding.py b/tests/test_spec_decoding.py
+new file mode 100644
+index 0000000..ae028dd
+--- /dev/null
++++ b/tests/test_spec_decoding.py
+@@ -0,0 +1,49 @@
++"""Malformed saved settings must never become permissive execution controls."""
++from dataclasses import replace
++import json
++from unittest.mock import Mock
++import pytest
++from build_spec import BuildSpec, SourceSpec, RepositoryRecord
++from feathered_app.build_api import prepare_build, PreparationInputs
++from feathered_app.build_preparation import PreparationRejected
++from feathered_app.build_services import BuildServices
++import core
++
++@pytest.mark.parametrize('value', ['false',0,1,None,[],{}])
++def test_repository_boolean_types_are_rejected(value):
++    for field in ('enabled','allow_unverified_index'):
++        with pytest.raises(ValueError,match=r'sources.repositories\[0\].'+field):
++            BuildSpec.from_dict({'sources':{'repositories':[{field:value}]}})
++
++@pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
++    ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
++    ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
++    ({'sources':{'repositories':None}},'sources.repositories'),
++    ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
++    ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
++    ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
++def test_bad_shapes_have_field_diagnostics(payload,path):
++    with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
++
++def test_valid_draft_optional_fields_and_unknown_keys_remain_compatible():
++    for version in (1,2,3):
++        spec=BuildSpec.from_dict({'spec_version':version,'target':{'release':'','future':True},'sources':{'required_signature_vendors':None}})
++        assert spec.target.release=='' and spec.sources.required_signature_vendors is None
++        assert BuildSpec.from_json(spec.to_json())==spec
++
++def test_direct_api_rejects_wrong_dataclass_fields_before_any_work(monkeypatch):
++    spec=BuildSpec(sources=SourceSpec(repositories=(RepositoryRecord(allow_unverified_index='false'),)))
++    services=BuildServices(core.Reporter())
++    with pytest.raises(PreparationRejected,match='allow_unverified_index'):
++        prepare_build(spec,services)
++
++def test_direct_runtime_configuration_has_same_validation_as_json():
++    with pytest.raises(PreparationRejected,match='Resolution pass budget'):
++        prepare_build(BuildSpec(),BuildServices(core.Reporter()),PreparationInputs(resolution_pass_budget=True))
++
++def test_cli_malformed_shape_is_invalid_request_without_traceback(tmp_path,capsys):
++    from feathered_cli import main
++    path=tmp_path/'bad.json';path.write_text('[]')
++    assert main(['build','--spec',str(path)])==5
++    err=capsys.readouterr().err
++    assert 'spec' in err and 'Traceback' not in err
+-- 
+2.51.1
+

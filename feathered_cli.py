@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_spec
 from build_spec import BuildSpec
+from core import redact_text, redact_url
 
 # Cooperative deadline shared by preparation and execution.
 DEFAULT_TIMEOUT_S = 4 * 60 * 60
@@ -34,11 +35,11 @@ def load_spec(path: Path) -> BuildSpec:
     try:
         return BuildSpec.from_json(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
-        raise SystemExit(f"ERROR: no such build spec: {path}") from None
+        raise ValueError(redact_text(f"ERROR: no such build spec: {path}")) from None
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"ERROR: {path} is not valid JSON: {exc}") from None
+        raise ValueError(redact_text(f"ERROR: {path} is not valid JSON: {exc}")) from None
     except ValueError as exc:
-        raise SystemExit(f"ERROR: {exc}") from None
+        raise ValueError(redact_text(f"ERROR: {exc}")) from None
 
 
 def describe(spec: BuildSpec) -> str:
@@ -53,7 +54,7 @@ def describe(spec: BuildSpec) -> str:
     repositories = build_spec.repositories_from(spec, RepoSpec)
     for row, repository in zip(spec.sources.repositories, repositories):
         state = "enabled" if row.enabled else "disabled"
-        lines.append(f"  - {row.name} [{state}, priority {row.priority}] {row.url}")
+        lines.append(f"  - {row.name} [{state}, priority {row.priority}] {redact_url(row.url)}")
         lines.append(f"    identity: {repository.source_identity}")
     if spec.content.exact_packages:
         lines.append(f"exact roots {len(spec.content.exact_packages)}")
@@ -68,7 +69,7 @@ def describe(spec: BuildSpec) -> str:
     if spec.mirror.layout != "separate":
         lines.append(f"mirror      {spec.mirror.layout}, "
                      f"disagreements: {spec.mirror.disagreement_policy}")
-    return "\n".join(lines)
+    return redact_text("\n".join(lines))
 
 
 def run_build(spec: BuildSpec, *, output: str = "", timeout: int = DEFAULT_TIMEOUT_S,
@@ -112,9 +113,9 @@ def run_build(spec: BuildSpec, *, output: str = "", timeout: int = DEFAULT_TIMEO
         if not outcome.output_path or not Path(outcome.output_path).is_dir():
             print('ERROR: execution reported success without a published directory.', file=sys.stderr)
             return 1
-        print(f"\nBundle: {outcome.output_path}")
+        print(f"\nBundle: {redact_text(outcome.output_path)}")
     else:
-        print(f"ERROR: {outcome.message}", file=sys.stderr)
+        print(f"ERROR: {redact_text(outcome.message)}", file=sys.stderr)
     return outcome.exit_code
 
 
@@ -150,7 +151,11 @@ def main(argv=None) -> int:
     show.add_argument("--spec", type=Path, required=True)
 
     args = parser.parse_args(argv)
-    spec = load_spec(args.spec)
+    try:
+        spec = load_spec(args.spec)
+    except (OSError, ValueError) as exc:
+        print(redact_text(str(exc)), file=sys.stderr)
+        return 5
 
     if args.command == "show":
         print(describe(spec))
@@ -170,7 +175,6 @@ def main(argv=None) -> int:
         try:
             runtime_inputs = PreparationInputs.from_dict(json.loads(args.runtime_config.read_text(encoding="utf-8")))
         except (OSError, ValueError, RuntimeError) as exc:
-            from core import redact_text
             print(f"ERROR: {redact_text(str(exc))}", file=sys.stderr)
             return 5
     return run_build(spec, runtime_inputs=runtime_inputs,

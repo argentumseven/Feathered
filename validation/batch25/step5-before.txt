@@ -1,0 +1,34 @@
+F..F                                                                     [100%]
+=================================== FAILURES ===================================
+____________ test_progress_burst_yields_before_consuming_all_events ____________
+
+    def test_progress_burst_yields_before_consuming_all_events():
+        value=host()
+        for i in range(1000):value.events.put(('progress','building',i/1000))
+        value._drain_events()
+>       assert not value.events.empty()
+E       AssertionError: assert not True
+E        +  where True = empty()
+E        +    where empty = <queue.Queue object at 0x7f091bbe9a60>.empty
+E        +      where <queue.Queue object at 0x7f091bbe9a60> = namespace(events=<queue.Queue object at 0x7f091bbe9a60>, active_operation=None, after=<Mock id='139677096909888'>, _op...6910128'>, _show_result=<Mock id='139677096910176'>, _drain_events=<function host.<locals>.<lambda> at 0x7f091bc97060>).events
+
+tests/test_ui_event_budget.py:23: AssertionError
+________ test_real_gui_heartbeat_runs_before_a_progress_burst_finishes _________
+
+application = <app.App object .>
+
+    @requires_display
+    def test_real_gui_heartbeat_runs_before_a_progress_burst_finishes(application):
+        window=application;seen=[]
+        for i in range(5000):window.events.put(('progress','fixture',i/5000))
+        window.after(0,window._drain_events)
+        window.after(0,lambda:seen.append(window.events.qsize()))
+        window.update()
+>       assert seen and seen[0]>0
+E       assert ([0] and 0 > 0)
+
+tests/test_ui_event_budget.py:60: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_ui_event_budget.py::test_progress_burst_yields_before_consuming_all_events
+FAILED tests/test_ui_event_budget.py::test_real_gui_heartbeat_runs_before_a_progress_burst_finishes
+2 failed, 2 passed in 0.39s

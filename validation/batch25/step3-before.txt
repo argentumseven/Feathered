@@ -1,0 +1,347 @@
+FFFFFFFFFFFFFFFF.FFF                                                     [100%]
+=================================== FAILURES ===================================
+______________ test_repository_boolean_types_are_rejected[false] _______________
+
+value = 'false'
+
+    @pytest.mark.parametrize('value', ['false',0,1,None,[],{}])
+    def test_repository_boolean_types_are_rejected(value):
+        for field in ('enabled','allow_unverified_index'):
+>           with pytest.raises(ValueError,match=r'sources.repositories\[0\].'+field):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:15: Failed
+________________ test_repository_boolean_types_are_rejected[0] _________________
+
+value = 0
+
+    @pytest.mark.parametrize('value', ['false',0,1,None,[],{}])
+    def test_repository_boolean_types_are_rejected(value):
+        for field in ('enabled','allow_unverified_index'):
+>           with pytest.raises(ValueError,match=r'sources.repositories\[0\].'+field):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:15: Failed
+________________ test_repository_boolean_types_are_rejected[1] _________________
+
+value = 1
+
+    @pytest.mark.parametrize('value', ['false',0,1,None,[],{}])
+    def test_repository_boolean_types_are_rejected(value):
+        for field in ('enabled','allow_unverified_index'):
+>           with pytest.raises(ValueError,match=r'sources.repositories\[0\].'+field):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:15: Failed
+_______________ test_repository_boolean_types_are_rejected[None] _______________
+
+value = None
+
+    @pytest.mark.parametrize('value', ['false',0,1,None,[],{}])
+    def test_repository_boolean_types_are_rejected(value):
+        for field in ('enabled','allow_unverified_index'):
+>           with pytest.raises(ValueError,match=r'sources.repositories\[0\].'+field):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:15: Failed
+______________ test_repository_boolean_types_are_rejected[value4] ______________
+
+value = []
+
+    @pytest.mark.parametrize('value', ['false',0,1,None,[],{}])
+    def test_repository_boolean_types_are_rejected(value):
+        for field in ('enabled','allow_unverified_index'):
+>           with pytest.raises(ValueError,match=r'sources.repositories\[0\].'+field):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:15: Failed
+______________ test_repository_boolean_types_are_rejected[value5] ______________
+
+value = {}
+
+    @pytest.mark.parametrize('value', ['false',0,1,None,[],{}])
+    def test_repository_boolean_types_are_rejected(value):
+        for field in ('enabled','allow_unverified_index'):
+>           with pytest.raises(ValueError,match=r'sources.repositories\[0\].'+field):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:15: Failed
+____________ test_bad_shapes_have_field_diagnostics[payload0-spec] _____________
+
+payload = [], path = 'spec'
+
+    @pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
+        ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
+        ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
+        ({'sources':{'repositories':None}},'sources.repositories'),
+        ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
+        ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
+        ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
+    def test_bad_shapes_have_field_diagnostics(payload,path):
+>       with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_spec_decoding.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'build_spec.BuildSpec'>, data = []
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "BuildSpec":
+>       version = int(data.get("spec_version", SPEC_VERSION))
+                      ^^^^^^^^
+E       AttributeError: 'list' object has no attribute 'get'
+
+build_spec.py:225: AttributeError
+________ test_bad_shapes_have_field_diagnostics[payload1-spec_version] _________
+
+payload = {'spec_version': None}, path = 'spec_version'
+
+    @pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
+        ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
+        ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
+        ({'sources':{'repositories':None}},'sources.repositories'),
+        ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
+        ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
+        ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
+    def test_bad_shapes_have_field_diagnostics(payload,path):
+>       with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_spec_decoding.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'build_spec.BuildSpec'>, data = {'spec_version': None}
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "BuildSpec":
+>       version = int(data.get("spec_version", SPEC_VERSION))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+
+build_spec.py:225: TypeError
+________ test_bad_shapes_have_field_diagnostics[payload2-spec_version] _________
+
+payload = {'spec_version': 0}, path = 'spec_version'
+
+    @pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
+        ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
+        ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
+        ({'sources':{'repositories':None}},'sources.repositories'),
+        ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
+        ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
+        ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
+    def test_bad_shapes_have_field_diagnostics(payload,path):
+>       with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:26: Failed
+________ test_bad_shapes_have_field_diagnostics[payload3-spec_version] _________
+
+payload = {'spec_version': True}, path = 'spec_version'
+
+    @pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
+        ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
+        ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
+        ({'sources':{'repositories':None}},'sources.repositories'),
+        ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
+        ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
+        ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
+    def test_bad_shapes_have_field_diagnostics(payload,path):
+>       with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:26: Failed
+___________ test_bad_shapes_have_field_diagnostics[payload4-target] ____________
+
+payload = {'target': []}, path = 'target'
+
+    @pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
+        ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
+        ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
+        ({'sources':{'repositories':None}},'sources.repositories'),
+        ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
+        ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
+        ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
+    def test_bad_shapes_have_field_diagnostics(payload,path):
+>       with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:26: Failed
+_______ test_bad_shapes_have_field_diagnostics[payload5-target.release] ________
+
+payload = {'target': {'release': 10}}, path = 'target.release'
+
+    @pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
+        ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
+        ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
+        ({'sources':{'repositories':None}},'sources.repositories'),
+        ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
+        ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
+        ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
+    def test_bad_shapes_have_field_diagnostics(payload,path):
+>       with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:26: Failed
+____ test_bad_shapes_have_field_diagnostics[payload6-sources.repositories] _____
+
+payload = {'sources': {'repositories': None}}, path = 'sources.repositories'
+
+    @pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
+        ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
+        ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
+        ({'sources':{'repositories':None}},'sources.repositories'),
+        ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
+        ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
+        ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
+    def test_bad_shapes_have_field_diagnostics(payload,path):
+>       with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:26: Failed
+_ test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\[0\\]] _
+
+payload = {'content': {'exact_packages': ['demo']}}
+path = 'content.exact_packages\\[0\\]'
+
+    @pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
+        ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
+        ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
+        ({'sources':{'repositories':None}},'sources.repositories'),
+        ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
+        ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
+        ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
+    def test_bad_shapes_have_field_diagnostics(payload,path):
+>       with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'content.exact_packages\\[0\\]'
+E         Actual message: 'dictionary update sequence element #0 has length 1; 2 is required'
+
+tests/test_spec_decoding.py:26: AssertionError
+_ test_bad_shapes_have_field_diagnostics[payload8-evidence_relationship_hints] _
+
+payload = {'sources': {'repositories': [{'evidence_relationship_hints': [['a', False]]}]}}
+path = 'evidence_relationship_hints'
+
+    @pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
+        ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
+        ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
+        ({'sources':{'repositories':None}},'sources.repositories'),
+        ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
+        ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
+        ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
+    def test_bad_shapes_have_field_diagnostics(payload,path):
+>       with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:26: Failed
+_ test_bad_shapes_have_field_diagnostics[payload9-target.api_server_versions] __
+
+payload = {'spec_version': 2, 'target': {'api_server_versions': 4}}
+path = 'target.api_server_versions'
+
+    @pytest.mark.parametrize('payload,path', [([], 'spec'),({'spec_version':None},'spec_version'),
+        ({'spec_version':0},'spec_version'),({'spec_version':True},'spec_version'),
+        ({'target':[]},'target'),({'target':{'release':10}},'target.release'),
+        ({'sources':{'repositories':None}},'sources.repositories'),
+        ({'content':{'exact_packages':['demo']}},r'content.exact_packages\[0\]'),
+        ({'sources':{'repositories':[{'evidence_relationship_hints':[['a',False]]}]}},'evidence_relationship_hints'),
+        ({'spec_version':2,'target':{'api_server_versions':4}},'target.api_server_versions')])
+    def test_bad_shapes_have_field_diagnostics(payload,path):
+>       with pytest.raises(ValueError,match=path): BuildSpec.from_dict(payload)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_spec_decoding.py:26: Failed
+________ test_direct_api_rejects_wrong_dataclass_fields_before_any_work ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fd38d30dc10>
+
+    def test_direct_api_rejects_wrong_dataclass_fields_before_any_work(monkeypatch):
+        spec=BuildSpec(sources=SourceSpec(repositories=(RepositoryRecord(allow_unverified_index='false'),)))
+        services=BuildServices(core.Reporter())
+>       with pytest.raises(PreparationRejected,match='allow_unverified_index'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'allow_unverified_index'
+E         Actual message: 'Choose a recognized target distribution.'
+
+tests/test_spec_decoding.py:37: AssertionError
+________ test_direct_runtime_configuration_has_same_validation_as_json _________
+
+    def test_direct_runtime_configuration_has_same_validation_as_json():
+>       with pytest.raises(PreparationRejected,match='Resolution pass budget'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'Resolution pass budget'
+E         Actual message: 'Choose a recognized target distribution.'
+
+tests/test_spec_decoding.py:41: AssertionError
+________ test_cli_malformed_shape_is_invalid_request_without_traceback _________
+
+tmp_path = PosixPath('/workspace/scratch/f2c614fac6a1/review/tmp/pytest-of-root/pytest-403/test_cli_malformed_shape_is_in0')
+capsys = <_pytest.capture.CaptureFixture object at 0x7fd38d30cda0>
+
+    def test_cli_malformed_shape_is_invalid_request_without_traceback(tmp_path,capsys):
+        from feathered_cli import main
+        path=tmp_path/'bad.json';path.write_text('[]')
+>       assert main(['build','--spec',str(path)])==5
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_spec_decoding.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+feathered_cli.py:154: in main
+    spec = load_spec(args.spec)
+           ^^^^^^^^^^^^^^^^^^^^
+feathered_cli.py:36: in load_spec
+    return BuildSpec.from_json(path.read_text(encoding="utf-8"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+build_spec.py:253: in from_json
+    return cls.from_dict(json.loads(text))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'build_spec.BuildSpec'>, data = []
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "BuildSpec":
+>       version = int(data.get("spec_version", SPEC_VERSION))
+                      ^^^^^^^^
+E       AttributeError: 'list' object has no attribute 'get'
+
+build_spec.py:225: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]
+FAILED tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]
+FAILED tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]
+FAILED tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]
+FAILED tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]
+FAILED tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]
+FAILED tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]
+FAILED tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]
+FAILED tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]
+FAILED tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]
+FAILED tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]
+FAILED tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]
+FAILED tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]
+FAILED tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\[0\\]]
+FAILED tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload8-evidence_relationship_hints]
+FAILED tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload9-target.api_server_versions]
+FAILED tests/test_spec_decoding.py::test_direct_api_rejects_wrong_dataclass_fields_before_any_work
+FAILED tests/test_spec_decoding.py::test_direct_runtime_configuration_has_same_validation_as_json
+FAILED tests/test_spec_decoding.py::test_cli_malformed_shape_is_invalid_request_without_traceback
+19 failed, 1 passed in 0.18s

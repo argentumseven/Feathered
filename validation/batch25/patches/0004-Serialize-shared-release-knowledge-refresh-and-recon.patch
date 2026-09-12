@@ -1,0 +1,365 @@
+From f542ea23894c09688f026c76b0bc937b59ef758e Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sat, 12 Sep 2026 18:53:32 -0400
+Subject: [PATCH 4/5] Serialize shared release knowledge refresh and reconcile
+ newer cache evidence
+
+---
+ BACKGROUND-REFRESH.md                   | 25 +++++++++
+ SOURCE-SHA256.json                      |  9 ++--
+ feathered_app/application/operations.py |  2 +
+ feathered_app/ui/kubernetes.py          | 39 +++++++++++---
+ k8s_knowledge.py                        | 71 ++++++++++++++++++++++++-
+ tests/test_discovery_recovery.py        | 64 ++++++++++++++++++++++
+ 6 files changed, 198 insertions(+), 12 deletions(-)
+ create mode 100644 BACKGROUND-REFRESH.md
+
+diff --git a/BACKGROUND-REFRESH.md b/BACKGROUND-REFRESH.md
+new file mode 100644
+index 0000000..b9d18a5
+--- /dev/null
++++ b/BACKGROUND-REFRESH.md
+@@ -0,0 +1,25 @@
++# Discovery ownership and cache recovery
++
++Repository availability distinguishes successful checks, authoritative HTTP
++404/410 absence, and indeterminate failures (including throttling and outages).
++A partial refresh keeps unconfirmed cached versions with their older observation
++time, adds successful discoveries, and removes only confirmed absences. Optional
++per-minor checks in the cache carry their own timestamp and reason; existing
++caches without those fields remain readable. Typed minors and exact package pins
++are not changed by refresh.
++
++Release knowledge has one GUI refresh owner shared by package families. Its
++completion carries a request generation. The persistent refresh API serializes
++threads and holds an OS advisory lock from cache reconciliation through atomic
++replacement. Separate application instances sharing a cache do not wait for a
++network refresh: a busy instance retains cached data, reports an incomplete
++refresh, and uses the existing bounded retry schedule. OS locks release on exit;
++the small lock file is intentionally retained. This policy assumes a local
++filesystem supporting OS advisory locks, as used by the application's state
++folder. Direct `save()` is a serialization helper; production refresh writes go
++through `refresh()`.
++
++Refresh reconciles the newest recorded source observations and retains historical
++release records. Policy-change flags are sticky across refreshes and restarts;
++network data cannot clear them. Downloaded policy prose remains evidence for
++human review and never replaces executable compatibility rules.
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index 952b32d..bac1d38 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -5,6 +5,7 @@
+   ".github/workflows/windows-release.yml": "68ab87e9051e7cfaeb2dbd85fc4a80686cfa1d892a5b5c5fae9a45574c21dc2d",
+   ".github/workflows/workload-drift.yml": "ad6be6eb2007aa01082c6a54de5b08907d6d9085b0d4e47f3b9688df1aadaad6",
+   ".gitignore": "7af25837f3f8f7ae328b2e61ecdae35b3dbf101fe4e46bb9352961a3f43c2243",
++  "BACKGROUND-REFRESH.md": "324cb831b10e38fa00e29b5b71daef87fd42833b3ee8fd06dba9af2339452f2b",
+   "CHANGELOG.md": "c6d32c4099fa7e80b2a318fb22443e11c2d2a68d026855274a0ac591945465d0",
+   "CLI.md": "631ed89266c8ff5cacc35215d50110cad15591cca7c6e928519ae3c1bf169a49",
+   "KUBERNETES.md": "bdf620d825281c078b4a9939327303d1730a4c345de5c5fc8894b3aaec5bc6e0",
+@@ -35,7 +36,7 @@
+   "feathered_app/application/build.py": "8f2f0bac0f43b49c10ec8119ffd55bf91a28e4504e612b217dc978580840465c",
+   "feathered_app/application/discovery.py": "4a7e43dca49d55a4a464db345d0ca6621738d2454961e4e8df2bf115b9df396b",
+   "feathered_app/application/media.py": "9f3b0071051951db02fb5275381e46e5d8c93f9b5f4fca6896e51ffccd0c574d",
+-  "feathered_app/application/operations.py": "7c887cc7b7c608a2000655abb7e443371c153c1f57ab04107714eaa2e2d02d27",
++  "feathered_app/application/operations.py": "2a6de9924b459a4d7e40d065d577c8f8007cb2324355345d834dae5c6b4bba93",
+   "feathered_app/application/output.py": "d324c129c4c7aeb5fe510bb3df98b602c42dbd47882e234b5f02fd2e6d98aa17",
+   "feathered_app/application/provenance.py": "c3932a721350e5904246c22e11bc783755a9b80245f2b194af9ee0d2b813a420",
+   "feathered_app/application/repositories.py": "8a8f2bb95d492297607d897155c0a04fb99a76b4c2a64ec2aabc99bd03dd6502",
+@@ -69,7 +70,7 @@
+   "feathered_app/state.py": "3128c28c3a84ff368f74877193f8ed894b7ff3e8b94f61f623d2d804c271f081",
+   "feathered_app/status_text.py": "078bf0cb298238e111592b1988191edb32351ef27920c290dbedcad1aed8cbf7",
+   "feathered_app/ui/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+-  "feathered_app/ui/kubernetes.py": "1fbec37b5592b58b9f2dbac8313e21878d063a666f4e867536508e0615c01043",
++  "feathered_app/ui/kubernetes.py": "a743a2ee81d76e8b7b21dd1ee1f34f1f3a03794aae6c3038eccac8ca5b51115f",
+   "feathered_app/ui/layout.py": "5dfec088a57f617e9ac86477f5e9fa879b7e1f1aeca38ccb9f47bd58bc1f7019",
+   "feathered_app/ui/panes.py": "e40895e77fb21704e2fa8cb6ee3cf8ee64d3a40f3d629346b017ce6aa6fad945",
+   "feathered_app/ui/theme.py": "3e582bba99c65d1499d0b9fb2e4691c73340b3f26ee004f8ef1a30c40e0f297a",
+@@ -78,7 +79,7 @@
+   "installer.py": "a41df167abcd4cbff86196bdec1eae902f2a571d4ce890c121df5acae91f67df",
+   "inventory_relationships.py": "7f0e035e4093d3679222f157ed4fa2c952d3d17b081488b069397c171596bb10",
+   "k8s_discovery.py": "bb685b7eac206acbecc1dcc2539066beb715d7c2c6d35541b7e9812201347d08",
+-  "k8s_knowledge.py": "6271d15b4394cf002c018a43dce1e2462dff3abd9489b0a30b66cf227209e838",
++  "k8s_knowledge.py": "739986628122737f20b4c5b5fc449aee107b612542b74763458e452ab8ae7df8",
+   "k8s_knowledge_seed.json": "1dbd42629d136424ec5e6a6d67da6dee4d333273785967d60b764008c42ef89f",
+   "k8s_policy.py": "8c2c2cf1d58daf8260ed8c3b5b22011dc5e2fc065948db250a52af8eca35de8f",
+   "k8s_version.py": "302e59bdfa890dbd058c16d6388833ee7d023ba77ead33ca36ad7e52b2b699dc",
+@@ -142,7 +143,7 @@
+   "tests/test_chooser_stale_activation.py": "7dcf1c8c5e704f71ca7e179c1a4a02fa928386697da113dbd7cad1f6bc43b9cf",
+   "tests/test_cli_native_families.py": "3ec83717e3b3fc2252fef3992fcce616ecbc152361a519fbe48be4db7a0c9767",
+   "tests/test_cli_replay.py": "23131a3e936499261f36aea9ab6c5c0d1baaa41b2891c0c3dbb74afa3de69a36",
+-  "tests/test_discovery_recovery.py": "0068db87fe126582a2f7d8196bdb8b90241ddca58aa142c8db630788ce484b18",
++  "tests/test_discovery_recovery.py": "a3f3083aebedeefc3841bbd1fa3ca317ede8921064782340b22678b135a9d308",
+   "tests/test_end_to_end_build.py": "05c4872ef68f4fdb7cd94cbc0f8a3a1d2529f13e83ff8e5dc14112a25c28c29b",
+   "tests/test_footer_status.py": "f018082a321b35f2b69229daf853548391df6fbede34017684352d06b31e630f",
+   "tests/test_headless_execution.py": "db8173650be32d161576aa371447b2e92afe52dd7e73fb92e587e9d3eec17f42",
+diff --git a/feathered_app/application/operations.py b/feathered_app/application/operations.py
+index 96a4f0b..8e66c62 100644
+--- a/feathered_app/application/operations.py
++++ b/feathered_app/application/operations.py
+@@ -525,6 +525,8 @@ class OperationsMixin:
+                         self._receive_k8s_observation(*data)
+                     elif kind == "k8s_knowledge":
+                         self._receive_k8s_knowledge(*data)
++                    elif kind == "k8s_knowledge_finished":
++                        self._finish_k8s_knowledge_refresh(*data)
+                     elif kind == "k8s_observation_progress":
+                         self._receive_k8s_observation(*data, complete=False)
+                     elif kind == "k8s_patch_versions":
+diff --git a/feathered_app/ui/kubernetes.py b/feathered_app/ui/kubernetes.py
+index b5814e8..c15bcea 100644
+--- a/feathered_app/ui/kubernetes.py
++++ b/feathered_app/ui/kubernetes.py
+@@ -1,6 +1,7 @@
+ """Small workload-specific adapters for existing Content/Repository/Review stages."""
+ import threading
+ from copy import deepcopy
++from dataclasses import replace
+ from urllib.error import HTTPError
+ from urllib.request import Request, urlopen
+ import apt_core
+@@ -114,17 +115,43 @@ class KubernetesWorkloadMixin:
+             return
+         running.add(family)
+         self.k8s_observation_var.set('Checking available minor repositories… You can select or type a minor while this runs.')
++        self.__dict__.setdefault('_k8s_knowledge_waiters', set()).add(family)
++        if self.__dict__.get('_k8s_knowledge_refresh_running'):
++            return
++        self._k8s_knowledge_refresh_running = True
++        generation = self.__dict__.get('_k8s_knowledge_generation', 0) + 1
++        self._k8s_knowledge_generation = generation
+         events = self.events
+         path = self._release_cache_path().with_name('kubernetes-knowledge.json')
+         previous = self.__dict__.get('_k8s_knowledge') or k8s_knowledge.read(path) or k8s_knowledge.bundled()
++        def work():
++            try:
++                knowledge = k8s_knowledge.refresh(path, previous, force=force)
++            except Exception as exc:
++                knowledge = replace(previous, error=core.redact_text(str(exc)))
++            events.put(('k8s_knowledge_finished', generation, knowledge))
++        threading.Thread(target=work, daemon=True).start()
++
++    def _finish_k8s_knowledge_refresh(self, generation, knowledge):
++        if generation != self.__dict__.get('_k8s_knowledge_generation'):
++            return
++        self._k8s_knowledge_refresh_running = False
++        families = self.__dict__.pop('_k8s_knowledge_waiters', set())
++        self._receive_k8s_knowledge(knowledge)
++        for family in families:
++            self._start_k8s_repository_discovery(family, knowledge)
++
++    def _start_k8s_repository_discovery(self, family, knowledge):
++        events = self.events
+         def probe(url):
+             return k8s_discovery.probe_repository(url, opener=urlopen)
+         def work():
+-            knowledge = k8s_knowledge.refresh(path, previous, force=force)
+-            events.put(('k8s_knowledge', knowledge))
+-            observation = k8s_discovery.discover(family, probe,
+-                lambda observation: events.put(('k8s_observation_progress', family, observation)),
+-                candidates=knowledge.repository_candidates or None)
++            try:
++                observation = k8s_discovery.discover(family, probe,
++                    lambda observation: events.put(('k8s_observation_progress', family, observation)),
++                    candidates=knowledge.repository_candidates or None)
++            except Exception as exc:
++                observation = k8s_discovery.Observation((), '', 'https://pkgs.k8s.io', core.redact_text(str(exc)))
+             events.put(('k8s_observation', family, observation))
+         threading.Thread(target=work, daemon=True).start()
+ 
+@@ -152,7 +179,7 @@ class KubernetesWorkloadMixin:
+     def _receive_k8s_knowledge(self, knowledge):
+         if self._busy():
+             self.after(500, lambda: self._receive_k8s_knowledge(knowledge)); return
+-        self._k8s_knowledge = knowledge
++        self._k8s_knowledge = k8s_knowledge.reconcile(self.__dict__.get('_k8s_knowledge'), knowledge)
+         self._update_k8s_knowledge_note()
+         self._render_kubernetes_advice()
+ 
+diff --git a/k8s_knowledge.py b/k8s_knowledge.py
+index 502898a..d19d13e 100644
+--- a/k8s_knowledge.py
++++ b/k8s_knowledge.py
+@@ -1,6 +1,7 @@
+ """Refresh release facts from Kubernetes; remote prose never becomes policy code."""
+ from __future__ import annotations
+ from concurrent.futures import ThreadPoolExecutor
++from contextlib import contextmanager
+ from dataclasses import asdict, dataclass, replace
+ from datetime import date, datetime, timezone
+ import hashlib
+@@ -8,6 +9,8 @@ import json
+ from pathlib import Path
+ import re
+ import tempfile
++import sys
++import threading
+ from typing import Callable
+ from urllib.request import Request, urlopen
+ 
+@@ -20,6 +23,36 @@ URLS = (SCHEDULE, HISTORY, SKEW, KUBEADM)
+ MAX_BYTES = 512 * 1024
+ TTL_SECONDS = 6 * 60 * 60
+ SEED_PATH = Path(__file__).with_name('k8s_knowledge_seed.json')
++_REFRESH_LOCK = threading.RLock()
++
++
++@contextmanager
++def _cache_lease(path: Path):
++    """One writer per cache, including separate application processes.
++
++    OS locks are released on process exit. A competing process uses its cached
++    knowledge and retries later; it never waits behind another network refresh.
++    """
++    path.parent.mkdir(parents=True, exist_ok=True)
++    with path.with_suffix(path.suffix + '.lock').open('a+b') as handle:
++        if sys.platform == 'win32':
++            import msvcrt
++            handle.seek(0, 2)
++            if not handle.tell():
++                handle.write(b'\0'); handle.flush()
++            handle.seek(0)
++            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
++        else:
++            import fcntl
++            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
++        try:
++            yield
++        finally:
++            if sys.platform == 'win32':
++                handle.seek(0)
++                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
++            else:
++                fcntl.flock(handle, fcntl.LOCK_UN)
+ 
+ @dataclass(frozen=True)
+ class Release:
+@@ -153,9 +186,42 @@ def fresh(knowledge: Knowledge, now: datetime | None = None) -> bool:
+         0 <= (now - datetime.fromisoformat(s.observed_at)).total_seconds() < TTL_SECONDS for s in knowledge.sources)
+ 
+ 
++def reconcile(previous: Knowledge | None, current: Knowledge) -> Knowledge:
++    """Merge observations by age, retaining sticky human-review signals."""
++    if previous is None:
++        return current
++    sources = {s.url: s for s in previous.sources}
++    for source in current.sources:
++        old = sources.get(source.url)
++        if old is None or source.observed_at >= old.observed_at:
++            sources[source.url] = source
++    # Release feeds are committed as a pair. Prefer the newer complete pair for
++    # overlapping records while retaining older historical releases.
++    def release_time(value):
++        return min((s.observed_at for s in value.sources if s.url in (SCHEDULE, HISTORY)), default='')
++    older, newer = sorted((previous, current), key=release_time)
++    releases = {r.minor: r for r in older.releases}
++    releases.update({r.minor: r for r in newer.releases})
++    return Knowledge(tuple(sorted(releases.values(), key=lambda r: int(r.minor.split('.')[1]), reverse=True)),
++        tuple(sources.values()), current.error,
++        tuple(sorted(set(previous.changed_policies) | set(current.changed_policies))))
++
++
+ def refresh(path: Path, previous: Knowledge | None = None, *,
+             getter: Callable[[str], bytes] = fetch, force: bool = False) -> Knowledge:
+-    previous = previous or read(path) or bundled()
++    with _REFRESH_LOCK:
++        try:
++            with _cache_lease(path):
++                disk = read(path)
++                base = reconcile(disk, previous or disk or bundled())
++                return _refresh_owned(path, base, getter=getter, force=force)
++        except OSError:
++            base = reconcile(read(path), previous or bundled())
++            return replace(base, error='Knowledge cache is busy or unavailable; retaining observations and retrying later')
++
++
++def _refresh_owned(path: Path, previous: Knowledge, *,
++            getter: Callable[[str], bytes] = fetch, force: bool = False) -> Knowledge:
+     if not force and not previous.error and fresh(previous):
+         return previous
+     bodies: dict[str, bytes] = {}
+@@ -197,7 +263,8 @@ def refresh(path: Path, previous: Knowledge | None = None, *,
+             except ValueError:
+                 errors.append('Policy document format changed; keeping previous evidence')
+     result = Knowledge(releases, tuple(sources.values()), '; '.join(errors), tuple(sorted(changed)))
+-    if result.releases and (result.releases != previous.releases or result.sources != previous.sources):
++    if result.releases and (result.releases != previous.releases or result.sources != previous.sources
++                            or result.changed_policies != previous.changed_policies):
+         try:
+             save(path, result)
+         except OSError:
+diff --git a/tests/test_discovery_recovery.py b/tests/test_discovery_recovery.py
+index 15cf57e..a87aaea 100644
+--- a/tests/test_discovery_recovery.py
++++ b/tests/test_discovery_recovery.py
+@@ -32,3 +32,67 @@ def test_partial_merge_keeps_old_time_and_new_successes_and_removes_proven_absen
+     path=tmp_path/'cache.json';d.save(path,merged)
+     assert d.read(path)==merged
+ 
++
++def test_stale_refresh_cannot_clear_policy_change(tmp_path):
++    previous=knowledge();path=tmp_path/'knowledge.json'
++    newer=k.refresh(path,previous,getter=lambda u:POLICY+b'changed' if u==k.KUBEADM else getter(u),force=True)
++    assert newer.changed_policies
++    older=k.refresh(path,previous,getter=getter,force=True)
++    assert k.KUBEADM in older.changed_policies
++    assert k.KUBEADM in k.read(path).changed_policies
++
++
++def test_persistent_writer_lease_retains_cache_without_network(tmp_path):
++    path=tmp_path/'knowledge.json'; previous=knowledge();k.save(path,previous)
++    from unittest.mock import Mock
++    fetch=Mock(side_effect=AssertionError('must not fetch behind another owner'))
++    with k._cache_lease(path):
++        result=k.refresh(path,previous,getter=fetch,force=True)
++    assert result.releases==previous.releases and result.error
++    assert not fetch.called and k.read(path)==previous
++
++
++def test_concurrent_refreshes_reconcile_the_committed_policy_signal(tmp_path):
++    from concurrent.futures import ThreadPoolExecutor
++    from threading import Event
++    entered=Event();release=Event();path=tmp_path/'knowledge.json';previous=knowledge()
++    def first(url):
++        entered.set();assert release.wait(5)
++        return POLICY+b'new policy' if url==k.KUBEADM else getter(url)
++    with ThreadPoolExecutor(max_workers=2) as pool:
++        first_job=pool.submit(k.refresh,path,previous,getter=first,force=True)
++        assert entered.wait(5)
++        second_job=pool.submit(k.refresh,path,previous,getter=getter,force=True)
++        release.set()
++        assert k.KUBEADM in first_job.result(timeout=5).changed_policies
++        assert k.KUBEADM in second_job.result(timeout=5).changed_policies
++    assert k.KUBEADM in k.read(path).changed_policies
++
++
++def test_family_switch_shares_one_knowledge_refresh(tmp_path,monkeypatch):
++    from queue import Queue
++    from types import SimpleNamespace
++    from unittest.mock import Mock
++    from feathered_app.ui.kubernetes import KubernetesWorkloadMixin
++    from feathered_app.ui import kubernetes as ui
++    workers=[]
++    monkeypatch.setattr(ui.threading,'Thread',lambda target,**kw:SimpleNamespace(start=lambda:workers.append(target)))
++    monkeypatch.setattr(k,'refresh',lambda *args,**kw:knowledge())
++    class Host(KubernetesWorkloadMixin):
++        family='rpm'
++        events=Queue()
++        k8s_observation_var=Mock()
++        def _profile(self):return SimpleNamespace(package_family=self.family)
++        def _release_cache_path(self):return tmp_path/'releases.json'
++        _receive_k8s_knowledge=Mock()
++        _start_k8s_repository_discovery=Mock()
++    host=Host();host._discover_kubernetes_minors()
++    host.family='deb';host._discover_kubernetes_minors()
++    assert len(workers)==1
++    workers[0]();kind,generation,result=host.events.get_nowait()
++    assert kind=='k8s_knowledge_finished'
++    host._finish_k8s_knowledge_refresh(generation-1,result)
++    assert host._k8s_knowledge_refresh_running
++    host._finish_k8s_knowledge_refresh(generation,result)
++    assert not host._k8s_knowledge_refresh_running
++    assert {call.args[0] for call in host._start_k8s_repository_discovery.call_args_list}=={'rpm','deb'}
+-- 
+2.51.1
+
