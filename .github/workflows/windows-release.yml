@@ -15,6 +15,14 @@ jobs:
     name: Windows source + mount gate
     runs-on: windows-latest
     steps:
+      # Must precede checkout. Git for Windows defaults core.autocrlf=true on
+      # the hosted runner image, which rewrites every text file to CRLF and
+      # leaves a tree SOURCE-SHA256.json cannot describe. .gitattributes now
+      # pins eol=lf too; this keeps the gate correct even if a runner image
+      # checks out before those attributes take effect.
+      - name: Check out byte-identical source
+        shell: powershell
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
@@ -77,6 +85,14 @@ jobs:
       - static-analysis
     runs-on: windows-latest
     steps:
+      # Must precede checkout. Git for Windows defaults core.autocrlf=true on
+      # the hosted runner image, which rewrites every text file to CRLF and
+      # leaves a tree SOURCE-SHA256.json cannot describe. .gitattributes now
+      # pins eol=lf too; this keeps the gate correct even if a runner image
+      # checks out before those attributes take effect.
+      - name: Check out byte-identical source
+        shell: powershell
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:

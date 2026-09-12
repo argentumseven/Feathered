@@ -1,0 +1,26 @@
+# SOURCE-SHA256.json records the SHA-256 of each file's raw bytes, so a
+# checkout that rewrites line endings produces a tree the manifest no longer
+# describes. Git for Windows sets core.autocrlf=true by default -- including on
+# GitHub's windows-latest runners -- which converted every text file to CRLF on
+# checkout and made the release gate's manifest step fail on every commit while
+# the Linux jobs passed.
+#
+# Normalize to LF in the repository and check out LF on every platform, so the
+# bytes an operator hashes are the bytes that were signed. text=auto still lets
+# Git detect and leave genuinely binary files alone.
+* text=auto eol=lf
+
+# Belt and braces for the files whose byte content is load-bearing: the
+# manifest itself, the hash-locked build inputs, and the shell that runs on the
+# air-gapped target. Never transform these, whatever Git infers.
+SOURCE-SHA256.json -text
+requirements-build.lock -text
+*.sh -text
+
+# Windows scripts keep exactly the bytes that were committed. run_gui.bat is
+# stored with CRLF, and normalizing it would change its hash on every platform
+# rather than only on Windows -- trading a Windows-only manifest failure for a
+# universal one. cmd.exe is also the one interpreter here that can misparse an
+# LF-only batch file, so leave these alone entirely.
+*.bat -text
+*.ps1 -text

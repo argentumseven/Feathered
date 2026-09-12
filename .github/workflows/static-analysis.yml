@@ -46,3 +46,18 @@ jobs:
 
       - name: Host contract acceptance and rejection
         run: python check_host_contracts.py
+
+      # VALIDATION.md lists the source manifest as a release check, but until
+      # now nothing in CI ran it: commit 52df9c4 shipped with a stale
+      # SOURCE-SHA256.json and this workflow reported success. Regenerating the
+      # manifest before the final edit is the mistake it catches, so it has to
+      # run on the same tree every other check sees.
+      - name: Source manifest describes this tree
+        run: python verify_source_checksums.py
+
+      # The generated installer is the one artifact that executes on the
+      # air-gapped target, where a shell syntax error is most expensive to
+      # discover. Covers the vendor-signed RPM branch as well as the unsigned
+      # one, since only the latter is reachable from the default fixture.
+      - name: Generated installer shell syntax
+        run: python check_installer_syntax.py

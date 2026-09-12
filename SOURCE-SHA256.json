@@ -1,7 +1,8 @@
 {
+  ".gitattributes": "9befaefb19053d57a39514510ced34deaef8ec4d601f9b5f46d2dbdaae99bfe7",
   ".github/workflows/native-conformance.yml": "70aa681a17436dd5f322d81bfc3bcbffe9a577b1fa9ad04c76056798de26502f",
-  ".github/workflows/static-analysis.yml": "2deeb795130af6a8b64cdba0380fb8261378d83482b1fd65d6bf91e0e4749aa6",
-  ".github/workflows/windows-release.yml": "294793a2b211089ae5095aed4a37a7d8cd4eb235deb1b7dc3989fe79649aa0e0",
+  ".github/workflows/static-analysis.yml": "66911125aae03498abcc0ca03b8a9b9efdec92a902d433b91f5c65e233e8a38b",
+  ".github/workflows/windows-release.yml": "43e037184331329872ca90d2de9df7e867d0ee0a6142b0c2b0044d726af2c1d1",
   ".github/workflows/workload-drift.yml": "10f66719c314d05db1a7b5421b6a76f730b73c264b4090484eed68faca50b9a4",
   ".gitignore": "7af25837f3f8f7ae328b2e61ecdae35b3dbf101fe4e46bb9352961a3f43c2243",
   "CHANGELOG.md": "c6d32c4099fa7e80b2a318fb22443e11c2d2a68d026855274a0ac591945465d0",
