@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "alma",
+  "source_url": "https://mirrors.almalinux.org/",
+  "notes": "US-only automatic evidence snapshot refreshed from AlmaLinux official mirror listings on 2026-08-30; expired entries excluded.",
+  "mirrors": [
+    {
+      "label": "IOFlood AlmaLinux mirror",
+      "operator": "IOFlood",
+      "country": "US",
+      "url": "https://mirror.phoenix.ioflood.com/almalinux",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Michigan Tech LUG AlmaLinux mirror",
+      "operator": "Michigan Tech Linux Users Group",
+      "country": "US",
+      "url": "https://mirrors.lug.mtu.edu/almalinux",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "University of Utah CHPC AlmaLinux mirror",
+      "operator": "University of Utah CHPC",
+      "country": "US",
+      "url": "https://mirror.chpc.utah.edu/pub/almalinux",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "University of Southern Indiana AlmaLinux mirror",
+      "operator": "University of Southern Indiana",
+      "country": "US",
+      "url": "https://mirror.usi.edu/almalinux",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "University of Puerto Rico AlmaLinux mirror",
+      "operator": "University of Puerto Rico",
+      "country": "US",
+      "url": "https://mirrors.upr.edu/almalinux",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    }
+  ]
+}

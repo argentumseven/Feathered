@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "photon",
+  "source_url": "https://packages-prod.broadcom.com/photon/",
+  "notes": "No public Photon same-archive mirror directory is assumed. US-only automatic evidence policy does not invent an unrelated mirror; add operator-controlled exact overrides when appropriate.",
+  "mirrors": []
+}

@@ -1,0 +1,8 @@
+ZIP CRC and unique-entry checks passed.
+One application folder; no nested ZIP.
+Extraction path contains spaces.
+OK: 188 source files match SOURCE-SHA256.json, and nothing else is present.
+
+Extracted App import and RPM/DEB/Arch resolution passed in isolated Python.
+
+These checks do not construct a GUI window or execute Windows batch commands.

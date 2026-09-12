@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-09-04",
+  "exact_overrides": [],
+  "distribution": "epel",
+  "source_url": "https://mirrormanager.fedoraproject.org/mirrors/EPEL",
+  "notes": "US exact-mirror roots for EPEL. EPEL is Fedora-operated but uses the distinct /pub/epel archive layout, so it is intentionally separate from fedora.json.",
+  "mirrors": [
+    {
+      "label": "Kernel.org EPEL mirror",
+      "operator": "Linux Kernel Organization",
+      "country": "US",
+      "url": "https://mirrors.kernel.org/fedora-epel",
+      "scopes": ["archive"],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "University of Utah CHPC EPEL mirror",
+      "operator": "University of Utah CHPC",
+      "country": "US",
+      "url": "https://mirror.chpc.utah.edu/pub/epel",
+      "scopes": ["archive"],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Michigan Tech LUG EPEL mirror",
+      "operator": "Michigan Tech Linux Users Group",
+      "country": "US",
+      "url": "https://mirrors.lug.mtu.edu/epel",
+      "scopes": ["archive"],
+      "independent_operator": true,
+      "enabled": true
+    }
+  ]
+}

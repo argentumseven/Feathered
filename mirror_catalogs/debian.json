@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "debian",
+  "source_url": "https://www.debian.org/mirror/list-full",
+  "notes": "US-only automatic evidence snapshot refreshed from Debian's authoritative worldwide package mirror list on 2026-08-30. Main archive mirrors are not automatically used for debian-security unless explicitly scoped security.",
+  "mirrors": [
+    {
+      "label": "0x626b Debian mirror",
+      "operator": "0x626b",
+      "country": "US",
+      "url": "https://mirror.0x626b.com/debian",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "UC Berkeley OCF Debian mirror",
+      "operator": "UC Berkeley Open Computing Facility",
+      "country": "US",
+      "url": "https://mirrors.ocf.berkeley.edu/debian",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Michigan Tech LUG Debian mirror",
+      "operator": "Michigan Tech Linux Users Group",
+      "country": "US",
+      "url": "https://mirrors.lug.mtu.edu/debian",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "MIT CSAIL Debian mirror",
+      "operator": "MIT CSAIL",
+      "country": "US",
+      "url": "https://debian.csail.mit.edu/debian",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Cogent Debian mirror",
+      "operator": "Cogent Communications",
+      "country": "US",
+      "url": "https://mirror.cogentco.com/debian",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    }
+  ]
+}

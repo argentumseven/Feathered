@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "rocky",
+  "source_url": "https://mirrors.rockylinux.org/mirrormanager/mirrors",
+  "notes": "US-only automatic evidence snapshot refreshed from Rocky Linux MirrorManager on 2026-08-30. The Rocky project CDN itself is excluded because independent operator evidence is the purpose of this catalog.",
+  "mirrors": [
+    {
+      "label": "Clouvider Ashburn Rocky mirror",
+      "operator": "Clouvider Limited",
+      "country": "US",
+      "url": "https://ash.mirrors.clouvider.net/rocky",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Rackspace IAD Rocky mirror",
+      "operator": "Rackspace",
+      "country": "US",
+      "url": "https://iad.mirror.rackspace.com/rocky",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "RIT Rocky mirror",
+      "operator": "Rochester Institute of Technology",
+      "country": "US",
+      "url": "https://mirrors.rit.edu/rocky",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "University of Utah CHPC Rocky mirror",
+      "operator": "University of Utah CHPC",
+      "country": "US",
+      "url": "https://mirror.chpc.utah.edu/pub/rocky",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    }
+  ]
+}

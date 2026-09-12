@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "custom-apt",
+  "source_url": "",
+  "notes": "Custom repositories have no distribution-owned mirror list. US-only automatic evidence policy applies to catalog mirrors; add exact overrides explicitly when the operator intends to trust them.",
+  "mirrors": []
+}

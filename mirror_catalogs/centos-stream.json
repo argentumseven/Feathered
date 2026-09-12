@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "centos-stream",
+  "source_url": "https://mirrormanager.fedoraproject.org/mirrors/CentOS",
+  "notes": "US-only automatic evidence snapshot refreshed from Fedora MirrorManager CentOS category on 2026-08-30.",
+  "mirrors": [
+    {
+      "label": "Shasta COE CentOS Stream mirror",
+      "operator": "Shasta County Office of Education",
+      "country": "US",
+      "url": "https://mirror.shastacoe.net/centos-stream",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Michigan Tech LUG CentOS Stream mirror",
+      "operator": "Michigan Tech Linux Users Group",
+      "country": "US",
+      "url": "https://mirrors.lug.mtu.edu/centos-stream",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "MIT CentOS Stream mirror",
+      "operator": "MIT SIPB",
+      "country": "US",
+      "url": "https://mirrors.mit.edu/centos-stream",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    }
+  ]
+}

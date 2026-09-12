@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "fedora",
+  "source_url": "https://mirrormanager.fedoraproject.org/mirrors/Fedora",
+  "notes": "US-only automatic evidence snapshot refreshed from Fedora MirrorManager on 2026-08-30.",
+  "mirrors": [
+    {
+      "label": "Michigan Tech LUG Fedora mirror",
+      "operator": "Michigan Tech Linux Users Group",
+      "country": "US",
+      "url": "https://mirrors.lug.mtu.edu/fedora/linux",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Fremont Cabal IX Fedora mirror",
+      "operator": "Fremont Cabal Internet Exchange",
+      "country": "US",
+      "url": "https://mirror.fcix.net/fedora/linux",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "University of Utah CHPC Fedora mirror",
+      "operator": "University of Utah CHPC",
+      "country": "US",
+      "url": "https://mirror.chpc.utah.edu/pub/fedora/linux",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    }
+  ]
+}

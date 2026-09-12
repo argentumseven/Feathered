@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "artix",
+  "source_url": "https://gitea.artixlinux.org/packages/artix-mirrorlist/raw/branch/master/mirrorlist",
+  "notes": "US-only automatic evidence snapshot refreshed from the Artix mirror list and currently serving US mirrors on 2026-08-30.",
+  "mirrors": [
+    {
+      "label": "Wheaton Artix mirror",
+      "operator": "Wheaton College",
+      "country": "US",
+      "url": "https://artix.wheaton.edu/repos",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Clarkson Artix mirror",
+      "operator": "Clarkson Open Source Institute",
+      "country": "US",
+      "url": "https://mirror.clarkson.edu/artix-linux/repos",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Michigan Tech LUG Artix mirror",
+      "operator": "Michigan Tech Linux Users Group",
+      "country": "US",
+      "url": "https://mirrors.lug.mtu.edu/artixlinux",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "UC Berkeley OCF Artix mirror",
+      "operator": "UC Berkeley Open Computing Facility",
+      "country": "US",
+      "url": "https://mirrors.ocf.berkeley.edu/artix-linux",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    }
+  ]
+}

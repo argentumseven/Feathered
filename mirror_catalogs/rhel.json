@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "rhel",
+  "source_url": "https://access.redhat.com/",
+  "notes": "No public RHEL same-archive mirror directory is assumed. US-only automatic evidence policy does not invent a community substitute; add operator-controlled exact overrides when appropriate.",
+  "mirrors": []
+}

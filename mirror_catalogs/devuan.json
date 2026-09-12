@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "devuan",
+  "source_url": "https://pkgmaster.devuan.org/mirror_list.txt",
+  "notes": "US-only active package mirror BaseURLs transcribed from Devuan's official mirror_list.txt on 2026-08-30. mirror_catalog.py appends /merged for the package repository. Offline/out-of-date and non-US entries are excluded.",
+  "mirrors": [
+    {
+      "label": "GNLUG Devuan mirror",
+      "operator": "GNLUG",
+      "country": "US",
+      "url": "https://gnlug.org/pub/devuan",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Akardam Devuan mirror",
+      "operator": "Akardam",
+      "country": "US",
+      "url": "https://mirror.akardam.net/devuan",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Registrations Plus Devuan mirror",
+      "operator": "Registrations Plus",
+      "country": "US",
+      "url": "https://dev1mir.registrationsplus.net",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Hoot Software Devuan mirror",
+      "operator": "Hoot Software",
+      "country": "US",
+      "url": "https://mirror.hootsoftware.com/devuan",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    }
+  ]
+}

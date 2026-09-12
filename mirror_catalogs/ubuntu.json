@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "snapshot_date": "2026-08-30",
+  "exact_overrides": [],
+  "distribution": "ubuntu",
+  "source_url": "https://launchpad.net/ubuntu/+archivemirrors",
+  "notes": "US-only automatic evidence snapshot refreshed from Ubuntu official archive-mirror listings and currently serving US archive mirrors on 2026-08-30.",
+  "mirrors": [
+    {
+      "label": "Michigan Tech LUG Ubuntu mirror",
+      "operator": "Michigan Tech Linux Users Group",
+      "country": "US",
+      "url": "https://mirrors.lug.mtu.edu/ubuntu",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "MIT Ubuntu mirror",
+      "operator": "MIT SIPB",
+      "country": "US",
+      "url": "https://mirrors.mit.edu/ubuntu",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    },
+    {
+      "label": "Enzu Ubuntu mirror",
+      "operator": "Enzu Inc.",
+      "country": "US",
+      "url": "https://mirror.enzu.com/ubuntu",
+      "scopes": [
+        "archive"
+      ],
+      "independent_operator": true,
+      "enabled": true
+    }
+  ]
+}
