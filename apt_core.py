@@ -420,7 +420,7 @@ def target_arch(arches) -> str:
     """
     if isinstance(arches, str):
         return arches
-    real = sorted(a for a in arches if a not in {"all", "noarch"})
+    real = sorted(a for a in arches if a not in {"all", "noarch", "any"})
     if not real:
         return "amd64"
     if len(real) > 1:
