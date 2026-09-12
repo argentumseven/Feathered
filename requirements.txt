@@ -1,0 +1,5 @@
+# release builds must not float to a
+# different compression implementation under the same Feathered source version.
+zstandard==0.25.0
+
+PyYAML==6.0.3

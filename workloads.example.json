@@ -1,0 +1,33 @@
+{
+  "catalog_revision": 2,
+  "workloads": [
+    {
+      "key": "example-vendor-agent",
+      "label": "Example vendor agent",
+      "description": "Example semantic workload catalog. Candidate order is explicit: Feathered chooses the first approved identity that is actually present in the eligible repository scope and never guesses a replacement.",
+      "components": [
+        {
+          "id": "agent",
+          "candidates": {
+            "rpm": ["vendor-agent", "vendor-agent-next"],
+            "deb": ["vendor-agent", "vendor-agent-next"]
+          },
+          "repository_role": "vendor-stable",
+          "required": true
+        },
+        {
+          "id": "cli",
+          "candidates": {
+            "rpm": ["vendor-cli", "vendor-tools"],
+            "deb": ["vendor-cli", "vendor-tools"]
+          },
+          "repository_role": "vendor-stable",
+          "required": false
+        }
+      ],
+      "repository_roles": ["vendor-stable"],
+      "verification_commands": ["vendor-agent --version"],
+      "supported_distros": ["rhel", "rocky", "almalinux"]
+    }
+  ]
+}

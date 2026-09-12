@@ -1,0 +1,70 @@
+# Ruff configuration for Feathered.
+#
+# The point of this gate is to stop genuine defects reaching a signed release,
+# not to relitigate house style. Running ruff's defaults over this tree reports
+# 829 findings, of which 811 are style: semicolon-separated statements,
+# single-line `if x: return`, grouped imports, and the deliberate re-export
+# facade in feathered_app/context.py. None of those is a bug, and a gate that
+# fails on day one gets switched off rather than fixed.
+#
+# What is selected below fails on things that are actually wrong.
+
+target-version = "py310"
+line-length = 120
+
+exclude = [
+    ".release-venv",
+    "build",
+    "dist",
+]
+
+# Component modules resolve host behavior through self; App is no longer
+# injected into their globals. Keep F821 active without an App exemption.
+
+[lint]
+select = [
+    "F",    # pyflakes: undefined names, unused locals, broken f-strings
+    "E9",   # syntax and IO errors
+    "B",    # bugbear: mutable defaults, except-clause bugs, loop-variable capture
+    "S102", # exec
+    "S307", # eval
+    "S602", # subprocess with shell=True
+    "S605", # os.system with a shell
+]
+
+ignore = [
+    # feathered_app/context.py exists precisely to re-export a shared namespace
+    # into the component modules. Every name in it is "unused" where it is
+    # defined and used where it is imported; that is the design, not an
+    # oversight.
+    "F401",
+    "F403",
+    "F405",
+    # Bugbear's zip(strict=) rule targets a 3.10+ idiom the codebase predates
+    # and does not depend on for correctness.
+    "B905",
+    # setattr() with a constant name. Used deliberately in core.py and
+    # repository_transport.py to set attributes on objects whose class defines
+    # __slots__ or a property, where plain assignment reads as a typo rather
+    # than an intentional override.
+    "B010",
+]
+
+[lint.per-file-ignores]
+# Tests construct deliberately unused fixtures to assert on construction itself,
+# assert False in unreachable branches, and evaluate bare attribute expressions
+# inside pytest.raises to prove that access itself raises.
+"test_feather.py" = ["F841", "B011", "B018"]
+# S102 (exec) is allowed only in tests: test_build_request_module.py uses it to
+# prove the Tk import guard actually blocks a nested `import tkinter`, which is
+# the one thing importlib.import_module cannot demonstrate.
+"tests/*.py" = ["F841", "B011", "B018", "S102"]
+
+# B023 flags any closure referencing a loop variable, including the safe case
+# where the closure is invoked inside the same iteration and never escapes it.
+# Both sites here were read and are that safe case: core.py's emit_entries is
+# called immediately for the element it just created, and native_conformance's
+# run_oracle is called twice within its own iteration. Scoped per file so B023
+# still catches a genuinely escaping closure anywhere else.
+"core.py" = ["B023"]
+"native_conformance.py" = ["B023"]

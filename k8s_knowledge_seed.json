@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "releases": [
+    {
+      "minor": "1.37",
+      "end_of_life": "2027-10-28"
+    },
+    {
+      "minor": "1.36",
+      "end_of_life": "2027-06-28"
+    },
+    {
+      "minor": "1.35",
+      "end_of_life": "2027-02-28"
+    },
+    {
+      "minor": "1.34",
+      "end_of_life": "2026-10-27"
+    },
+    {
+      "minor": "1.33",
+      "end_of_life": "2026-06-28"
+    },
+    {
+      "minor": "1.32",
+      "end_of_life": "2026-02-28"
+    },
+    {
+      "minor": "1.31",
+      "end_of_life": "2025-11-11"
+    },
+    {
+      "minor": "1.30",
+      "end_of_life": "2025-07-15"
+    },
+    {
+      "minor": "1.29",
+      "end_of_life": "2025-02-28"
+    },
+    {
+      "minor": "1.28",
+      "end_of_life": "2024-10-22"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/kubernetes/website/main/data/releases/schedule.yaml",
+      "sha256": "def604fb30bfeda2631e940d2eef32361245e3af71fe4c6e8a01257543133f59",
+      "observed_at": "2026-09-11T20:33:26.656160+00:00",
+      "digest_scope": "bundled-release-records"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/kubernetes/website/main/data/releases/eol.yaml",
+      "sha256": "9a982ce716be658b4d66f5c76e236cf1af7097c9528dd1780bd6dbf62125e55b",
+      "observed_at": "2026-09-11T20:33:26.656160+00:00",
+      "digest_scope": "bundled-release-records"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm.md",
+      "sha256": "e238066c8e2e5cd7dd368b9d6fe8ca791c6aa7353abfe3cf6d8dd491c4452ed8",
+      "observed_at": "2026-09-11T20:33:26.656160+00:00",
+      "digest_scope": "response-bytes"
+    }
+  ],
+  "changed_policies": []
+}
