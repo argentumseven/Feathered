@@ -1,0 +1,128 @@
+Feathered release gate: 1255 collected; batches of 20.
+Batch 1: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-001.log
+  {'passed': 20}
+Batch 2: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-002.log
+  {'passed': 20}
+Batch 3: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-003.log
+  {'passed': 20}
+Batch 4: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-004.log
+  {'passed': 20}
+Batch 5: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-005.log
+  {'passed': 20}
+Batch 6: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-006.log
+  {'passed': 20}
+Batch 7: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-007.log
+  {'passed': 20}
+Batch 8: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-008.log
+  {'passed': 20}
+Batch 9: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-009.log
+  {'passed': 20}
+Batch 10: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-010.log
+  {'passed': 20}
+Batch 11: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-011.log
+  {'passed': 20}
+Batch 12: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-012.log
+  {'passed': 20}
+Batch 13: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-013.log
+  {'passed': 20}
+Batch 14: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-014.log
+  {'passed': 20}
+Batch 15: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-015.log
+  {'passed': 20}
+Batch 16: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-016.log
+  {'passed': 20}
+Batch 17: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-017.log
+  {'passed': 20}
+Batch 18: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-018.log
+  {'passed': 20}
+Batch 19: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-019.log
+  {'passed': 20}
+Batch 20: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-020.log
+  {'passed': 20}
+Batch 21: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-021.log
+  {'passed': 20}
+Batch 22: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-022.log
+  {'passed': 20}
+Batch 23: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-023.log
+  {'passed': 20}
+Batch 24: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-024.log
+  {'passed': 20}
+Batch 25: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-025.log
+  {'passed': 20}
+Batch 26: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-026.log
+  {'passed': 20}
+Batch 27: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-027.log
+  {'passed': 20}
+Batch 28: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-028.log
+  {'passed': 20}
+Batch 29: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-029.log
+  {'passed': 20}
+Batch 30: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-030.log
+  {'passed': 20}
+Batch 31: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-031.log
+  {'passed': 20}
+Batch 32: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-032.log
+  {'passed': 20}
+Batch 33: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-033.log
+  {'passed': 20}
+Batch 34: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-034.log
+  {'passed': 20}
+Batch 35: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-035.log
+  {'passed': 20}
+Batch 36: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-036.log
+  {'passed': 20}
+Batch 37: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-037.log
+  {'passed': 20}
+Batch 38: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-038.log
+  {'passed': 20}
+Batch 39: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-039.log
+  {'passed': 20}
+Batch 40: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-040.log
+  {'passed': 20}
+Batch 41: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-041.log
+  {'passed': 20}
+Batch 42: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-042.log
+  {'passed': 20}
+Batch 43: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-043.log
+  {'passed': 20}
+Batch 44: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-044.log
+  {'passed': 20}
+Batch 45: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-045.log
+  {'passed': 20}
+Batch 46: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-046.log
+  {'passed': 20}
+Batch 47: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-047.log
+  {'passed': 20}
+Batch 48: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-048.log
+  {'passed': 20}
+Batch 49: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-049.log
+  {'passed': 20}
+Batch 50: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-050.log
+  {'passed': 20}
+Batch 51: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-051.log
+  {'passed': 20}
+Batch 52: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-052.log
+  {'passed': 20}
+Batch 53: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-053.log
+  {'passed': 20}
+Batch 54: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-054.log
+  {'passed': 20}
+Batch 55: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-055.log
+  {'passed': 20}
+Batch 56: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-056.log
+  {'passed': 20}
+Batch 57: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-057.log
+  {'passed': 20}
+Batch 58: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-058.log
+  {'passed': 20}
+Batch 59: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-059.log
+  {'passed': 20}
+Batch 60: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-060.log
+  {'passed': 20}
+Batch 61: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-061.log
+  {'passed': 20}
+Batch 62: 20 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-062.log
+  {'passed': 20}
+Batch 63: 15 requested; log /workspace/scratch/f2c614fac6a1/item1-evidence/baseline-outcomes/batch-063.log
+  {'passed': 15}
+Feathered release test gate PASSED: 1255 passed, 0 platform skips; 1255 collected.

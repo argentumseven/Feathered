@@ -254,7 +254,8 @@ python -m compileall -q .
 python verify_source_checksums.py
 ```
 
-The release test runner executes the full pytest corpus in bounded batches:
+The release test runner executes the full pytest corpus in bounded batches and
+reconciles each test with its setup/call/teardown outcomes:
 
 ```bash
 python release_test_runner.py
@@ -266,7 +267,10 @@ On a Linux development host with Xvfb available, Tk portions can be exercised wi
 FEATHERED_USE_XVFB=1 python release_test_runner.py
 ```
 
-See [VALIDATION.md](VALIDATION.md) for the current release-check summary.
+The generated `validation/release-gate/SUMMARY.md` records actual outcome counts,
+source identity and environment. Full phase records and failure logs are retained
+beside it. Platform skips are reported separately and require Linux coverage.
+See [VALIDATION.md](VALIDATION.md) for the checks and reproduction instructions.
 
 ## Building the Windows release
 

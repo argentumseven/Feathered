@@ -1,0 +1,523 @@
+{
+  "schema": 1,
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[url-https://example.test/new]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[keyring-keys.gpg]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[allow_unverified_index-True]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[evidence_urls-value5]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[redirect_allow_origins-value6]",
+    "tests/test_metadata_loading.py::test_architecture_change_invalidates_cache",
+    "tests/test_metadata_loading.py::test_successful_empty_metadata_is_retried",
+    "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[False-expected0]",
+    "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[True-expected1]",
+    "tests/test_metadata_loading.py::test_scoped_load_cannot_replace_or_reuse_populated_global_cache",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows0]",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows1]",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows2]",
+    "tests/test_metadata_loading.py::test_failed_sources_warn_or_log_and_validate_only_successful_providers",
+    "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[False]",
+    "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[True]",
+    "tests/test_metadata_loading.py::test_cancellation_after_backend_failure_is_not_reported_as_source_failure",
+    "tests/test_metadata_loading.py::test_preexisting_cancellation_stops_before_backend",
+    "tests/test_metadata_loading.py::test_failed_scope_validation_preserves_previous_cache",
+    "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible mirrors (recommended fallback)]"
+  ],
+  "batch_excluded": [
+    "tests/test_metadata_loading.py::test_normal_load_retains_order_progress_cache_identity_and_laziness",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[priority-9]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[source_tier-workload]",
+    "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible + EPEL (broad fallback)]",
+    "tests/test_metadata_loading.py::test_coverage_can_bypass_distribution_policy_without_accessing_it"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[url-https://example.test/new]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[url-https://example.test/new]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[url-https://example.test/new]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[keyring-keys.gpg]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[keyring-keys.gpg]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[keyring-keys.gpg]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[allow_unverified_index-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[allow_unverified_index-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[allow_unverified_index-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[evidence_urls-value5]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[evidence_urls-value5]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[evidence_urls-value5]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[redirect_allow_origins-value6]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[redirect_allow_origins-value6]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[redirect_allow_origins-value6]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_architecture_change_invalidates_cache",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_architecture_change_invalidates_cache",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_architecture_change_invalidates_cache",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_successful_empty_metadata_is_retried",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_successful_empty_metadata_is_retried",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_successful_empty_metadata_is_retried",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[False-expected0]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[False-expected0]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[False-expected0]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[True-expected1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[True-expected1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[True-expected1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_scoped_load_cannot_replace_or_reuse_populated_global_cache",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_scoped_load_cannot_replace_or_reuse_populated_global_cache",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_scoped_load_cannot_replace_or_reuse_populated_global_cache",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows0]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows0]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows0]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows2]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows2]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows2]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_failed_sources_warn_or_log_and_validate_only_successful_providers",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_failed_sources_warn_or_log_and_validate_only_successful_providers",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_failed_sources_warn_or_log_and_validate_only_successful_providers",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_cancellation_after_backend_failure_is_not_reported_as_source_failure",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_cancellation_after_backend_failure_is_not_reported_as_source_failure",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_cancellation_after_backend_failure_is_not_reported_as_source_failure",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_preexisting_cancellation_stops_before_backend",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_preexisting_cancellation_stops_before_backend",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_preexisting_cancellation_stops_before_backend",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_failed_scope_validation_preserves_previous_cache",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_failed_scope_validation_preserves_previous_cache",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_failed_scope_validation_preserves_previous_cache",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible mirrors (recommended fallback)]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible mirrors (recommended fallback)]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible mirrors (recommended fallback)]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

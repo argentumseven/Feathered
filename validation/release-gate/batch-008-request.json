@@ -1,0 +1,25 @@
+{
+  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "nodes": [
+    "test_feather.py::test_interrupted_transfer_resumes_and_heals",
+    "test_feather.py::test_rows_are_drawn_from_the_picked_set",
+    "test_feather.py::test_picked_selection_survives_a_repeat_analysis",
+    "test_feather.py::test_resolver_backtracks_over_alternatives",
+    "test_feather.py::test_constraints_do_not_leak_from_an_abandoned_branch",
+    "test_feather.py::test_rpm_backtracks_over_virtual_providers",
+    "test_feather.py::test_impossible_alternatives_still_block_the_build",
+    "test_feather.py::test_missing_roots_do_not_abort_the_whole_analysis",
+    "test_feather.py::test_optional_packages_are_skipped_not_failed",
+    "test_feather.py::test_every_optional_package_belongs_to_its_workload",
+    "test_feather.py::test_supplementary_el_repositories_are_not_fatal",
+    "test_feather.py::test_unc_paths_survive_the_file_url_round_trip",
+    "test_feather.py::test_workload_definitions_are_internally_consistent",
+    "test_feather.py::test_toolset_workloads_have_no_false_version_axis",
+    "test_feather.py::test_toolset_presets_are_substantive",
+    "test_feather.py::test_workload_catalog_reports_problems",
+    "test_feather.py::test_legacy_resolver_suite",
+    "test_feather.py::test_regression_source_bond_uses_evidence_digest_on_one_payload",
+    "test_feather.py::test_regression_source_bond_digest_disagreement_is_recorded_not_global_fatal",
+    "test_feather.py::test_regression_source_bond_weak_digest_disagreement_is_recorded_as_conflict"
+  ]
+}

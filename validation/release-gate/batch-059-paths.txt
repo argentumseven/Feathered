@@ -1,0 +1,2 @@
+tests/test_source_manifest.py
+tests/test_source_scope.py

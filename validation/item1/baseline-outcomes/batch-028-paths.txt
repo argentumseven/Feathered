@@ -1,0 +1,3 @@
+test_feather.py
+tests/test_activity_log.py
+tests/test_application_startup.py

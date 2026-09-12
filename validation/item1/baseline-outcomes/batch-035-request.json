@@ -1,0 +1,25 @@
+{
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "nodes": [
+    "tests/test_build_spec.py::test_capture_reads_the_wizard_state",
+    "tests/test_build_spec.py::test_capture_reads_every_wizard_control",
+    "tests/test_build_spec.py::test_missing_controls_yield_documented_defaults_not_exceptions",
+    "tests/test_build_spec.py::test_an_unreadable_control_does_not_take_the_capture_down",
+    "tests/test_build_spec.py::test_mirror_layout_and_policy_come_from_the_domain_not_the_label",
+    "tests/test_build_spec.py::test_repositories_are_captured_as_data",
+    "tests/test_build_spec.py::test_credential_material_never_reaches_a_saved_spec",
+    "tests/test_build_spec.py::test_a_spec_survives_a_json_round_trip",
+    "tests/test_build_spec.py::test_an_older_spec_with_unknown_keys_still_loads",
+    "tests/test_build_spec.py::test_a_spec_from_a_newer_version_is_refused_clearly",
+    "tests/test_build_spec.py::test_serialization_is_stable_for_the_same_inputs",
+    "tests/test_build_spec.py::test_defaults_alone_produce_a_valid_round_trip",
+    "tests/test_build_spec.py::test_capture_works_against_the_real_window",
+    "tests/test_build_spec.py::test_exact_package_roots_are_captured",
+    "tests/test_build_spec.py::test_exact_package_roots_survive_a_round_trip",
+    "tests/test_build_spec.py::test_a_replayed_spec_produces_the_same_request_tuples",
+    "tests/test_build_spec.py::test_no_resolved_package_state_reaches_a_saved_spec",
+    "tests/test_build_worker_isolation.py::test_the_tripwire_detects_a_read_from_another_thread",
+    "tests/test_build_worker_isolation.py::test_main_thread_reads_are_not_flagged",
+    "tests/test_build_worker_isolation.py::test_the_snapshot_serves_the_values_the_worker_needs"
+  ]
+}

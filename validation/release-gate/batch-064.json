@@ -1,0 +1,530 @@
+{
+  "schema": 1,
+  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_transaction_resolution.py::test_cancel_after_one_pass_cannot_publish_partial_result",
+    "tests/test_transaction_resolution.py::test_backend_exception_propagates_without_reverse_validation",
+    "tests/test_transaction_resolution.py::test_repair_extends_owned_roots_and_restarts_with_empty_prior",
+    "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[False]",
+    "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[True]",
+    "tests/test_transaction_resolution.py::test_pending_repair_defers_other_failures_until_the_retry",
+    "tests/test_transaction_resolution.py::test_dependencies_disabled_bypasses_reverse_validation",
+    "tests/test_version_ui_fixes.py::test_readonly_entry_background_is_not_the_clam_frame_colour",
+    "tests/test_version_ui_fixes.py::test_entry_focus_ring_uses_the_application_accent",
+    "tests/test_version_ui_fixes.py::test_every_live_readonly_entry_resolves_a_panel_background",
+    "tests/test_version_ui_fixes.py::test_the_attention_entry_variant_did_not_reintroduce_the_corners",
+    "tests/test_version_ui_fixes.py::test_clam_has_no_indicatorcolor_option",
+    "tests/test_version_ui_fixes.py::test_stray_ttk_checkbuttons_are_still_legible",
+    "tests/test_version_ui_fixes.py::test_no_themed_checkbutton_is_built_into_the_live_tree",
+    "tests/test_version_ui_fixes.py::test_kubernetes_checkboxes_use_the_drawn_house_widget",
+    "tests/test_version_ui_fixes.py::test_a_drawn_checkbutton_survives_the_operation_lock",
+    "tests/test_version_ui_fixes.py::test_a_drawn_checkbutton_runs_its_command_on_click_only",
+    "tests/test_version_ui_fixes.py::test_hiding_a_card_hides_its_heading_too",
+    "tests/test_version_ui_fixes.py::test_a_hidden_card_returns_to_its_original_position",
+    "tests/test_version_ui_fixes.py::test_repeated_visibility_toggles_are_idempotent"
+  ],
+  "batch_excluded": [
+    "tests/test_transaction_resolution.py::test_stability_returns_original_result_and_preserves_caller_options",
+    "tests/test_transaction_resolution.py::test_package_order_does_not_prevent_stability",
+    "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[False]",
+    "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[True]",
+    "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[0-4]",
+    "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[2-4]",
+    "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[5-7]",
+    "tests/test_transaction_resolution.py::test_cancel_before_inventory_preparation_or_resolver",
+    "tests/test_version_ui_fixes.py::test_every_referenced_label_style_is_explicitly_configured",
+    "tests/test_version_ui_fixes.py::test_the_field_label_matches_the_card_it_sits_on",
+    "tests/test_version_ui_fixes.py::test_clearing_the_baseline_refreshes_what_depended_on_it",
+    "tests/test_version_ui_fixes.py::test_clearing_an_empty_baseline_does_nothing"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cancel_after_one_pass_cannot_publish_partial_result",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cancel_after_one_pass_cannot_publish_partial_result",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cancel_after_one_pass_cannot_publish_partial_result",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_backend_exception_propagates_without_reverse_validation",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_backend_exception_propagates_without_reverse_validation",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_backend_exception_propagates_without_reverse_validation",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_repair_extends_owned_roots_and_restarts_with_empty_prior",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_repair_extends_owned_roots_and_restarts_with_empty_prior",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_repair_extends_owned_roots_and_restarts_with_empty_prior",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_pending_repair_defers_other_failures_until_the_retry",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_pending_repair_defers_other_failures_until_the_retry",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_pending_repair_defers_other_failures_until_the_retry",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_dependencies_disabled_bypasses_reverse_validation",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_dependencies_disabled_bypasses_reverse_validation",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_dependencies_disabled_bypasses_reverse_validation",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_readonly_entry_background_is_not_the_clam_frame_colour",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_readonly_entry_background_is_not_the_clam_frame_colour",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_readonly_entry_background_is_not_the_clam_frame_colour",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_entry_focus_ring_uses_the_application_accent",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_entry_focus_ring_uses_the_application_accent",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_entry_focus_ring_uses_the_application_accent",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_every_live_readonly_entry_resolves_a_panel_background",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_every_live_readonly_entry_resolves_a_panel_background",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_every_live_readonly_entry_resolves_a_panel_background",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_the_attention_entry_variant_did_not_reintroduce_the_corners",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_the_attention_entry_variant_did_not_reintroduce_the_corners",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_the_attention_entry_variant_did_not_reintroduce_the_corners",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_clam_has_no_indicatorcolor_option",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_clam_has_no_indicatorcolor_option",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_clam_has_no_indicatorcolor_option",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_stray_ttk_checkbuttons_are_still_legible",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_stray_ttk_checkbuttons_are_still_legible",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_stray_ttk_checkbuttons_are_still_legible",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_no_themed_checkbutton_is_built_into_the_live_tree",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_no_themed_checkbutton_is_built_into_the_live_tree",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_no_themed_checkbutton_is_built_into_the_live_tree",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_kubernetes_checkboxes_use_the_drawn_house_widget",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_kubernetes_checkboxes_use_the_drawn_house_widget",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_kubernetes_checkboxes_use_the_drawn_house_widget",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_a_drawn_checkbutton_survives_the_operation_lock",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_a_drawn_checkbutton_survives_the_operation_lock",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_a_drawn_checkbutton_survives_the_operation_lock",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_a_drawn_checkbutton_runs_its_command_on_click_only",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_a_drawn_checkbutton_runs_its_command_on_click_only",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_a_drawn_checkbutton_runs_its_command_on_click_only",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_hiding_a_card_hides_its_heading_too",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_hiding_a_card_hides_its_heading_too",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_hiding_a_card_hides_its_heading_too",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_a_hidden_card_returns_to_its_original_position",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_a_hidden_card_returns_to_its_original_position",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_a_hidden_card_returns_to_its_original_position",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_repeated_visibility_toggles_are_idempotent",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_repeated_visibility_toggles_are_idempotent",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_version_ui_fixes.py::test_repeated_visibility_toggles_are_idempotent",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

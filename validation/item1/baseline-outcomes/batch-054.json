@@ -1,0 +1,573 @@
+{
+  "schema": 1,
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_review_findings.py::test_receiver_accepts_both_schemas[2]",
+    "tests/test_review_findings.py::test_receiver_rejects_an_unknown_schema",
+    "tests/test_review_findings.py::test_missing_baseline_error_describes_identity_not_integrity",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-3]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-4]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-5]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-6]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-7]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-3]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-4]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-5]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-6]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-7]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc0]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[package]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc1]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value3]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value4]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[None]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[7]"
+  ],
+  "batch_excluded": [
+    "tests/test_review_findings.py::test_dispatch_input_never_reaches_the_shell_as_syntax",
+    "tests/test_review_findings.py::test_dispatch_input_arrives_as_an_environment_variable",
+    "tests/test_review_findings.py::test_profiles_are_passed_as_a_single_argv_element",
+    "tests/test_review_findings.py::test_resource_bound_signatures_are_not_inherited[sig]",
+    "tests/test_review_findings.py::test_resource_bound_signatures_are_not_inherited[signature]",
+    "tests/test_review_findings.py::test_signatures_remain_sensitive_for_redaction[sig]",
+    "tests/test_review_findings.py::test_signatures_remain_sensitive_for_redaction[signature]",
+    "tests/test_review_findings.py::test_repository_token_is_still_inherited_same_origin",
+    "tests/test_review_findings.py::test_a_childs_own_signature_is_no_longer_overwritten",
+    "tests/test_review_findings.py::test_credentials_are_not_inherited_cross_origin",
+    "tests/test_review_findings.py::test_cloud_provider_signatures_stay_excluded",
+    "tests/test_review_findings.py::test_valid_until_still_authoritative_when_present",
+    "tests/test_review_findings.py::test_expired_valid_until_still_fails",
+    "tests/test_review_findings.py::test_absent_valid_until_is_unenforced_by_default_but_reported",
+    "tests/test_review_findings.py::test_recent_date_passes_under_a_configured_maximum",
+    "tests/test_review_findings.py::test_stale_date_fails_under_a_configured_maximum",
+    "tests/test_review_findings.py::test_absent_date_fails_closed_under_a_configured_maximum",
+    "tests/test_review_findings.py::test_future_date_is_refused_rather_than_scored_as_fresh",
+    "tests/test_review_findings.py::test_small_clock_skew_is_tolerated",
+    "tests/test_review_findings.py::test_contract_is_schema_2",
+    "tests/test_review_findings.py::test_baseline_entries_name_their_assurance",
+    "tests/test_review_findings.py::test_no_baseline_entry_claims_integrity_it_cannot_prove",
+    "tests/test_review_findings.py::test_receiver_accepts_both_schemas[1]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[True]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value8]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value9]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value10]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value11]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value12]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[1]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[2]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[3]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[4]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[5]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[6]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[-option]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[line\\nbreak]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[line\\rbreak]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[nul\\x00name]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[7]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[None]",
+    "tests/test_root_requests.py::test_typed_roots_retain_identity_order_duplicates_and_empty_optional_fields",
+    "tests/test_root_requests.py::test_contradictory_pins_fail_but_unpinned_and_distinct_names_remain_valid[version]",
+    "tests/test_root_requests.py::test_contradictory_pins_fail_but_unpinned_and_distinct_names_remain_valid[architecture]",
+    "tests/test_root_requests.py::test_contradictory_pins_fail_but_unpinned_and_distinct_names_remain_valid[source_identity]",
+    "tests/test_root_requests.py::test_repository_and_role_constraints_are_preserved_without_merging",
+    "tests/test_root_requests.py::test_historical_import_and_pickle_paths_remain_usable",
+    "tests/test_root_requests.py::test_normalization_revalidates_records_restored_without_constructor",
+    "tests/test_root_requests.py::test_public_resolver_rejects_string_record_before_invoking_backend[rpm]",
+    "tests/test_root_requests.py::test_public_resolver_rejects_string_record_before_invoking_backend[deb]",
+    "tests/test_root_requests.py::test_public_resolver_rejects_string_record_before_invoking_backend[arch]",
+    "tests/test_root_requests.py::test_public_resolver_preserves_valid_legacy_exact_source_pins[rpm]",
+    "tests/test_root_requests.py::test_public_resolver_preserves_valid_legacy_exact_source_pins[deb]",
+    "tests/test_root_requests.py::test_public_resolver_preserves_valid_legacy_exact_source_pins[arch]"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_review_findings.py::test_receiver_accepts_both_schemas[2]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_findings.py::test_receiver_accepts_both_schemas[2]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_findings.py::test_receiver_accepts_both_schemas[2]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_findings.py::test_receiver_rejects_an_unknown_schema",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_findings.py::test_receiver_rejects_an_unknown_schema",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_findings.py::test_receiver_rejects_an_unknown_schema",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_findings.py::test_missing_baseline_error_describes_identity_not_integrity",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_findings.py::test_missing_baseline_error_describes_identity_not_integrity",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_findings.py::test_missing_baseline_error_describes_identity_not_integrity",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-3]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-3]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-3]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-5]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-5]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-5]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-6]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-6]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-6]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-7]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-7]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-7]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-3]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-3]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-3]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-5]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-5]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-5]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-6]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-6]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-6]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-7]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-7]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-7]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc0]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc0]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc0]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[package]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[package]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[package]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value3]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value3]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value3]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[None]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[None]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[None]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[7]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[7]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[7]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

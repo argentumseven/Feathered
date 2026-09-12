@@ -1,0 +1,25 @@
+{
+  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "nodes": [
+    "tests/test_mirror_unification.py::test_absent_layout_control_never_means_merge",
+    "tests/test_mirror_unification.py::test_unified_inventory_refuses_conflicts_before_any_bytes_are_fetched",
+    "tests/test_mirror_unification.py::test_unified_inventory_produces_one_result_carrying_the_plan",
+    "tests/test_mirror_unification.py::test_unified_layout_publishes_one_folder_not_one_per_repository",
+    "tests/test_mirror_unification.py::test_unified_folder_name_is_stable_and_carries_no_repository_component",
+    "tests/test_mirror_unification.py::test_unified_bundle_carries_its_merge_record",
+    "tests/test_mirror_unification.py::test_merge_record_is_written_before_the_bundle_index_is_sealed",
+    "tests/test_mirror_unification.py::test_every_backend_writes_the_merge_record_before_sealing",
+    "tests/test_mirror_unification.py::test_separate_layout_writes_no_merge_record",
+    "tests/test_mirror_unification.py::test_prefer_priority_merges_what_strict_refuses",
+    "tests/test_mirror_unification.py::test_priority_merge_is_recorded_not_disguised_as_proof",
+    "tests/test_mirror_unification.py::test_one_unprovable_pair_downgrades_the_whole_identity",
+    "tests/test_mirror_unification.py::test_strict_remains_the_default_everywhere",
+    "tests/test_mirror_unification.py::test_conflict_report_names_the_policy_that_would_resolve_it",
+    "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[C:\\\\Windows\\\\System32\\\\evil.rpm]",
+    "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[\\\\\\\\server\\\\share\\\\evil.rpm]",
+    "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[..\\\\..\\\\evil.rpm]",
+    "tests/test_payload_filename_safety.py::test_bare_drive_relative_name_is_normalized_not_refused",
+    "tests/test_payload_filename_safety.py::test_ordinary_repository_location_still_works",
+    "tests/test_payload_filename_safety.py::test_the_existing_windows_guards_are_unchanged"
+  ]
+}

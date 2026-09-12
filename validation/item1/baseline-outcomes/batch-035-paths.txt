@@ -1,0 +1,2 @@
+tests/test_build_spec.py
+tests/test_build_worker_isolation.py

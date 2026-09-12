@@ -1,0 +1,536 @@
+{
+  "schema": 1,
+  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_mirror_unification.py::test_absent_layout_control_never_means_merge",
+    "tests/test_mirror_unification.py::test_unified_inventory_refuses_conflicts_before_any_bytes_are_fetched",
+    "tests/test_mirror_unification.py::test_unified_inventory_produces_one_result_carrying_the_plan",
+    "tests/test_mirror_unification.py::test_unified_layout_publishes_one_folder_not_one_per_repository",
+    "tests/test_mirror_unification.py::test_unified_folder_name_is_stable_and_carries_no_repository_component",
+    "tests/test_mirror_unification.py::test_unified_bundle_carries_its_merge_record",
+    "tests/test_mirror_unification.py::test_merge_record_is_written_before_the_bundle_index_is_sealed",
+    "tests/test_mirror_unification.py::test_every_backend_writes_the_merge_record_before_sealing",
+    "tests/test_mirror_unification.py::test_separate_layout_writes_no_merge_record",
+    "tests/test_mirror_unification.py::test_prefer_priority_merges_what_strict_refuses",
+    "tests/test_mirror_unification.py::test_priority_merge_is_recorded_not_disguised_as_proof",
+    "tests/test_mirror_unification.py::test_one_unprovable_pair_downgrades_the_whole_identity",
+    "tests/test_mirror_unification.py::test_strict_remains_the_default_everywhere",
+    "tests/test_mirror_unification.py::test_conflict_report_names_the_policy_that_would_resolve_it",
+    "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[C:\\\\Windows\\\\System32\\\\evil.rpm]",
+    "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[\\\\\\\\server\\\\share\\\\evil.rpm]",
+    "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[..\\\\..\\\\evil.rpm]",
+    "tests/test_payload_filename_safety.py::test_bare_drive_relative_name_is_normalized_not_refused",
+    "tests/test_payload_filename_safety.py::test_ordinary_repository_location_still_works",
+    "tests/test_payload_filename_safety.py::test_the_existing_windows_guards_are_unchanged"
+  ],
+  "batch_excluded": [
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[rpm-rpm]",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[deb-deb]",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[arch-arch]",
+    "tests/test_mirror_unification.py::test_selection_order_decides_which_repository_supplies_the_bytes",
+    "tests/test_mirror_unification.py::test_stronger_shared_algorithm_is_preferred_for_the_proof",
+    "tests/test_mirror_unification.py::test_different_versions_of_one_package_are_distinct_identities",
+    "tests/test_mirror_unification.py::test_three_repositories_publishing_one_artifact_collapse_to_one",
+    "tests/test_mirror_unification.py::test_same_identity_with_different_bytes_is_a_conflict_not_a_choice",
+    "tests/test_mirror_unification.py::test_no_shared_algorithm_is_a_conflict_under_the_default_policy",
+    "tests/test_mirror_unification.py::test_matching_digest_with_disagreeing_size_is_a_conflict",
+    "tests/test_mirror_unification.py::test_agreeing_weak_digest_plus_size_is_recorded_as_a_weak_merge",
+    "tests/test_mirror_unification.py::test_disagreeing_weak_digest_is_still_decisive",
+    "tests/test_mirror_unification.py::test_conflict_report_names_the_identities_and_offers_the_way_out",
+    "tests/test_mirror_unification.py::test_conflicts_do_not_hide_behind_a_truncated_report",
+    "tests/test_mirror_unification.py::test_note_states_that_a_unified_mirror_is_nobody_upstream",
+    "tests/test_mirror_unification.py::test_sources_record_attributes_every_retained_package",
+    "tests/test_mirror_unification.py::test_empty_selection_summarises_without_raising",
+    "tests/test_mirror_unification.py::test_layout_label_round_trips_and_defaults_conservatively"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_absent_layout_control_never_means_merge",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_absent_layout_control_never_means_merge",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_absent_layout_control_never_means_merge",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_inventory_refuses_conflicts_before_any_bytes_are_fetched",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_inventory_refuses_conflicts_before_any_bytes_are_fetched",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_inventory_refuses_conflicts_before_any_bytes_are_fetched",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_inventory_produces_one_result_carrying_the_plan",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_inventory_produces_one_result_carrying_the_plan",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_inventory_produces_one_result_carrying_the_plan",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_layout_publishes_one_folder_not_one_per_repository",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_layout_publishes_one_folder_not_one_per_repository",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_layout_publishes_one_folder_not_one_per_repository",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_folder_name_is_stable_and_carries_no_repository_component",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_folder_name_is_stable_and_carries_no_repository_component",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_folder_name_is_stable_and_carries_no_repository_component",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_bundle_carries_its_merge_record",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_bundle_carries_its_merge_record",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_unified_bundle_carries_its_merge_record",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_merge_record_is_written_before_the_bundle_index_is_sealed",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_merge_record_is_written_before_the_bundle_index_is_sealed",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_merge_record_is_written_before_the_bundle_index_is_sealed",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_every_backend_writes_the_merge_record_before_sealing",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_every_backend_writes_the_merge_record_before_sealing",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_every_backend_writes_the_merge_record_before_sealing",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_separate_layout_writes_no_merge_record",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_separate_layout_writes_no_merge_record",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_separate_layout_writes_no_merge_record",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_prefer_priority_merges_what_strict_refuses",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_prefer_priority_merges_what_strict_refuses",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_prefer_priority_merges_what_strict_refuses",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_priority_merge_is_recorded_not_disguised_as_proof",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_priority_merge_is_recorded_not_disguised_as_proof",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_priority_merge_is_recorded_not_disguised_as_proof",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_one_unprovable_pair_downgrades_the_whole_identity",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_one_unprovable_pair_downgrades_the_whole_identity",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_one_unprovable_pair_downgrades_the_whole_identity",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_strict_remains_the_default_everywhere",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_strict_remains_the_default_everywhere",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_strict_remains_the_default_everywhere",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_conflict_report_names_the_policy_that_would_resolve_it",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_conflict_report_names_the_policy_that_would_resolve_it",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_conflict_report_names_the_policy_that_would_resolve_it",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[C:\\\\Windows\\\\System32\\\\evil.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[C:\\\\Windows\\\\System32\\\\evil.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[C:\\\\Windows\\\\System32\\\\evil.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[\\\\\\\\server\\\\share\\\\evil.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[\\\\\\\\server\\\\share\\\\evil.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[\\\\\\\\server\\\\share\\\\evil.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[..\\\\..\\\\evil.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[..\\\\..\\\\evil.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[..\\\\..\\\\evil.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_bare_drive_relative_name_is_normalized_not_refused",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_bare_drive_relative_name_is_normalized_not_refused",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_bare_drive_relative_name_is_normalized_not_refused",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_ordinary_repository_location_still_works",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_ordinary_repository_location_still_works",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_ordinary_repository_location_still_works",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_the_existing_windows_guards_are_unchanged",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_the_existing_windows_guards_are_unchanged",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_the_existing_windows_guards_are_unchanged",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

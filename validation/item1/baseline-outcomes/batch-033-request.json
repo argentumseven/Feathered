@@ -1,0 +1,25 @@
+{
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "nodes": [
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[repository_tools]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_plan]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_services]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_host_contracts]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_service_host]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_publication]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.source_scope]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.metadata_loading]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_runner]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_sources]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_output]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_mirror]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.headless_host]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.spec_replay]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_preparation]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_api]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_outcome]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_cli]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[build_spec]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[mirror_unification]"
+  ]
+}

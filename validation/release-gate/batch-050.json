@@ -1,0 +1,533 @@
+{
+  "schema": 1,
+  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_release_gate_outcomes.py::test_required_plugin_still_runs_with_release_plugin",
+    "tests/test_release_gate_outcomes.py::test_release_plugin_preserves_assertion_diagnostics",
+    "tests/test_release_gate_outcomes.py::test_runner_does_not_count_skips_as_passes",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[pass]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[assertion]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[setup]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[teardown]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[skip]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xfail]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xpass]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[strict-xpass]",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_collection_skip_and_records_reason",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_deselection",
+    "tests/test_release_gate_outcomes.py::test_gate_runs_long_node_id_without_command_line_expansion",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[terminated]",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[early-zero-exit]",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[timeout]",
+    "tests/test_release_gate_outcomes.py::test_normal_pytest_shutdown_runs_session_hooks_and_atexit",
+    "tests/test_release_gate_outcomes.py::test_no_passing_gate_without_a_collected_corpus[collection-error]",
+    "tests/test_release_gate_outcomes.py::test_no_passing_gate_without_a_collected_corpus[empty-corpus]"
+  ],
+  "batch_excluded": [
+    "tests/test_release_gate_outcomes.py::test_missing_final_report_fails_even_after_zero_exit",
+    "tests/test_release_gate_outcomes.py::test_batches_account_for_every_id_without_counting_internal_selection_as_deselection",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[incomplete]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[status-mismatch]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[stale]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[duplicate-id]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[count-mismatch]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[bool-schema]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_contradictory_or_stale_evidence[bool-status]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[no-phases]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-teardown]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[duplicate-call]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[wrong-order]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-call]",
+    "tests/test_release_gate_outcomes.py::test_platform_skip_policy_is_scoped_and_has_required_linux_coverage"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_required_plugin_still_runs_with_release_plugin",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_required_plugin_still_runs_with_release_plugin",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_required_plugin_still_runs_with_release_plugin",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_release_plugin_preserves_assertion_diagnostics",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_release_plugin_preserves_assertion_diagnostics",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_release_plugin_preserves_assertion_diagnostics",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_runner_does_not_count_skips_as_passes",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_runner_does_not_count_skips_as_passes",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_runner_does_not_count_skips_as_passes",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[pass]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[pass]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[pass]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[assertion]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[assertion]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[assertion]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[setup]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[setup]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[setup]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[teardown]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[teardown]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[teardown]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[skip]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[skip]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[skip]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xfail]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xfail]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xfail]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xpass]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xpass]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xpass]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[strict-xpass]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[strict-xpass]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[strict-xpass]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_collection_skip_and_records_reason",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_collection_skip_and_records_reason",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_collection_skip_and_records_reason",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_deselection",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_deselection",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_deselection",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_runs_long_node_id_without_command_line_expansion",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_runs_long_node_id_without_command_line_expansion",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_runs_long_node_id_without_command_line_expansion",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[terminated]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[terminated]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[terminated]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[early-zero-exit]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[early-zero-exit]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[early-zero-exit]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[timeout]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[timeout]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[timeout]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_normal_pytest_shutdown_runs_session_hooks_and_atexit",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_normal_pytest_shutdown_runs_session_hooks_and_atexit",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_normal_pytest_shutdown_runs_session_hooks_and_atexit",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_no_passing_gate_without_a_collected_corpus[collection-error]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_no_passing_gate_without_a_collected_corpus[collection-error]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_no_passing_gate_without_a_collected_corpus[collection-error]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_no_passing_gate_without_a_collected_corpus[empty-corpus]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_no_passing_gate_without_a_collected_corpus[empty-corpus]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_gate_outcomes.py::test_no_passing_gate_without_a_collected_corpus[empty-corpus]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

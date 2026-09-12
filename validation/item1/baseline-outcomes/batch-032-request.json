@@ -1,0 +1,25 @@
+{
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "nodes": [
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data1]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data2]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data3]",
+    "tests/test_build_preparation.py::test_signature_requirements_capture_every_vendor_without_keyring_paths",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[]",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[.]",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[..]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_request]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_intent]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_backend]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[repository_transport]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[checksum_inspection]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[release_seed]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[transaction_resolution]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[transaction_inventory]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[root_requests]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_version]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_policy]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_discovery]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[kubernetes_workflow]"
+  ]
+}

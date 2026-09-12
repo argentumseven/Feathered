@@ -1,0 +1,25 @@
+{
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "nodes": [
+    "tests/test_chooser_stale_activation.py::test_inline_chooser_accumulates_several_packages",
+    "tests/test_chooser_stale_activation.py::test_inline_add_keeps_its_tree_reference",
+    "tests/test_chooser_stale_activation.py::test_re_adding_the_same_package_inline_reports_instead_of_re_rendering",
+    "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[rpm]",
+    "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[arch]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[workload]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[exact]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[separate]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[unified]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[devuan]",
+    "tests/test_cli_replay.py::test_stable_source_identity_survives_display_label_change",
+    "tests/test_cli_replay.py::test_missing_pin_is_rejected_before_publication",
+    "tests/test_cli_replay.py::test_unsigned_metadata_requires_trust_consent",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[exact]",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[workload]",
+    "tests/test_cli_replay.py::test_existing_output_requires_separate_consent",
+    "tests/test_cli_replay.py::test_additive_metadata_requires_its_own_choice",
+    "tests/test_cli_replay.py::test_invalid_request_has_diagnostic_and_nonzero_exit",
+    "tests/test_cli_replay.py::test_dry_run_describes_settings_without_preparing",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "nodes": [
+    "tests/test_application_startup.py::test_every_ui_refresh_method_survives_being_called",
+    "tests/test_application_startup.py::test_the_mirror_layout_controls_build_and_respond",
+    "tests/test_application_startup.py::test_distribution_switch_clears_uncached_release_and_rebuilds_sources",
+    "tests/test_application_startup.py::test_kubernetes_uses_content_version_axis_and_shows_repository_context",
+    "tests/test_application_startup.py::test_discovery_failure_makes_version_editable_without_fallback_list",
+    "tests/test_application_startup.py::test_repeated_workload_changes_keep_controls_and_sources_in_sync",
+    "tests/test_application_startup.py::test_patch_pin_survives_workload_switch_and_stale_results",
+    "tests/test_application_startup.py::test_progress_populates_minor_choices_without_overwriting_selection",
+    "tests/test_application_startup.py::test_inventory_entry_uses_flat_readonly_colors",
+    "tests/test_application_startup.py::test_incomplete_minor_does_not_break_workload_switching",
+    "tests/test_architecture.py::test_component_modules_declare_dependencies_explicitly",
+    "tests/test_architecture.py::test_grouped_state_view_preserves_legacy_attribute_storage",
+    "tests/test_architecture.py::test_refactor_does_not_shadow_tk_state_api",
+    "tests/test_architecture.py::test_legacy_state_fields_are_not_replaced_by_class_descriptors",
+    "tests/test_architecture.py::test_grouped_state_view_is_safe_on_partial_tk_app",
+    "tests/test_architecture.py::test_grouped_state_view_preserves_owner_setattr_hooks",
+    "tests/test_architecture.py::test_top_level_star_import_does_not_leak_state_implementation",
+    "tests/test_architecture.py::test_additive_app_state_name_remains_instance_overrideable",
+    "tests/test_architecture.py::test_all_mixin_self_method_calls_resolve_on_composed_app",
+    "tests/test_architecture.py::test_media_layout_help_contract_is_defined"
+  ]
+}

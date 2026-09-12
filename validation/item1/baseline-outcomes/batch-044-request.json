@@ -1,0 +1,25 @@
+{
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "nodes": [
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[nginx]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[helm]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kernel-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[linux-image-6.1.0-generic-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[containerd-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubelet-node/control-plane]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubernetes-node/control-plane]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[antrea-cluster add-on]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-29-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-34-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-24-27-27-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-34-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-31-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-31-33-34-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-32-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-apiserver-34-33-33-False]"
+  ]
+}

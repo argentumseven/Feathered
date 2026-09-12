@@ -1,0 +1,2 @@
+tests/test_build_worker_isolation.py
+tests/test_checksum_release_fixes.py

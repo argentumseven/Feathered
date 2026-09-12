@@ -1,0 +1,25 @@
+{
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "nodes": [
+    "tests/test_transaction_inventory.py::test_uncaptured_relationships_do_not_claim_reverse_validation[deb]",
+    "tests/test_transaction_inventory.py::test_uncaptured_relationships_do_not_claim_reverse_validation[arch]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[rpmlib(CompressedFileNames)-providers0-False]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(required if trigger)-providers1-True]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(required if trigger)-providers2-False]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(one or two)-providers3-False]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(one with two)-providers4-True]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(one with two)-providers5-False]",
+    "tests/test_transaction_inventory.py::test_deb_reverse_validation_checks_alternatives_and_predepends",
+    "tests/test_transaction_inventory.py::test_arch_reverse_validation_uses_versioned_provides",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_distinguishes_foreign_and_managed_missing_packages[False]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_distinguishes_foreign_and_managed_missing_packages[True]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[incomplete]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[older]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[pin]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[source]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_preserves_caller_roots_and_adds_source_pinned_requests",
+    "tests/test_transaction_resolution.py::test_stability_returns_original_result_and_preserves_caller_options",
+    "tests/test_transaction_resolution.py::test_package_order_does_not_prevent_stability",
+    "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[False]"
+  ]
+}

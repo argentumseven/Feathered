@@ -1,0 +1,25 @@
+{
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "nodes": [
+    "test_feather.py::test_117_windows_release_ci_uses_explicit_release_mode",
+    "test_feather.py::test_124_review_pagination_exposes_every_package_without_sampling",
+    "test_feather.py::test_124_review_pagination_preserves_repository_order_instead_of_round_robin_sampling",
+    "test_feather.py::test_124_review_pagination_clamps_out_of_range_pages_to_last_page",
+    "test_feather.py::test_124_review_ui_uses_pagination_controls_not_preview_truncation",
+    "test_feather.py::test_124_offscreen_transfer_state_is_retained_for_later_pages",
+    "test_feather.py::test_124_bulk_selection_applies_to_offscreen_packages_not_only_current_page",
+    "test_feather.py::test_124_heading_sort_orders_complete_result_before_pagination",
+    "test_feather.py::test_versioned_profiles_have_no_compiled_release_fallbacks",
+    "test_feather.py::test_devuan_debian_suite_relationship_is_learned_from_release_table",
+    "test_feather.py::test_123_release_cache_rejects_hostile_schema2_values_and_future_timestamps",
+    "test_feather.py::test_123_release_cache_writes_use_atomic_secure_state_writer",
+    "test_feather.py::test_123_background_release_refresh_is_bounded_and_does_not_take_global_operation_lease",
+    "test_feather.py::test_123_ubuntu_base_repo_binds_discovered_suite_to_signed_numeric_identity",
+    "test_feather.py::test_123_workload_matrix_fails_closed_on_enabled_repository_metadata_errors",
+    "test_feather.py::test_124_event_pump_survives_handler_exception_and_processes_done",
+    "test_feather.py::test_124_keystore_identity_excludes_userinfo_and_survives_credential_rotation",
+    "test_feather.py::test_124_redact_url_preserves_nonsecret_query_encoding_exactly",
+    "test_feather.py::test_124_evidence_metadata_does_not_collapse_distinct_secret_urls",
+    "test_feather.py::test_124_short_registered_secret_does_not_corrupt_unrelated_audit_text"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "nodes": [
+    "test_feather.py::test_package_only_build_options_do_not_resolve_dependencies_or_emit_repository",
+    "test_feather.py::test_rpm_package_only_output_has_warning_and_no_offline_installer",
+    "test_feather.py::test_apt_package_only_output_has_warning_and_no_offline_installer",
+    "test_feather.py::test_workload_only_coverage_does_not_require_pending_base_media",
+    "test_feather.py::test_distribution_root_coverage_still_requires_pending_base_media_to_be_configured",
+    "test_feather.py::test_package_coverage_repository_scope_ignores_base_for_dedicated_workload",
+    "test_feather.py::test_package_coverage_repository_scope_combines_base_and_sidechannel_for_mixed_workload",
+    "test_feather.py::test_repository_cards_keep_spacing_between_required_and_base_sections",
+    "test_feather.py::test_probe_verdict_treats_workload_only_source_as_package_only_not_missing_dependency_repo",
+    "test_feather.py::test_probe_verdict_reports_pending_base_only_for_distribution_roots",
+    "test_feather.py::test_package_only_build_scope_excludes_unrelated_base_and_additional_sources",
+    "test_feather.py::test_provenance_uses_package_only_operation_scope",
+    "test_feather.py::test_metadata_loading_heals_failed_supplement_when_required_workload_scope_survives",
+    "test_feather.py::test_metadata_loading_fails_when_entire_required_workload_role_is_unreachable",
+    "test_feather.py::test_package_browser_includes_disabled_generic_workload_role_not_only_docker",
+    "test_feather.py::test_source_status_does_not_error_on_pending_base_media_for_package_only_workload",
+    "test_feather.py::test_refactor_domain_and_transport_modules_are_gui_free",
+    "test_feather.py::test_source_readiness_selects_root_scope_and_package_only_capability",
+    "test_feather.py::test_source_readiness_mixed_plan_requires_distribution_and_workload_role",
+    "test_feather.py::test_core_network_entrypoints_delegate_to_repository_transport"
+  ]
+}

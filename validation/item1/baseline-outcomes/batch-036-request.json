@@ -1,0 +1,25 @@
+{
+  "run_id": "c1f81c68047b4dd491f641cc1449641d",
+  "nodes": [
+    "tests/test_build_worker_isolation.py::test_releasing_the_snapshot_returns_the_wizard_to_live_controls",
+    "tests/test_build_worker_isolation.py::test_a_build_snapshot_is_taken_before_the_worker_is_created",
+    "tests/test_build_worker_isolation.py::test_the_snapshot_is_dropped_when_the_operation_ends",
+    "tests/test_build_worker_isolation.py::test_the_wider_build_path_reads_no_widgets_from_the_worker",
+    "tests/test_build_worker_isolation.py::test_folder_naming_cannot_drift_between_confirmation_and_write",
+    "tests/test_build_worker_isolation.py::test_naming_follows_the_clock_when_no_build_is_running",
+    "tests/test_build_worker_isolation.py::test_the_build_path_has_exactly_one_ui_dependency",
+    "tests/test_build_worker_isolation.py::test_the_interactive_policy_is_still_the_default",
+    "tests/test_build_worker_isolation.py::test_an_injected_policy_replaces_the_dialog_entirely",
+    "tests/test_build_worker_isolation.py::test_every_mid_build_question_goes_through_a_policy",
+    "tests/test_build_worker_isolation.py::test_the_interactive_prompt_remains_the_default",
+    "tests/test_build_worker_isolation.py::test_a_host_that_cannot_answer_declines",
+    "tests/test_build_worker_isolation.py::test_the_download_plan_does_not_deadlock_without_a_consumer",
+    "tests/test_build_worker_isolation.py::test_an_injected_sink_replaces_the_queue_handshake",
+    "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+    "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
+    "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]"
+  ]
+}

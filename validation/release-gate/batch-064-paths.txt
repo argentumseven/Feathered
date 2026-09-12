@@ -1,0 +1,2 @@
+tests/test_transaction_resolution.py
+tests/test_version_ui_fixes.py

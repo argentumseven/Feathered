@@ -1,0 +1,25 @@
+{
+  "run_id": "4e8871faf6b04c45870464a47b43e4ea",
+  "nodes": [
+    "tests/test_source_scope.py::test_unknown_target_and_blank_release_keep_existing_compatibility_semantics",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rhel]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rocky]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[ubuntu]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[debian]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[devuan]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[ubuntu-releases0]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[debian-releases1]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[arch-releases2]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[custom-rpm-releases3]",
+    "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[transaction]",
+    "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[mirror]",
+    "tests/test_target_release_transition.py::test_release_discovery_populates_the_cleared_target",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-lib-1-2]",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-hyphenated-component-7.2-11.4]",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-lib-1-2]",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-hyphenated-component-7.2-11.4]",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-lib-1-2]",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-hyphenated-component-7.2-11.4]",
+    "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[1]"
+  ]
+}
