@@ -1,3 +1,5 @@
+<img width="2172" height="724" alt="473458245872458" src="https://github.com/user-attachments/assets/b3b9d422-2540-471e-9814-e636100a0a4b" />
+
 # Feathered 1.2.12
 
 Feathered builds controlled Linux software repositories for air-gapped environments.
@@ -52,6 +54,8 @@ Internet-facing repositories
 ```
 
 Feathered publishes standard package repositories. It does not generate a native Satellite Inter-Satellite Synchronization export; when used with Satellite, the normal use case is to expose or import the Feathered-produced repository as custom content inside the disconnected environment.
+
+<img width="1491" height="1055" alt="2361236713136736711367" src="https://github.com/user-attachments/assets/42a42cf4-92ac-4578-95a6-e2c5bdd1b465" />
 
 ## Supported targets
 
