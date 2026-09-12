@@ -55,6 +55,8 @@ Internet-facing repositories
 
 Feathered publishes standard package repositories. It does not generate a native Satellite Inter-Satellite Synchronization export; when used with Satellite, the normal use case is to expose or import the Feathered-produced repository as custom content inside the disconnected environment.
 
+<img width="1491" height="1055" alt="2361236713136736711367" src="https://github.com/user-attachments/assets/42a42cf4-92ac-4578-95a6-e2c5bdd1b465" />
+
 ## Supported targets
 
 Built-in distribution profiles cover:
