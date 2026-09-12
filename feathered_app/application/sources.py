@@ -2022,12 +2022,27 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             return None
 
     def _single_browser_is_open(self) -> bool:
-        """True while the exact-package chooser window is on screen."""
+        """True while a package chooser is on screen, popup or inline.
+
+        The chooser has two forms. "names" mode opens a Toplevel. "Choose
+        exact packages" renders the same tree inline on the Repositories pane
+        and never creates a window at all, so a popup-only check reports the
+        inline chooser as closed and silently swallows every add. This mirrors
+        the popup-or-single-mode test search_single_packages already uses.
+        """
         window = self.__dict__.get("single_browser_window")
         try:
-            return bool(window is not None and window.winfo_exists())
+            if window is not None and window.winfo_exists():
+                return True
         except (tk.TclError, AttributeError):
-            return False
+            pass
+        single_mode = getattr(self, "_single_mode", None)
+        if callable(single_mode):
+            try:
+                return bool(single_mode())
+            except Exception:
+                return False
+        return False
 
     def use_selected_single_package(self):
         # A second activation after the chooser has already closed is a stale
@@ -2078,9 +2093,16 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         self.loaded_signature = None; self.loaded_packages = []; self.last_result = None
         self.summary_var.set(f"Selected {pkg.nevra}. Analyze to compute its strict strong-dependency closure.")
         self._update_source_status(); self._refresh_repo_tree_if_open()
+        # Only the popup is torn down by a successful add. The inline chooser
+        # on Repositories stays on screen, and its tree reference stays valid.
+        # Clearing it unconditionally is what sent the next Add into the
+        # stale-reference recovery path, which re-rendered the whole workflow,
+        # discarded the operator's search results and scroll position, and then
+        # reported a missing selection.
         if self.single_browser_window and self.single_browser_window.winfo_exists():
             self.single_browser_window.destroy()
-        self.single_browser_window = None; self.single_browser_tree = None
+            self.single_browser_window = None
+            self.single_browser_tree = None
 
     def _init_repository_conflict(self, repo) -> str:
         """Reason this repository must not participate under the chosen init."""
