@@ -8148,17 +8148,28 @@ def test_110_init_lock_refuses_systemd_packages_and_incompatible_repositories():
 def test_110_chooser_add_survives_workflow_rerender_after_removal():
     """Removing a selected package re-renders the Repositories workflow and
     clears cached widget references; the Add action must re-resolve the live
-    tree instead of reporting "Select a package/version row first" forever."""
+    tree instead of reporting "Select a package/version row first" forever.
+
+    The chooser window is part of the fixture because recovery is scoped to it:
+    re-rendering the workflow to rebuild a tree only makes sense while there is
+    a chooser on screen to rebuild it for. See
+    test_chooser_add_after_close_is_silent for the closed case.
+    """
     import app as feather_app
 
     ui = feather_app.App.__new__(feather_app.App)
     ui.__dict__["single_browser_tree"] = None
     rebuilt = {}
 
+    class Window:
+        def winfo_exists(self): return True
+
     class Tree:
         def winfo_exists(self): return True
         def selection(self): return ()
         def focus(self): return "pkg-0"
+
+    ui.single_browser_window = Window()
 
     def render(force=False):
         rebuilt["called"] = force

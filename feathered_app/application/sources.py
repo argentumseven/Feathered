@@ -1989,7 +1989,17 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         Removing a selected package re-renders the Repositories workflow,
         which clears the cached widget references. Without re-resolving, the
         Add button kept reading a destroyed tree and reported "Select a
-        package/version row first" for every subsequent click."""
+        package/version row first" for every subsequent click.
+
+        The re-render recovery below only makes sense while the chooser is
+        still open. A successful add closes the chooser and clears the cached
+        tree, so a second activation -- a double-click on "Use selected
+        package", or the Return key arriving after the window went away --
+        used to re-render the whole Repositories workflow, discarding the
+        operator's search results and scroll position, and then report a
+        missing selection. There is nothing to recover once the window is
+        gone, so say so instead.
+        """
         tree = self.__dict__.get("single_browser_tree")
         try:
             if tree is not None and tree.winfo_exists():
@@ -1997,6 +2007,8 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         except (tk.TclError, AttributeError):
             pass
         self.single_browser_tree = None
+        if not self._single_browser_is_open():
+            return None
         render = getattr(self, "_render_repository_workflow", None)
         if callable(render):
             try:
@@ -2009,7 +2021,21 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         except (tk.TclError, AttributeError):
             return None
 
+    def _single_browser_is_open(self) -> bool:
+        """True while the exact-package chooser window is on screen."""
+        window = self.__dict__.get("single_browser_window")
+        try:
+            return bool(window is not None and window.winfo_exists())
+        except (tk.TclError, AttributeError):
+            return False
+
     def use_selected_single_package(self):
+        # A second activation after the chooser has already closed is a stale
+        # click, not an operator error: the first one added the package and
+        # destroyed the window. Do nothing rather than interrupting with a
+        # modal about a selection the operator can no longer see.
+        if not self._single_browser_is_open():
+            return
         tree = self._live_single_browser_tree()
         # Fall back to the focused row: a row can be focused (and visibly
         # highlighted) without being in selection() after a redraw.
@@ -2036,6 +2062,15 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         if any(existing.nevra == pkg.nevra and existing.repo.source_identity == pkg.repo.source_identity
                for existing in self.selected_packages):
             self._log(f"{pkg.nevra} is already selected")
+            # Previously this returned in silence, so re-picking a row that was
+            # already added looked like the button had stopped working. The
+            # chooser stays open, so report it where the operator is looking.
+            status = self.__dict__.get("single_browser_status_var")
+            if status is not None:
+                try:
+                    status.set(f"{pkg.nevra} is already selected.")
+                except (tk.TclError, AttributeError):
+                    pass
             return
         self.selected_packages.append(pkg)
         self._refresh_selected_packages()
