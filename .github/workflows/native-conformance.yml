@@ -1,0 +1,163 @@
+name: native conformance
+
+# Feathered reimplements three dependency resolvers. These jobs are the only
+# evidence that the closures it calls complete are ones the real package
+# managers will accept. Each job runs in a container that actually has its
+# package manager, and --require turns a SKIP into a failure so a misconfigured
+# worker cannot report success by validating nothing.
+
+on:
+  # Called by the release workflow so signed publication is mechanically
+  # blocked on all three real package-manager oracles for the same SHA.
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    # Repository formats and package-manager behaviour drift. Catch it on a
+    # cadence rather than only when someone touches the resolver.
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  apt:
+    runs-on: ubuntu-latest
+    container: debian:12
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - run: apt-get update -qq && apt-get install -y -qq python3 python3-pip dpkg-dev
+      - run: python3 -m pip install --break-system-packages -r requirements.txt
+      - name: Run native APT oracle and record evidence
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            echo "github_sha=$GITHUB_SHA"
+            python3 --version
+            apt-get --version | head -1
+            python3 native_conformance.py --require apt
+          } 2>&1 | tee native-apt.log
+      # The end-to-end build tests need a display and the dpkg tooling this job
+      # already has. Until 1.2.12 they were documented as running here and did
+      # not run anywhere: the Windows release job has no dpkg tooling, and this
+      # job never invoked pytest. That made the only coverage of the real build
+      # path unenforced.
+      #
+      - name: Install a display and Tk for the integration tests
+        run: |
+          apt-get install -y -qq xvfb xauth python3-tk
+          python3 -m pip install --break-system-packages 'pytest==9.1.1'
+      - name: Run the end-to-end build integration tests
+        shell: bash
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+        run: |
+          set -o pipefail
+          xvfb-run -a python3 -m pytest -q -p require_executed_tests \
+            tests/test_end_to_end_build.py \
+            tests/test_build_worker_isolation.py \
+            tests/test_build_request_module.py \
+            tests/test_build_host_contracts.py \
+            tests/test_source_scope.py \
+            tests/test_metadata_loading.py \
+            tests/test_transaction_resolution.py \
+            tests/test_transaction_inventory.py \
+            tests/test_root_requests.py \
+            tests/test_checksum_release_fixes.py \
+            tests/test_target_release_transition.py \
+            tests/test_headless_execution.py \
+            tests/test_cli_replay.py \
+            tests/test_kubernetes_workflows.py \
+            tests/test_k8s_knowledge.py \
+            tests/test_workload_version_ui.py \
+            tests/test_build_preparation.py \
+            tests/test_cli_native_families.py \
+            tests/test_application_startup.py \
+            --no-header -p no:cacheprovider -o addopts= -rs 2>&1 | tee integration-tests.log
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: native-apt-${{ github.sha }}
+          path: |
+            native-apt.log
+            integration-tests.log
+          if-no-files-found: warn
+
+  dnf:
+    runs-on: ubuntu-latest
+    container: rockylinux/rockylinux:9
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - run: dnf -y install python3 python3-pip rpm-build createrepo_c
+      - run: python3 -m pip install -r requirements.txt
+      - name: Run native DNF oracle and record evidence
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            echo "github_sha=$GITHUB_SHA"
+            python3 --version
+            dnf --version | head -1
+            rpmbuild --version
+            python3 native_conformance.py --require dnf
+          } 2>&1 | tee native-dnf.log
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: native-dnf-${{ github.sha }}
+          path: native-dnf.log
+          if-no-files-found: warn
+
+  pacman:
+    runs-on: ubuntu-latest
+    container: archlinux:base
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - run: pacman -Sy --noconfirm python python-pip
+      - run: python3 -m pip install --break-system-packages -r requirements.txt
+      - name: Run native pacman oracle and record evidence
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            echo "github_sha=$GITHUB_SHA"
+            python3 --version
+            pacman --version | head -2
+            python3 native_conformance.py --require pacman
+          } 2>&1 | tee native-pacman.log
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: native-pacman-${{ github.sha }}
+          path: native-pacman.log
+          if-no-files-found: warn
+
+  workload-matrix:
+    name: Live upstream workload matrix
+    # Keep changing upstream availability separate from deterministic release correctness.
+    if: github.event_name != 'workflow_call'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.13'
+          architecture: 'x64'
+      - run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Verify presets against live upstream repositories
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            echo "github_sha=$GITHUB_SHA"
+            python --version
+            python verify_workload_matrix.py --out workload-matrix-report.json
+          } 2>&1 | tee workload-matrix.log
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: workload-matrix-${{ github.sha }}
+          path: |
+            workload-matrix.log
+            workload-matrix-report.json
+          if-no-files-found: warn

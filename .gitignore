@@ -1,0 +1,46 @@
+# Byte-compiled caches are interpreter-specific and can mask import problems.
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Build and release output. RELEASE-MANIFEST.json and SHA256SUMS.txt are
+# generated into dist/ by the signed build, never committed.
+build/
+dist/
+*.spec
+build-exe.log
+
+# Virtual environments used by the build and CI gates.
+.venv/
+venv/
+.release-venv/
+
+# Test and coverage state.
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Editor and OS noise. Working copies of source files can also create
+# duplicate module/test basenames and should stay outside the repository.
+*.orig
+*.rej
+*.bak
+*~
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# static analysis caches
+.mypy_cache/
+.ruff_cache/
+
+# Local credentials and signing material. Public trust fixtures should use
+# explicit, narrowly scoped exceptions if the project ever needs them.
+.env
+.env.*
+*.pfx
+*.p12
+*.pem
+*.key

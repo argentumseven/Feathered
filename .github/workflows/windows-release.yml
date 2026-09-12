@@ -1,0 +1,162 @@
+name: windows release gate
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-source-gate:
+    name: Windows source + mount gate
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.13'
+          architecture: 'x64'
+      - name: Install authenticated build dependencies
+        shell: powershell
+        run: |
+          python -m venv .release-venv
+          .\.release-venv\Scripts\python.exe -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-build.lock
+      - name: Verify the source manifest describes this tree
+        shell: powershell
+        run: |
+          .\.release-venv\Scripts\python.exe verify_source_checksums.py
+          if ($LASTEXITCODE -ne 0) { throw 'SOURCE-SHA256.json does not describe this source tree.' }
+      - name: Compile and run complete regression corpus
+        shell: powershell
+        run: |
+          $python = '.\.release-venv\Scripts\python.exe'
+          & $python -m compileall -q app.py core.py apt_core.py arch_core.py provenance.py repository_tools.py feathered_app
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $python release_test_runner.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Create real ISO fixture with Windows IMAPI2
+        shell: powershell
+        run: |
+          $source = Join-Path $env:RUNNER_TEMP 'feathered-smoke-source'
+          $iso = Join-Path $env:RUNNER_TEMP 'feathered-smoke.iso'
+          New-Item -ItemType Directory -Path $source -Force | Out-Null
+          Set-Content -LiteralPath (Join-Path $source 'SMOKE.txt') -Value 'Feathered Windows mount gate' -Encoding Ascii
+          .\create_smoke_iso.ps1 -SourceDirectory $source -OutputPath $iso
+          "FEATHERED_SMOKE_ISO=$iso" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Exercise Feathered's real Windows ISO mount path
+        shell: powershell
+        run: >-
+          .\windows_release_smoke.ps1 -IsoPath "$env:FEATHERED_SMOKE_ISO"
+          -PythonExe '.\.release-venv\Scripts\python.exe'
+
+  native-conformance:
+    name: Native package-manager conformance
+    uses: ./.github/workflows/native-conformance.yml
+
+  # Runs on its own Linux runner rather than inside .release-venv. That venv is
+  # hash-locked and builds the signed artifact; adding linters to it would widen
+  # the trusted dependency set of the signing path to buy nothing.
+  static-analysis:
+    name: Static analysis
+    uses: ./.github/workflows/static-analysis.yml
+
+  production-release:
+    name: Signed production build
+    if: >-
+      (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')) &&
+      needs.windows-source-gate.result == 'success' &&
+      needs.native-conformance.result == 'success' &&
+      needs.static-analysis.result == 'success'
+    needs:
+      - windows-source-gate
+      - native-conformance
+      - static-analysis
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.13'
+          architecture: 'x64'
+      - name: Locate Windows SDK signing tool
+        shell: powershell
+        run: |
+          $root = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
+          $tool = Get-ChildItem -Path $root -Filter signtool.exe -Recurse -ErrorAction Stop |
+            Where-Object { $_.FullName -match '\\x64\\signtool\.exe$' } |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if (-not $tool) { throw 'Windows SDK x64 signtool.exe was not found.' }
+          $tool.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          Write-Host "Using $($tool.FullName)"
+      - name: Import release signing identity
+        shell: powershell
+        env:
+          FEATHERED_SIGN_PFX_B64: ${{ secrets.FEATHERED_SIGN_PFX_B64 }}
+          FEATHERED_SIGN_PFX_PASSWORD: ${{ secrets.FEATHERED_SIGN_PFX_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:FEATHERED_SIGN_PFX_B64)) { throw 'Missing FEATHERED_SIGN_PFX_B64 secret.' }
+          if ([string]::IsNullOrWhiteSpace($env:FEATHERED_SIGN_PFX_PASSWORD)) { throw 'Missing FEATHERED_SIGN_PFX_PASSWORD secret.' }
+          $pfx = Join-Path $env:RUNNER_TEMP 'feathered-signing.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:FEATHERED_SIGN_PFX_B64))
+          $password = ConvertTo-SecureString $env:FEATHERED_SIGN_PFX_PASSWORD -AsPlainText -Force
+          $imported = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $password
+          $cert = $imported | Where-Object { $_.HasPrivateKey } | Select-Object -First 1
+          if (-not $cert) { throw 'Release signing certificate import failed or no private-key certificate was imported.' }
+          "FEATHERED_SIGN_CERT_SHA1=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "FEATHERED_SIGN_PFX_PATH=$pfx" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Create production smoke ISO fixture
+        shell: powershell
+        run: |
+          $source = Join-Path $env:RUNNER_TEMP 'feathered-release-smoke-source'
+          $iso = Join-Path $env:RUNNER_TEMP 'feathered-release-smoke.iso'
+          New-Item -ItemType Directory -Path $source -Force | Out-Null
+          Set-Content -LiteralPath (Join-Path $source 'SMOKE.txt') -Value 'Feathered signed release mount gate' -Encoding Ascii
+          .\create_smoke_iso.ps1 -SourceDirectory $source -OutputPath $iso
+          "FEATHERED_SMOKE_ISO=$iso" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Run fail-closed production build
+        shell: cmd
+        env:
+          FEATHERED_TIMESTAMP_URL: ${{ secrets.FEATHERED_TIMESTAMP_URL }}
+        run: build_exe.bat --release
+      - name: Independently verify signed artifact and release checksums
+        shell: powershell
+        run: |
+          signtool.exe verify /pa dist\Feathered.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Independent Feathered.exe Authenticode verification failed.' }
+          # Run the repository verifier first; unlike the old inline loop it also
+          # proves exact file-set coverage and rejects path traversal/duplicates.
+          python verify_release_checksums.py dist
+          if ($LASTEXITCODE -ne 0) { throw 'Release checksum verification failed.' }
+
+          # Keep an independent implementation for Feathered.exe itself so a bug
+          # in the Python verifier cannot turn the signed primary artifact into a
+          # false positive.
+          $sumLine = Get-Content -LiteralPath dist\SHA256SUMS.txt |
+            Where-Object { $_ -match '^[0-9a-fA-F]{64}  Feathered\.exe$' } |
+            Select-Object -First 1
+          if (-not $sumLine) { throw 'SHA256SUMS.txt does not contain Feathered.exe.' }
+          $expectedExe = $sumLine.Substring(0, 64).ToLowerInvariant()
+          $actualExe = (Get-FileHash -Algorithm SHA256 -LiteralPath dist\Feathered.exe).Hash.ToLowerInvariant()
+          if ($actualExe -ne $expectedExe) { throw 'Independent SHA-256 mismatch for Feathered.exe.' }
+      - name: Remove signing material before third-party upload
+        if: always()
+        shell: powershell
+        run: |
+          if ($env:FEATHERED_SIGN_CERT_SHA1) {
+            Remove-Item -LiteralPath "Cert:\CurrentUser\My\$env:FEATHERED_SIGN_CERT_SHA1" -Force -ErrorAction SilentlyContinue
+          }
+          if ($env:FEATHERED_SIGN_PFX_PATH) {
+            Remove-Item -LiteralPath $env:FEATHERED_SIGN_PFX_PATH -Force -ErrorAction SilentlyContinue
+          }
+      - name: Upload authenticated release evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Feathered-${{ github.ref_name }}-windows-x64
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30

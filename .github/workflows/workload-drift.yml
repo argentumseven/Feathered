@@ -1,0 +1,92 @@
+name: workload preset drift
+
+# The 26 workload presets embed upstream repository URLs, suites, release
+# discovery rules and key material. Those drift on upstream's schedule, not on
+# Feathered's, and a break surfaces as a bug reported by an operator who is
+# behind an air gap and physically cannot debug it.
+#
+# Same pattern as native-conformance.yml: catch drift on a cadence rather than
+# when someone happens to touch profiles.py. This job needs live network by
+# design -- it is a compatibility observation against real upstreams, not a
+# unit test -- so it is deliberately NOT wired into the release gate. A network
+# blip upstream must not block a signed release; it must open an issue.
+
+on:
+  schedule:
+    - cron: "0 5 * * 2"
+  workflow_dispatch:
+    inputs:
+      profiles:
+        description: "Comma-separated profile keys, or blank for all"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  matrix:
+    name: Live preset compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check -r requirements.txt
+
+      - name: Check every preset against live upstream repositories
+        id: matrix
+        run: |
+          set -o pipefail
+          python verify_workload_matrix.py --out workload-matrix-report.json \
+            ${{ github.event.inputs.profiles && format('--profiles {0}', github.event.inputs.profiles) || '' }} \
+            2>&1 | tee matrix.log
+
+      # The report is the artifact worth keeping: it names which package in
+      # which workload stopped resolving on which distribution, which is the
+      # part that takes longest to reconstruct by hand.
+      - name: Upload the drift report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: workload-matrix-report
+          path: |
+            workload-matrix-report.json
+            matrix.log
+          if-no-files-found: warn
+
+      - name: Open an issue naming the drift
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const title = 'Workload preset drift detected';
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'preset-drift',
+            });
+            const body = [
+              'The scheduled live preset check failed.',
+              '',
+              'A preset no longer resolves against its upstream repository. Until it is',
+              'fixed, operators selecting the affected workload will get a build failure',
+              'they cannot diagnose from inside an air gap.',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              '',
+              'The `workload-matrix-report` artifact names the failing package, workload',
+              'and distribution.',
+            ].join('\n');
+            if (existing.data.length) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.data[0].number, body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['preset-drift'],
+              });
+            }
