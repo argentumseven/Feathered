@@ -40,6 +40,32 @@ with tempfile.TemporaryDirectory() as td:
                       BuildOptions(retries=1), Reporter(), {"workload": "syntax-check"})
     check("RPM", out)
 
+    # RPM, vendor-signed variant. The unsigned fixture above never reaches the
+    # gpgcheck=1 branch or the key-preflight loop, so a shell syntax error
+    # there would ship unnoticed.
+    import installer as _installer, provenance as _prov
+
+    class _SignedEntry:
+        assurance = _prov.VERIFIED_VENDOR
+        signer = "Fixture Vendor"
+        repository = "fixture"
+
+        def __init__(self, key_id):
+            self.signing_key_id = key_id
+
+    signed_out = root / "bundle-signed"
+    signed_out.mkdir()
+    (signed_out / "metadata").mkdir()
+    core.write_bundle(core.ResolutionResult([pkg], [], [pkg]), signed_out,
+                      BuildOptions(retries=1), Reporter(), {"workload": "syntax-check"})
+    _installer.write_installer(
+        signed_out, signed_out / "metadata",
+        core.ResolutionResult([pkg], [], [pkg]),
+        BuildOptions(retries=1), 'rpm', {"workload": "syntax-check"},
+        provenance_entries=[_SignedEntry("0xFD431D51B4B5F9B4"),
+                            _SignedEntry("rsa4096 key ABCDEF0123456789:")])
+    check("RPM (vendor-signed)", signed_out)
+
     # APT
     root = base / "apt"; root.mkdir()
     payload = root / "demo.deb"; payload.write_bytes(b"deb-fixture")

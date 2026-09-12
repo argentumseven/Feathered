@@ -790,6 +790,16 @@ def payload_filenames(packages, expected_suffix: str) -> Dict[int, str]:
         if not name or (expected_suffix and not name.lower().endswith(expected_suffix.lower())):
             raise RuntimeError(f"{getattr(pkg, 'nevra', getattr(pkg, 'name', 'package'))}: "
                                f"repository location has no usable {expected_suffix} filename")
+        # posixpath.basename only splits on '/', so a location carrying Windows
+        # separators survives it intact. Path('rpms') / r'\Windows\evil.rpm' is
+        # drive-absolute on Windows, and 'C:x.rpm' is drive-relative, so either
+        # would place the payload outside the bundle. repo_relative_url refuses
+        # these before a fetch is attempted, but this function is what actually
+        # names the destination and must not rely on a check in another module.
+        if "\\" in name or ":" in name or "/" in name:
+            raise RuntimeError(
+                f"Bundle filename is not Windows-safe: {name!r} contains a path separator "
+                "or drive marker; refusing to write a payload outside the bundle directory.")
         if name.rstrip(" .") != name:
             raise RuntimeError(f"Bundle filename is not Windows-safe: {name!r} ends in a space or dot.")
         stem = name.split(".", 1)[0].casefold()
