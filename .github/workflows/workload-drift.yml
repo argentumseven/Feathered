@@ -38,11 +38,31 @@ jobs:
 
       - name: Check every preset against live upstream repositories
         id: matrix
+        env:
+          # GitHub expressions must populate data, not executable shell. Interpolating
+          # ${{ github.event.inputs.profiles }} straight into the script let anyone who
+          # can dispatch this workflow inject Bash. As an environment variable the value
+          # is expanded as a single quoted array element, so ';', '$()', backticks,
+          # redirections and whitespace stay inert.
+          FEATHERED_PROFILES: ${{ github.event.inputs.profiles || '' }}
         run: |
           set -o pipefail
-          python verify_workload_matrix.py --out workload-matrix-report.json \
-            ${{ github.event.inputs.profiles && format('--profiles {0}', github.event.inputs.profiles) || '' }} \
-            2>&1 | tee matrix.log
+
+          # Defense in depth. Quoting below is the actual fix; this just rejects
+          # obvious nonsense early with a clear message. Profile keys are
+          # comma-separated identifiers.
+          if [[ -n "$FEATHERED_PROFILES" && \
+                ! "$FEATHERED_PROFILES" =~ ^[A-Za-z0-9_.-]+(,[A-Za-z0-9_.-]+)*$ ]]; then
+            echo "Invalid profiles input: expected comma-separated profile keys." >&2
+            exit 2
+          fi
+
+          args=(--out workload-matrix-report.json)
+          if [[ -n "$FEATHERED_PROFILES" ]]; then
+            args+=(--profiles "$FEATHERED_PROFILES")
+          fi
+
+          python verify_workload_matrix.py "${args[@]}" 2>&1 | tee matrix.log
 
       # The report is the artifact worth keeping: it names which package in
       # which workload stopped resolving on which distribution, which is the

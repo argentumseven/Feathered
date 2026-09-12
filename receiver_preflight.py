@@ -43,8 +43,16 @@ def validate(contract, actual, post=False, machine=None):
     for package in required:
         key = (package['name'], '' if family == 'arch' else package['architecture'])
         if actual.get(key) != package['version']:
-            purpose = 'Resolved transaction was not installed exactly' if post else 'Required baseline is not installed'
-            raise RuntimeError(f"{purpose}: {package['package_id']}. Capture this target and rebuild, or install the baseline first.")
+            if post:
+                raise RuntimeError(
+                    'Resolved transaction was not installed exactly: '
+                    f"{package['package_id']}. Capture this target and rebuild, "
+                    'or install the baseline first.')
+            raise RuntimeError(
+                'Required baseline package identity is not present exactly: '
+                f"{package['package_id']}. This differential bundle was built against the "
+                'captured installed identity of that package and omits it; recapture the '
+                'target or install that baseline first.')
     if not post and family == 'arch':
         snapshot = contract.get('inventory')
         if snapshot is None or not contract.get("arch_full_upgrade"):
@@ -56,7 +64,7 @@ def validate(contract, actual, post=False, machine=None):
 def main():
     path = Path(sys.argv[1])
     contract = json.loads(path.read_text(encoding='utf-8'))
-    if contract.get('schema') != 1:
+    if contract.get('schema') not in (1, 2):
         raise RuntimeError('Unsupported installation contract')
     import configparser
     import shlex

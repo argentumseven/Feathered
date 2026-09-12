@@ -105,10 +105,23 @@ def installation_roots(result, family):
     return rows
 
 
+# Assurance levels for INSTALLATION-CONTRACT.json baseline_required entries.
+#
+# INSTALLED_IDENTITY: the package database reports this name/version/arch. That
+#   is an identity match, not an integrity proof.
+# NATIVE_INTEGRITY_VERIFIED: the package manager's own installed-file
+#   verification ran during inventory capture and reported no discrepancies.
+#   Nothing emits this yet; it belongs to inventory capture, not to bundle
+#   writing, and must downgrade to INSTALLED_IDENTITY wherever verification is
+#   unavailable or ambiguous rather than being assumed.
+BASELINE_INSTALLED_IDENTITY = "installed-identity"
+BASELINE_NATIVE_INTEGRITY_VERIFIED = "native-integrity-verified"
+
+
 def write_installation_contract(directory, result, family, metadata, omitted=()):
     directory = Path(directory)
     contract = {
-        "schema": 1, "family": family,
+        "schema": 2, "family": family,
         "captured_target": dict(getattr(getattr(result, "target_inventory", None), "metadata", {})),
         "arch_full_upgrade": bool(getattr(result, "arch_full_upgrade", False)),
         "module_states": getattr(getattr(result, "target_inventory", None), "metadata", {}).get("module_states"),
@@ -116,8 +129,18 @@ def write_installation_contract(directory, result, family, metadata, omitted=())
         "roots": [{"name": p.name, "version": p.evr_text, "architecture": p.arch,
                    "package_id": p.nevra, "source_identity": p.repo.source_identity} for p in result.roots],
         "native_arguments": installation_roots(result, family),
+        # A differential bundle omits these because the target already reports
+        # them installed. The receiver can confirm the recorded name, version
+        # and architecture are present in the package database; it cannot
+        # confirm the installed files are byte-identical to the upstream
+        # artifact, and for dpkg the original .deb digest is not recoverable
+        # from installed state at all. Name the assurance rather than implying
+        # a stronger one. INSTALLED_IDENTITY is the only level emitted today;
+        # NATIVE_INTEGRITY_VERIFIED is reserved for inventory capture that has
+        # run the package manager's own installed-file verification.
         "baseline_required": [{"name": p.name, "version": p.evr_text, "architecture": p.arch,
-                              "package_id": p.nevra} for p in omitted],
+                              "package_id": p.nevra, "assurance": BASELINE_INSTALLED_IDENTITY}
+                              for p in omitted],
         "selected": [{"name": p.name, "version": p.evr_text, "architecture": p.arch,
                       "package_id": p.nevra} for p in result.selected],
         "inventory": dict(getattr(getattr(result, "target_inventory", None), "packages", {}) or {})

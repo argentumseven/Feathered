@@ -147,6 +147,15 @@ class RepoSpec:
     # default: an unverifiable index must be an explicit operator decision.
     allow_unverified_index: bool = False
 
+    # Maximum age, in days, that a signed APT Release may reach when it
+    # declares no Valid-Until. Zero disables the check, which is the default
+    # for two reasons: APT itself ships Acquire::Max-ValidTime at 0, and
+    # building from a deliberately pinned archive (a vault repository, a
+    # Debian snapshot, a frozen internal mirror) is a first-class air-gap
+    # workflow that a default age limit would break. Set it per repository to
+    # make replay of an undated mirror a hard failure.
+    max_release_age_days: int = 0
+
     # Independent evidence sources may be complete repositories or artifact-only
     # mirrors. Feathered never places the evidence copy in the output bundle; when
     # evidence is required it retrieves the exact matching artifact transiently

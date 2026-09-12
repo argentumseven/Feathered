@@ -30,12 +30,15 @@ SENSITIVE_QUERY_KEYS = {
 }
 
 # Generic repository bearer tokens can be inherited to same-origin child URLs.
-# Cloud-provider signed URLs are path/query bound and must not be copied to a
-# different child path: doing so would both leak bearer material and produce an
-# invalid signature.
+# Signed URLs are path/query bound and must not be copied to a different child
+# path: doing so both spreads bearer material and produces a signature that
+# cannot validate for the child resource. The cloud-provider spellings were
+# already excluded; the generic "sig"/"signature" names mean the same thing and
+# were being inherited anyway, which also let a base signature overwrite a
+# child's own (see the inherit-vs-child precedence below).
 INHERITABLE_QUERY_CREDENTIAL_KEYS = {
     "token", "access_token", "api_key", "apikey", "key", "password",
-    "secret", "sig", "signature", "auth",
+    "secret", "auth",
 }
 
 
@@ -118,6 +121,11 @@ def inherit_sensitive_query_credentials(base: str, child: str) -> str:
         raw_key = fragment.split("=", 1)[0]
         key = urllib.parse.unquote_plus(raw_key).strip().lower()
         if key in inherited:
+            # The operator-configured base credential wins over one that
+            # appeared in fetched metadata, so a hostile index cannot swap in
+            # its own token. This precedence is only safe for credentials that
+            # are not bound to a specific resource -- which is why signatures
+            # are no longer inheritable at all.
             continue
         kept.append(fragment)
     query = "&".join(list(inherited.values()) + kept)

@@ -15,7 +15,7 @@ import urllib.parse
 import urllib.request
 from collections import defaultdict, deque
 from dataclasses import dataclass, field, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from functools import cmp_to_key
 from pathlib import Path
@@ -458,20 +458,68 @@ def check_release_freshness(repo: RepoSpec, fields: Dict[str, str], reporter: Re
     Without this, a mirror (or anyone able to replay one) can pin the builder
     to a months-old index and the resulting bundle quietly ships superseded,
     potentially vulnerable package versions.
+
+    Valid-Until is the publisher's own statement and is authoritative when
+    present. When it is absent the repository cannot state its own lifetime, so
+    the only remaining evidence is the signed Date. RepoSpec.max_release_age_days
+    turns that into a limit; it is 0 (unenforced) by default, matching APT's
+    Acquire::Max-ValidTime, because pinned archives are a legitimate air-gap
+    source. What the operator gets by default is an accurate statement of what
+    was and was not established, not a silent pass.
     """
     now = now or datetime.now(timezone.utc)
     valid_until = _parse_release_date(fields.get("Valid-Until", ""))
-    if valid_until is None:
-        reporter.warn(f"{repo.name}: Release metadata declares no Valid-Until; staleness cannot be checked.")
+    release_date = _parse_release_date(fields.get("Date", ""))
+
+    if valid_until is not None:
+        if now > valid_until:
+            age = now - valid_until
+            raise RuntimeError(
+                f"{repo.name}: Release metadata expired {age.days} day(s) ago (Valid-Until: "
+                f"{valid_until:%Y-%m-%d %H:%M %Z}). The mirror is stale or is replaying old metadata; "
+                "refresh the mirror rather than building from it."
+            )
+        reporter.log(f"{repo.name}: Release valid until {valid_until:%Y-%m-%d %H:%M %Z}")
         return
-    if now > valid_until:
-        age = now - valid_until
-        raise RuntimeError(
-            f"{repo.name}: Release metadata expired {age.days} day(s) ago (Valid-Until: "
-            f"{valid_until:%Y-%m-%d %H:%M %Z}). The mirror is stale or is replaying old metadata; "
-            "refresh the mirror rather than building from it."
+
+    max_age_days = int(getattr(repo, "max_release_age_days", 0) or 0)
+
+    if max_age_days <= 0:
+        reporter.warn(
+            f"{repo.name}: Release metadata declares no Valid-Until, so the publisher states no "
+            "lifetime and replay of an old index cannot be detected from the metadata alone. "
+            "Set this repository's maximum Release age to make that a hard failure."
         )
-    reporter.log(f"{repo.name}: Release valid until {valid_until:%Y-%m-%d %H:%M %Z}")
+        return
+
+    if release_date is None:
+        raise RuntimeError(
+            f"{repo.name}: Release declares neither a usable Valid-Until nor a usable Date, so its "
+            f"freshness cannot be established at all while a {max_age_days}-day maximum age is "
+            "configured. Refresh the mirror, or clear the maximum age to accept undated metadata."
+        )
+
+    # A Date in the future is not a staleness problem but it does mean the
+    # signed metadata disagrees with this builder's clock, so an age computed
+    # from it proves nothing. Allow a small skew before treating it as a fault.
+    if release_date - now > timedelta(minutes=10):
+        raise RuntimeError(
+            f"{repo.name}: Release Date is in the future ({release_date:%Y-%m-%d %H:%M %Z}). "
+            "The mirror's signed metadata and this builder's clock disagree; correct one of them "
+            "rather than building from metadata whose age cannot be computed."
+        )
+
+    age = now - release_date
+    if age > timedelta(days=max_age_days):
+        raise RuntimeError(
+            f"{repo.name}: Release declares no Valid-Until and its signed Date is {age.days} day(s) "
+            f"old, exceeding the configured {max_age_days}-day maximum "
+            f"(Date: {release_date:%Y-%m-%d %H:%M %Z})."
+        )
+
+    reporter.log(
+        f"{repo.name}: Release declares no Valid-Until; signed Date age {max(age.days, 0)} day(s) "
+        f"is within the configured {max_age_days}-day maximum.")
 
 
 def check_release_suite(repo: RepoSpec, fields: Dict[str, str], reporter: Reporter) -> None:
