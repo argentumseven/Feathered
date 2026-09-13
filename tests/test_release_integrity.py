@@ -151,9 +151,15 @@ def test_windows_ci_contains_real_signed_production_release_gate():
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in native
     assert "actions/checkout@v" not in native
     assert "actions/upload-artifact@v" not in native
-    assert "workload-matrix:" in native
-    assert "python verify_workload_matrix.py --out workload-matrix-report.json" in native
-    assert "workload-matrix-report.json" in native
+    # Live upstream availability is intentionally NOT a signed-release gate.
+    # It is monitored by workload-drift.yml, where a transient upstream/network
+    # failure can be reported without blocking a deterministic release.
+    assert "workload-matrix:" not in native
+    drift = (ROOT / ".github" / "workflows" / "workload-drift.yml").read_text(
+        encoding="utf-8").lower()
+    assert "python verify_workload_matrix.py" in drift
+    assert "workload-matrix-report.json" in drift
+    assert "uses: ./.github/workflows/workload-drift.yml" not in lower
     prefix = production.split("- name: import release signing identity", 1)[0]
     assert "feathered_sign_pfx_b64:" not in prefix
     import_step = production.split("- name: import release signing identity", 1)[1].split(
