@@ -1561,9 +1561,12 @@ def test_unc_paths_survive_the_file_url_round_trip():
         parsed_back = nturl2path.url2pathname(url.split("file:", 1)[1])
         assert parsed_back == original, f"{original} did not round-trip: {parsed_back}"
 
-    # The helpers round-trip a POSIX path on this platform.
+    # The helpers round-trip a POSIX path. file_url_to_path returns a Path, and
+    # str() on a WindowsPath renders separators as backslashes, so comparing
+    # str() forms asserts the host platform's rendering rather than that the
+    # path survived. as_posix() compares the path itself and holds on both.
     posix = "/srv/mirror/rocky9"
-    assert str(file_url_to_path(path_to_file_url(posix))) == posix
+    assert file_url_to_path(path_to_file_url(posix)).as_posix() == posix
     # And tolerate the legacy two-slash UNC form without dropping the host.
     legacy = file_url_to_path("file://fileserver/repos/x")
     assert "fileserver" in str(legacy), legacy

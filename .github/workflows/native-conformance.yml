@@ -34,7 +34,12 @@ jobs:
           {
             echo "github_sha=$GITHUB_SHA"
             python3 --version
-            apt-get --version | head -1
+            # Not piped into head: GitHub runs `shell: bash` as `bash -eo pipefail`,
+            # so an early-exiting reader SIGPIPEs the writer, pipefail surfaces 141
+            # and errexit aborts the step before the oracle below ever runs. This is
+            # the same trap install-offline.sh already documents and avoids.
+            apt_version="$(apt-get --version)"
+            printf '%s\n' "${apt_version%%$'\n'*}"
             python3 native_conformance.py --require apt
           } 2>&1 | tee native-apt.log
       # The end-to-end build tests need a display and the dpkg tooling this job
@@ -99,18 +104,36 @@ jobs:
     container: rockylinux/rockylinux:9
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-      - run: dnf -y install python3 python3-pip rpm-build createrepo_c
-      - run: python3 -m pip install -r requirements.txt
+      - name: Install dnf tooling and an interpreter new enough for the builder
+        shell: bash
+        run: |
+          dnf -y install rpm-build createrepo_c
+          # Rocky 9's default python3 is 3.9, which cannot evaluate the PEP 604
+          # type aliases the builder declares at import time (repository_tools.py
+          # line 38, build_backend.py). This container exists to supply dnf and
+          # rpmbuild, not to pin the interpreter, so install a modern Python
+          # rather than contorting builder-side code back to 3.9. The receiver
+          # scripts that really do run on old targets stay 3.9-clean regardless.
+          dnf -y install python3.12 python3.12-pip || dnf -y install python3.11 python3.11-pip
+          PY="$(command -v python3.12 || command -v python3.11)"
+          echo "PY=$PY" >> "$GITHUB_ENV"
+          "$PY" --version
+      - run: $PY -m pip install -r requirements.txt
       - name: Run native DNF oracle and record evidence
         shell: bash
         run: |
           set -o pipefail
           {
             echo "github_sha=$GITHUB_SHA"
-            python3 --version
-            dnf --version | head -1
+            "$PY" --version
+            # Not piped into head: GitHub runs `shell: bash` as `bash -eo pipefail`,
+            # so an early-exiting reader SIGPIPEs the writer, pipefail surfaces 141
+            # and errexit aborts the step before the oracle below ever runs. This is
+            # the same trap install-offline.sh already documents and avoids.
+            dnf_version="$(dnf --version)"
+            printf '%s\n' "${dnf_version%%$'\n'*}"
             rpmbuild --version
-            python3 native_conformance.py --require dnf
+            "$PY" native_conformance.py --require dnf
           } 2>&1 | tee native-dnf.log
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
@@ -133,7 +156,12 @@ jobs:
           {
             echo "github_sha=$GITHUB_SHA"
             python3 --version
-            pacman --version | head -2
+            # Not piped into head: GitHub runs `shell: bash` as `bash -eo pipefail`,
+            # so an early-exiting reader SIGPIPEs the writer, pipefail surfaces 141
+            # and errexit aborts the step before the oracle below ever runs. This is
+            # the same trap install-offline.sh already documents and avoids.
+            pacman_version="$(pacman --version)"
+            sed -n '1,2p' <<<"$pacman_version"
             python3 native_conformance.py --require pacman
           } 2>&1 | tee native-pacman.log
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
