@@ -132,6 +132,8 @@ Every recorded assurance mode has explicit **proves** and **does not prove** sem
 
 ## Network and credential handling
 
+<img width="1533" height="959" alt="47244727245782458" src="https://github.com/user-attachments/assets/62cf1129-07d2-435f-b877-11e8cbce059a" />
+
 Repository acquisition is designed around source boundaries:
 
 - credentials are scoped to their source origin;
