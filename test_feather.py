@@ -3534,22 +3534,37 @@ def test_verification_strategy_labels_keep_policy_identity_with_assurance_suffix
 
 def test_entitlement_and_keyring_reference_stores_live_outside_program_tree(tmp_path, monkeypatch):
     import app
-    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
+
+    # _user_state_dir intentionally follows the host OS configuration
+    # convention. The regression is that trust/credential references live
+    # outside the program tree, not that every platform must honor XDG.
+    if sys.platform.startswith("win"):
+        config_root = tmp_path / "appdata"
+        monkeypatch.setenv("APPDATA", str(config_root))
+        expected_root = config_root / "Feathered"
+    elif sys.platform == "darwin":
+        monkeypatch.setenv("HOME", str(tmp_path))
+        expected_root = tmp_path / "Library" / "Application Support" / "Feathered"
+    else:
+        config_root = tmp_path / "xdg"
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(config_root))
+        expected_root = config_root / "feathered"
+
     class Dummy:
         _user_state_dir = app.App._user_state_dir
         _keystore_path = app.App._keystore_path
         _entitlement_store_path = app.App._entitlement_store_path
         _vendor_signature_store_path = app.App._vendor_signature_store_path
+
     obj = Dummy()
     key_store = obj._keystore_path()
     entitlement_store = obj._entitlement_store_path()
     vendor_store = obj._vendor_signature_store_path()
-    expected_root = tmp_path / "xdg" / "feathered"
+
     assert key_store.parent == expected_root
     assert entitlement_store.parent == expected_root
     assert vendor_store.parent == expected_root
     assert Path(app.__file__).resolve().parent not in key_store.parents
-
 
 def test_packages_sources_visual_order_is_base_then_additional_then_selection():
     import app, inspect
