@@ -1,6 +1,6 @@
 {
   ".gitattributes": "9befaefb19053d57a39514510ced34deaef8ec4d601f9b5f46d2dbdaae99bfe7",
-  ".github/workflows/native-conformance.yml": "506b7e14011875ad6fcbc218c988a3c1e8d26dbdff639202d75b1c9ed63be06f",
+  ".github/workflows/native-conformance.yml": "0a20b5e4f22fd476ff2a0dd3354adcf4619ee600604b592bb1c41ce861d575a6",
   ".github/workflows/static-analysis.yml": "66911125aae03498abcc0ca03b8a9b9efdec92a902d433b91f5c65e233e8a38b",
   ".github/workflows/windows-release.yml": "68ab87e9051e7cfaeb2dbd85fc4a80686cfa1d892a5b5c5fae9a45574c21dc2d",
   ".github/workflows/workload-drift.yml": "ad6be6eb2007aa01082c6a54de5b08907d6d9085b0d4e47f3b9688df1aadaad6",
@@ -11,7 +11,7 @@
   "KUBERNETES.md": "bdf620d825281c078b4a9939327303d1730a4c345de5c5fc8894b3aaec5bc6e0",
   "LICENSE": "aaefd7298b44ee93a16fb96f5e307e60ec7cfed6eaa7cd13681254e842e42b33",
   "NOTICE.md": "35dc860c6112db9e7bbd493374db0a58a74af118dbfce3b6cd1ae99bc0af5679",
-  "README.md": "0e8ccd95bc662a0165cb01ca85dec8464fd599ef49f378f7a1683599ffff8dfd",
+  "README.md": "82a6d328333e244e9e165914295d2cbb91de00f48172d1cb7d497fc85f41eb8a",
   "SECURITY.md": "62aa26ffb2f9e2c7f19bf5a3d8d33f0c5ae5ef4f5c45949c9d3de26a9b4ad444",
   "VALIDATION.md": "a638adda8a7d1260ae269da04f5cc93917b6e113f790651c1b79922b7ba2dbb6",
   "acquisition_model.py": "e90fca096aa320a8768fef39c21bbaa42e152f3c02a81926ec7a8f5397046b0e",

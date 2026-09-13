@@ -13,7 +13,6 @@ on:
     # Repository formats and package-manager behaviour drift. Catch it on a
     # cadence rather than only when someone touches the resolver.
     - cron: "0 6 * * 1"
-
 permissions:
   contents: read
 jobs:
