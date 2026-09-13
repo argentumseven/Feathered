@@ -50,6 +50,21 @@ if (-not (Test-Path -LiteralPath $Python)) {
     throw "Installed python.exe was not found at $Python"
 }
 
+$Python3 = Join-Path $Target 'python3.exe'
+# Git Bash looks specifically for `python3` when exercising the generated
+# Linux installer. The official Windows installer ships python.exe but not a
+# python3.exe command name, so without this alias Git Bash can fall through to
+# Windows' App Execution Alias instead of the authenticated interpreter.
+Copy-Item -LiteralPath $Python -Destination $Python3 -Force
+if (-not (Test-Path -LiteralPath $Python3)) {
+    throw "python3.exe compatibility alias was not created at $Python3"
+}
+$PythonHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Python).Hash
+$Python3Hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Python3).Hash
+if ($PythonHash -ne $Python3Hash) {
+    throw 'python3.exe compatibility alias is not byte-identical to python.exe.'
+}
+
 $InitTcl = Get-ChildItem -LiteralPath (Join-Path $Target 'tcl') -Filter init.tcl -Recurse -File |
     Select-Object -First 1
 $TkTcl = Get-ChildItem -LiteralPath (Join-Path $Target 'tcl') -Filter tk.tcl -Recurse -File |
@@ -67,6 +82,17 @@ Write-Host "Validating interpreter and Tcl/Tk before running Feathered tests..."
 if ($LASTEXITCODE -ne 0) {
     throw 'Official CPython Tcl/Tk startup validation failed.'
 }
+# GITHUB_PATH is applied to later workflow steps. Also update this process now
+# and prove the exact command used by tests/test_installer_paths.py resolves to
+# this authenticated installation when launched through Git Bash.
+$env:Path = "$Target;$env:Path"
+$Bash = (Get-Command bash.exe -ErrorAction Stop).Source
+Write-Host "Validating Git Bash python3 resolution through $Bash ..."
+& $Bash -lc 'set -euo pipefail; command -v python3; python3 -c "import sys; assert sys.version_info[:3] == (3,13,14); print(sys.executable)"'
+if ($LASTEXITCODE -ne 0) {
+    throw 'Git Bash could not execute the authenticated python3 compatibility alias.'
+}
+
 
 "FEATHERED_RELEASE_PYTHON=$Python" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 "TCL_LIBRARY=$($InitTcl.Directory.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append

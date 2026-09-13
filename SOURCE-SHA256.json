@@ -77,7 +77,7 @@
   "feathered_app/ui/theme.py": "3e582bba99c65d1499d0b9fb2e4691c73340b3f26ee004f8ef1a30c40e0f297a",
   "feathered_cli.py": "521e42de9b7ce23082b7222f789084bab31c5bdee7b29c43edb011269efdfada",
   "install_python_deps.bat": "eb7741b34e588ebcbc2abdd1ce26aeb4b39e01d8d19f69b4c4b80d0ff560baba",
-  "install_windows_python.ps1": "b876fb55c4da7535adc9ac62168f0a6425099ac04bdb8e234b0cc1bfd2a11b35",
+  "install_windows_python.ps1": "49e658f13da15f3347d4eaf6e614ffb0885accb20fefd71d32c5c6e925cfc319",
   "installer.py": "a41df167abcd4cbff86196bdec1eae902f2a571d4ce890c121df5acae91f67df",
   "inventory_relationships.py": "7f0e035e4093d3679222f157ed4fa2c952d3d17b081488b069397c171596bb10",
   "k8s_discovery.py": "bb685b7eac206acbecc1dcc2539066beb715d7c2c6d35541b7e9812201347d08",
