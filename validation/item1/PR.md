@@ -1,6 +1,6 @@
 Make the release gate reconcile actual pytest outcomes
 
-The previous gate accepted skipped batches as executed and called os._exit before
+The previous gate accepted skipped batches as executed and called os.\_exit before
 pytest could print assertion diagnostics or run the required-test finish hook.
 
 This PR replaces forced exit with structured setup/call/teardown evidence and
@@ -15,11 +15,12 @@ job. CI retains reports even when the gate fails. VALIDATION.md points to genera
 results rather than a stale handwritten count.
 
 Validation:
-- Three regression tests fail against unchanged 7222d24 before the repair.
-- New recorder on unchanged application baseline: 1,255 passed, zero skips.
-- Repaired commit 7b745fb7186de5885d9b63f221acc3deef08da5f: 1,290 passed, zero skips.
-- 35 focused gate tests passed; mypy 45 roots, Ruff and 39 host rejection cases passed.
-- Generated installer syntax passed for RPM, vendor-signed RPM, APT and Arch.
+
+* Three regression tests fail against unchanged 7222d24 before the repair.
+* New recorder on unchanged application baseline: 1,255 passed, zero skips.
+* Repaired commit 7b745fb7186de5885d9b63f221acc3deef08da5f: 1,290 passed, zero skips.
+* 35 focused gate tests passed; mypy 45 roots, Ruff and 39 host rejection cases passed.
+* Generated installer syntax passed for RPM, vendor-signed RPM, APT and Arch.
 
 Linux/Tk/Xvfb, Python 3.12.14, pytest 9.1.1. Windows execution, remote CI,
 frozen/signing/gpgv, native oracle runs and live upstream refresh were not run.
@@ -31,6 +32,5 @@ before item 2 starts. Revert this one commit to roll it back.
 The complete source archive includes item1.patch for git am on a clean branch
 based on 7222d24. Do not apply that patch to the already-updated extracted source.
 
-Remote status: no PR has been opened or merged. An authenticated push preflight
-failed with GitHub credentials unavailable (could not read Username; terminal
-prompts disabled). Branch publication requires an authenticated GitHub session.
+Remote status: no PR has been opened or merged.
+
