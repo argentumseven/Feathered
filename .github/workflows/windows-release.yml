@@ -28,10 +28,13 @@ jobs:
         with:
           python-version: '3.13.14'
           architecture: 'x64'
+      - name: Install authenticated python.org CPython with Tcl/Tk
+        shell: powershell
+        run: .\install_windows_python.ps1
       - name: Install authenticated build dependencies
         shell: powershell
         run: |
-          python -m venv .release-venv
+          & $env:FEATHERED_RELEASE_PYTHON -m venv .release-venv
           .\.release-venv\Scripts\python.exe -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-build.lock
       - name: Verify the source manifest describes this tree
         shell: powershell
@@ -105,6 +108,9 @@ jobs:
         with:
           python-version: '3.13.14'
           architecture: 'x64'
+      - name: Install authenticated python.org CPython with Tcl/Tk
+        shell: powershell
+        run: .\install_windows_python.ps1
       - name: Locate Windows SDK signing tool
         shell: powershell
         run: |

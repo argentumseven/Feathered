@@ -24,10 +24,20 @@ set "BUILD_STEP=locating Python"
 set "BASE_PY="
 if "%RELEASE_MODE%"=="1" (
   REM Production is intentionally fixed to one Python minor for reproducibility.
-  where py >nul 2>nul
-  if not errorlevel 1 (
-    py -3.13 -c "import struct,sys; raise SystemExit(0 if sys.version_info[:2]==(3,13) and struct.calcsize('P')*8==64 else 1)" >nul 2>nul
-    if not errorlevel 1 set "BASE_PY=py -3.13"
+  REM CI exports FEATHERED_RELEASE_PYTHON after authenticating the full
+  REM python.org installer and proving that its Tcl/Tk runtime starts.
+  if defined FEATHERED_RELEASE_PYTHON (
+    if exist "%FEATHERED_RELEASE_PYTHON%" (
+      "%FEATHERED_RELEASE_PYTHON%" -c "import struct,sys; raise SystemExit(0 if sys.version_info[:3]==(3,13,14) and struct.calcsize('P')*8==64 else 1)" >nul 2>nul
+      if not errorlevel 1 set "BASE_PY=%FEATHERED_RELEASE_PYTHON%"
+    )
+  )
+  if not defined BASE_PY (
+    where py >nul 2>nul
+    if not errorlevel 1 (
+      py -3.13 -c "import struct,sys; raise SystemExit(0 if sys.version_info[:2]==(3,13) and struct.calcsize('P')*8==64 else 1)" >nul 2>nul
+      if not errorlevel 1 set "BASE_PY=py -3.13"
+    )
   )
   if not defined BASE_PY (
     where python >nul 2>nul

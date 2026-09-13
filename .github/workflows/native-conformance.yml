@@ -26,6 +26,7 @@ jobs:
       - name: Run native APT oracle and record evidence
         shell: bash
         run: |
+          mkdir -p validation/ci
           set -o pipefail
           {
             echo "github_sha=$GITHUB_SHA"
@@ -37,7 +38,7 @@ jobs:
             apt_version="$(apt-get --version)"
             printf '%s\n' "${apt_version%%$'\n'*}"
             python3 native_conformance.py --require apt
-          } 2>&1 | tee native-apt.log
+          } 2>&1 | tee validation/ci/native-apt.log
       # The end-to-end build tests need a display and the dpkg tooling this job
       # already has. Until 1.2.12 they were documented as running here and did
       # not run anywhere: the Windows release job has no dpkg tooling, and this
@@ -74,7 +75,7 @@ jobs:
             tests/test_build_preparation.py \
             tests/test_cli_native_families.py \
             tests/test_application_startup.py \
-            --no-header -p no:cacheprovider -o addopts= -rs 2>&1 | tee integration-tests.log
+            --no-header -p no:cacheprovider -o addopts= -rs 2>&1 | tee validation/ci/integration-tests.log
       # Windows may record explicit capability skips; this required Linux job
       # must execute the entire corpus with no skip allowances on the same SHA.
       - name: Reconcile every regression test with actual phase outcomes
@@ -83,15 +84,13 @@ jobs:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
         run: |
           set -o pipefail
-          xvfb-run -a python3 release_test_runner.py 2>&1 | tee release-gate.log
+          xvfb-run -a python3 release_test_runner.py 2>&1 | tee validation/ci/release-gate.log
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: native-apt-${{ github.sha }}
           path: |
-            native-apt.log
-            integration-tests.log
-            release-gate.log
+            validation/ci/
             validation/release-gate/
           if-no-files-found: warn
   dnf:
