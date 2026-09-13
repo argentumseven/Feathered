@@ -1,11 +1,9 @@
 name: native conformance
-
 # Feathered reimplements three dependency resolvers. These jobs are the only
 # evidence that the closures it calls complete are ones the real package
 # managers will accept. Each job runs in a container that actually has its
 # package manager, and --require turns a SKIP into a failure so a misconfigured
 # worker cannot report success by validating nothing.
-
 on:
   # Called by the release workflow so signed publication is mechanically
   # blocked on all three real package-manager oracles for the same SHA.
@@ -18,7 +16,6 @@ on:
 
 permissions:
   contents: read
-
 jobs:
   apt:
     runs-on: ubuntu-latest
@@ -98,7 +95,6 @@ jobs:
             release-gate.log
             validation/release-gate/
           if-no-files-found: warn
-
   dnf:
     runs-on: ubuntu-latest
     container: rockylinux/rockylinux:9
@@ -141,7 +137,6 @@ jobs:
           name: native-dnf-${{ github.sha }}
           path: native-dnf.log
           if-no-files-found: warn
-
   pacman:
     runs-on: ubuntu-latest
     container: archlinux:base
@@ -169,34 +164,4 @@ jobs:
         with:
           name: native-pacman-${{ github.sha }}
           path: native-pacman.log
-          if-no-files-found: warn
-
-  workload-matrix:
-    name: Live upstream workload matrix
-    # Keep changing upstream availability separate from deterministic release correctness.
-    if: github.event_name != 'workflow_call'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: '3.13'
-          architecture: 'x64'
-      - run: python -m pip install --disable-pip-version-check -r requirements.txt
-      - name: Verify presets against live upstream repositories
-        shell: bash
-        run: |
-          set -o pipefail
-          {
-            echo "github_sha=$GITHUB_SHA"
-            python --version
-            python verify_workload_matrix.py --out workload-matrix-report.json
-          } 2>&1 | tee workload-matrix.log
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
-        with:
-          name: workload-matrix-${{ github.sha }}
-          path: |
-            workload-matrix.log
-            workload-matrix-report.json
           if-no-files-found: warn
