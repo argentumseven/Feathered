@@ -510,9 +510,47 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             self.mirror_status.configure(text=detail, foreground=colour)
         self._paint_mirror_rows()
 
+    def _package_selection_context_key(self) -> str:
+        """Identify which Content choice owns the exact package roots."""
+        mode_var = self.__dict__.get("selection_mode_var")
+        workload_var = self.__dict__.get("workload_var")
+        mode = mode_var.get() if mode_var is not None else ""
+        if mode == "Workload preset":
+            label = workload_var.get() if workload_var is not None else ""
+            return f"workload:{label}"
+        return f"mode:{mode}"
+
+    def _sync_package_selection_context(self) -> bool:
+        """Clear exact roots when the Content choice that owns them changes."""
+        current = self._package_selection_context_key()
+        previous = self.__dict__.get("_package_selection_context")
+        self._package_selection_context = current
+        if previous is None or previous == current:
+            return False
+        had_selection = bool(self.__dict__.get("selected_packages"))
+        self.selected_packages = []
+        self.single_browser_rows = {}
+        self.loaded_signature = None
+        self.loaded_packages = []
+        self.last_result = None
+        self.analysis_signature = None
+        self.package_source_coverage_signature = None
+        refresh_review = getattr(self, "_refresh_review_contract", None)
+        if callable(refresh_review):
+            refresh_review()
+        sync_actions = getattr(self, "_sync_review_action_states", None)
+        if callable(sync_actions):
+            sync_actions()
+        if had_selection:
+            log = getattr(self, "_log", None)
+            if callable(log):
+                log("Cleared exact package roots because the Content selection changed.")
+        return had_selection
+
     def _selection_mode_changed(self):
         # Content intent owns the repository workflow. Swap to that intent's
         # isolated repository universe before any downstream synchronization.
+        self._sync_package_selection_context()
         self._activate_repository_universe_for_intent()
         if not self._mirror_mode():
             self._ensure_transaction_base_sources()
@@ -1639,6 +1677,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
 
     def _workload_changed(self):
         workload = self._workload()
+        self._sync_package_selection_context()
         context = (self._profile().key, self.release_var.get(), self.arch_var.get(), workload.key)
         previous = self.__dict__.get('_content_version_context')
         states = self.__dict__.setdefault('_content_version_states', {})

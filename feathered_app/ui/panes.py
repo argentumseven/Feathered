@@ -444,7 +444,13 @@ class PaneMixin(KubernetesWorkloadMixin):
 
     def _build_exact_package_selection_card(self, pane):
         """Exact-package roots are chosen only after repositories exist."""
-        card = self._card(pane, "Choose exact packages", pady=(18, 0))
+        try:
+            vks_additions = (self.selection_mode_var.get() == "Workload preset"
+                             and self._workload().key == "vks-node-additions")
+        except Exception:
+            vks_additions = False
+        title = "Choose VKS node OS package additions" if vks_additions else "Choose exact packages"
+        card = self._card(pane, title, pady=(18, 0))
         self.single_panel = ttk.Frame(card, style="Panel.TFrame")
         srp = self.single_panel
         srp.columnconfigure(0, weight=3); srp.columnconfigure(1, weight=2)
@@ -471,7 +477,8 @@ class PaneMixin(KubernetesWorkloadMixin):
         self.single_browser_tree.pack(fill="both", expand=True, pady=(8, 0))
         self.single_browser_tree.bind("<Double-1>", lambda _e: self.use_selected_single_package())
         self.single_browser_status_var = tk.StringVar(
-            value="Search the configured repositories by package name.")
+            value=("No additions are preselected. Search the configured target OS repositories by package name."
+                   if vks_additions else "Search the configured repositories by package name."))
         ttk.Label(left, textvariable=self.single_browser_status_var,
                   style="PanelHint.TLabel", wraplength=430).pack(anchor="w", pady=(6, 0))
         ttk.Button(left, text="Add selected  →", style="Primary.TButton",
@@ -825,6 +832,7 @@ class PaneMixin(KubernetesWorkloadMixin):
         self.workload_panel = ttk.Frame(card, style="Panel.TFrame"); self.workload_panel.pack(fill="x")
         pr = self.workload_panel
         self.workload_var = tk.StringVar(value="Docker Engine")
+        self._package_selection_context = f"workload:{self.workload_var.get()}"
         # Workload labels run to ~45 characters; a narrow combo clipped them.
         # This one spans the pane and the dropdown is widened to match.
         ttk.Label(pr, text="Workload", style="Panel.TLabel").grid(row=0, column=0, sticky="w")
@@ -949,6 +957,28 @@ class PaneMixin(KubernetesWorkloadMixin):
                 "include/exclude choices now happen together on that page, so no double-back is required.")
             return
         if self._single_mode():
+            try:
+                vks_additions = (self.selection_mode_var.get() == "Workload preset"
+                                 and self._workload().key == "vks-node-additions")
+            except Exception:
+                vks_additions = False
+            if vks_additions:
+                if self.selected_packages:
+                    for pkg in self.selected_packages:
+                        tree.insert("", "end", values=(pkg.name, f"Exact package from {pkg.repo.name}"))
+                    root_bytes = sum(int(getattr(p, "size", 0) or 0) for p in self.selected_packages)
+                    status.set(
+                        f"{len(self.selected_packages)} VKS node OS addition(s) selected "
+                        f"({human_size(root_bytes)} root payload). Edit the additions on Repositories; "
+                        "dependency closure is calculated during analysis.")
+                else:
+                    tree.insert("", "end", values=(
+                        "No VKS node OS additions selected",
+                        "Choose exact target OS packages on Repositories"))
+                    status.set(
+                        "The VKS preset does not add OS packages by itself. Choose the packages you want "
+                        "added to the node image on Repositories.")
+                return
             tree.insert("", "end", values=(
                 "Specific packages",
                 "Configure repositories first; choose exact roots on the next step"))

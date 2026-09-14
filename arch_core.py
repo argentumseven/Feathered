@@ -285,10 +285,16 @@ def _zstd_decompress(data: bytes) -> bytes:
             raise RuntimeError(f"Cannot decompress zstd ALPM repository database: {exc}") from exc
     if core.stdlib_zstd is not None:
         try:
-            out = core.stdlib_zstd.decompress(data)
-            if len(out) > core.MAX_METADATA_EXPANDED_BYTES:
-                raise RuntimeError("ALPM repository database expands beyond Feathered's metadata limit")
-            return out
+            with core.stdlib_zstd.ZstdFile(io.BytesIO(data), mode="rb") as reader:
+                out = bytearray()
+                while True:
+                    chunk = reader.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    out.extend(chunk)
+                    if len(out) > core.MAX_METADATA_EXPANDED_BYTES:
+                        raise RuntimeError("ALPM repository database expands beyond Feathered's metadata limit")
+                return bytes(out)
         except Exception as exc:
             if isinstance(exc, RuntimeError):
                 raise

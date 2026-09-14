@@ -1,13 +1,15 @@
-"""Scope rules for Feathered's source integrity manifest.
+"""Scope rules for Feathered's generated source integrity manifest.
 
-``SOURCE-SHA256.json`` records the SHA-256 of every tracked source file so a
-recipient of a source archive can prove the tree was not altered in transit.
-It is evidence metadata, not an authentication root: an attacker who can edit
-the tree can edit the manifest.  Its value is that the release gate refuses to
-publish when the manifest and the tree disagree, so a stale manifest cannot
-quietly ship alongside changed code.
+``SOURCE-SHA256.json`` records the SHA-256 of every release source file. It is
+generated from the final merged tree for release evidence and source archives;
+it is deliberately not a tracked authoring file because generated whole-tree
+hashes create merge conflicts unrelated to the source changes themselves.
 
-Writer and verifier share this module deliberately.  When the two sides carry
+The manifest is evidence metadata, not an authentication root. An attacker who
+can edit the tree can also create another manifest. Its value is in describing
+the exact source archive or release candidate whose bytes are being verified.
+
+Writer and verifier share this module deliberately. When the two sides carry
 their own copies of the walk rules they drift, and a manifest that silently
 stops covering a directory looks exactly like a manifest that passes.
 """

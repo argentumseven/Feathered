@@ -1,10 +1,8 @@
-"""The source manifest must describe the tree it ships with.
+"""Generated source-manifest behavior and verification contracts.
 
-Feathered 1.2.4 shipped a SOURCE-SHA256.json that described the *previous*
-revision of four files, and nothing detected it because no code read the file.
-These tests exist so that failure mode cannot recur silently: the manifest is
-now checked against the working tree, the verifier is checked against known
-tampering, and the release workflow is checked for actually running it.
+The manifest is release evidence generated from the final merged tree. It is
+not a tracked source file, so branch merges cannot conflict only because two
+branches computed different hashes for the same edited file.
 """
 from __future__ import annotations
 
@@ -35,28 +33,23 @@ def _tree(root: Path) -> Path:
     return root
 
 
-def test_shipped_manifest_describes_the_shipped_tree():
-    """The release gate's own precondition, asserted in the ordinary suite.
-
-    Running write_source_manifest.py before the final edit is the mistake this
-    catches, so failing here should be read as "regenerate the manifest", not
-    as a defect in the code under test.
-    """
-    assert verify_source_checksums.verify_source(ROOT) == 0
+def test_source_manifest_is_generated_release_evidence():
+    gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+    assert source_manifest.MANIFEST_NAME in gitignore
+    assert source_manifest.MANIFEST_NAME in source_manifest.EXCLUDED_NAMES
 
 
-def test_manifest_covers_every_tracked_source_file():
-    manifest = json.loads((ROOT / source_manifest.MANIFEST_NAME).read_text(encoding="utf-8"))
+def test_generated_manifest_covers_the_current_source_scope():
+    manifest = write_source_manifest.build_manifest(ROOT)
     present = set(source_manifest.iter_source_files(ROOT))
     assert set(manifest) == present
-    # The mistake that produced the stale 1.2.4 manifest left a whole directory
-    # of superseded copies outside the manifest, so absence of coverage is the
-    # specific thing worth asserting.
-    assert not [path for path in present if path not in manifest]
+    assert source_manifest.MANIFEST_NAME not in manifest
+    assert "core.py" in manifest
+    assert "source_manifest.py" in manifest
 
 
 def test_manifest_excludes_derived_and_cache_artifacts():
-    manifest = json.loads((ROOT / source_manifest.MANIFEST_NAME).read_text(encoding="utf-8"))
+    manifest = write_source_manifest.build_manifest(ROOT)
     for path in manifest:
         assert "__pycache__" not in path, path
         assert not path.endswith((".pyc", ".pyo")), path
@@ -147,14 +140,17 @@ def test_verifier_refuses_a_symlinked_source_tree(tmp_path):
         verify_source_checksums.verify_source(root)
 
 
-def test_windows_source_gate_verifies_the_source_manifest():
+def test_windows_source_gate_generates_then_verifies_the_source_manifest():
     workflow = (ROOT / ".github" / "workflows" / "windows-release.yml").read_text(
         encoding="utf-8").lower()
-    assert "verify_source_checksums.py" in workflow
-    # The check has to run inside the source gate, ahead of the signed job that
-    # depends on it; a verification that only runs after publication is theatre.
     gate = workflow.split("windows-source-gate:", 1)[1].split("native-conformance:", 1)[0]
+    assert "write_source_manifest.py" in gate
     assert "verify_source_checksums.py" in gate
-    # And it must run before the corpus, so a stale manifest fails in seconds
-    # rather than after the full batched suite.
+    assert gate.index("write_source_manifest.py") < gate.index("verify_source_checksums.py")
     assert gate.index("verify_source_checksums.py") < gate.index("release_test_runner.py")
+
+
+def test_static_analysis_generates_then_verifies_the_source_manifest():
+    workflow = (ROOT / ".github" / "workflows" / "static-analysis.yml").read_text(
+        encoding="utf-8").lower()
+    assert workflow.index("write_source_manifest.py") < workflow.index("verify_source_checksums.py")

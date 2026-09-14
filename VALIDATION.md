@@ -21,7 +21,8 @@ handwritten test count:
 
 The source-tree digest includes source changes beyond the named commit. Generated
 validation evidence is outside source-manifest scope, so writing a report does
-not change the source identity it describes. CI uploads the reports on failure
+not change the source identity it describes. `SOURCE-SHA256.json` itself is
+generated after merges and is not tracked by Git. CI uploads the reports on failure
 as well as success. Windows and the required Debian job verify the same Git SHA
 before production publication is eligible.
 
@@ -61,6 +62,7 @@ python -m mypy
 python check_host_contracts.py
 ruff check .
 python check_installer_syntax.py
+python write_source_manifest.py
 python verify_source_checksums.py
 FEATHERED_USE_XVFB=1 python release_test_runner.py --report-dir validation/platform-gate
 ```

@@ -1,11 +1,8 @@
 """Fail-closed verification that SOURCE-SHA256.json describes this source tree.
 
-The source manifest is audit/evidence metadata, not an authentication root.
-This verifier exists so the release gate can mechanically prove that the
-manifest covers the exact file set being published and that no listed file
-changed after the manifest was written.  Prior releases carried a manifest that
-was generated before the final edits, which nothing detected because nothing
-read the file.
+The source manifest is generated release evidence, not an authentication root
+and not a tracked merge input. Release jobs generate it from the final merged
+tree and then verify the same tree before publication or source packaging.
 
 Three failure classes are reported separately because they mean different
 things: a MODIFIED file is a stale manifest or a substitution, a MISSING file

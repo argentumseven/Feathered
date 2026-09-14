@@ -1,9 +1,9 @@
-"""Write SOURCE-SHA256.json for the current Feathered source tree.
+"""Generate SOURCE-SHA256.json for the current Feathered source tree.
 
-Run this as the last source-affecting step of a release.  ``verify_source_
-checksums.py`` runs in the release gate and fails closed when the result does
-not describe the tree that is about to be published, so a manifest generated
-before the final edit cannot ship.
+The manifest is derived release evidence and is intentionally ignored by Git.
+Generate it after merges and source edits are complete, then verify or package
+the same tree. This avoids checksum-only merge conflicts while preserving an
+exact byte manifest for source archives and release candidates.
 """
 from __future__ import annotations
 

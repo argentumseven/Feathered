@@ -15,11 +15,8 @@ jobs:
     name: Windows source + mount gate
     runs-on: windows-latest
     steps:
-      # Must precede checkout. Git for Windows defaults core.autocrlf=true on
-      # the hosted runner image, which rewrites every text file to CRLF and
-      # leaves a tree SOURCE-SHA256.json cannot describe. .gitattributes now
-      # pins eol=lf too; this keeps the gate correct even if a runner image
-      # checks out before those attributes take effect.
+      # Must precede checkout. The source manifest is generated from the final
+      # checked-out bytes, so checkout normalization must be deterministic.
       - name: Check out byte-identical source
         shell: powershell
         run: git config --global core.autocrlf false
@@ -43,11 +40,13 @@ jobs:
         run: |
           & $env:FEATHERED_RELEASE_PYTHON -m venv .release-venv
           .\.release-venv\Scripts\python.exe -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-build.lock
-      - name: Verify the source manifest describes this tree
+      - name: Generate and verify source manifest
         shell: powershell
         run: |
+          .\.release-venv\Scripts\python.exe write_source_manifest.py
+          if ($LASTEXITCODE -ne 0) { throw 'Could not generate SOURCE-SHA256.json.' }
           .\.release-venv\Scripts\python.exe verify_source_checksums.py
-          if ($LASTEXITCODE -ne 0) { throw 'SOURCE-SHA256.json does not describe this source tree.' }
+          if ($LASTEXITCODE -ne 0) { throw 'Generated SOURCE-SHA256.json does not describe this source tree.' }
       - name: Compile and run complete regression corpus
         shell: powershell
         run: |
@@ -108,11 +107,8 @@ jobs:
       - linux-client
     runs-on: windows-latest
     steps:
-      # Must precede checkout. Git for Windows defaults core.autocrlf=true on
-      # the hosted runner image, which rewrites every text file to CRLF and
-      # leaves a tree SOURCE-SHA256.json cannot describe. .gitattributes now
-      # pins eol=lf too; this keeps the gate correct even if a runner image
-      # checks out before those attributes take effect.
+      # Must precede checkout. The source manifest is generated from the final
+      # checked-out bytes, so checkout normalization must be deterministic.
       - name: Check out byte-identical source
         shell: powershell
         run: git config --global core.autocrlf false

@@ -1144,10 +1144,19 @@ class LayoutMixin:
             self._focus_validation("target", getattr(self, "inventory_btn", None), message)
         elif "custom label" in text or "output folder scheme" in text:
             self._focus_validation("transfer", getattr(self, "folder_label_entry", None), message)
-        elif any(token in text for token in ("no repositories are ticked", "choose an exact package",
-                                              "at least one package", "enter at least one package",
-                                              "nothing is selected")):
-            self._focus_validation("packages", getattr(self, "package_selection_card", None), message)
+        elif ("exact package" in text or
+              any(token in text for token in ("no repositories are ticked", "at least one package",
+                                               "enter at least one package", "nothing is selected"))):
+            try:
+                exact_mode = self._acquisition_intent() is AcquisitionIntent.PACKAGES
+            except Exception:
+                exact_mode = False
+            if exact_mode:
+                self.show_pane("repositories")
+                self._focus_validation(
+                    "repositories", getattr(self, "exact_package_selection_card", None), message)
+            else:
+                self._focus_validation("packages", getattr(self, "package_selection_card", None), message)
         elif "workload repository" in text or "workload-specific repository" in text:
             self._focus_validation("repositories", getattr(self, "package_workload_repositories_card", None), message)
         elif any(token in text for token in ("base source", "package sources", "dependency repository",

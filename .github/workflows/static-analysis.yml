@@ -47,12 +47,11 @@ jobs:
       - name: Host contract acceptance and rejection
         run: python check_host_contracts.py
 
-      # VALIDATION.md lists the source manifest as a release check, but until
-      # now nothing in CI ran it: commit 52df9c4 shipped with a stale
-      # SOURCE-SHA256.json and this workflow reported success. Regenerating the
-      # manifest before the final edit is the mistake it catches, so it has to
-      # run on the same tree every other check sees.
-      - name: Source manifest describes this tree
+      # The source manifest is generated evidence, not a tracked merge input.
+      # Generate it from the checked-out commit, then verify that exact tree.
+      - name: Generate source manifest
+        run: python write_source_manifest.py
+      - name: Verify generated source manifest
         run: python verify_source_checksums.py
 
       # The generated installer is the one artifact that executes on the

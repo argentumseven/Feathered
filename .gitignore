@@ -3,8 +3,11 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 
-# Build and release output. RELEASE-MANIFEST.json and SHA256SUMS.txt are
-# generated into dist/ by the signed build, never committed.
+# Build and release output. Generated integrity manifests are derived from the
+# final tree and are not committed, which keeps branch merges free of hash-only conflicts.
+SOURCE-SHA256.json
+
+# RELEASE-MANIFEST.json and SHA256SUMS.txt are generated into dist/ by the signed build.
 build/
 dist/
 *.spec

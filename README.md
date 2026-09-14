@@ -270,8 +270,13 @@ python -m mypy
 python check_host_contracts.py
 ruff check .
 python -m compileall -q .
+python write_source_manifest.py
 python verify_source_checksums.py
 ```
+
+`SOURCE-SHA256.json` is generated from the final tree and ignored by Git. Generate
+it after merges or source edits, then verify the same tree. Do not resolve branch
+merges by choosing one side's checksum manifest.
 
 The release test runner executes the full pytest corpus in bounded batches and
 reconciles each test with its setup/call/teardown outcomes:
