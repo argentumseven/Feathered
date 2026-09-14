@@ -26,12 +26,6 @@
 - Exact package roots and prior analysis are cleared when the Content choice changes, preventing packages selected in another mode from carrying into VKS analysis.
 - Exact-package validation failures return to the package chooser on Repositories instead of an unrelated Content control.
 - Package downloads now report bytes transferred while each artifact is streaming, including aggregate progress, transfer rate, and estimated time remaining.
-- RPM receiver preflight preserves coinstalled versions with the same package name and architecture, including install-only kernel packages.
-- Trusted receiver installation stages the complete bundle into a root-owned read-only tree before verification and execution.
-- The standard-library zstd fallback enforces the metadata expansion limit while decompression is still in progress.
-- Repository transport type annotations no longer contain an unresolved `Set` name.
-- Repository maintenance rejects symbolic links inside the selected repository root instead of following package links outside it.
-- Source integrity manifests are generated from the final merged tree instead of being tracked as merge-sensitive source files.
 
 # 1.2.12 - 2026-09-11
 
