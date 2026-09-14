@@ -22,6 +22,10 @@
 - Corrected stale TLS-certificate diagnostics that could count hosts from earlier repository checks.
 - Corrected the independent-evidence "Testing..." tooltip so it cannot remain above unrelated wizard pages after navigation.
 - Corrected bundle-characterization tests so runtime Python and zstandard versions do not make golden output platform-specific.
+- VKS node OS package additions now use the shared exact-package chooser with clear empty-state guidance instead of presenting an unpopulated selection plan.
+- Exact package roots and prior analysis are cleared when the Content choice changes, preventing packages selected in another mode from carrying into VKS analysis.
+- Exact-package validation failures return to the package chooser on Repositories instead of an unrelated Content control.
+- Package downloads now report bytes transferred while each artifact is streaming, including aggregate progress, transfer rate, and estimated time remaining.
 
 # 1.2.12 - 2026-09-11
 

@@ -26,7 +26,8 @@ class ExecutionFeedback:
 
 def bind_execution_feedback(host: BuildFeedbackHost) -> ExecutionFeedback:
     return ExecutionFeedback(
-        Reporter(host._log, host._progress, host.cancel_event, item=host._on_item_event),
+        Reporter(host._log, host._progress, host.cancel_event, item=host._on_item_event,
+                 transfer=host._on_transfer_event),
         host.events, host._ask_on_ui_thread, host._confirm_conflicts,
         host._confirm_warnings, host._publish_download_plan)
 
@@ -40,7 +41,9 @@ def mirror_reporter(host: BuildFeedbackHost, parent: Reporter, source_id: str,
     reporter = Reporter(
         host._log,
         lambda label, value: host._progress(label, base + max(0.0, min(1.0, value)) * span),
-        host.cancel_event, item=item)
+        host.cancel_event, item=item,
+        transfer=lambda identity, transferred, total:
+        parent.transfer(f'{source_id}|{identity}', transferred, total))
     reporter.warnings = parent.warnings
     return reporter
 

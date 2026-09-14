@@ -3,6 +3,7 @@
 """
 
 from feathered_app.build_mirror import BuildMirrorMixin
+from core import SEAL_PHASE_START
 from feathered_app.context import (
     APP_TITLE,
     Path,
@@ -301,6 +302,14 @@ class ToolsMixin(BuildMirrorMixin):
         self.transfer_reused = 0
         self.transfer_bytes = 0
         self.transfer_expected_bytes = expected_bytes
+        self._transfer_item_bytes = {}
+        self._transfer_item_sizes = {}
+        self._transfer_terminal_items = set()
+        try:
+            signing = bool(self.sign_index_var.get())
+        except Exception:
+            signing = False
+        self._transfer_progress_span = SEAL_PHASE_START if signing else 1.0
         self.transfer_started = time.monotonic()
         if getattr(self, "download_size_var", None) is not None:
             if self._mirror_mode():
@@ -321,17 +330,35 @@ class ToolsMixin(BuildMirrorMixin):
 
 
     def _apply_item_event(self, identity: str, state: str, info: dict) -> None:
-        """Annotate one row in place and update the transfer statistics."""
+        """Annotate one row and keep terminal transfer counts consistent."""
+        announced = max(0, int(info.get("size") or 0))
+        item_bytes = self.__dict__.setdefault("_transfer_item_bytes", {})
+        item_sizes = self.__dict__.setdefault("_transfer_item_sizes", {})
+        terminal = self.__dict__.setdefault("_transfer_terminal_items", set())
+        if announced:
+            item_sizes[identity] = announced
+
+        if state in ("done", "reused"):
+            item_bytes[identity] = announced
+            if identity not in terminal:
+                self.transfer_done += 1
+                if state == "reused":
+                    self.transfer_reused += 1
+                terminal.add(identity)
+        elif state == "failed":
+            item_bytes[identity] = 0
+            if identity not in terminal:
+                self.transfer_failed += 1
+                terminal.add(identity)
+
+        self.transfer_bytes = sum(max(0, int(value or 0)) for value in item_bytes.values())
         labels = {"active": ("downloading", "active"), "done": ("downloaded", "done"),
                   "reused": ("already present", "done"), "failed": ("FAILED", "failed"),
                   "pending": ("queued", "pending"),
-                  "verifying": ("verifying…", "active"),
+                  "verifying": ("verifying...", "active"),
                   "stale": ("re-fetching", "warn")}
         text, tag = labels.get(state, (state, "pending"))
         detail = str(info["detail"])[:160] if state == "failed" and info.get("detail") else ""
-        # Pagination means a package row may not currently exist in Treeview.
-        # Persist the state independently so visiting that page later shows the
-        # same transfer result rather than reverting to "queued".
         states = getattr(self, "_result_item_states", None)
         if states is None:
             self._result_item_states = states = {}
@@ -345,13 +372,32 @@ class ToolsMixin(BuildMirrorMixin):
             self.result_tree.item(iid, values=values, tags=(tag,))
             if state == "active":
                 self.result_tree.see(iid)
-        if state in ("done", "reused"):
-            self.transfer_done += 1
-            self.transfer_bytes += int(info.get("size") or 0)
-            if state == "reused":
-                self.transfer_reused += 1
-        elif state == "failed":
-            self.transfer_failed += 1
+        self._update_transfer_status()
+
+    def _apply_transfer_event(self, identity: str, transferred: int, total: int) -> None:
+        """Apply byte progress for one artifact without changing its lifecycle state."""
+        current = max(0, int(transferred or 0))
+        expected = max(0, int(total or 0))
+        item_bytes = self.__dict__.setdefault("_transfer_item_bytes", {})
+        item_sizes = self.__dict__.setdefault("_transfer_item_sizes", {})
+        item_bytes[identity] = current
+        if expected:
+            item_sizes[identity] = expected
+        self.transfer_bytes = sum(max(0, int(value or 0)) for value in item_bytes.values())
+
+        expected = item_sizes.get(identity, 0)
+        text = (f"downloading {human_size(current)} / {human_size(expected)}"
+                if expected else f"downloading {human_size(current)}")
+        states = getattr(self, "_result_item_states", None)
+        if states is None:
+            self._result_item_states = states = {}
+        states[identity] = {"status": text, "tag": "active", "detail": ""}
+        iid = getattr(self, "result_rows", {}).get(identity)
+        if iid and self.result_tree.exists(iid):
+            values = list(self.result_tree.item(iid, "values"))
+            values[1] = text
+            self.result_tree.item(iid, values=values, tags=("active",))
+            self.result_tree.see(iid)
         self._update_transfer_status()
 
     def _update_transfer_status(self) -> None:
@@ -375,6 +421,9 @@ class ToolsMixin(BuildMirrorMixin):
             parts.append(f"{self.transfer_reused} already present")
         if self.transfer_failed:
             parts.append(f"{self.transfer_failed} failed")
+        if self.transfer_expected_bytes and getattr(self, "progress_var", None) is not None:
+            fraction = min(1.0, self.transfer_bytes / self.transfer_expected_bytes)
+            self.progress_var.set(fraction * float(self.__dict__.get("_transfer_progress_span", 1.0)) * 100)
         if getattr(self, "download_size_var", None) is not None:
             if self._mirror_mode():
                 repo_count = len(getattr(self, "_selected_mirror_repositories", lambda: [])())

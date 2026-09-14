@@ -24,11 +24,13 @@ def test_feedback_preserves_order_and_mirror_progress_and_warning_collection():
     feedback.publish_download_plan(2,10)
     fork=mirror_reporter(host,feedback.reporter,'origin',.5,.5)
     fork.progress('transfer',.4)
+    fork.transfer('demo',5,10)
     fork.item('demo','done',bytes=10)
     fork.warn('check upstream')
     result=complete(feedback.events,True,'finished','bundle')
     assert trace==[('log','start'),('plan',2,10),('progress','transfer',.7),
-        ('item','origin|demo','done',{'bytes':10}),('log','WARNING: check upstream'),
+        ('transfer','origin|demo',5,10),('item','origin|demo','done',{'bytes':10}),
+        ('log','WARNING: check upstream'),
         ('done',True,'finished','bundle')]
     assert feedback.reporter.warnings==['check upstream']
     assert result.status is BuildStatus.SUCCESS
@@ -58,3 +60,10 @@ def test_each_binding_has_independent_progress_and_warning_state():
     one.reporter.warn('one');one.reporter.phase(.5,.5)
     assert two.reporter.warnings==[]
     assert two.reporter._phase_start==0
+
+
+def test_headless_feedback_does_not_queue_chunk_progress_without_an_event_sink():
+    host=BuildServiceHost(BuildServices(core.Reporter()))
+    feedback=bind_execution_feedback(host)
+    feedback.reporter.transfer('demo', 1024, 4096)
+    assert host.events.empty()

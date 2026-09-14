@@ -519,10 +519,12 @@ class Reporter:
     def __init__(self, log: Optional[Callable[[str], None]] = None,
                  progress: Optional[Callable[[str, float], None]] = None,
                  cancel_event: Optional[CancellationProbe] = None,
-                 item: Optional[Callable[[str, str, dict], None]] = None):
+                 item: Optional[Callable[[str, str, dict], None]] = None,
+                 transfer: Optional[Callable[[str, int, int], None]] = None):
         self._log = log or (lambda msg: None)
         self._progress = progress or (lambda label, value: None)
         self._item = item or (lambda identity, state, info: None)
+        self._transfer = transfer or (lambda identity, transferred, total: None)
         self.cancel_event = cancel_event
         # Phase window: progress values are scaled into [start, start+span).
         self._phase_start = 0.0
@@ -546,6 +548,10 @@ class Reporter:
     def item(self, identity: str, state: str, **info) -> None:
         """Report the state of one artifact: pending, active, done, reused, failed."""
         self._item(identity, state, info)
+
+    def transfer(self, identity: str, transferred: int, total: int = 0) -> None:
+        """Report current byte transfer for one artifact."""
+        self._transfer(identity, max(0, int(transferred)), max(0, int(total)))
 
     def phase(self, start: float, span: float) -> None:
         """Map subsequent progress reports onto a slice of the overall bar.
@@ -2026,6 +2032,7 @@ def copy_package_stream_bounded(stream, target, pkg, reporter: Reporter,
                 f"{pkg.nevra}: server Content-Length {declared:,} does not match repository "
                 f"metadata size {expected:,}")
     total = 0
+    reported_size = expected or declared or 0
     while True:
         reporter.check_cancel()
         chunk = stream.read(1024 * 1024)
@@ -2036,6 +2043,7 @@ def copy_package_stream_bounded(stream, target, pkg, reporter: Reporter,
             raise RuntimeError(
                 f"{pkg.nevra}: package transfer exceeded the allowed {limit:,}-byte limit")
         target.write(chunk)
+        reporter.transfer(pkg.nevra, total, reported_size)
     if expected and total != expected:
         raise RuntimeError(
             f"{pkg.nevra}: downloaded size {total:,} does not match repository metadata "
@@ -4080,6 +4088,7 @@ def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, r
         reporter.check_cancel()
         try:
             if tmp.exists(): tmp.unlink()
+            reporter.transfer(pkg.nevra, 0, int(getattr(pkg, "size", 0) or 0))
             parsed = urllib.parse.urlparse(src)
             if parsed.scheme == "file":
                 local = Path(urllib.request.url2pathname(parsed.path))
@@ -4094,7 +4103,9 @@ def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, r
                     raise RuntimeError(
                         f"{pkg.nevra}: local package size {actual:,} does not match repository "
                         f"metadata size {expected:,}")
-                shutil.copy2(local, tmp)
+                with local.open("rb") as source, tmp.open("wb") as target:
+                    copy_package_stream_bounded(source, target, pkg, reporter, actual)
+                shutil.copystat(local, tmp)
             else:
                 reporter.log(f"DOWNLOAD {redact_url(src)}")
                 with opener(src, timeout=90, repo=pkg.repo) as response, tmp.open("wb") as f:
