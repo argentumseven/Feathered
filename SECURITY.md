@@ -14,3 +14,7 @@ A useful report includes:
 - any relevant repository metadata or artifact hashes with secrets removed.
 
 Do not include private keys, entitlement certificates, repository passwords, bearer tokens, or signed-URL secrets in a report.
+
+## Receiver and repository boundaries
+
+`trusted_receiver.py --install` copies a transferred bundle into root-owned read-only staging before verification and installation. Package-manager inputs are consumed only from that staged tree. Repository-maintenance scans reject symbolic links inside the selected repository root.

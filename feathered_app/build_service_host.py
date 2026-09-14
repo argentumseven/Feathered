@@ -58,6 +58,10 @@ class BuildServiceHost(BuildFeedbackHost):
     def _on_item_event(self, identity: str, state: str, info: dict[str, object]) -> None:
         self.events.put(("item", identity, state, info))
 
+    def _on_transfer_event(self, identity: str, transferred: int, total: int) -> None:
+        if self._services.events is not None:
+            self.events.put(("transfer", identity, transferred, total))
+
     def request_cancel(self) -> None:
         self.cancel_event.set()
 

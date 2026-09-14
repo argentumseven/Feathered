@@ -534,6 +534,11 @@ class OperationsMixin:
                         and event[0] in {'progress', 'tool_progress'} and batch
                         and isinstance(batch[-1], tuple) and batch[-1][:2] == event[:2]):
                     batch[-1] = event
+                elif (isinstance(event, tuple) and len(event) == 4
+                      and event[0] == 'transfer' and batch
+                      and isinstance(batch[-1], tuple) and len(batch[-1]) == 4
+                      and batch[-1][0] == 'transfer' and batch[-1][1] == event[1]):
+                    batch[-1] = event
                 else:
                     batch.append(event)
             for event in batch:
@@ -551,7 +556,12 @@ class OperationsMixin:
                         event = event.value
                     kind, *data = event
                     if kind == "progress":
-                        self._operation_status(data[0]); self.progress_var.set(data[1] * 100)
+                        transfer_total = int(self.__dict__.get("transfer_total", 0) or 0)
+                        transfer_finished = (int(self.__dict__.get("transfer_done", 0) or 0) +
+                                             int(self.__dict__.get("transfer_failed", 0) or 0))
+                        if not (transfer_total and transfer_finished < transfer_total):
+                            self._operation_status(data[0])
+                            self.progress_var.set(data[1] * 100)
                     elif kind in {"checksum_inspection_finished", "checksum_inspection_progress"}:
                         data[0](*data[1:])
                     elif kind == "k8s_observation":
@@ -580,6 +590,7 @@ class OperationsMixin:
                     elif kind == "probe": self._apply_probe(*data)
                     elif kind == "warnings": self._apply_warnings(data[0])
                     elif kind == "item": self._apply_item_event(data[0], data[1], data[2])
+                    elif kind == "transfer": self._apply_transfer_event(data[0], data[1], data[2])
                     elif kind == "download_plan":
                         acknowledged = data[2] if len(data) > 2 else None
                         try:

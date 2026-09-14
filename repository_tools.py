@@ -89,6 +89,9 @@ def scan_repository_folder(root: Path) -> RepositoryScan:
     arch_files: List[Path] = []
     manifests: List[Path] = []
     for path in root.rglob("*"):
+        if path.is_symlink():
+            raise RuntimeError(
+                f"Repository maintenance refuses symbolic links inside the selected root: {path.relative_to(root)}")
         if not path.is_file():
             continue
         lower = path.name.lower()

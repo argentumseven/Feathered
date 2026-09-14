@@ -253,7 +253,7 @@ For a stronger receiver bootstrap, distribute `trusted_receiver.py` and the oper
 python3 trusted_receiver.py /media/bundle /path/operator-keyring.gpg --install
 ```
 
-A verifier stored only inside an untrusted bundle cannot independently establish trust in its own contents.
+A verifier stored only inside an untrusted bundle cannot independently establish trust in its own contents. With `--install`, the trusted receiver copies the complete bundle into protected temporary staging, removes write access, makes the staged tree root-owned, verifies that staged copy, and executes only from the protected tree.
 
 ## Application architecture
 

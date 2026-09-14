@@ -165,6 +165,9 @@ class BuildMirrorMixin:
         """Worker-thread hook: queue a per-package state change for the UI."""
         self.events.put(("item", identity, state, info))
 
+    def _on_transfer_event(self, identity: str, transferred: int, total: int) -> None:
+        self.events.put(("transfer", identity, transferred, total))
+
     @staticmethod
     def _package_only_warning_text() -> str:
         return (

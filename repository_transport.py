@@ -92,8 +92,8 @@ def repo_has_endpoint_credentials(repo: Optional[object]) -> bool:
     )
 
 
-def credential_redirect_allow_origins(repo: Optional[object]) -> Set[str]:
-    allowed: Set[str] = set()
+def credential_redirect_allow_origins(repo: Optional[object]) -> set[str]:
+    allowed: set[str] = set()
     if repo is None:
         return allowed
     for value in getattr(repo, "redirect_allow_origins", []) or []:

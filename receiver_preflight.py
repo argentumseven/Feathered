@@ -23,7 +23,7 @@ def installed(family):
         for line in query(['rpm', '-qa', '--qf', '%{NAME}\t%{EPOCHNUM}\t%{VERSION}-%{RELEASE}\t%{ARCH}\n']).splitlines():
             name, epoch, version, arch = line.split('\t')
             version = (epoch + ':' if epoch not in {'0', '(none)', ''} else '') + version
-            rows[(name, arch)] = version
+            rows.setdefault((name, arch), set()).add(version)
     elif family == 'arch':
         for line in query(['pacman', '-Q']).splitlines():
             name, version = line.split()
@@ -42,7 +42,12 @@ def validate(contract, actual, post=False, machine=None):
     required = contract['selected'] if post else contract.get('baseline_required', [])
     for package in required:
         key = (package['name'], '' if family == 'arch' else package['architecture'])
-        if actual.get(key) != package['version']:
+        installed_version = actual.get(key)
+        if isinstance(installed_version, (set, frozenset, list, tuple)):
+            present = package['version'] in installed_version
+        else:
+            present = installed_version == package['version']
+        if not present:
             if post:
                 raise RuntimeError(
                     'Resolved transaction was not installed exactly: '
