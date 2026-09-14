@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "test_feather.py::test_recommended_workload_repository_is_materialized_as_workload_tier",
+    "test_feather.py::test_workload_validation_requires_every_declared_repository_role",
+    "test_feather.py::test_switching_workloads_preserves_manual_irrelevant_workload_source",
+    "test_feather.py::test_validate_sources_allows_self_contained_workload_repository",
+    "test_feather.py::test_validate_sources_ignores_enabled_rows_without_a_location",
+    "test_feather.py::test_source_plan_does_not_require_dependency_role_when_workload_role_is_present",
+    "test_feather.py::test_repositories_consumes_requirements_derived_from_packages",
+    "test_feather.py::test_repositories_materialize_repository_implied_by_selected_workload",
+    "test_feather.py::test_workload_root_requests_use_role_without_arbitrary_repository_pin",
+    "test_feather.py::test_provenance_purposes_are_derived_from_distribution_and_workload_flow",
+    "test_feather.py::test_profile_managed_irrelevant_workload_source_is_disabled_but_retained",
+    "test_feather.py::test_podman_root_uses_distribution_scope_not_dependency_role_or_repo_pin",
+    "test_feather.py::test_mixed_workload_maps_only_explicit_vendor_roots",
+    "test_feather.py::test_rpm_distribution_scope_excludes_workload_repo_even_when_it_has_same_package",
+    "test_feather.py::test_version_scan_for_distribution_native_workload_uses_all_enabled_base_repos",
+    "test_feather.py::test_apt_distribution_scope_excludes_supplemental_repo_even_when_higher_priority",
+    "test_feather.py::test_workload_change_preseeds_sidechannel_before_repository_navigation",
+    "test_feather.py::test_coverage_synchronizes_workload_sources_before_source_plan_validation",
+    "test_feather.py::test_repository_requirement_rows_put_sidechannel_before_distribution",
+    "test_feather.py::test_base_source_population_excludes_all_known_workload_roles_not_only_docker"
+  ]
+}

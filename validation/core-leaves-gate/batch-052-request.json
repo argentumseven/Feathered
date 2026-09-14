@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[latest]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.33.4junk]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.33.4+]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.33.4-rc1]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[kernel-headers]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[kernel-devel]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[kernel-rt-devel]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[linux-headers-generic]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[nginx]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[helm]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kernel-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[linux-image-6.1.0-generic-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[containerd-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubelet-node/control-plane]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubernetes-node/control-plane]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[antrea-cluster add-on]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-29-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-34-33-33-True]"
+  ]
+}

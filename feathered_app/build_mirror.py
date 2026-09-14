@@ -119,11 +119,9 @@ class BuildMirrorMixin:
             if source_id in by_source:
                 by_source[source_id].append(pkg)
 
-        missing = [r.name for r in repos if not by_source.get(r.source_identity)]
-        if missing:
-            raise RuntimeError("No package records were found in selected mirror source(s): "
-                               + ", ".join(missing))
-
+        # Repository loading has already succeeded for every selected mirror
+        # source before this method runs. A valid repository can publish an
+        # empty package index, so zero records must remain a real mirror fork.
         # Contract tests drive this against a lightweight stub; an absent layout
         # control means the conservative separate layout, never a silent merge.
         layout_fn = getattr(self, "_mirror_layout", None)

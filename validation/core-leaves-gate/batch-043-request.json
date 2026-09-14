@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_cli_replay.py::test_existing_output_requires_separate_consent",
+    "tests/test_cli_replay.py::test_additive_metadata_requires_its_own_choice",
+    "tests/test_cli_replay.py::test_invalid_request_has_diagnostic_and_nonzero_exit",
+    "tests/test_cli_replay.py::test_dry_run_describes_settings_without_preparing",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+    "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:Packages/demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:https://repo.invalid/Packages/DEMO.RPM?token=fixture]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:\\\\Windows\\\\demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:..\\\\demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.deb]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:CON.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:COM1.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nul.txt.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm.]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm ]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nested/caf\\xe9.rpm]"
+  ]
+}

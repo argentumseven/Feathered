@@ -12,7 +12,6 @@ KUBERNETES_KEYS = frozenset({'kubernetes-node', 'kubernetes-client'})
 VKS_KEY = 'vks-node-additions'
 LABELS = {'kubernetes-node': 'Kubernetes node (kubeadm, self-managed)',
           'kubernetes-client': 'Kubernetes client tools (kubectl)', VKS_KEY: 'VKS node OS package additions'}
-INVENTORY_MESSAGE = ('Load a captured node inventory for VKS OS additions. Photon updates and Ubuntu updates/security are rolling channels, while the node image is pinned at build time. The inventory is needed to avoid unrelated installed-library upgrades.')
 LIMITS = 'Does not establish cluster upgrade readiness, container image availability, CNI/CSI compatibility, vendor support or Image Baker schema compatibility.'
 
 @dataclass(frozen=True)
@@ -21,7 +20,7 @@ class WorkloadContext:
     minor: str = ''
     oldest: str = ''
     newest: str = ''
-    pin_baseline: bool = True
+    pin_baseline: bool = False
     acknowledged: bool = False
     platform_note: str = ''
     image_name: str = ''

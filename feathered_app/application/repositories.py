@@ -56,8 +56,16 @@ class RepositoriesMixin:
             try:
                 coverage = inspect_checksums(snapshot, arches, Reporter(self._log), loader)
                 result, error = list(coverage.algorithms), ""
-                detected = ", ".join(a.upper().replace("SHA", "SHA-") for a in result) or "no strong SHA fields"
-                self._log(f"{snapshot.name}: checksum inspection read {coverage.package_count:,} package records; detected {detected}.")
+                if coverage.package_count:
+                    detected = ", ".join(a.upper().replace("SHA", "SHA-") for a in result) or "no strong SHA fields"
+                    self._log(f"{snapshot.name}: checksum inspection read {coverage.package_count:,} package records; detected {detected}.")
+                else:
+                    reason = (apt_core.empty_repository_explanation(snapshot)
+                              if snapshot.repo_format == "apt" or self._is_deb()
+                              else "the repository currently publishes no package records for the selected target.")
+                    self._log(
+                        f"{snapshot.name}: checksum inspection read a valid empty package index; "
+                        f"there are no package-level digests to inspect. {reason}")
             except Exception as exc:
                 result, error = [], redact_text(str(exc))
                 self._log(f"{snapshot.name}: checksum inspection failed: {error}")
@@ -480,8 +488,7 @@ class RepositoriesMixin:
                     "GnuPG is not installed. Archive-keyring verification will fail if a keyring is configured; "
                     "package digest and independent evidence modes remain available.", pady=(8, 0))
 
-        # 1.0.36 uses the same two-choice
-        # model here as the main page: minimum checksum strength + one strategy.
+        # Match the main page: minimum checksum strength plus one strategy.
         def update_advanced_state():
             strategy = reverse_strategy.get(strategy_var.get(), "checksum-available")
             active = self._strategy_uses_evidence(strategy)

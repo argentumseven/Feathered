@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "test_feather.py::test_missing_baseline_manifest_is_an_error",
+    "test_feather.py::test_reporter_records_warnings",
+    "test_feather.py::test_cross_family_inventory_is_rejected",
+    "test_feather.py::test_inventory_error_record_is_surfaced",
+    "test_feather.py::test_declared_family_helper",
+    "test_feather.py::test_target_arch_is_deterministic",
+    "test_feather.py::test_clearsigned_release_payload_handles_crlf",
+    "test_feather.py::test_profile_uses_discovered_releases_as_authoritative_state",
+    "test_feather.py::test_release_only_apt_repo_does_not_backoff_on_missing_inrelease",
+    "test_feather.py::test_credentials_never_reach_bundle_artifacts_or_logs",
+    "test_feather.py::test_entitlement_gated_targets_have_no_probeable_base",
+    "test_feather.py::test_version_ordering_is_numeric",
+    "test_feather.py::test_codenames_resolve_before_repository_urls_are_built",
+    "test_feather.py::test_workload_packages_resolve_per_family",
+    "test_feather.py::test_prefixed_components_are_semantic_not_forced_paths",
+    "test_feather.py::test_prefixed_component_path_remains_supported_when_archive_really_uses_it",
+    "test_feather.py::test_legacy_prefixed_configured_component_resolves_signed_plain_path",
+    "test_feather.py::test_debian_security_uses_canonical_source_components",
+    "test_feather.py::test_devuan_components_follow_release_generation",
+    "test_feather.py::test_docker_apt_suite_never_silently_cross_grades_release"
+  ]
+}

@@ -16,6 +16,7 @@ from core import Cancelled, RepoSpec, Reporter, infer_vendor_id, redact_text
 from feathered_app.build_outcome import BuildOutcome, BuildStatus
 from feathered_app.build_preparation import DecisionDeclined, PreparationRejected, prepare_job
 from feathered_app.build_runner import BuildPlan, run
+from feathered_app.prepared_plan import PreparedPlan
 from feathered_app.build_services import BuildServices
 from feathered_app.headless_host import HeadlessHost
 from feathered_app.spec_replay import resolve_exact_packages
@@ -60,7 +61,7 @@ class PreparationInputs:
 @dataclass(frozen=True)
 class PreparedBuild:
     host: HeadlessHost
-    plan: BuildPlan
+    plan: PreparedPlan
 
 
 def prepare_build(spec: BuildSpec, services: BuildServices,
@@ -124,16 +125,13 @@ def prepare_build(spec: BuildSpec, services: BuildServices,
             context.validate()
         except ValueError as exc:
             raise PreparationRejected(str(exc)) from exc
-        if workload.key == VKS_KEY and not host._mirror_mode() and not spec.target.inventory_path.strip():
-            from kubernetes_workflow import INVENTORY_MESSAGE
-            raise PreparationRejected(INVENTORY_MESSAGE)
         if workload.key in KUBERNETES_KEYS:
             from kubernetes_workflow import synchronize_repository
             def make_repository(template, _tier):
                 return RepoSpec(template.name, template.url, role=template.role, priority=template.priority,
                     repo_format=template.repo_format, suite=template.suite, components=template.components, flat_repo=template.flat_repo)
             synchronize_repository(host.repo_rows, profile.package_family, context.minor, make_repository)
-        if workload.key == VKS_KEY and context.pin_baseline:
+        if workload.key == VKS_KEY and context.pin_baseline and spec.target.inventory_path.strip():
             for repo in host.repo_rows:
                 if rolling_source(repo):
                     repo.enabled = False

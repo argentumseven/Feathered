@@ -1,0 +1,2 @@
+tests/test_cli_replay.py
+tests/test_core_leaf_contracts.py

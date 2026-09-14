@@ -1,0 +1,25 @@
+{
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "nodes": [
+    "test_feather.py::test_regression_1032_fallback_uses_metadata_peer_when_selected_sha_missing",
+    "test_feather.py::test_regression_1032_required_selected_sha_fails_without_acquisition_or_evidence",
+    "test_feather.py::test_regression_1033_evidence_dropdown_candidates_follow_selected_top_level_repo",
+    "test_feather.py::test_regression_1033_inspected_sha_choices_are_retained_before_full_analysis",
+    "test_feather.py::test_regression_1034_provenance_policy_applies_to_enabled_sources_only",
+    "test_feather.py::test_regression_1034_digest_coverage_labels_map_to_exact_strength",
+    "test_feather.py::test_regression_1034_main_provenance_ui_has_no_second_source_selector_or_apply_button",
+    "test_feather.py::test_regression_1034_advanced_provenance_dialog_is_live_not_save_apply",
+    "test_feather.py::test_regression_1035_required_sha_forces_independent_evidence_off",
+    "test_feather.py::test_regression_1035_evidence_controls_follow_required_and_mode_state",
+    "test_feather.py::test_regression_1035_repository_inspection_has_visible_progress",
+    "test_feather.py::test_regression_1035_provenance_ui_avoids_em_dash_heavy_labels",
+    "test_feather.py::test_regression_1035_required_digest_does_not_fall_back_to_evidence",
+    "test_feather.py::test_regression_1036_sha_choice_is_minimum_and_prefers_stronger_digest",
+    "test_feather.py::test_regression_1036_checksum_available_powers_through_uncovered_package",
+    "test_feather.py::test_regression_1036_evidence_fallback_fills_only_a_checksum_gap",
+    "test_feather.py::test_regression_1036_full_corroboration_requires_both_claims",
+    "test_feather.py::test_regression_1036_strict_ui_preserves_all_minimums_and_reports_coverage",
+    "test_feather.py::test_regression_1036_evidence_ui_is_subordinate_to_strategy_not_a_second_toggle",
+    "test_feather.py::test_regression_1037_disabled_provenance_controls_use_dark_muted_styles"
+  ]
+}

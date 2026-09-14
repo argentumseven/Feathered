@@ -29,6 +29,11 @@ if str(ROOT) not in sys.path:
 
 #  Modules that have been moved into the headless core. Extend as A2 lands.
 CORE_MODULES = (
+    "feathered_app.backend_registry",
+    "package_family", "bundle_writer", "artifact_digests", "file_hashing",
+    "bundle_baseline", "payload_identity", "rpm_capabilities",
+    "feathered_app.prepared_plan",
+    "feathered_app.execution_feedback",
     "feathered_app.build_request",
     "feathered_app.build_intent",
     "feathered_app.build_backend",

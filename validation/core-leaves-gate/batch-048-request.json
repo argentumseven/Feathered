@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_footer_status.py::test_condensed_text_still_says_what_went_wrong",
+    "tests/test_footer_status.py::test_truncation_points_at_the_log_rather_than_just_stopping",
+    "tests/test_footer_status.py::test_short_messages_pass_through_untouched",
+    "tests/test_footer_status.py::test_embedded_newlines_are_collapsed_even_when_short",
+    "tests/test_footer_status.py::test_deliberate_space_runs_survive",
+    "tests/test_footer_status.py::test_truncation_prefers_a_word_boundary_but_survives_one_long_token",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[None]",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[]",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[   ]",
+    "tests/test_footer_status.py::test_first_line_skips_leading_blank_lines",
+    "tests/test_footer_status.py::test_every_status_write_goes_through_the_condenser",
+    "tests/test_footer_status.py::test_set_footer_status_condenses_and_returns_what_is_shown",
+    "tests/test_footer_status.py::test_set_footer_status_is_safe_with_no_widget",
+    "tests/test_footer_status.py::test_status_label_height_is_pinned_in_the_layout",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[workload]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[exact]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[separate]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[unified]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[devuan]",
+    "tests/test_headless_execution.py::test_services_forward_progress_events_cancellation_and_conflict_details"
+  ]
+}

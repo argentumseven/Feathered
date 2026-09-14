@@ -179,7 +179,7 @@ class BuildRequestMixin:
             minor=read('content', 'k8s_minor', 'k8s_minor_var'),
             oldest=read('content', 'apiserver_oldest_minor', 'apiserver_oldest_minor_var'),
             newest=read('content', 'apiserver_newest_minor', 'apiserver_newest_minor_var'),
-            pin_baseline=read('content', 'pin_to_inventory_baseline', 'pin_to_inventory_baseline_var', True),
+            pin_baseline=read('content', 'pin_to_inventory_baseline', 'pin_to_inventory_baseline_var', False),
             acknowledged=read('content', 'advisories_acknowledged', 'advisories_acknowledged_var', False),
             image_name=read('content', 'image_baker_name', 'image_baker_name_var', 'feathered-node-additions'),
             platform_note=read('target', 'platform_note', 'platform_note_var'),

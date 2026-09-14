@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nested/cafe\\u0301.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:space name.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:  libfoo.so.1()(64bit) ]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:Python3Dist(Foo_Bar.Baz)]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3.11dist(Foo.Bar[Extra_One, ,Extra.Two])]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(foo[])]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(Foo[Bad)]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(Foo[Bad])]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:PythonDist(A..__B)]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(Foo) trailing]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist()]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:/usr/bin/Python]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:same]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:republished]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:empty]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:missing-digest]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:weak]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:legacy-bare]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:bad-legacy]"
+  ]
+}

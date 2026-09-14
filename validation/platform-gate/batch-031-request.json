@@ -1,0 +1,25 @@
+{
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "nodes": [
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-rpm]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-deb]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-arch]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[rpm-rpm]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[rpm-deb]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[rpm-arch]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[apt-rpm]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[apt-deb]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[apt-arch]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[pacman-rpm]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[pacman-deb]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[pacman-arch]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[auto-rpm]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[auto-deb]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[auto-arch]",
+    "tests/test_backend_dispatch.py::test_pacman_repository_does_not_query_host_predicates",
+    "tests/test_background_jobs.py::test_many_replacements_bound_workers_and_only_latest_result_is_current",
+    "tests/test_background_jobs.py::test_cancel_is_cooperative_and_releases_capacity",
+    "tests/test_background_jobs.py::test_failure_and_worker_exit_release_capacity",
+    "tests/test_background_jobs.py::test_close_cancels_active_and_pending_and_rejects_new_work"
+  ]
+}

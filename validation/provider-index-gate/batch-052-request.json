@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "tests/test_kubernetes_workflows.py::test_baseline_rejects_installed_changes_but_keeps_ordinary_headers",
+    "tests/test_kubernetes_workflows.py::test_vks_build_emits_image_draft_and_keeps_inventory_baseline",
+    "tests/test_kubernetes_workflows.py::test_flat_kubernetes_repository_can_be_mirrored",
+    "tests/test_kubernetes_workflows.py::test_frozen_context_does_not_read_any_widgets",
+    "tests/test_kubernetes_workflows.py::test_kubernetes_bundle_supports_additive_publication",
+    "tests/test_kubernetes_workflows.py::test_discovery_result_defers_during_build_and_keeps_other_family_separate",
+    "tests/test_kubernetes_workflows.py::test_generated_repository_changes_do_not_drop_operator_policy",
+    "tests/test_kubernetes_workflows.py::test_complete_rpm_inventory_satisfies_libraries_without_upgrading_them",
+    "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates0]",
+    "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates1]",
+    "tests/test_kubernetes_workflows.py::test_workload_artifacts_exist_before_indexing",
+    "tests/test_kubernetes_workflows.py::test_saved_workload_patch_pin_builds_requested_version",
+    "tests/test_kubernetes_workflows.py::test_unavailable_workload_patch_never_falls_back_to_latest",
+    "tests/test_kubernetes_workflows.py::test_node_build_requests_pin_components_but_not_cri_or_cni",
+    "tests/test_linux_installation.py::test_cli_only_installs_without_tk_or_package_index",
+    "tests/test_linux_installation.py::test_failed_upgrade_preserves_selected_runtime_and_shortcuts",
+    "tests/test_linux_installation.py::test_partial_shortcut_publication_rolls_back",
+    "tests/test_linux_installation.py::test_unmanaged_shortcut_is_not_overwritten",
+    "tests/test_linux_installation.py::test_parallel_install_is_rejected",
+    "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[cli]"
+  ]
+}

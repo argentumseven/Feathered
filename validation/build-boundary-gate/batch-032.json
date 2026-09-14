@@ -1,0 +1,574 @@
+{
+  "schema": 1,
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_build_preparation.py::test_runner_returns_the_same_terminal_outcome_it_emits",
+    "tests/test_build_preparation.py::test_portable_source_scope_and_evidence_hints_survive_roundtrip",
+    "tests/test_build_preparation.py::test_runtime_vendor_requirement_is_never_downgraded",
+    "tests/test_build_preparation.py::test_timeout_during_metadata_has_a_timeout_outcome",
+    "tests/test_build_preparation.py::test_incompatible_repository_does_not_participate",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data0]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data1]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data2]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data3]",
+    "tests/test_build_preparation.py::test_signature_requirements_capture_every_vendor_without_keyring_paths",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[]",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[.]",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[..]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.prepared_plan]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.execution_feedback]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_request]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_intent]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_backend]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[repository_transport]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[checksum_inspection]"
+  ],
+  "batch_excluded": [
+    "tests/test_build_preparation.py::test_preparation_is_owned_and_does_not_publish",
+    "tests/test_build_preparation.py::test_optional_catalogue_members_and_dependency_mode_reach_plan",
+    "tests/test_build_preparation.py::test_package_only_requires_its_own_policy_and_never_parses_inventory",
+    "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|deb\\nDEB|already|1.0|amd64\\n-True]",
+    "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|rpm\\nPKG|already|0|1|1|x86_64\\n-False]",
+    "tests/test_build_preparation.py::test_mirrors_ignore_stale_inventory_and_baseline",
+    "tests/test_build_preparation.py::test_explicit_sealing_without_key_is_rejected",
+    "tests/test_build_preparation.py::test_credentials_are_attached_by_identity_without_mutating_spec",
+    "tests/test_build_preparation.py::test_cancellation_and_timeout_are_distinct_from_invalid_request",
+    "tests/test_build_preparation.py::test_cancel_during_metadata_prevents_publication",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[release_seed]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[transaction_resolution]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[transaction_inventory]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[root_requests]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_version]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_policy]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_discovery]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[kubernetes_workflow]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[repository_tools]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_plan]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_services]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_host_contracts]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_service_host]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_publication]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.source_scope]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.metadata_loading]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_runner]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_sources]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_output]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_mirror]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.headless_host]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.spec_replay]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_preparation]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_api]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_outcome]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_cli]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[build_spec]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[mirror_unification]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[acquisition_model]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[source_model]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.repository_universe]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.status_text]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.activity_log]",
+    "tests/test_build_request_module.py::test_the_guard_would_catch_a_real_dependency",
+    "tests/test_build_request_module.py::test_build_request_declares_no_tk_names_in_its_source",
+    "tests/test_build_request_module.py::test_the_accessors_still_serve_the_frozen_request",
+    "tests/test_build_request_module.py::test_an_empty_frozen_value_is_not_treated_as_absent",
+    "tests/test_build_request_module.py::test_oracle_scenarios_are_reproducible_from_the_seed_alone",
+    "tests/test_build_request_module.py::test_the_headless_frontier_is_where_it_is_recorded",
+    "tests/test_build_request_module.py::test_unsupplied_decisions_default_to_declining",
+    "tests/test_build_request_module.py::test_services_gathered_from_a_host_report_what_is_missing",
+    "tests/test_build_request_module.py::test_services_cannot_change_once_a_run_has_them",
+    "tests/test_build_request_module.py::test_the_real_application_can_supply_a_complete_service_set",
+    "tests/test_build_request_module.py::test_the_headless_host_covers_the_whole_runner_surface",
+    "tests/test_build_request_module.py::test_the_headless_host_declines_what_nobody_answered",
+    "tests/test_build_request_module.py::test_the_headless_host_can_be_cancelled"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runner_returns_the_same_terminal_outcome_it_emits",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runner_returns_the_same_terminal_outcome_it_emits",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runner_returns_the_same_terminal_outcome_it_emits",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_portable_source_scope_and_evidence_hints_survive_roundtrip",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_portable_source_scope_and_evidence_hints_survive_roundtrip",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_portable_source_scope_and_evidence_hints_survive_roundtrip",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_vendor_requirement_is_never_downgraded",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_vendor_requirement_is_never_downgraded",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_vendor_requirement_is_never_downgraded",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_timeout_during_metadata_has_a_timeout_outcome",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_timeout_during_metadata_has_a_timeout_outcome",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_timeout_during_metadata_has_a_timeout_outcome",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_incompatible_repository_does_not_participate",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_incompatible_repository_does_not_participate",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_incompatible_repository_does_not_participate",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data0]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data0]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data0]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data2]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data2]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data2]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data3]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data3]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data3]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_signature_requirements_capture_every_vendor_without_keyring_paths",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_signature_requirements_capture_every_vendor_without_keyring_paths",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_signature_requirements_capture_every_vendor_without_keyring_paths",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[.]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[.]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[.]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[..]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[..]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[..]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.prepared_plan]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.prepared_plan]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.prepared_plan]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.execution_feedback]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.execution_feedback]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.execution_feedback]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_request]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_request]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_request]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_intent]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_intent]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_intent]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_backend]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_backend]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_backend]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[repository_transport]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[repository_transport]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[repository_transport]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[checksum_inspection]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[checksum_inspection]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[checksum_inspection]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

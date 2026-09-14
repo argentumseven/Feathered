@@ -1,0 +1,555 @@
+{
+  "schema": 1,
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible + EPEL (broad fallback)]",
+    "tests/test_metadata_loading.py::test_coverage_can_bypass_distribution_policy_without_accessing_it",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[rpm-rpm]",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[deb-deb]",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[arch-arch]",
+    "tests/test_mirror_unification.py::test_selection_order_decides_which_repository_supplies_the_bytes",
+    "tests/test_mirror_unification.py::test_stronger_shared_algorithm_is_preferred_for_the_proof",
+    "tests/test_mirror_unification.py::test_different_versions_of_one_package_are_distinct_identities",
+    "tests/test_mirror_unification.py::test_three_repositories_publishing_one_artifact_collapse_to_one",
+    "tests/test_mirror_unification.py::test_same_identity_with_different_bytes_is_a_conflict_not_a_choice",
+    "tests/test_mirror_unification.py::test_no_shared_algorithm_is_a_conflict_under_the_default_policy",
+    "tests/test_mirror_unification.py::test_matching_digest_with_disagreeing_size_is_a_conflict",
+    "tests/test_mirror_unification.py::test_agreeing_weak_digest_plus_size_is_recorded_as_a_weak_merge",
+    "tests/test_mirror_unification.py::test_disagreeing_weak_digest_is_still_decisive",
+    "tests/test_mirror_unification.py::test_conflict_report_names_the_identities_and_offers_the_way_out",
+    "tests/test_mirror_unification.py::test_conflicts_do_not_hide_behind_a_truncated_report",
+    "tests/test_mirror_unification.py::test_note_states_that_a_unified_mirror_is_nobody_upstream",
+    "tests/test_mirror_unification.py::test_sources_record_attributes_every_retained_package",
+    "tests/test_mirror_unification.py::test_empty_selection_summarises_without_raising",
+    "tests/test_mirror_unification.py::test_layout_label_round_trips_and_defaults_conservatively"
+  ],
+  "batch_excluded": [
+    "tests/test_metadata_loading.py::test_normal_load_retains_order_progress_cache_identity_and_laziness",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[priority-9]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[source_tier-workload]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[url-https://example.test/new]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[keyring-keys.gpg]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[allow_unverified_index-True]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[evidence_urls-value5]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[redirect_allow_origins-value6]",
+    "tests/test_metadata_loading.py::test_architecture_change_invalidates_cache",
+    "tests/test_metadata_loading.py::test_successful_empty_metadata_is_retried",
+    "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[False-expected0]",
+    "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[True-expected1]",
+    "tests/test_metadata_loading.py::test_scoped_load_cannot_replace_or_reuse_populated_global_cache",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows0]",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows1]",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows2]",
+    "tests/test_metadata_loading.py::test_failed_sources_warn_or_log_and_validate_only_successful_providers",
+    "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[False]",
+    "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[True]",
+    "tests/test_metadata_loading.py::test_cancellation_after_backend_failure_is_not_reported_as_source_failure",
+    "tests/test_metadata_loading.py::test_preexisting_cancellation_stops_before_backend",
+    "tests/test_metadata_loading.py::test_failed_scope_validation_preserves_previous_cache",
+    "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible mirrors (recommended fallback)]",
+    "tests/test_mirror_unification.py::test_absent_layout_control_never_means_merge",
+    "tests/test_mirror_unification.py::test_unified_inventory_refuses_conflicts_before_any_bytes_are_fetched",
+    "tests/test_mirror_unification.py::test_unified_inventory_produces_one_result_carrying_the_plan",
+    "tests/test_mirror_unification.py::test_unified_layout_publishes_one_folder_not_one_per_repository",
+    "tests/test_mirror_unification.py::test_unified_folder_name_is_stable_and_carries_no_repository_component",
+    "tests/test_mirror_unification.py::test_unified_bundle_carries_its_merge_record",
+    "tests/test_mirror_unification.py::test_merge_record_is_written_before_the_bundle_index_is_sealed",
+    "tests/test_mirror_unification.py::test_every_backend_writes_the_merge_record_before_sealing",
+    "tests/test_mirror_unification.py::test_separate_layout_writes_no_merge_record",
+    "tests/test_mirror_unification.py::test_prefer_priority_merges_what_strict_refuses",
+    "tests/test_mirror_unification.py::test_priority_merge_is_recorded_not_disguised_as_proof",
+    "tests/test_mirror_unification.py::test_one_unprovable_pair_downgrades_the_whole_identity",
+    "tests/test_mirror_unification.py::test_strict_remains_the_default_everywhere",
+    "tests/test_mirror_unification.py::test_conflict_report_names_the_policy_that_would_resolve_it"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible + EPEL (broad fallback)]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible + EPEL (broad fallback)]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible + EPEL (broad fallback)]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_coverage_can_bypass_distribution_policy_without_accessing_it",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_coverage_can_bypass_distribution_policy_without_accessing_it",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_coverage_can_bypass_distribution_policy_without_accessing_it",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[rpm-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[rpm-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[rpm-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[deb-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[deb-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[deb-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[arch-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[arch-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[arch-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_selection_order_decides_which_repository_supplies_the_bytes",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_selection_order_decides_which_repository_supplies_the_bytes",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_selection_order_decides_which_repository_supplies_the_bytes",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_stronger_shared_algorithm_is_preferred_for_the_proof",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_stronger_shared_algorithm_is_preferred_for_the_proof",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_stronger_shared_algorithm_is_preferred_for_the_proof",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_different_versions_of_one_package_are_distinct_identities",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_different_versions_of_one_package_are_distinct_identities",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_different_versions_of_one_package_are_distinct_identities",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_three_repositories_publishing_one_artifact_collapse_to_one",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_three_repositories_publishing_one_artifact_collapse_to_one",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_three_repositories_publishing_one_artifact_collapse_to_one",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_same_identity_with_different_bytes_is_a_conflict_not_a_choice",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_same_identity_with_different_bytes_is_a_conflict_not_a_choice",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_same_identity_with_different_bytes_is_a_conflict_not_a_choice",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_no_shared_algorithm_is_a_conflict_under_the_default_policy",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_no_shared_algorithm_is_a_conflict_under_the_default_policy",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_no_shared_algorithm_is_a_conflict_under_the_default_policy",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_matching_digest_with_disagreeing_size_is_a_conflict",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_matching_digest_with_disagreeing_size_is_a_conflict",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_matching_digest_with_disagreeing_size_is_a_conflict",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_agreeing_weak_digest_plus_size_is_recorded_as_a_weak_merge",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_agreeing_weak_digest_plus_size_is_recorded_as_a_weak_merge",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_agreeing_weak_digest_plus_size_is_recorded_as_a_weak_merge",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_disagreeing_weak_digest_is_still_decisive",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_disagreeing_weak_digest_is_still_decisive",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_disagreeing_weak_digest_is_still_decisive",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_conflict_report_names_the_identities_and_offers_the_way_out",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_conflict_report_names_the_identities_and_offers_the_way_out",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_conflict_report_names_the_identities_and_offers_the_way_out",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_conflicts_do_not_hide_behind_a_truncated_report",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_conflicts_do_not_hide_behind_a_truncated_report",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_conflicts_do_not_hide_behind_a_truncated_report",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_note_states_that_a_unified_mirror_is_nobody_upstream",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_note_states_that_a_unified_mirror_is_nobody_upstream",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_note_states_that_a_unified_mirror_is_nobody_upstream",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_sources_record_attributes_every_retained_package",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_sources_record_attributes_every_retained_package",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_sources_record_attributes_every_retained_package",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_empty_selection_summarises_without_raising",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_empty_selection_summarises_without_raising",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_empty_selection_summarises_without_raising",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_layout_label_round_trips_and_defaults_conservatively",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_layout_label_round_trips_and_defaults_conservatively",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_mirror_unification.py::test_layout_label_round_trips_and_defaults_conservatively",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

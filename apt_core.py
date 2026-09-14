@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import artifact_digests
 import bz2
 import gzip
 import hashlib
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
 import core
 import repository_transport as _transport
 from core import (RepositoryWriterReporter, ArtifactVerification, BuildOptions, Cancelled, RepoSpec, RepoTrust, Reporter, _urlopen, fetch_bytes, hash_file,
-                  diagnose_missing_repository, load_baseline, meta_dict_list, redact_text,
+                  load_baseline, meta_dict_list, redact_text,
                   redact_url,
                   repo_relative_url, open_staging, commit_staging, abandon_staging,
                   write_bundle_index, trust_summary, _record_digest_checked,
@@ -394,20 +395,31 @@ def _is_clearsigned(raw: bytes) -> bool:
             and b"-----BEGIN PGP SIGNATURE-----" in raw)
 
 
-def _release_checksums(fields: Dict[str, str]) -> Dict[str, Tuple[str, int]]:
-    out: Dict[str, Tuple[str, int]] = {}
-    for line in fields.get("SHA256", "").splitlines():
-        parts = line.split()
-        if len(parts) >= 3:
-            try: out[parts[2]] = (parts[0], int(parts[1]))
-            except ValueError: pass
+def _release_checksums(fields: Dict[str, str]) -> Dict[str, Tuple[str, str, int]]:
+    """Return the strongest supported Release digest for each metadata path."""
+    out: Dict[str, Tuple[str, str, int]] = {}
+    for field_name, algorithm in (("SHA512", "sha512"), ("SHA384", "sha384"), ("SHA256", "sha256")):
+        for line in fields.get(field_name, "").splitlines():
+            parts = line.split()
+            if len(parts) < 3 or parts[2] in out:
+                continue
+            try:
+                size = int(parts[1])
+            except ValueError:
+                continue
+            digest = parts[0].lower()
+            try:
+                expected_len = hashlib.new(algorithm).digest_size * 2
+            except ValueError:
+                continue
+            if len(digest) != expected_len or re.fullmatch(r"[0-9a-f]+", digest) is None:
+                continue
+            out[parts[2]] = (algorithm, digest, size)
     return out
 
 
 def _decompress(data: bytes, path: str) -> bytes:
-    # share RPM's bounded streaming
-    # decompressor so APT Packages metadata has the same compression-bomb
-    # ceiling instead of expanding an arbitrary frame directly into RAM.
+    # Use the shared bounded metadata decompressor.
     return decompress_metadata(data, path)
 
 
@@ -453,20 +465,7 @@ def _parse_release_date(value: str) -> Optional[datetime]:
 
 def check_release_freshness(repo: RepoSpec, fields: Dict[str, str], reporter: Reporter,
                             now: Optional[datetime] = None) -> None:
-    """Reject Release metadata whose publisher-declared lifetime has expired.
-
-    Without this, a mirror (or anyone able to replay one) can pin the builder
-    to a months-old index and the resulting bundle quietly ships superseded,
-    potentially vulnerable package versions.
-
-    Valid-Until is the publisher's own statement and is authoritative when
-    present. When it is absent the repository cannot state its own lifetime, so
-    the only remaining evidence is the signed Date. RepoSpec.max_release_age_days
-    turns that into a limit; it is 0 (unenforced) by default, matching APT's
-    Acquire::Max-ValidTime, because pinned archives are a legitimate air-gap
-    source. What the operator gets by default is an accurate statement of what
-    was and was not established, not a silent pass.
-    """
+    """Reject expired Release metadata and enforce an optional maximum age."""
     now = now or datetime.now(timezone.utc)
     valid_until = _parse_release_date(fields.get("Valid-Until", ""))
     release_date = _parse_release_date(fields.get("Date", ""))
@@ -617,7 +616,53 @@ def verify_release_signature(repo: RepoSpec, leaf: str, raw: bytes, reporter: Re
     trust.archive_signature_verified = True
 
 
-def _fetch_release(repo: RepoSpec, reporter: Reporter) -> Tuple[Dict[str, str], Dict[str, Tuple[str, int]]]:
+def _published_apt_suites(repo: RepoSpec, reporter: Reporter) -> List[str]:
+    """Return suite directories advertised below an APT repository's dists/ root."""
+    if repo.flat_repo:
+        return []
+    dists_url = url_join(repo.normalized_url, "dists/")
+    try:
+        raw = fetch_bytes(dists_url, reporter, retries=1, repo=repo).decode("utf-8", "replace")
+    except Exception:
+        return []
+    suites: List[str] = []
+    for href in re.findall(r'href=[\'"]([^\'"]+)[\'"]', raw, re.IGNORECASE):
+        parsed = urllib.parse.urlsplit(href)
+        path = urllib.parse.unquote(parsed.path).strip()
+        if not path.endswith("/"):
+            continue
+        leaf = path.rstrip("/").rsplit("/", 1)[-1]
+        if not leaf or leaf in {".", ".."} or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._+-]*", leaf):
+            continue
+        if leaf not in suites:
+            suites.append(leaf)
+    return sorted(suites)
+
+
+def _missing_apt_suite_message(repo: RepoSpec, reporter: Reporter, errors: Sequence[str]) -> Optional[str]:
+    """Explain a missing APT suite when the repository advertises other suites."""
+    suite = repo.suite.strip()
+    if repo.flat_repo or not suite or not any("404" in e or "Not Found" in e for e in errors):
+        return None
+    suites = _published_apt_suites(repo, reporter)
+    if not suites or suite in suites:
+        return None
+    checked = redact_url(url_join(repo.normalized_url, "dists/"))
+    message = (
+        f"{repo.name}: APT suite '{suite}' is not published by this repository. "
+        f"Checked {checked}. Published suites: {', '.join(suites)}."
+    )
+    host = (urllib.parse.urlsplit(repo.normalized_url).hostname or "").lower()
+    path = urllib.parse.urlsplit(repo.normalized_url).path.rstrip("/").lower()
+    if host == "download.docker.com" and path.endswith("/linux/ubuntu"):
+        message += (
+            f" Docker CE does not currently publish an Ubuntu '{suite}' repository. "
+            "Feathered will not substitute packages from a different Ubuntu release."
+        )
+    return message
+
+
+def _fetch_release(repo: RepoSpec, reporter: Reporter) -> Tuple[Dict[str, str], Dict[str, Tuple[str, str, int]]]:
     suite = repo.suite.strip()
     if not suite and not repo.flat_repo:
         raise RuntimeError(f"{repo.name}: APT suite/codename is not configured")
@@ -626,17 +671,15 @@ def _fetch_release(repo: RepoSpec, reporter: Reporter) -> Tuple[Dict[str, str], 
     prefix = "" if repo.flat_repo else f"dists/{suite}/"
     for leaf in (prefix + "InRelease", prefix + "Release"):
         try:
-            # InRelease is an optional representation of the same Release
-            # metadata. A missing/unavailable InRelease is therefore a probe
-            # miss, not a transient transfer failure worth exponential
-            # backoff: immediately try Release/Release.gpg instead. Retrying
-            # the optional probe used to add 1s + 2s to every ordinary
-            # Release-only repository and made the release test gate appear
-            # stalled. The definitive Release fetch retains normal retries.
+            # InRelease is optional. If it is unavailable, try Release/Release.gpg promptly.
             probe_retries = 1 if leaf.endswith("InRelease") else 3
             raw = fetch_bytes(url_join(base, leaf), reporter, retries=probe_retries, repo=repo)
         except Exception as exc:
             errors.append(f"{leaf}: {exc}")
+            if leaf.endswith("InRelease"):
+                missing_suite = _missing_apt_suite_message(repo, reporter, errors)
+                if missing_suite:
+                    raise RuntimeError(missing_suite)
             continue
         # Once the file is in hand, a parse/verify failure is fatal rather than
         # a reason to silently fall back to the unsigned sibling.
@@ -652,20 +695,15 @@ def _fetch_release(repo: RepoSpec, reporter: Reporter) -> Tuple[Dict[str, str], 
         else:
             reporter.warn(f"{repo.name}: Release freshness/Valid-Until enforcement skipped by operator policy.")
         return fields, _release_checksums(fields)
+    missing_suite = _missing_apt_suite_message(repo, reporter, errors)
+    if missing_suite:
+        raise RuntimeError(missing_suite)
     raise RuntimeError(f"{repo.name}: could not read APT {'flat root' if repo.flat_repo else 'suite'} Release/InRelease metadata: {'; '.join(errors)}")
 
 
 def _component_bindings(configured: List[str], advertised: Set[str], repo_name: str,
                         reporter: Reporter) -> List[Tuple[str, str]]:
-    """Bind configured APT components to the archive's semantic labels.
-
-    `Components:` is not guaranteed to be a literal directory prefix. Debian's
-    security archive is the important real-world example: current Release files
-    advertise `updates/main`, while the checksum manifest and package indexes are
-    under `main/binary-<arch>/...`. Preserve the operator's configured component
-    as the path-first identity and keep the advertised spelling only as a bounded
-    fallback. This prevents an archive label from rewriting the fetch path.
-    """
+    """Bind configured components to the labels published by Release metadata."""
     if not advertised:
         return [(component, component) for component in configured]
 
@@ -701,27 +739,15 @@ def _component_bindings(configured: List[str], advertised: Set[str], repo_name: 
 
 
 def _component_index_candidates(component: str, semantic: str, arch: str) -> List[str]:
-    """Return only index paths belonging to one explicitly configured component.
-
-    Prefer the canonical configured component path. If the publisher genuinely
-    stores indexes under the semantic `Components:` spelling, try that second.
-    No broad suffix scan is used, so this cannot widen `main` into an unrelated
-    component tree.
-    """
+    """Return bounded Packages index candidates for one configured component."""
     prefixes: List[str] = []
     for value in (component, semantic):
         value = (value or "").strip("/")
         if value and value not in prefixes:
             prefixes.append(value)
 
-    # Backward compatibility for saved sources created by Feathered <= r6:
-    # Debian security presets stored the semantic label (for example
-    # ``updates/main``) as the configured component.  Current Debian security
-    # metadata still advertises that label while its signed checksum paths are
-    # rooted at ``main/``.  Trying the leaf spelling only after the exact
-    # configured spelling is safe because a path is accepted only if it is
-    # present in the signed Release checksum manifest; if both spellings exist,
-    # the operator's exact spelling wins.
+    # Legacy Debian security sources may store labels such as ``updates/main``
+    # even though the signed index path is rooted at ``main/``.
     for value in (component, semantic):
         value = (value or "").strip("/")
         if "/" in value:
@@ -741,15 +767,20 @@ def _index_url(repo: RepoSpec, path: str) -> str:
 
 
 def _fetch_index_bytes(repo: RepoSpec, fields: Dict[str, str], index_path: str,
-                       expected: str, reporter: Reporter) -> bytes:
+                       algorithm: str, expected: str, reporter: Reporter) -> bytes:
     """Prefer the Release-pinned index during archive publication/mirror sync.
 
     A missing by-hash object may fall back to the canonical filename; callers
-    still enforce the exact Release size and SHA256 for either representation.
+    still enforce the exact Release size and digest for either representation.
     """
+    try:
+        expected_len = hashlib.new(algorithm).digest_size * 2
+    except ValueError:
+        expected_len = 0
     if (fields.get("Acquire-By-Hash", "").strip().lower() == "yes"
-            and re.fullmatch(r"[0-9a-fA-F]{64}", expected)):
-        leaf = posixpath.join(posixpath.dirname(index_path), "by-hash", "SHA256", expected.lower())
+            and len(expected) == expected_len
+            and re.fullmatch(r"[0-9a-fA-F]+", expected)):
+        leaf = posixpath.join(posixpath.dirname(index_path), "by-hash", algorithm.upper(), expected.lower())
         try:
             return fetch_bytes(_index_url(repo, leaf),
                                reporter, retries=1, repo=repo)
@@ -759,6 +790,30 @@ def _fetch_index_bytes(repo: RepoSpec, fields: Dict[str, str], index_path: str,
             reporter.check_cancel()
             reporter.log(redact_text(f"{repo.name}: pinned index unavailable; trying canonical index ({exc})"))
     return fetch_bytes(_index_url(repo, index_path), reporter, repo=repo)
+
+
+def empty_repository_explanation(repo: RepoSpec) -> str:
+    """Explain a successfully parsed APT repository that contains no packages."""
+    suite = str(getattr(repo, "suite", "") or "").strip().lower()
+    name = str(getattr(repo, "name", "") or "").strip().lower()
+    if name.startswith("ubuntu ") and suite.endswith("-updates"):
+        return (
+            "the Packages indexes are valid but empty because Ubuntu has not published "
+            "any packages to this -updates pocket for the selected target yet. This is a "
+            "normal repository state, including during a development cycle before update "
+            "publications begin."
+        )
+    if name.startswith("ubuntu ") and suite.endswith("-security"):
+        return (
+            "the Packages indexes are valid but empty because Ubuntu has not published "
+            "any packages to this -security pocket for the selected target yet. This is a "
+            "normal repository state, including before security publications begin for that "
+            "target."
+        )
+    return (
+        "the Packages indexes were read successfully, but the selected suite, components, "
+        "and architecture currently publish no package records."
+    )
 
 
 def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) -> List[DebPackage]:
@@ -825,19 +880,20 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
                 reporter.warn(f"{repo.name}: using UNVERIFIED index {index_path} - it is absent from the "
                               "Release checksum manifest and its contents are not authenticated.")
         else:
-            raw = _fetch_index_bytes(repo, fields, index_path, checksums[index_path][0], reporter)
+            index_algorithm, expected, expected_size = checksums[index_path]
+            raw = _fetch_index_bytes(repo, fields, index_path, index_algorithm, expected, reporter)
             if skip_provenance:
                 index_verified = False
                 unverified_indexes.append(f"{repo.suite}/{index_path}")
                 reporter.warn(f"{repo.name}: Packages index checksum verification skipped by operator policy ({index_path}).")
             else:
-                expected, expected_size = checksums[index_path]
                 if len(raw) != expected_size:
                     raise RuntimeError(f"{repo.name}: metadata size mismatch for {index_path} "
                                        f"(expected {expected_size} bytes, got {len(raw)})")
-                actual = hashlib.sha256(raw).hexdigest()
+                actual = hashlib.new(index_algorithm, raw).hexdigest()
                 if actual.lower() != expected.lower():
-                    raise RuntimeError(f"{repo.name}: metadata SHA256 mismatch for {index_path}")
+                    raise RuntimeError(
+                        f"{repo.name}: metadata {index_algorithm.upper()} mismatch for {index_path}")
                 index_verified = True
         assert index_path is not None, "index path must be resolved before decompression"
         text = _decompress(raw, index_path).decode("utf-8", "replace")
@@ -903,20 +959,15 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
     reporter.log(
         f"Loaded {len(packages):,} DEB records from {repo.name} "
         f"({repo.suite}: {' '.join(configured_components)})")
+    if not packages:
+        reporter.log(f"{repo.name}: {empty_repository_explanation(repo)}")
     return packages
 
 
 def load_repository(repo: RepoSpec, arches: Set[str], reporter: Reporter) -> List[DebPackage]:
-    """Load one APT acquisition source and optional evidence metadata; exact artifact corroboration occurs later.
-
-    evidence peers are queried for Release/
-    Packages metadata only.  The package payload is still acquired exactly once
-    from `repo.url`.
-    """
+    """Load one APT source and any metadata-only evidence peers."""
     packages = _load_repository_once(repo, arches, reporter)
-    # 1.0.36 makes independent evidence a
-    # consequence of one verification strategy instead of a competing checkbox.
-    # Only the strategies that explicitly use a second metadata source contact it.
+    # Query evidence peers only for strategies that use them.
     strategy = repository_verification_strategy(repo)
     if strategy in {"checksum-required", "checksum-available", "skip-provenance"}:
         return packages
@@ -994,10 +1045,7 @@ def probe_repository(repo: RepoSpec, reporter: Reporter):
         comps = fields.get("Components", "")
         return True, f"APT suite={fields.get('Codename') or fields.get('Suite') or repo.suite}; arch={archs}; components={comps}; {len(checksums)} indexed files"
     except Exception as exc:
-        detail = str(exc)
-        if "404" in detail or "Not Found" in detail:
-            detail += "\n\n" + diagnose_missing_repository(repo.normalized_url, reporter)
-        return False, detail
+        return False, str(exc)
 
 
 def _version_satisfies(actual: str, op: Optional[str], wanted: Optional[str]) -> bool:
@@ -1355,56 +1403,9 @@ def package_versions(packages: Sequence[DebPackage], name: str, role: Optional[s
 
 
 def _copy_or_download(pkg: DebPackage, dest: Path, options: BuildOptions, reporter: Reporter) -> None:
-    # Confined join: a hostile index cannot redirect this off-origin.
-    src = repo_relative_url(pkg.repo.normalized_url, pkg.location)
-    tmp = dest.with_suffix(dest.suffix + ".partial")
-    for attempt in range(1, options.retries + 1):
-        reporter.check_cancel()
-        try:
-            if tmp.exists(): tmp.unlink()
-            parsed = urllib.parse.urlparse(src)
-            if parsed.scheme == "file":
-                local = Path(urllib.request.url2pathname(parsed.path))
-                reporter.log(f"COPY {local} -> {dest.name}")
-                limit, expected = core.package_download_limit(pkg)
-                actual = local.stat().st_size
-                if actual > limit:
-                    raise RuntimeError(
-                        f"{pkg.nevra}: local package is {actual:,} bytes, above the allowed "
-                        f"{limit:,}-byte package limit")
-                if expected and actual != expected:
-                    raise RuntimeError(
-                        f"{pkg.nevra}: local package size {actual:,} does not match repository "
-                        f"metadata size {expected:,}")
-                shutil.copy2(local, tmp)
-            else:
-                reporter.log(f"DOWNLOAD {redact_url(src)}")
-                with _urlopen(src, timeout=90, repo=pkg.repo) as response, tmp.open("wb") as f:
-                    declared = response.headers.get("Content-Length") if hasattr(response, "headers") else None
-                    core.copy_package_stream_bounded(response, f, pkg, reporter, declared)
-            # one verification path for fresh and cached
-            # artifacts.  It may use a strong digest from the acquisition index
-            # or from independent evidence metadata; transient artifact corroboration is
-            # handled separately and the evidence copy is never bundled.
-            # downloaded.
-            verify_package_artifact(pkg, tmp, options, reporter)
-            tmp.replace(dest); return
-        except Exception as exc:
-            if tmp.exists(): tmp.unlink()
-            # An operator cancel raised mid-download must surface as Cancelled,
-            # not be retried or reported as a per-package failure on the final
-            # attempt.  Re-checking re-raises Cancelled if the event is set.
-            reporter.check_cancel()
-            # Certificate validation failures are deterministic; fail fast with
-            # the concrete remedy instead of burning retries.
-            cert_advice = _transport.certificate_failure_advice(exc, src)
-            if cert_advice:
-                raise RuntimeError(f"Failed {pkg.nevra}: {cert_advice}") from exc
-            if attempt == options.retries:
-                raise RuntimeError(f"Failed {pkg.nevra}: {exc}") from exc
-            reporter.log(redact_text(f"Healing download failure for {pkg.nevra}: {exc}; "
-                                     f"retry {attempt + 1}/{options.retries}"))
-            time.sleep(min(2 ** (attempt - 1), 5))
+    """Compatibility entry point retaining APT's transport and verifier hooks."""
+    core._copy_or_download(pkg, dest, options, reporter,
+                           opener=_urlopen, verifier=verify_package_artifact)
 
 
 def write_bundle(result: DebResolutionResult, output_dir: Path, options: BuildOptions, reporter: Reporter,
@@ -1419,7 +1420,8 @@ def write_bundle(result: DebResolutionResult, output_dir: Path, options: BuildOp
     if not options.sign_bundle_index:
         core.invalidate_bundle_seal(output_dir, reporter)
     try:
-        return _write_bundle_body(result, output_dir, final_dir, options, reporter, metadata)
+        with artifact_digests.digest_scope():
+            return _write_bundle_body(result, output_dir, final_dir, options, reporter, metadata)
     except BaseException:
         # Anything short of success leaves the previous bundle untouched and
         # removes the half-built one, so nothing can be mistaken for finished.
@@ -1427,7 +1429,7 @@ def write_bundle(result: DebResolutionResult, output_dir: Path, options: BuildOp
         raise
 
 
-def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: BuildOptions,
+def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir: Path, options: BuildOptions,
                        reporter: Reporter, metadata: Dict[str, object]) -> Path:
     deb_dir = output_dir / "debs"
     deb_dir.mkdir(exist_ok=True)
@@ -1445,44 +1447,13 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
     # Additive publication retains unrelated DEBs already present in the
     # destination. Same-name files may be verified/overwritten below, but old
     # package payloads are never pruned automatically.
-    total = max(1, len(to_ship))
-    for i, pkg in enumerate(to_ship, 1):
-        reporter.check_cancel()
-        filename = filename_map[id(pkg)]
-        dest = deb_dir / filename
-        import artifact_cache
-        artifact_cache.restore(pkg, dest, final_dir.parent, options, reporter)
-        if dest.exists() and dest.stat().st_size > 0:
-            # See the note in core.write_bundle: verifying a cached file is far
-            # cheaper than re-fetching it, so a partial transfer resumes.
-            reporter.item(pkg.nevra, "verifying", size=dest.stat().st_size)
-            valid = True
-            try:
-                # cache reuse must meet the same evidence policy as a
-                # fresh transfer; the old branch silently accepted digest-less
-                # cached artifacts.
-                verify_package_artifact(pkg, dest, options, reporter)
-            except RuntimeError:
-                valid = False
-            if valid:
-                reporter.log(f"REUSE {dest.name} (already present, verification policy satisfied)")
-                reporter.item(pkg.nevra, "reused", size=dest.stat().st_size)
-                reporter.progress(f"DEB {i}/{total}", i / total); continue
-            reporter.item(pkg.nevra, "stale", size=dest.stat().st_size)
-            reporter.log(f"Healing corrupt cached DEB: {dest.name}"); dest.unlink()
-        reporter.item(pkg.nevra, "active", size=pkg.size)
-        try:
-            _copy_or_download(pkg, dest, options, reporter)
-            artifact_cache.remember(pkg, dest, final_dir.parent, reporter)
-        except Cancelled:
-            reporter.item(pkg.nevra, "pending")
-            raise
-        except Exception as exc:
-            reporter.item(pkg.nevra, "failed", detail=str(exc))
-            raise
-        reporter.item(pkg.nevra, "done",
-                      size=dest.stat().st_size if dest.exists() else pkg.size)
-        reporter.progress(f"DEB {i}/{total}", i / total)
+    from bundle_writer import acquire_payloads, write_records
+    from package_family import DEB
+    acquire_payloads(
+        to_ship, filename_map, deb_dir, final_dir.parent, options, reporter, DEB,
+        verify=lambda pkg, dest: verify_package_artifact(pkg, dest, options, reporter),
+        download=lambda pkg, dest: _copy_or_download(pkg, dest, options, reporter),
+    )
 
     # manifests now bind the actual SHA-256 of shipped bytes and also
     # retain the upstream source digest so a later differential build can decide
@@ -1496,7 +1467,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
         manifest.append({
             "package_id": p.nevra, "name": p.name, "arch": p.arch, "version": p.version,
             "filename": filename,
-            "sha256": sha256_file(dest) if id(p) in shipped_ids and dest.exists() else "",
+            "sha256": artifact_digests.payload_sha256(dest, sha256_file) if id(p) in shipped_ids and dest.exists() else "",
             "source_digest_type": p.checksum_type or "", "source_digest": p.checksum or "",
             "repo": p.repo.name, "repo_url": redact_url(p.repo.normalized_url), "suite": p.repo.suite,
             "source": redact_url(url_join(p.repo.normalized_url, p.location)), "size": p.size,
@@ -1507,7 +1478,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
             "evidence_digest_type": getattr(record, "evidence_digest_type", ""),
             "evidence_digest": getattr(record, "evidence_digest", ""),
             "evidence_relationship": getattr(record, "evidence_relationship", ""),
-            "evidence_authority_relationship": getattr(record, "evidence_authority_relationship", "authority-unknown"),
+            "evidence_authority_relationship": getattr(record, "evidence_authority_relationship", core.AUTH_UNKNOWN),
         })
     if options.additive_publish:
         manifest = core.merge_additive_manifest_rows(metadata_dir / "manifest.json", manifest)
@@ -1526,19 +1497,13 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
                     "dependency_completeness": metadata.get("dependency_completeness", "analyzed")},
         "packages": manifest,
     }
-    (metadata_dir / "manifest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    (metadata_dir / "manifest.txt").write_text("\n".join(f"{x['package_id']}\t{x['repo']}\t{x['reason']}\t{x['source']}" for x in manifest) + "\n", encoding="utf-8")
-    (metadata_dir / "unresolved.txt").write_text("\n".join(format_requirement(x) for x in result.unresolved) + ("\n" if result.unresolved else ""), encoding="utf-8")
-    if getattr(result, "ignored_unresolved", None):
-        (metadata_dir / "ignored-unresolved.txt").write_text("\n".join(result.ignored_unresolved) + "\n", encoding="utf-8")
-    (metadata_dir / "conflicts.txt").write_text("\n".join(result.conflicts) + ("\n" if result.conflicts else ""), encoding="utf-8")
-    if result.skipped_installed:
-        (metadata_dir / "skipped-installed.txt").write_text("\n".join(result.skipped_installed) + "\n", encoding="utf-8")
-    if result.installed_satisfied:
-        (metadata_dir / "satisfied-by-target.txt").write_text("\n".join(result.installed_satisfied) + "\n", encoding="utf-8")
-    with (metadata_dir / "SHA256SUMS.txt").open("w", encoding="utf-8") as f:
-        for deb in sorted(deb_dir.glob("*.deb")):
-            f.write(f"{sha256_file(deb)}  {deb.name}\n")
+    write_records(
+        metadata_dir, deb_dir, DEB, payload, manifest,
+        unresolved=(format_requirement(req) for req in result.unresolved),
+        ignored_unresolved=result.ignored_unresolved,
+        conflicts=result.conflicts, skipped_installed=result.skipped_installed,
+        installed_satisfied=result.installed_satisfied, hash_file=sha256_file,
+    )
 
 
     # ---- Provenance -------------------------------------------------------
@@ -1548,16 +1513,17 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
     # vendor signature that does not exist.
     prov_entries = []
     for pkg in to_ship:
+        archive_trust = getattr(pkg.repo, "trust", None)
         filename = filename_map[id(pkg)]
         dest = deb_dir / filename
         record = getattr(pkg, "verification", None)
         # The recorded chain, not the configured intent.
         chain_intact = bool(
             record and record.index_digest_verified and record.package_digest_checked
-            and getattr(pkg.repo, "trust", None) and pkg.repo.trust.archive_signature_verified)
+            and archive_trust and archive_trust.archive_signature_verified)
         entry = provenance.PackageProvenance(
             package_id=pkg.nevra, filename=filename,
-            sha256=sha256_file(dest) if dest.exists() else "",
+            sha256=artifact_digests.payload_sha256(dest, sha256_file) if dest.exists() else "",
             size=dest.stat().st_size if dest.exists() else 0,
             source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location)),
             repository=pkg.repo.name,
@@ -1567,8 +1533,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
             index_digest_verified=bool(getattr(pkg, "verification", None)
                                        and pkg.verification.index_digest_verified),
             archive_signature_verified=bool(
-                getattr(pkg.repo, "trust", None)
-                and pkg.repo.trust.archive_signature_verified),
+                archive_trust and archive_trust.archive_signature_verified),
             assurance=provenance.UNVERIFIED,
             digest_checked=bool(record and record.package_digest_checked),
             # preserve mirror-bond evidence independently from archive
@@ -1586,7 +1551,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
             evidence_archive_signature_verified=bool(
                 record and record.evidence_archive_signature_verified),
             evidence_relationship=getattr(record, "evidence_relationship", "") if record else "",
-            evidence_authority_relationship=getattr(record, "evidence_authority_relationship", "authority-unknown") if record else "authority-unknown",
+            evidence_authority_relationship=getattr(record, "evidence_authority_relationship", core.AUTH_UNKNOWN) if record else core.AUTH_UNKNOWN,
             evidence_peer_identity_match=bool(record and record.evidence_peer_identity_match),
             evidence_source_lineage_match=bool(record and record.evidence_source_lineage_match),
             evidence_peer_package_id=getattr(record, "evidence_peer_package_id", "") if record else "",
@@ -1751,41 +1716,10 @@ def emit_apt_repository(output_dir: Path, packages, reporter: RepositoryWriterRe
 
 def _write_provenance(bundle_dir: Path, metadata_dir: Path, entries, already_present, options: BuildOptions,
                       reporter: Reporter, metadata: Dict[str, object]) -> None:
-    """Emit payload-scoped provenance beside the package artifacts.
+    """Compatibility entry point for the shared payload-scoped record writer."""
+    core._write_provenance(bundle_dir, metadata_dir, entries, already_present,
+                           options, reporter, metadata)
 
-    ``bundle_dir`` keeps the stable bundle identity while ``metadata_dir`` is the
-    package-family directory (rpms/, debs/, or packages/) that owns these records.
-    """
-    record = provenance.build_provenance(
-        bundle_id=bundle_dir.name,
-        target={k: str(v) for k, v in metadata.items()
-                if k in {"distribution", "release", "codename", "arch", "package_family",
-                         "dependency_mode", "workload", "acquisition_intent",
-                         "acquisition_capability", "analysis_type", "publication_type",
-                         "verification_scope", "dependency_completeness"}},
-        repositories=meta_dict_list(metadata, "repositories"),
-        entries=entries,
-        warnings=list(reporter.warnings),
-    )
-    if options.additive_publish and (metadata_dir / "provenance.json").is_file():
-        record = provenance.merge_previous_provenance(record, metadata_dir / "provenance.json")
-    if already_present:
-        record.warnings.append(
-            f"Differential bundle: {len(already_present)} package(s) were omitted because the "
-            "baseline manifest reports them already present on the target. This bundle is not "
-            "self-contained.")
-        (metadata_dir / "baseline-omitted.txt").write_text(
-            "\n".join(sorted(getattr(p, "nevra", p.name) for p in already_present)) + "\n",
-            encoding="utf-8")
-    (metadata_dir / "provenance.json").write_text(record.to_json(), encoding="utf-8")
-    # apt_core keeps a forked copy of this writer (arch_core reuses core's), so
-    # the legend has to be emitted here too or APT bundles silently lose it.
-    core._write_assurance_legend(metadata_dir, record)
-    counts = ", ".join(f"{v} {k}" for k, v in sorted(record.summary().items()))
-    reporter.log(f"Provenance recorded: {counts or 'no packages'}")
-    if options.signing_key:
-        provenance.sign_bundle(metadata_dir / "manifest.json", options.signing_key, reporter)
-        provenance.sign_bundle(metadata_dir / "provenance.json", options.signing_key, reporter)
 
 def write_bundle_archive(bundle_dir: Path, reporter: Optional[Reporter] = None) -> Path:
     bundle_dir = bundle_dir.resolve()

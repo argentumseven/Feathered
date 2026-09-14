@@ -72,6 +72,27 @@ def test_missing_by_hash_falls_back_to_verified_canonical_index(ubuntu_archive):
     assert a.calls[-2:] == [a.pinned, a.canonical]
 
 
+def test_sha512_only_release_manifest_is_supported(ubuntu_archive):
+    a = ubuntu_archive
+    digest = hashlib.sha512(a.raw).hexdigest()
+    path = "main/binary-amd64/Packages.xz"
+    root = "https://archive.example/ubuntu/dists/noble/"
+    release = ("Origin: Ubuntu\nSuite: noble\nCodename: noble\nVersion: 24.04\n"
+               "Architectures: amd64\nComponents: main\nAcquire-By-Hash: yes\n"
+               f"SHA512:\n {digest} {len(a.raw)} {path}\n").encode()
+    pinned = root + "main/binary-amd64/by-hash/SHA512/" + digest
+    a.objects[root + "InRelease"] = release
+    a.objects.pop(a.pinned, None)
+    a.objects[pinned] = a.raw
+
+    packages = apt_core._load_repository_once(a.repo, {"amd64"}, Reporter())
+
+    assert [p.name for p in packages] == ["demo"]
+    assert packages[0].verification.index_digest_verified
+    assert pinned in a.calls
+    assert a.canonical not in a.calls
+
+
 @pytest.mark.parametrize("fallback", [False, True])
 @pytest.mark.parametrize("damage", ["size", "sha256"])
 def test_damaged_pinned_or_fallback_index_is_rejected(ubuntu_archive, fallback, damage):
@@ -295,3 +316,123 @@ def test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_
     host._set_release_choices.assert_called_once_with(["trixie"])
     assert finished == [(["sha256"], "")]
     assert not host._log.called
+
+
+def test_arch_profile_uses_fastly_default_mirror():
+    import profiles
+
+    repos = profiles.PROFILES["arch"].repos_factory("rolling", "x86_64")
+    core = next(repo for repo in repos if repo.suite == "core")
+    extra = next(repo for repo in repos if repo.suite == "extra")
+    assert core.url == "https://fastly.mirror.pkgbuild.com/core/os/x86_64/"
+    assert extra.url == "https://fastly.mirror.pkgbuild.com/extra/os/x86_64/"
+
+
+def test_sha512_empty_packages_index_is_valid(ubuntu_archive):
+    a = ubuntu_archive
+    raw = lzma.compress(b"")
+    digest = hashlib.sha512(raw).hexdigest()
+    path = "main/binary-amd64/Packages.xz"
+    root = "https://archive.example/ubuntu/dists/noble/"
+    release = ("Origin: Ubuntu\nSuite: noble\nCodename: noble\nVersion: 24.04\n"
+               "Architectures: amd64\nComponents: main\nAcquire-By-Hash: yes\n"
+               f"SHA512:\n {digest} {len(raw)} {path}\n").encode()
+    pinned = root + "main/binary-amd64/by-hash/SHA512/" + digest
+    a.objects[root + "InRelease"] = release
+    a.objects.pop(a.pinned, None)
+    a.objects[pinned] = raw
+
+    packages = apt_core._load_repository_once(a.repo, {"amd64"}, Reporter())
+
+    assert packages == []
+    assert pinned in a.calls
+    assert a.canonical not in a.calls
+
+
+def test_checksum_worker_reports_valid_empty_index(monkeypatch):
+    repo = RepoSpec("Ubuntu updates", "https://example.test", repo_format="apt", suite="noble-updates")
+    monkeypatch.setattr(apt_core, "load_repository", lambda *_args: [])
+    host = SimpleNamespace(
+        arch_var=SimpleNamespace(get=lambda: "amd64"),
+        _is_arch=lambda: False,
+        _is_deb=lambda: True,
+        events=queue.Queue(),
+        _log=Mock(),
+    )
+    host._checksum_inspection_loader = lambda repo: RepositoriesMixin._checksum_inspection_loader(host, repo)
+
+    RepositoriesMixin._start_checksum_inspection(host, repo, Mock())
+    host.events.get(timeout=5)
+
+    logs = "\n".join(str(call.args[0]) for call in host._log.call_args_list)
+    assert "valid empty package index" in logs
+    assert "has not published any packages to this -updates pocket" in logs
+    assert "no package-level digests to inspect" in logs
+    assert "no strong SHA fields" not in logs
+
+
+def test_ubuntu_empty_security_pocket_explains_why():
+    repo = RepoSpec(
+        "Ubuntu stonking-security",
+        "https://security.ubuntu.com/ubuntu",
+        repo_format="apt",
+        suite="stonking-security",
+    )
+
+    message = apt_core.empty_repository_explanation(repo)
+
+    assert "Packages indexes are valid but empty" in message
+    assert "has not published any packages to this -security pocket" in message
+    assert "normal repository state" in message
+
+
+def test_generic_empty_apt_repository_does_not_claim_ubuntu_reason():
+    repo = RepoSpec(
+        "Internal APT",
+        "https://repo.example.test/apt",
+        repo_format="apt",
+        suite="stable",
+    )
+
+    message = apt_core.empty_repository_explanation(repo)
+
+    assert "selected suite, components, and architecture" in message
+    assert "Ubuntu" not in message
+
+
+def test_missing_docker_ubuntu_suite_reports_published_suites(monkeypatch):
+    repo = RepoSpec(
+        "Docker CE Stable",
+        "https://download.docker.com/linux/ubuntu",
+        role="docker",
+        repo_format="apt",
+        suite="stonking",
+        components="stable",
+    )
+    calls = []
+
+    def fake_fetch(url, reporter, retries=3, **kwargs):
+        calls.append((url, retries))
+        if url.endswith("/dists/stonking/InRelease"):
+            raise RuntimeError("HTTP Error 404: Not Found")
+        if url.endswith("/dists/"):
+            return b'<a href="noble/">noble/</a><a href="questing/">questing/</a><a href="resolute/">resolute/</a>'
+        raise AssertionError(f"unexpected fetch: {url}")
+
+    monkeypatch.setattr(apt_core, "fetch_bytes", fake_fetch)
+
+    ok, detail = apt_core.probe_repository(repo, Reporter())
+
+    assert not ok
+    assert "APT suite 'stonking' is not published" in detail
+    assert "Published suites: noble, questing, resolute" in detail
+    assert "Docker CE does not currently publish an Ubuntu 'stonking' repository" in detail
+    assert "will not substitute packages from a different Ubuntu release" in detail
+    assert "No repodata" not in detail
+    assert not any(url.endswith("/dists/stonking/Release") for url, _ in calls)
+
+
+def test_provenance_module_has_apt_backend_for_empty_repo_explanations():
+    import feathered_app.application.provenance as provenance_module
+
+    assert provenance_module.apt_core is apt_core

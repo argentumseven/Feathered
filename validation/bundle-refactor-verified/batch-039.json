@@ -1,0 +1,526 @@
+{
+  "schema": 1,
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-True]",
+    "tests/test_checksum_release_fixes.py::test_cancelled_pinned_fetch_does_not_fall_back",
+    "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[False]",
+    "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[True]",
+    "tests/test_checksum_release_fixes.py::test_coverage_counts_distinguish_exact_fields_from_minimum_strength",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-False]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-True]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-False]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-True]",
+    "tests/test_checksum_release_fixes.py::test_cold_start_supplies_numbered_releases_and_matching_codenames",
+    "tests/test_checksum_release_fixes.py::test_saved_release_observation_wins_over_bundled_seed",
+    "tests/test_checksum_release_fixes.py::test_slow_previous_discovery_does_not_block_new_distribution",
+    "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
+    "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
+    "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
+    "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
+    "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+    "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
+    "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender"
+  ],
+  "batch_excluded": [
+    "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
+    "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
+    "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds",
+    "tests/test_chooser_stale_activation.py::test_inline_chooser_accumulates_several_packages",
+    "tests/test_chooser_stale_activation.py::test_inline_add_keeps_its_tree_reference",
+    "tests/test_chooser_stale_activation.py::test_re_adding_the_same_package_inline_reports_instead_of_re_rendering"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_cancelled_pinned_fetch_does_not_fall_back",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_cancelled_pinned_fetch_does_not_fall_back",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_cancelled_pinned_fetch_does_not_fall_back",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_coverage_counts_distinguish_exact_fields_from_minimum_strength",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_coverage_counts_distinguish_exact_fields_from_minimum_strength",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_coverage_counts_distinguish_exact_fields_from_minimum_strength",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_cold_start_supplies_numbered_releases_and_matching_codenames",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_cold_start_supplies_numbered_releases_and_matching_codenames",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_cold_start_supplies_numbered_releases_and_matching_codenames",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_saved_release_observation_wins_over_bundled_seed",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_saved_release_observation_wins_over_bundled_seed",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_saved_release_observation_wins_over_bundled_seed",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_slow_previous_discovery_does_not_block_new_distribution",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_slow_previous_discovery_does_not_block_new_distribution",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_slow_previous_discovery_does_not_block_new_distribution",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

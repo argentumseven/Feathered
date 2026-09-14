@@ -1,0 +1,5 @@
+tests/test_rpm_installer_gpgcheck.py
+tests/test_signing_navigation.py
+tests/test_source_launch.py
+tests/test_source_manifest.py
+tests/test_source_scope.py

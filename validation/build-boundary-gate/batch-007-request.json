@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "test_feather.py::test_apt_rejects_architecture_not_published_by_release",
+    "test_feather.py::test_codename_style_distributions_offer_codenames",
+    "test_feather.py::test_profile_retains_a_hand_typed_release",
+    "test_feather.py::test_unknown_release_names_pass_through_to_the_archive",
+    "test_feather.py::test_workload_repositories_are_not_part_of_the_distribution",
+    "test_feather.py::test_repository_diagnosis_distinguishes_empty_from_wrong_path",
+    "test_feather.py::test_sealed_index_covers_every_file_and_is_computed_at_finalisation",
+    "test_feather.py::test_progress_is_monotonic_across_phases",
+    "test_feather.py::test_sealing_refuses_symlinks_and_uses_root_relative_exclusions",
+    "test_feather.py::test_shipped_verifier_detects_every_tamper",
+    "test_feather.py::test_staging_cannot_mutate_the_previous_bundle",
+    "test_feather.py::test_failed_finalisation_leaves_no_bundle",
+    "test_feather.py::test_trust_state_is_recorded_not_inferred",
+    "test_feather.py::test_deb822_continuation_fields_round_trip",
+    "test_feather.py::test_no_credential_reaches_a_bundle_or_log",
+    "test_feather.py::test_package_locations_cannot_escape_their_repository",
+    "test_feather.py::test_credentials_are_redacted_from_urls",
+    "test_feather.py::test_differential_baseline_compares_content_not_identity",
+    "test_feather.py::test_bundle_records_which_build_produced_it",
+    "test_feather.py::test_analysis_signature_covers_every_source_field"
+  ]
+}

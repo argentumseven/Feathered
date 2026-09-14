@@ -1,0 +1,2 @@
+tests/test_file_hashing_contract.py
+tests/test_footer_status.py

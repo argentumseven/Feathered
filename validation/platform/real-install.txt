@@ -1,0 +1,20 @@
+Preparing an isolated Python environment...
+Looking in links: /workspace/scratch/f2c614fac6a1/platform-bulk-evidence/wheels
+Processing /workspace/scratch/f2c614fac6a1/platform-bulk-evidence/wheels/zstandard-0.25.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (from -r /workspace/scratch/f2c614fac6a1/platform-bulk-evidence/Feathered installed source ' $ %/requirements.txt (line 3))
+Processing /workspace/scratch/f2c614fac6a1/platform-bulk-evidence/wheels/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (from -r /workspace/scratch/f2c614fac6a1/platform-bulk-evidence/Feathered installed source ' $ %/requirements.txt (line 5))
+Installing collected packages: zstandard, PyYAML
+Successfully installed PyYAML-6.0.3 zstandard-0.25.0
+Previous environment retained for rollback: environments/319c1990851049c3b0b9266d2690b568
+Installed. CLI: bash run_cli.sh --help; GUI: bash run_gui.sh
+Commands installed in /workspace/scratch/f2c614fac6a1/platform-bulk-evidence/user bin. Add this directory to PATH if needed.
+usage: feathered [-h] {build,show} ...
+
+Run a Feathered build from saved settings without a display or Tk.
+
+positional arguments:
+  {build,show}
+    build       run a build from a saved spec
+    show        print a saved spec
+
+options:
+  -h, --help    show this help message and exit

@@ -1,0 +1,25 @@
+{
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "nodes": [
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[repository_transport]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[checksum_inspection]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[release_seed]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[transaction_resolution]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[transaction_inventory]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[root_requests]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_version]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_policy]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[k8s_discovery]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[kubernetes_workflow]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[repository_tools]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_plan]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_services]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_host_contracts]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_service_host]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_publication]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.source_scope]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.metadata_loading]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_runner]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_sources]"
+  ]
+}

@@ -1,0 +1,180 @@
+{
+  "baseline": [
+    {
+      "counts": {
+        "output_bytes": 2147483648,
+        "output_reads": 32,
+        "verification_bytes": 536870912,
+        "verification_reads": 8
+      },
+      "files": {
+        "INSTALL-OFFLINE-NOTE.txt": "1885be4d1131271af268e7758201e025c03f97c4db66f622d740ec2fd9fc7b2d",
+        "debs/ASSURANCE.txt": "64542daeaa3d8756cfd49d476df8284fa4b089beef5b87a08e80208f0ace3055",
+        "debs/INSTALLATION-CONTRACT.json": "61c60c4fc4e3cb9afddb7743f3e521094e87bdb5eddd45b569f6eab1514355ae",
+        "debs/REQUESTED-ROOTS.txt": "679cb354e8862c6d244adc59fa3210d547862c02bff3d527535b325d924d62dd",
+        "debs/SHA256SUMS.txt": "a30e4f10337646f8736213e90abfe8be92c05ba96ba09285a26dc665d6669d52",
+        "debs/conflicts.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "debs/manifest.json": "8dcb44b616ef664df08e1d01b4379045680f8351766ef8704dbb6b15e6fac24d",
+        "debs/manifest.txt": "362b689004bb66a311f3546ef12356e3e62f31ce568c0b7a5eceaa7d06beee9a",
+        "debs/payload-0.deb": "9aeda0ca13e528c577f7436bdf406521ffbce63dde0d7ae17dc0aa0ea709fe89",
+        "debs/payload-1.deb": "57601e835866583c18d6f6a09d23cd7f1dd4fd10794ee12660cbc63c9b3a52a4",
+        "debs/payload-2.deb": "9110bd3e5ffaf8ef6a16c8c18d36abcf8d33747d0f3c4072d775d3d228bdca68",
+        "debs/payload-3.deb": "d5eb93383dde5708e5165ce153e876f14c18021306d71a24387017d3377b3444",
+        "debs/payload-4.deb": "7cb8ed71123ad7c6a6bd8947ab9a926e63d42cd3827bbf9c7aa84fd9f0a5c4e2",
+        "debs/payload-5.deb": "8f33562c0d945d5595a52ebc2243676933a09a7c763a08e53c6914d366b35dbd",
+        "debs/payload-6.deb": "08fc7f5f33ae0938ae102cce12411f3cb1771056331da72a62fddaeedfa633cb",
+        "debs/payload-7.deb": "54230d6a75baa87a7f18d702631a53f4a19ac5ad18ddeecc2c7f1d8b075d5764",
+        "debs/provenance.json": "b6b5ee62e4052ba8eef688e9b666983e72871bef53ba36857c04dce9308412d0",
+        "debs/unresolved.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "seconds": 4.468905858000085
+    },
+    {
+      "counts": {
+        "output_bytes": 2147483648,
+        "output_reads": 32,
+        "verification_bytes": 536870912,
+        "verification_reads": 8
+      },
+      "files": {
+        "INSTALL-OFFLINE-NOTE.txt": "1885be4d1131271af268e7758201e025c03f97c4db66f622d740ec2fd9fc7b2d",
+        "debs/ASSURANCE.txt": "64542daeaa3d8756cfd49d476df8284fa4b089beef5b87a08e80208f0ace3055",
+        "debs/INSTALLATION-CONTRACT.json": "61c60c4fc4e3cb9afddb7743f3e521094e87bdb5eddd45b569f6eab1514355ae",
+        "debs/REQUESTED-ROOTS.txt": "679cb354e8862c6d244adc59fa3210d547862c02bff3d527535b325d924d62dd",
+        "debs/SHA256SUMS.txt": "a30e4f10337646f8736213e90abfe8be92c05ba96ba09285a26dc665d6669d52",
+        "debs/conflicts.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "debs/manifest.json": "8dcb44b616ef664df08e1d01b4379045680f8351766ef8704dbb6b15e6fac24d",
+        "debs/manifest.txt": "362b689004bb66a311f3546ef12356e3e62f31ce568c0b7a5eceaa7d06beee9a",
+        "debs/payload-0.deb": "9aeda0ca13e528c577f7436bdf406521ffbce63dde0d7ae17dc0aa0ea709fe89",
+        "debs/payload-1.deb": "57601e835866583c18d6f6a09d23cd7f1dd4fd10794ee12660cbc63c9b3a52a4",
+        "debs/payload-2.deb": "9110bd3e5ffaf8ef6a16c8c18d36abcf8d33747d0f3c4072d775d3d228bdca68",
+        "debs/payload-3.deb": "d5eb93383dde5708e5165ce153e876f14c18021306d71a24387017d3377b3444",
+        "debs/payload-4.deb": "7cb8ed71123ad7c6a6bd8947ab9a926e63d42cd3827bbf9c7aa84fd9f0a5c4e2",
+        "debs/payload-5.deb": "8f33562c0d945d5595a52ebc2243676933a09a7c763a08e53c6914d366b35dbd",
+        "debs/payload-6.deb": "08fc7f5f33ae0938ae102cce12411f3cb1771056331da72a62fddaeedfa633cb",
+        "debs/payload-7.deb": "54230d6a75baa87a7f18d702631a53f4a19ac5ad18ddeecc2c7f1d8b075d5764",
+        "debs/provenance.json": "b6b5ee62e4052ba8eef688e9b666983e72871bef53ba36857c04dce9308412d0",
+        "debs/unresolved.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "seconds": 2.1240375930000255
+    },
+    {
+      "counts": {
+        "output_bytes": 2147483648,
+        "output_reads": 32,
+        "verification_bytes": 536870912,
+        "verification_reads": 8
+      },
+      "files": {
+        "INSTALL-OFFLINE-NOTE.txt": "1885be4d1131271af268e7758201e025c03f97c4db66f622d740ec2fd9fc7b2d",
+        "debs/ASSURANCE.txt": "64542daeaa3d8756cfd49d476df8284fa4b089beef5b87a08e80208f0ace3055",
+        "debs/INSTALLATION-CONTRACT.json": "61c60c4fc4e3cb9afddb7743f3e521094e87bdb5eddd45b569f6eab1514355ae",
+        "debs/REQUESTED-ROOTS.txt": "679cb354e8862c6d244adc59fa3210d547862c02bff3d527535b325d924d62dd",
+        "debs/SHA256SUMS.txt": "a30e4f10337646f8736213e90abfe8be92c05ba96ba09285a26dc665d6669d52",
+        "debs/conflicts.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "debs/manifest.json": "8dcb44b616ef664df08e1d01b4379045680f8351766ef8704dbb6b15e6fac24d",
+        "debs/manifest.txt": "362b689004bb66a311f3546ef12356e3e62f31ce568c0b7a5eceaa7d06beee9a",
+        "debs/payload-0.deb": "9aeda0ca13e528c577f7436bdf406521ffbce63dde0d7ae17dc0aa0ea709fe89",
+        "debs/payload-1.deb": "57601e835866583c18d6f6a09d23cd7f1dd4fd10794ee12660cbc63c9b3a52a4",
+        "debs/payload-2.deb": "9110bd3e5ffaf8ef6a16c8c18d36abcf8d33747d0f3c4072d775d3d228bdca68",
+        "debs/payload-3.deb": "d5eb93383dde5708e5165ce153e876f14c18021306d71a24387017d3377b3444",
+        "debs/payload-4.deb": "7cb8ed71123ad7c6a6bd8947ab9a926e63d42cd3827bbf9c7aa84fd9f0a5c4e2",
+        "debs/payload-5.deb": "8f33562c0d945d5595a52ebc2243676933a09a7c763a08e53c6914d366b35dbd",
+        "debs/payload-6.deb": "08fc7f5f33ae0938ae102cce12411f3cb1771056331da72a62fddaeedfa633cb",
+        "debs/payload-7.deb": "54230d6a75baa87a7f18d702631a53f4a19ac5ad18ddeecc2c7f1d8b075d5764",
+        "debs/provenance.json": "b6b5ee62e4052ba8eef688e9b666983e72871bef53ba36857c04dce9308412d0",
+        "debs/unresolved.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "seconds": 1.9918621780000194
+    }
+  ],
+  "updated": [
+    {
+      "counts": {
+        "output_bytes": 0,
+        "output_reads": 0,
+        "verification_bytes": 536870912,
+        "verification_reads": 8
+      },
+      "files": {
+        "INSTALL-OFFLINE-NOTE.txt": "1885be4d1131271af268e7758201e025c03f97c4db66f622d740ec2fd9fc7b2d",
+        "debs/ASSURANCE.txt": "64542daeaa3d8756cfd49d476df8284fa4b089beef5b87a08e80208f0ace3055",
+        "debs/INSTALLATION-CONTRACT.json": "61c60c4fc4e3cb9afddb7743f3e521094e87bdb5eddd45b569f6eab1514355ae",
+        "debs/REQUESTED-ROOTS.txt": "679cb354e8862c6d244adc59fa3210d547862c02bff3d527535b325d924d62dd",
+        "debs/SHA256SUMS.txt": "a30e4f10337646f8736213e90abfe8be92c05ba96ba09285a26dc665d6669d52",
+        "debs/conflicts.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "debs/manifest.json": "8dcb44b616ef664df08e1d01b4379045680f8351766ef8704dbb6b15e6fac24d",
+        "debs/manifest.txt": "362b689004bb66a311f3546ef12356e3e62f31ce568c0b7a5eceaa7d06beee9a",
+        "debs/payload-0.deb": "9aeda0ca13e528c577f7436bdf406521ffbce63dde0d7ae17dc0aa0ea709fe89",
+        "debs/payload-1.deb": "57601e835866583c18d6f6a09d23cd7f1dd4fd10794ee12660cbc63c9b3a52a4",
+        "debs/payload-2.deb": "9110bd3e5ffaf8ef6a16c8c18d36abcf8d33747d0f3c4072d775d3d228bdca68",
+        "debs/payload-3.deb": "d5eb93383dde5708e5165ce153e876f14c18021306d71a24387017d3377b3444",
+        "debs/payload-4.deb": "7cb8ed71123ad7c6a6bd8947ab9a926e63d42cd3827bbf9c7aa84fd9f0a5c4e2",
+        "debs/payload-5.deb": "8f33562c0d945d5595a52ebc2243676933a09a7c763a08e53c6914d366b35dbd",
+        "debs/payload-6.deb": "08fc7f5f33ae0938ae102cce12411f3cb1771056331da72a62fddaeedfa633cb",
+        "debs/payload-7.deb": "54230d6a75baa87a7f18d702631a53f4a19ac5ad18ddeecc2c7f1d8b075d5764",
+        "debs/provenance.json": "b6b5ee62e4052ba8eef688e9b666983e72871bef53ba36857c04dce9308412d0",
+        "debs/unresolved.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "seconds": 0.5432656680000036
+    },
+    {
+      "counts": {
+        "output_bytes": 0,
+        "output_reads": 0,
+        "verification_bytes": 536870912,
+        "verification_reads": 8
+      },
+      "files": {
+        "INSTALL-OFFLINE-NOTE.txt": "1885be4d1131271af268e7758201e025c03f97c4db66f622d740ec2fd9fc7b2d",
+        "debs/ASSURANCE.txt": "64542daeaa3d8756cfd49d476df8284fa4b089beef5b87a08e80208f0ace3055",
+        "debs/INSTALLATION-CONTRACT.json": "61c60c4fc4e3cb9afddb7743f3e521094e87bdb5eddd45b569f6eab1514355ae",
+        "debs/REQUESTED-ROOTS.txt": "679cb354e8862c6d244adc59fa3210d547862c02bff3d527535b325d924d62dd",
+        "debs/SHA256SUMS.txt": "a30e4f10337646f8736213e90abfe8be92c05ba96ba09285a26dc665d6669d52",
+        "debs/conflicts.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "debs/manifest.json": "8dcb44b616ef664df08e1d01b4379045680f8351766ef8704dbb6b15e6fac24d",
+        "debs/manifest.txt": "362b689004bb66a311f3546ef12356e3e62f31ce568c0b7a5eceaa7d06beee9a",
+        "debs/payload-0.deb": "9aeda0ca13e528c577f7436bdf406521ffbce63dde0d7ae17dc0aa0ea709fe89",
+        "debs/payload-1.deb": "57601e835866583c18d6f6a09d23cd7f1dd4fd10794ee12660cbc63c9b3a52a4",
+        "debs/payload-2.deb": "9110bd3e5ffaf8ef6a16c8c18d36abcf8d33747d0f3c4072d775d3d228bdca68",
+        "debs/payload-3.deb": "d5eb93383dde5708e5165ce153e876f14c18021306d71a24387017d3377b3444",
+        "debs/payload-4.deb": "7cb8ed71123ad7c6a6bd8947ab9a926e63d42cd3827bbf9c7aa84fd9f0a5c4e2",
+        "debs/payload-5.deb": "8f33562c0d945d5595a52ebc2243676933a09a7c763a08e53c6914d366b35dbd",
+        "debs/payload-6.deb": "08fc7f5f33ae0938ae102cce12411f3cb1771056331da72a62fddaeedfa633cb",
+        "debs/payload-7.deb": "54230d6a75baa87a7f18d702631a53f4a19ac5ad18ddeecc2c7f1d8b075d5764",
+        "debs/provenance.json": "b6b5ee62e4052ba8eef688e9b666983e72871bef53ba36857c04dce9308412d0",
+        "debs/unresolved.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "seconds": 2.4363640509999414
+    },
+    {
+      "counts": {
+        "output_bytes": 0,
+        "output_reads": 0,
+        "verification_bytes": 536870912,
+        "verification_reads": 8
+      },
+      "files": {
+        "INSTALL-OFFLINE-NOTE.txt": "1885be4d1131271af268e7758201e025c03f97c4db66f622d740ec2fd9fc7b2d",
+        "debs/ASSURANCE.txt": "64542daeaa3d8756cfd49d476df8284fa4b089beef5b87a08e80208f0ace3055",
+        "debs/INSTALLATION-CONTRACT.json": "61c60c4fc4e3cb9afddb7743f3e521094e87bdb5eddd45b569f6eab1514355ae",
+        "debs/REQUESTED-ROOTS.txt": "679cb354e8862c6d244adc59fa3210d547862c02bff3d527535b325d924d62dd",
+        "debs/SHA256SUMS.txt": "a30e4f10337646f8736213e90abfe8be92c05ba96ba09285a26dc665d6669d52",
+        "debs/conflicts.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "debs/manifest.json": "8dcb44b616ef664df08e1d01b4379045680f8351766ef8704dbb6b15e6fac24d",
+        "debs/manifest.txt": "362b689004bb66a311f3546ef12356e3e62f31ce568c0b7a5eceaa7d06beee9a",
+        "debs/payload-0.deb": "9aeda0ca13e528c577f7436bdf406521ffbce63dde0d7ae17dc0aa0ea709fe89",
+        "debs/payload-1.deb": "57601e835866583c18d6f6a09d23cd7f1dd4fd10794ee12660cbc63c9b3a52a4",
+        "debs/payload-2.deb": "9110bd3e5ffaf8ef6a16c8c18d36abcf8d33747d0f3c4072d775d3d228bdca68",
+        "debs/payload-3.deb": "d5eb93383dde5708e5165ce153e876f14c18021306d71a24387017d3377b3444",
+        "debs/payload-4.deb": "7cb8ed71123ad7c6a6bd8947ab9a926e63d42cd3827bbf9c7aa84fd9f0a5c4e2",
+        "debs/payload-5.deb": "8f33562c0d945d5595a52ebc2243676933a09a7c763a08e53c6914d366b35dbd",
+        "debs/payload-6.deb": "08fc7f5f33ae0938ae102cce12411f3cb1771056331da72a62fddaeedfa633cb",
+        "debs/payload-7.deb": "54230d6a75baa87a7f18d702631a53f4a19ac5ad18ddeecc2c7f1d8b075d5764",
+        "debs/provenance.json": "b6b5ee62e4052ba8eef688e9b666983e72871bef53ba36857c04dce9308412d0",
+        "debs/unresolved.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "seconds": 0.5498710580000079
+    }
+  ]
+}

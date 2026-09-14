@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[ubuntu-24.04-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rhel-9-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rhel-9.6-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[photon-4.0-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[debian-12-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[arch-rolling-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rocky-9-False]",
+    "tests/test_kubernetes_workflows.py::test_minor_materialization_is_idempotent_and_rewrites_owned_row[rpm-rpm/-False]",
+    "tests/test_kubernetes_workflows.py::test_minor_materialization_is_idempotent_and_rewrites_owned_row[deb-deb/-True]",
+    "tests/test_kubernetes_workflows.py::test_discovery_has_no_fallback_list_and_stops_after_three_misses",
+    "tests/test_kubernetes_workflows.py::test_schema_two_migrates_without_replacing_exact_roots",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_verifies_index_and_attempts_signature",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[checksum]",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[architecture]",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[missing-release]",
+    "tests/test_kubernetes_workflows.py::test_flat_missing_architecture_is_observed_not_invented",
+    "tests/test_kubernetes_workflows.py::test_cli_keeps_other_minor_visible_and_records_advice",
+    "tests/test_kubernetes_workflows.py::test_cli_conflict_lists_package_and_acknowledgement_allows_build",
+    "tests/test_kubernetes_workflows.py::test_catalog_and_resolver_never_hide_managed_or_other_minor_packages",
+    "tests/test_kubernetes_workflows.py::test_vks_missing_inventory_has_rolling_channel_explanation"
+  ]
+}

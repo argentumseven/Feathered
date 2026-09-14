@@ -1,0 +1,2 @@
+tests/test_target_release_transition.py
+tests/test_transaction_contract.py

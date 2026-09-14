@@ -1,0 +1,25 @@
+{
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "nodes": [
+    "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[TargetInventory]",
+    "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[AptTargetInventory]",
+    "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[ArchTargetInventory]",
+    "tests/test_prepared_plan_ownership.py::test_mutable_verification_fields_can_still_be_annotated_by_execution",
+    "tests/test_release_gate_outcomes.py::test_required_plugin_still_runs_with_release_plugin",
+    "tests/test_release_gate_outcomes.py::test_release_plugin_preserves_assertion_diagnostics",
+    "tests/test_release_gate_outcomes.py::test_runner_does_not_count_skips_as_passes",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[pass]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[assertion]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[setup]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[teardown]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[skip]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xfail]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[xpass]",
+    "tests/test_release_gate_outcomes.py::test_gate_records_individual_phase_outcomes[strict-xpass]",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_collection_skip_and_records_reason",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_deselection",
+    "tests/test_release_gate_outcomes.py::test_gate_runs_long_node_id_without_command_line_expansion",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[terminated]",
+    "tests/test_release_gate_outcomes.py::test_gate_rejects_incomplete_subprocess[early-zero-exit]"
+  ]
+}

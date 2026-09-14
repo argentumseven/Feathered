@@ -1,0 +1,25 @@
+{
+  "run_id": "73905071d2374794aba1da5f47500989",
+  "nodes": [
+    "test_feather.py::test_regression_source_bond_requires_distinct_endpoints",
+    "test_feather.py::test_regression_resilient_digest_policy_and_strict_override",
+    "test_feather.py::test_regression_apt_backtracks_over_virtual_provider_packages",
+    "test_feather.py::test_regression_payload_basename_collision_blocks_bundle",
+    "test_feather.py::test_regression_rpm_repository_rewrites_namespaced_location",
+    "test_feather.py::test_rpm_repository_constructed_primary_uses_libsolv_namespace_spelling",
+    "test_feather.py::test_regression_apt_pocket_requires_exact_suite",
+    "test_feather.py::test_regression_bundle_index_seals_receiver_verifier",
+    "test_feather.py::test_regression_apt_installer_uses_local_repository_roots_not_payload_argv",
+    "test_feather.py::test_regression_source_bond_does_not_forward_acquisition_mtls_credentials",
+    "test_feather.py::test_regression_required_source_bond_cannot_be_bypassed_by_disabling_checksums",
+    "test_feather.py::test_regression_evidence_redirect_cannot_collapse_back_to_acquisition_host",
+    "test_feather.py::test_regression_rpm_requested_root_role_is_a_hard_constraint",
+    "test_feather.py::test_regression_matching_bond_digest_hashes_payload_once_and_marks_both_claims",
+    "test_feather.py::test_regression_1031_evidence_digest_verifies_when_acquisition_checksums_are_disabled",
+    "test_feather.py::test_regression_1031_archive_and_mirror_provenance_coexist",
+    "test_feather.py::test_regression_1031_provenance_json_has_multi_axis_mode_summary",
+    "test_feather.py::test_regression_1032_auto_digest_uses_strongest_published_sha2",
+    "test_feather.py::test_regression_1032_exact_digest_does_not_silently_substitute_strength",
+    "test_feather.py::test_regression_1032_fallback_does_not_query_evidence_when_selected_sha_exists"
+  ]
+}

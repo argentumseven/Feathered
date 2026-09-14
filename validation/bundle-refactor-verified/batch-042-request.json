@@ -1,0 +1,25 @@
+{
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "nodes": [
+    "tests/test_end_to_end_build.py::test_the_cli_builds_the_same_bundle_from_a_saved_spec",
+    "tests/test_end_to_end_build.py::test_the_cli_does_not_report_success_without_a_bundle",
+    "tests/test_end_to_end_build.py::test_a_unified_mirror_replays_from_a_saved_spec",
+    "tests/test_end_to_end_build.py::test_cli_replays_an_exact_package_into_a_real_bundle",
+    "tests/test_execution_feedback.py::test_feedback_preserves_order_and_mirror_progress_and_warning_collection",
+    "tests/test_execution_feedback.py::test_terminal_contract_emits_once_and_retains_optional_path_shape[True-success]",
+    "tests/test_execution_feedback.py::test_terminal_contract_emits_once_and_retains_optional_path_shape[False-failed]",
+    "tests/test_execution_feedback.py::test_terminal_contract_emits_once_and_retains_optional_path_shape[cancelled-cancelled]",
+    "tests/test_execution_feedback.py::test_missing_policies_still_decline_and_cancellation_uses_capability",
+    "tests/test_execution_feedback.py::test_each_binding_has_independent_progress_and_warning_state",
+    "tests/test_footer_status.py::test_a_real_conflict_report_is_reduced_to_one_line",
+    "tests/test_footer_status.py::test_condensed_text_still_says_what_went_wrong",
+    "tests/test_footer_status.py::test_truncation_points_at_the_log_rather_than_just_stopping",
+    "tests/test_footer_status.py::test_short_messages_pass_through_untouched",
+    "tests/test_footer_status.py::test_embedded_newlines_are_collapsed_even_when_short",
+    "tests/test_footer_status.py::test_deliberate_space_runs_survive",
+    "tests/test_footer_status.py::test_truncation_prefers_a_word_boundary_but_survives_one_long_token",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[None]",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[]",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[   ]"
+  ]
+}

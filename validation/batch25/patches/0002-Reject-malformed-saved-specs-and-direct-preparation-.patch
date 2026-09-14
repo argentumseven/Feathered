@@ -1,5 +1,5 @@
 From bc2595a5e244ec4b5cd802bfb8683fdcd5a6f799 Mon Sep 17 00:00:00 2001
-From: Codex <codex@openai.com>
+From: Feathered Maintenance <maintenance@localhost>
 Date: Sat, 12 Sep 2026 18:43:15 -0400
 Subject: [PATCH 2/5] Reject malformed saved specs and direct preparation
  inputs

@@ -1,0 +1,564 @@
+{
+  "schema": 1,
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_cli_replay.py::test_existing_output_requires_separate_consent",
+    "tests/test_cli_replay.py::test_additive_metadata_requires_its_own_choice",
+    "tests/test_cli_replay.py::test_invalid_request_has_diagnostic_and_nonzero_exit",
+    "tests/test_cli_replay.py::test_dry_run_describes_settings_without_preparing",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+    "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:Packages/demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:https://repo.invalid/Packages/DEMO.RPM?token=fixture]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:\\\\Windows\\\\demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:..\\\\demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.deb]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:CON.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:COM1.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nul.txt.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm.]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm ]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nested/caf\\xe9.rpm]"
+  ],
+  "batch_excluded": [
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[workload]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[exact]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[separate]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[unified]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[devuan]",
+    "tests/test_cli_replay.py::test_stable_source_identity_survives_display_label_change",
+    "tests/test_cli_replay.py::test_missing_pin_is_rejected_before_publication",
+    "tests/test_cli_replay.py::test_unsigned_metadata_requires_trust_consent",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[exact]",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[workload]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nested/cafe\\u0301.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:space name.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:  libfoo.so.1()(64bit) ]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:Python3Dist(Foo_Bar.Baz)]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3.11dist(Foo.Bar[Extra_One, ,Extra.Two])]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(foo[])]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(Foo[Bad)]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(Foo[Bad])]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:PythonDist(A..__B)]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(Foo) trailing]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist()]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:/usr/bin/Python]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:same]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:republished]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:empty]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:missing-digest]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:weak]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:legacy-bare]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:bad-legacy]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:evidence]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:primary-before-evidence]",
+    "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names0]",
+    "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names1]",
+    "tests/test_core_leaf_contracts.py::test_equal_package_identity_keeps_distinct_object_keys",
+    "tests/test_core_leaf_contracts.py::test_filename_key_patch_is_resolved_at_call_time",
+    "tests/test_core_leaf_contracts.py::test_capability_normalizer_patch_is_resolved_at_call_time",
+    "tests/test_core_leaf_contracts.py::test_baseline_digest_and_comparator_patches_remain_visible",
+    "tests/test_core_leaf_contracts.py::test_baseline_manifest_digest_precedence_and_duplicate_keys",
+    "tests/test_core_leaf_contracts.py::test_baseline_partition_preserves_order_duplicates_and_input_objects",
+    "tests/test_core_leaf_contracts.py::test_normalization_and_location_dependency_patches_remain_visible",
+    "tests/test_core_leaf_contracts.py::test_capability_pattern_patch_remains_visible",
+    "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo.]",
+    "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo ]",
+    "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[nested/a:b]",
+    "tests/test_core_leaf_contracts.py::test_payload_name_fallback_accepts_legacy_minimal_records"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_cli_replay.py::test_existing_output_requires_separate_consent",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_existing_output_requires_separate_consent",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_existing_output_requires_separate_consent",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_additive_metadata_requires_its_own_choice",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_additive_metadata_requires_its_own_choice",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_additive_metadata_requires_its_own_choice",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_invalid_request_has_diagnostic_and_nonzero_exit",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_invalid_request_has_diagnostic_and_nonzero_exit",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_invalid_request_has_diagnostic_and_nonzero_exit",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_dry_run_describes_settings_without_preparing",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_dry_run_describes_settings_without_preparing",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_dry_run_describes_settings_without_preparing",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:Packages/demo.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:Packages/demo.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:Packages/demo.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:https://repo.invalid/Packages/DEMO.RPM?token=fixture]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:https://repo.invalid/Packages/DEMO.RPM?token=fixture]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:https://repo.invalid/Packages/DEMO.RPM?token=fixture]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:demo.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:demo.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:demo.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:\\\\Windows\\\\demo.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:\\\\Windows\\\\demo.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:\\\\Windows\\\\demo.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:..\\\\demo.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:..\\\\demo.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:..\\\\demo.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:CON.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:CON.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:CON.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:COM1.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:COM1.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:COM1.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nul.txt.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nul.txt.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nul.txt.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm.]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm.]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm.]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm ]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm ]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm ]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nested/caf\\xe9.rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nested/caf\\xe9.rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nested/caf\\xe9.rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

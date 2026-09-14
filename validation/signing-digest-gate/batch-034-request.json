@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "tests/test_build_preparation.py::test_runtime_vendor_requirement_is_never_downgraded",
+    "tests/test_build_preparation.py::test_timeout_during_metadata_has_a_timeout_outcome",
+    "tests/test_build_preparation.py::test_incompatible_repository_does_not_participate",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data0]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data1]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data2]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data3]",
+    "tests/test_build_preparation.py::test_signature_requirements_capture_every_vendor_without_keyring_paths",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[]",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[.]",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[..]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.backend_registry]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[package_family]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[bundle_writer]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[artifact_digests]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.prepared_plan]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.execution_feedback]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_request]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_intent]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_backend]"
+  ]
+}

@@ -208,6 +208,10 @@ def test_platform_skip_policy_is_scoped_and_has_required_linux_coverage():
     assert not permitted_skip(node, "requires dpkg fixture tools", "linux")
     assert not permitted_skip(node, "no display", "win32")
     assert not permitted_skip("tests/test_other.py::test_case", "requires dpkg fixture tools", "win32")
+    parity = "tests/test_prepared_adapter_parity.py::test_gui_and_cli_preserve_payloads_sources_provenance_and_installer"
+    assert permitted_skip(parity, "requires dpkg fixture tools", "win32")
+    assert not permitted_skip(parity, "requires dpkg fixture tools", "linux")
+    assert not permitted_skip(parity, "no display", "win32")
     native = yaml.safe_load((ROOT / ".github/workflows/native-conformance.yml").read_text())
     steps = native["jobs"]["apt"]["steps"]
     assert any("xvfb-run -a python3 release_test_runner.py" in step.get("run", "") for step in steps)

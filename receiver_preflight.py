@@ -53,10 +53,10 @@ def validate(contract, actual, post=False, machine=None):
                 f"{package['package_id']}. This differential bundle was built against the "
                 'captured installed identity of that package and omits it; recapture the '
                 'target or install that baseline first.')
-    if not post and family == 'arch':
+    if not post and family == 'arch' and contract.get("arch_full_upgrade"):
         snapshot = contract.get('inventory')
-        if snapshot is None or not contract.get("arch_full_upgrade"):
-            raise RuntimeError('Arch installation requires a captured target inventory and a full repository upgrade plan. Collect target_inventory.sh on the receiver and rebuild in target-aware mode.')
+        if snapshot is None:
+            raise RuntimeError('This Arch bundle declares a captured full-upgrade plan but does not contain its inventory snapshot.')
         if {k[0]: v for k, v in actual.items()} != snapshot:
             raise RuntimeError('Arch installed state changed since capture. Re-collect the inventory and rebuild the full upgrade plan.')
 

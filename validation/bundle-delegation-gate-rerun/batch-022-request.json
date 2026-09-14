@@ -1,0 +1,25 @@
+{
+  "run_id": "73905071d2374794aba1da5f47500989",
+  "nodes": [
+    "test_feather.py::test_1075_apt_component_scope_fails_closed",
+    "test_feather.py::test_1075_bundle_verifier_rejects_symlink_and_traversal",
+    "test_feather.py::test_1076_unrelated_exact_mirror_skew_does_not_poison_matching_package",
+    "test_feather.py::test_1076_enhanced_continuation_rejects_semantic_rebuild_peer_for_a_gap",
+    "test_feather.py::test_1080_testing_state_uses_activity_rail_in_footer_and_evidence_row",
+    "test_feather.py::test_1080_activity_indicator_is_low_cost_event_loop_driven_rail",
+    "test_feather.py::test_1078_review_summary_derives_acquisition_state_before_reading_it",
+    "test_feather.py::test_1078_wizard_forward_transition_enforces_source_plan_and_terminal_review",
+    "test_feather.py::test_1078_future_rail_steps_do_not_bypass_next_validation",
+    "test_feather.py::test_1076_messageboxes_route_through_feather_themed_modal_proxy",
+    "test_feather.py::test_1079_arch_profile_is_native_pacman_rolling_target",
+    "test_feather.py::test_1079_arch_vercmp_matches_documented_pacman_edge_cases",
+    "test_feather.py::test_1079_arch_resolver_closes_dependencies_and_rejects_contradictory_constraints",
+    "test_feather.py::test_1079_arch_exact_root_pins_repository_identity_not_display_name",
+    "test_feather.py::test_1079_arch_target_inventory_and_any_arch_are_supported",
+    "test_feather.py::test_1079_arch_repository_database_round_trip",
+    "test_feather.py::test_1079_arch_exact_mirror_compatibility_uses_alpm_repo_name",
+    "test_feather.py::test_1079_recoverable_source_failures_use_explicit_action_labels",
+    "test_feather.py::test_1079_repository_maintenance_rebuilds_arch_pkginfo",
+    "test_feather.py::test_1079_mirror_selection_uses_concrete_source_identity_not_display_name"
+  ]
+}

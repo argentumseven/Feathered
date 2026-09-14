@@ -1,5 +1,5 @@
 From 217e02da27b74e9a414e7ddd436e9a056886d6c2 Mon Sep 17 00:00:00 2001
-From: Codex <codex@openai.com>
+From: Feathered Maintenance <maintenance@localhost>
 Date: Sat, 12 Sep 2026 18:59:08 -0400
 Subject: [PATCH 5/5] Bound GUI event drains and coordinate replaceable
  background queries
@@ -139,7 +139,7 @@ index abf5817..d18adc2 100644
  
  ## Scope of local validation
  
-+The follow-on batch implements instruction items 2–5: credential-safe display
++The follow-on batch implements instruction items 2-5: credential-safe display
 +with source URLs visible, strict decoding of recognized spec fields and runtime
 +preparation inputs, partial-outage recovery, shared release-knowledge ownership,
 +and bounded UI event processing with incremental query coordination. Each

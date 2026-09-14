@@ -162,6 +162,28 @@ transaction_context = TransactionContext[core.Package, core.Requirement, core.Bu
     max_resolution_passes=lambda: 8, include_dependencies=lambda: True)
 transaction_result: core.ResolutionResult = resolve_fixed_point(transaction_context, [RootRequest("root")], [])
 
+from acquisition_model import AcquisitionIntent, derive_acquisition_state
+from feathered_app.prepared_plan import BuildPlan
+from feathered_app.execution_feedback import bind_execution_feedback, mirror_reporter, complete
+
+state = derive_acquisition_state(AcquisitionIntent.REPOSITORY_MIRROR, mirror_repository_count=1)
+rpm_plan = BuildPlan[core.TargetInventory](state, core.BuildOptions(), [("demo", None, None)], [], [], False, None)
+deb_plan = BuildPlan[apt_core.AptTargetInventory](state, core.BuildOptions(), [], [], [], False, None)
+arch_plan = BuildPlan[arch_core.ArchTargetInventory](state, core.BuildOptions(), [], [], [], False, None)
+rpm_options: core.BuildOptions[core.TargetInventory] = rpm_plan.opts
+deb_options: core.BuildOptions[apt_core.AptTargetInventory] = deb_plan.opts
+arch_options: core.BuildOptions[arch_core.ArchTargetInventory] = arch_plan.opts
+execution = bind_execution_feedback(feedback)
+execution.reporter.check_cancel()
+execution.decide("title", "message", wait_status="waiting")
+fork = mirror_reporter(feedback, execution.reporter, "source", 0.5, 0.5)
+terminal = complete(execution.events, True, "finished")
+
+from feathered_app.backend_registry import Backend, RPM, DEB, ARCH
+rpm_registry: Backend[core.Package, core.ResolutionResult, core.TargetInventory] = RPM
+deb_registry: Backend[apt_core.DebPackage, apt_core.DebResolutionResult, apt_core.AptTargetInventory] = DEB
+arch_registry: Backend[arch_core.ArchPackage, arch_core.ArchResolutionResult, arch_core.ArchTargetInventory] = ARCH
+
 '''
 
 NEGATIVE = '''\
@@ -256,6 +278,26 @@ def malformed_root_inputs() -> list[str]:
     normalize_requests([("root", 42, None)])  # reject
     core.resolve([("root", None)], [], "x86_64", core.BuildOptions(), core.Reporter())  # reject
     return normalize_requests([("root", None, None)])  # reject
+
+from feathered_app.prepared_plan import BuildPlan
+from feathered_app.execution_feedback import bind_execution_feedback, complete
+
+def mixed_prepared_plans(rpm: BuildPlan[core.TargetInventory], deb: BuildPlan[apt_core.AptTargetInventory], arch: BuildPlan[arch_core.ArchTargetInventory]) -> None:
+    def takes_rpm(options: core.BuildOptions[core.TargetInventory]) -> None: pass
+    takes_rpm(deb.opts)  # reject
+    rpm.opts.target_inventory = apt_core.AptTargetInventory()  # reject
+    deb.opts.target_inventory = arch_core.ArchTargetInventory()  # reject
+    arch.opts.target_inventory = core.TargetInventory()  # reject
+    BuildPlan[core.TargetInventory](rpm.state, rpm.opts, [42], [], [], False, None)  # reject
+    BuildPlan[core.TargetInventory](rpm.state, rpm.opts, [], [], ["https://repo.invalid/"], False, None)  # reject
+    bind_execution_feedback(WrongSink())  # reject
+    complete(WrongSink(), True, "done")  # reject
+
+from pathlib import Path
+from feathered_app.backend_registry import Backend, RPM, DEB
+bad_registry: Backend[core.Package, core.ResolutionResult, core.TargetInventory] = DEB  # reject
+bad_registry_inventory: apt_core.AptTargetInventory = RPM.inventory(Path("inventory"))  # reject
+RPM.resolve([], [], "x86_64", core.BuildOptions[apt_core.AptTargetInventory](), core.Reporter())  # reject
 
 '''
 

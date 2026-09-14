@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-31-33-34-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-32-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-apiserver-34-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_only_conflicts_need_acknowledgement",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[photon-5.0-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[ubuntu-22.04-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[ubuntu-24.04-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rhel-9-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rhel-9.6-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[photon-4.0-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[debian-12-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[arch-rolling-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rocky-9-False]",
+    "tests/test_kubernetes_workflows.py::test_minor_materialization_is_idempotent_and_rewrites_owned_row[rpm-rpm/-False]",
+    "tests/test_kubernetes_workflows.py::test_minor_materialization_is_idempotent_and_rewrites_owned_row[deb-deb/-True]",
+    "tests/test_kubernetes_workflows.py::test_discovery_has_no_fallback_list_and_stops_after_three_misses",
+    "tests/test_kubernetes_workflows.py::test_schema_two_migrates_without_replacing_exact_roots",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_verifies_index_and_attempts_signature"
+  ]
+}

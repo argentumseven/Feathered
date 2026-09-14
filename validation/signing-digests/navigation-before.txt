@@ -1,0 +1,49 @@
+F.F                                                                      [100%]
+=================================== FAILURES ===================================
+______________ test_next_routes_missing_signing_key_to_provenance ______________
+
+application = <app.App object .>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f494e6146b0>
+
+    def test_next_routes_missing_signing_key_to_provenance(application, monkeypatch):
+        prepare(application, monkeypatch)
+        application.sign_index_var.set(True)
+        assert application.go_next() is False
+        application.update_idletasks()
+>       assert application.active_pane == 'keyrings'
+E       AssertionError: assert 'transfer' == 'keyrings'
+E         
+E         - keyrings
+E         + transfer
+
+tests/test_signing_navigation.py:20: AssertionError
+__________________ test_missing_openpgp_routes_to_setup_card ___________________
+
+application = <app.App object .>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f494b5f7f20>
+
+    def test_missing_openpgp_routes_to_setup_card(application, monkeypatch):
+        prepare(application, monkeypatch)
+        application.signing_key_entry.configure(state='disabled')
+        application.sign_index_var.set(True)
+        assert application.go_next() is False
+>       assert application.active_pane == 'keyrings'
+E       AssertionError: assert 'transfer' == 'keyrings'
+E         
+E         - keyrings
+E         + transfer
+
+tests/test_signing_navigation.py:42: AssertionError
+----------------------------- Captured stderr call -----------------------------
+invalid command name "139952773972480<lambda>"
+    while executing
+"139952773972480<lambda>"
+    ("after" script)
+invalid command name "139952773955456<lambda>"
+    while executing
+"139952773955456<lambda>"
+    ("after" script)
+=========================== short test summary info ============================
+FAILED tests/test_signing_navigation.py::test_next_routes_missing_signing_key_to_provenance
+FAILED tests/test_signing_navigation.py::test_missing_openpgp_routes_to_setup_card
+2 failed, 1 passed in 1.40s

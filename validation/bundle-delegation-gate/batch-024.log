@@ -1,0 +1,48 @@
+..F.................                                                     [100%]
+=================================== FAILURES ===================================
+________ test_110_rail_rows_bind_click_and_hover_on_every_child_widget _________
+
+    def test_110_rail_rows_bind_click_and_hover_on_every_child_widget():
+        """Tk delivers <Leave> to the row frame when the pointer crosses onto a
+        child label, so hover feedback bound only on the row switches off over the
+        step's text - making the text look unclickable. Every rail row child (bar,
+        number/icon, text) must carry Button-1, Enter and Leave bindings."""
+        import app as feather_app
+    
+>       root = feather_app.tk.Tk()
+               ^^^^^^^^^^^^^^^^^^^
+
+test_feather.py:7952: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <tkinter.Tk object .>, screenName = None, baseName = '__main__'
+className = 'Tk', useTk = True, sync = False, use = None
+
+    def __init__(self, screenName=None, baseName=None, className='Tk',
+                 useTk=True, sync=False, use=None):
+        """Return a new top level widget on screen SCREENNAME. A new Tcl interpreter will
+        be created. BASENAME will be used for the identification of the profile file (see
+        readprofile).
+        It is constructed from sys.argv[0] without extensions if None is given. CLASSNAME
+        is the name of the widget class."""
+        self.master = None
+        self.children = {}
+        self._tkloaded = False
+        # to avoid recursions in the getattr code in case of failure, we
+        # ensure that self.tk is always _something_.
+        self.tk = None
+        if baseName is None:
+            import os
+            baseName = os.path.basename(sys.argv[0])
+            baseName, ext = os.path.splitext(baseName)
+            if ext not in ('.py', '.pyc'):
+                baseName = baseName + ext
+        interactive = False
+>       self.tk = _tkinter.create(screenName, baseName, className, interactive, wantobjects, useTk, sync, use)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       _tkinter.TclError: couldn't connect to display "localhost:93"
+
+/opt/python-runtime/lib/python3.12/tkinter/__init__.py:2346: TclError
+=========================== short test summary info ============================
+FAILED test_feather.py::test_110_rail_rows_bind_click_and_hover_on_every_child_widget
+1 failed, 19 passed in 1.20s

@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "tests/test_reported_defects.py::test_rebuilding_the_repository_pane_drops_dead_widget_references",
+    "tests/test_reported_defects.py::test_live_lookup_refuses_a_destroyed_widget",
+    "tests/test_reported_defects.py::test_changing_source_method_after_a_rebuild_does_not_raise",
+    "tests/test_reported_defects.py::test_the_priority_rule_is_stated_where_the_column_is_shown",
+    "tests/test_reported_defects.py::test_lower_priority_number_actually_wins",
+    "tests/test_reported_defects.py::test_repository_metadata_is_not_preselected_for_package_workflows",
+    "tests/test_reported_defects.py::test_switching_intent_corrects_the_metadata_selection_both_ways",
+    "tests/test_reported_defects.py::test_an_incomplete_selection_does_not_flicker_the_metadata_checkbox",
+    "tests/test_reported_defects.py::test_a_deliberate_tick_survives_navigation_within_one_mode",
+    "tests/test_repository_universe.py::test_each_mode_owns_its_own_list",
+    "tests/test_repository_universe.py::test_rebinding_repo_rows_cannot_desynchronise_the_active_slot",
+    "tests/test_repository_universe.py::test_in_place_mutation_still_reaches_the_stored_list",
+    "tests/test_repository_universe.py::test_assigning_one_universe_from_the_other_does_not_alias_them",
+    "tests/test_repository_universe.py::test_activate_reports_whether_the_mode_actually_changed",
+    "tests/test_repository_universe.py::test_transaction_universe_scope_restores_the_caller_mode",
+    "tests/test_repository_universe.py::test_transaction_universe_scope_restores_the_mode_after_an_exception",
+    "tests/test_repository_universe.py::test_unknown_mode_is_rejected_rather_than_silently_defaulting",
+    "tests/test_repository_universe.py::test_reads_on_a_partially_constructed_instance_do_not_invent_storage",
+    "tests/test_repository_universe.py::test_delete_clears_only_the_addressed_universe",
+    "tests/test_repository_universe.py::test_grouped_state_view_still_reaches_the_universe"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_execution_feedback.py::test_terminal_contract_emits_once_and_retains_optional_path_shape[cancelled-cancelled]",
+    "tests/test_execution_feedback.py::test_missing_policies_still_decline_and_cancellation_uses_capability",
+    "tests/test_execution_feedback.py::test_each_binding_has_independent_progress_and_warning_state",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[0-sha256_file]",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[0-_sha256_file]",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[0-hash_file]",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[1048593-sha256_file]",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[1048593-_sha256_file]",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[1048593-hash_file]",
+    "tests/test_file_hashing_contract.py::test_generic_hash_algorithm_contract[SHA-sha1]",
+    "tests/test_file_hashing_contract.py::test_generic_hash_algorithm_contract[SHA512-sha512]",
+    "tests/test_file_hashing_contract.py::test_generic_hash_algorithm_contract[-sha256]",
+    "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[sha256_file]",
+    "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[_sha256_file]",
+    "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[hash_file]",
+    "tests/test_file_hashing_contract.py::test_invalid_algorithm_is_rejected_before_opening_missing_file",
+    "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[sha256_file]",
+    "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[_sha256_file]",
+    "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[hash_file]",
+    "tests/test_footer_status.py::test_a_real_conflict_report_is_reduced_to_one_line"
+  ]
+}

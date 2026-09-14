@@ -1,0 +1,25 @@
+{
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "nodes": [
+    "tests/test_linux_installation.py::test_cli_only_installs_without_tk_or_package_index",
+    "tests/test_linux_installation.py::test_failed_upgrade_preserves_selected_runtime_and_shortcuts",
+    "tests/test_linux_installation.py::test_partial_shortcut_publication_rolls_back",
+    "tests/test_linux_installation.py::test_unmanaged_shortcut_is_not_overwritten",
+    "tests/test_linux_installation.py::test_parallel_install_is_rejected",
+    "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[cli]",
+    "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[gui]",
+    "tests/test_linux_installation.py::test_launcher_without_setup_has_actionable_error",
+    "tests/test_linux_shortcuts.py::test_desktop_exec_uses_both_required_escaping_layers",
+    "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\nb]",
+    "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\rb]",
+    "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\x00b]",
+    "tests/test_linux_shortcuts.py::test_cli_launch_does_not_import_tk_and_retains_exit_status",
+    "tests/test_metadata_loading.py::test_normal_load_retains_order_progress_cache_identity_and_laziness",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[priority-9]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[source_tier-workload]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[url-https://example.test/new]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[keyring-keys.gpg]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[allow_unverified_index-True]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[evidence_urls-value5]"
+  ]
+}

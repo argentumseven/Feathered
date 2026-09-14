@@ -2882,14 +2882,24 @@ def test_repository_sidecar_rejects_mixed_package_families(tmp_path):
         raise AssertionError("mixed package families must not be silently combined")
 
 
-def test_review_source_contains_unresolved_waiver_and_retry_controls():
+def test_review_source_contains_unresolved_waiver_and_retry_controls(tmp_path):
     import app, inspect
-    root = Path(__file__).resolve().parent
+    import core, apt_core, arch_core
     source = inspect.getsource(app.App._build_review_pane)
     assert 'text="Retry unresolved"' in source
     assert 'text="Ignore selected"' in source
-    assert "ignored-unresolved.txt" in (root / "core.py").read_text(encoding="utf-8")
-    assert "ignored-unresolved.txt" in (root / "apt_core.py").read_text(encoding="utf-8")
+    # Exercise the public writers: shared helpers need not repeat filenames in
+    # each backend's source to preserve the operator's recorded waivers.
+    for backend, result_type, directory in (
+        (core, core.ResolutionResult, "rpms"),
+        (apt_core, apt_core.DebResolutionResult, "debs"),
+        (arch_core, arch_core.ArchResolutionResult, "packages"),
+    ):
+        result = result_type([], [], [], ignored_unresolved=["operator waiver"])
+        output = tmp_path / directory
+        backend.write_bundle(result, output, core.BuildOptions(emit_repository=False),
+                             core.Reporter(), {"package_only_acquisition": True})
+        assert (output / directory / "ignored-unresolved.txt").read_text() == "operator waiver\n"
 
 
 def test_repository_tools_are_sidecar_not_sixth_wizard_step():
@@ -7874,10 +7884,7 @@ def test_110_workload_availability_is_per_distro_and_excludes_missing_software()
 
 
 def test_110_certificate_failures_fail_fast_with_actionable_remedy():
-    """An expired/untrusted TLS certificate is deterministic: fetch_bytes must
-    not retry it ("Healing...") and the surfaced error must carry the concrete
-    remedies (check the system clock; switch mirrors - geo-routed hostnames
-    pick a specific nearby mirror that can individually be broken)."""
+    """Certificate verification failures fail immediately with useful guidance."""
     import ssl
     import urllib.error
 
@@ -7909,7 +7916,7 @@ def test_110_certificate_failures_fail_fast_with_actionable_remedy():
     assert not any("Healing" in line for line in logged), logged
     assert "certificate" in message
     assert "clock" in message
-    assert "different mirror" in message
+    assert "different HTTPS mirror" in message
 
     # Non-certificate errors keep the normal retry behaviour.
     assert repository_transport.certificate_failure_advice(OSError("boom")) == ""
@@ -8217,12 +8224,7 @@ def test_110_content_stage_has_no_second_package_entry_for_custom():
     assert "self.custom_tools.grid()" not in source
 
 
-def test_110_gnupg_absence_gates_signature_controls_and_multi_host_cert_failures():
-    """Without a verifier the signature layers are disabled with a stated
-    reason and an install path, rather than accepting configuration that
-    cannot work. And when two unrelated hosts fail certificate validation the
-    same way, the advice names the local machine (clock/trust store) as the
-    probable cause instead of blaming each mirror."""
+def test_110_gnupg_absence_gates_signature_controls_and_tls_advice():
     import inspect
     import ssl
     import urllib.error
@@ -8234,21 +8236,18 @@ def test_110_gnupg_absence_gates_signature_controls_and_multi_host_cert_failures
     assert 'state="disabled"' in source and 'state="normal"' in source
     assert "Gpg4win" in source or "gnupg.org" in source
     help_source = inspect.getsource(feather_app.App._show_gnupg_install_help)
-    assert "does not install software" in help_source  # airgap tool: no silent installs
+    assert "does not install software" in help_source
 
-    repository_transport._CERT_FAILED_HOSTS.clear()
-    repository_transport._TLS_SUCCESS_HOSTS.clear()
     exc = ssl.SSLCertVerificationError("certificate has expired")
     exc.verify_message = "certificate has expired"
     wrapped = urllib.error.URLError(exc)
     first = repository_transport.certificate_failure_advice(wrapped, "https://a.example/x")
-    assert "clock" in first and "different hosts" not in first
-    # With no successful fetch to appeal to, repeated failures across hosts
-    # widen the suspicion but no longer assert the machine is at fault.
     second = repository_transport.certificate_failure_advice(wrapped, "https://b.example/y")
-    assert "2 different hosts" in second
-    repository_transport._CERT_FAILED_HOSTS.clear()
-    repository_transport._TLS_SUCCESS_HOSTS.clear()
+    for message in (first, second):
+        assert "date/time" in message
+        assert "CA certificate store" in message
+        assert "different HTTPS mirror" in message
+        assert "different hosts" not in message
 
 
 def test_110_workflow_polish_batch(monkeypatch):
@@ -8307,12 +8306,8 @@ def test_110_workflow_polish_batch(monkeypatch):
     assert ui.selected_packages == ["a", "c"]
 
 
-def test_110_repository_view_rebuilds_on_target_change_and_cert_advice_is_evidence_based():
-    """Changing distribution/release/architecture must invalidate the rendered
-    Repositories view: keying the cache on acquisition intent alone left the
-    previous distribution's repository rows on screen. And a successful HTTPS
-    fetch in the same session disproves the local clock/trust-store theory, so
-    the certificate advice must blame the mirror instead."""
+def test_110_repository_view_rebuilds_on_target_change_and_cert_advice_is_stable():
+    """Target changes invalidate repository rows and TLS advice stays local to the failure."""
     import inspect
     import ssl
     import urllib.error
@@ -8341,19 +8336,13 @@ def test_110_repository_view_rebuilds_on_target_change_and_cert_advice_is_eviden
     ui.__dict__["release_var"] = Var("other")
     assert feather_app.App._repository_workflow_key_for_target(ui) != arch_key
 
-    repository_transport._CERT_FAILED_HOSTS.clear()
-    repository_transport._TLS_SUCCESS_HOSTS.clear()
     exc = ssl.SSLCertVerificationError("certificate has expired")
     exc.verify_message = "certificate has expired"
     wrapped = urllib.error.URLError(exc)
-    blind = repository_transport.certificate_failure_advice(wrapped, "https://a.example/x")
-    assert "clock" in blind
-    repository_transport.note_successful_fetch("https://good.example/repodata/x.xml")
-    informed = repository_transport.certificate_failure_advice(wrapped, "https://b.example/y")
-    assert "demonstrably fine" in informed and "good.example" in informed
-    assert "fault is this mirror" in informed
-    repository_transport._CERT_FAILED_HOSTS.clear()
-    repository_transport._TLS_SUCCESS_HOSTS.clear()
+    advice = repository_transport.certificate_failure_advice(wrapped, "https://a.example/x")
+    assert "date/time" in advice
+    assert "different HTTPS mirror" in advice
+    assert "good.example" not in advice
 
     # A failed mirror is one edit from fixed: alternates are named on the row.
     assert len(profiles.ARTIX_MIRRORS) >= 3

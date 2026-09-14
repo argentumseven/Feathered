@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[checksum]",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[architecture]",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[missing-release]",
+    "tests/test_kubernetes_workflows.py::test_flat_missing_architecture_is_observed_not_invented",
+    "tests/test_kubernetes_workflows.py::test_cli_keeps_other_minor_visible_and_records_advice",
+    "tests/test_kubernetes_workflows.py::test_cli_conflict_lists_package_and_acknowledgement_allows_build",
+    "tests/test_kubernetes_workflows.py::test_catalog_and_resolver_never_hide_managed_or_other_minor_packages",
+    "tests/test_kubernetes_workflows.py::test_vks_missing_inventory_has_rolling_channel_explanation",
+    "tests/test_kubernetes_workflows.py::test_baseline_rejects_installed_changes_but_keeps_ordinary_headers",
+    "tests/test_kubernetes_workflows.py::test_vks_build_emits_image_draft_and_keeps_inventory_baseline",
+    "tests/test_kubernetes_workflows.py::test_flat_kubernetes_repository_can_be_mirrored",
+    "tests/test_kubernetes_workflows.py::test_frozen_context_does_not_read_any_widgets",
+    "tests/test_kubernetes_workflows.py::test_kubernetes_bundle_supports_additive_publication",
+    "tests/test_kubernetes_workflows.py::test_discovery_result_defers_during_build_and_keeps_other_family_separate",
+    "tests/test_kubernetes_workflows.py::test_generated_repository_changes_do_not_drop_operator_policy",
+    "tests/test_kubernetes_workflows.py::test_complete_rpm_inventory_satisfies_libraries_without_upgrading_them",
+    "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates0]",
+    "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates1]",
+    "tests/test_kubernetes_workflows.py::test_workload_artifacts_exist_before_indexing",
+    "tests/test_kubernetes_workflows.py::test_saved_workload_patch_pin_builds_requested_version"
+  ]
+}

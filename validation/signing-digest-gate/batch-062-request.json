@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-4]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-5]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-6]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[tuple-7]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-3]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-4]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-5]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-6]",
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-7]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc0]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[package]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc1]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value3]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value4]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[None]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[7]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[True]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value8]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value9]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value10]"
+  ]
+}

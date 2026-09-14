@@ -1,0 +1,25 @@
+{
+  "run_id": "cf0efe06a42e42dd97438644e8e1c67e",
+  "nodes": [
+    "test_feather.py::test_1069_rocky_evidence_catalog_offers_exact_mirror_and_rebuild_peer",
+    "test_feather.py::test_1069_rhel_evidence_catalog_derives_rocky_and_alma_rebuild_peers",
+    "test_feather.py::test_1069_ubuntu_evidence_catalog_is_exact_mirror_only",
+    "test_feather.py::test_1069_cent_os_stream_is_not_misclassified_as_rhel_rebuild_peer",
+    "test_feather.py::test_1069_cross_vendor_el_exact_mirror_hint_is_rejected_as_stale",
+    "test_feather.py::test_1069_configured_same_archive_repo_is_offered_as_exact_mirror",
+    "test_feather.py::test_1069_profile_candidates_record_known_operator_independence",
+    "test_feather.py::test_1070_acquisition_state_matrix_precludes_impossible_combinations",
+    "test_feather.py::test_1070_package_only_is_a_workload_capability_not_exact_package_mode",
+    "test_feather.py::test_1070_freeform_enabled_roots_require_at_least_one_enabled_repository",
+    "test_feather.py::test_1070_exact_package_chooser_is_downstream_of_repository_configuration",
+    "test_feather.py::test_1070_custom_base_source_plan_does_not_seed_distribution_defaults",
+    "test_feather.py::test_1070_content_rail_expresses_intent_not_premature_package_identity",
+    "test_feather.py::test_1070_rpm_repository_mirror_never_generates_root_transaction_installer",
+    "test_feather.py::test_1070_apt_repository_mirror_never_generates_root_transaction_installer",
+    "test_feather.py::test_1070_mirror_output_controls_are_forced_to_mirror_semantics",
+    "test_feather.py::test_1070_exact_package_build_metadata_describes_all_selected_roots",
+    "test_feather.py::test_1071_mirror_mode_has_one_repository_editor_not_stacked_source_cards",
+    "test_feather.py::test_1071_mirror_editor_owns_population_and_manual_repository_actions",
+    "test_feather.py::test_1071_custom_mirror_source_never_opens_parallel_repository_manager"
+  ]
+}

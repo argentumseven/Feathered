@@ -120,7 +120,7 @@ class OperationsMixin:
             if lowered == prefix_lower:
                 normalized_detail = ""
             elif lowered.startswith(prefix_lower):
-                normalized_detail = normalized_detail[len(prefix):].lstrip(" 	–-:·")
+                normalized_detail = normalized_detail[len(prefix):].lstrip(" 	--:·")
             self._set_footer_status(
                 f"{prefix}  |  {normalized_detail}" if normalized_detail else prefix)
         label = self.__dict__.get("status_label")

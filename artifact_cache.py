@@ -1,5 +1,6 @@
 """Verified payload cache independent of transactional publication staging."""
 from __future__ import annotations
+from artifact_digests import payload_sha256
 import hashlib
 import json
 import os
@@ -53,7 +54,7 @@ def remember(pkg, source, parent, reporter):
     import core
     reporter.check_cancel()
     root = _root(parent)
-    digest = core.sha256_file(source)
+    digest = payload_sha256(source, core.sha256_file)
     target = root / (digest + ".payload")
     if target.is_symlink():
         raise RuntimeError("Payload cache entry must not be a symlink")

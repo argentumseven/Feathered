@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_payload_filename_safety.py::test_ordinary_repository_location_still_works",
+    "tests/test_payload_filename_safety.py::test_the_existing_windows_guards_are_unchanged",
+    "tests/test_platform_workflows.py::test_linux_client_matrix_is_a_release_prerequisite",
+    "tests/test_platform_workflows.py::test_both_windows_bootstraps_retain_failure_logs",
+    "tests/test_prepared_adapter_parity.py::test_gui_and_cli_preserve_payloads_sources_provenance_and_installer",
+    "tests/test_prepared_plan_ownership.py::test_plan_detaches_every_caller_owned_collection",
+    "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[TargetInventory]",
+    "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[AptTargetInventory]",
+    "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[ArchTargetInventory]",
+    "tests/test_prepared_plan_ownership.py::test_mutable_verification_fields_can_still_be_annotated_by_execution",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[ordinary]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[constrained]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[mixed]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[unsatisfiable]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[source-pinned]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[virtual]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[python-alias]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[empty-filter]",
+    "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[ordinary-1]",
+    "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[mixed-2]"
+  ]
+}

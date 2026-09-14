@@ -28,10 +28,12 @@ DEFAULT_TIMEOUT = 300.0
 # required Debian full-corpus job; production publication needs both jobs.
 # Match file AND exact reason so unrelated skips cannot inherit an exemption.
 WINDOWS_SKIPS: dict[str, set[str]] = {
+    "tests/test_linux_installation.py": {"Linux setup requires a Linux host"},
     "tests/test_end_to_end_build.py": {
         "dpkg-deb and dpkg-scanpackages are needed to build the repository fixture"},
     **{f"tests/{name}.py": {"requires dpkg fixture tools"} for name in (
-        "test_headless_execution", "test_build_preparation", "test_cli_replay")},
+        "test_headless_execution", "test_build_preparation", "test_cli_replay",
+        "test_prepared_adapter_parity")},
     "tests/test_build_worker_isolation.py": {"needs dpkg tooling to build the repository fixture"},
     "tests/test_kubernetes_workflows.py": {"native dpkg fixture tools required; enforced in Debian CI"},
     "tests/test_installer_paths.py": {"bash is required"},

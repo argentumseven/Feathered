@@ -177,7 +177,7 @@ class ContentSpec:
     k8s_minor: str = ""
     apiserver_oldest_minor: str = ""
     apiserver_newest_minor: str = ""
-    pin_to_inventory_baseline: bool = True
+    pin_to_inventory_baseline: bool = False
     advisories_acknowledged: bool = False
     image_baker_name: str = "feathered-node-additions"
 
@@ -320,7 +320,7 @@ def capture(host) -> BuildSpec:
             k8s_minor=_var(host, "k8s_minor_var"),
             apiserver_oldest_minor=_var(host, "apiserver_oldest_minor_var"),
             apiserver_newest_minor=_var(host, "apiserver_newest_minor_var"),
-            pin_to_inventory_baseline=_flag(host, "pin_to_inventory_baseline_var", True),
+            pin_to_inventory_baseline=_flag(host, "pin_to_inventory_baseline_var", False),
             advisories_acknowledged=_flag(host, "advisories_acknowledged_var", False),
             image_baker_name=_var(host, "image_baker_name_var"),
 

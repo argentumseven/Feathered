@@ -1,0 +1,196 @@
+From 405c2d077257fb5151f706e66d6ef296acc87ed0 Mon Sep 17 00:00:00 2001
+From: Feathered Maintenance <maintenance@localhost>
+Date: Sun, 13 Sep 2026 07:52:38 -0400
+Subject: [PATCH 3/6] Delegate APT transfers and provenance while preserving
+ local hooks
+
+---
+ SOURCE-SHA256.json |  4 +-
+ apt_core.py        | 94 ++++------------------------------------------
+ core.py            | 10 +++--
+ 3 files changed, 17 insertions(+), 91 deletions(-)
+
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index e8c6654..64f6f80 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -17,7 +17,7 @@
+   "VALIDATION.md": "ad76b41fd88a7f9430fdae6a9cd258f5078a7488b01e8fc0995b490da4da68a7",
+   "acquisition_model.py": "e90fca096aa320a8768fef39c21bbaa42e152f3c02a81926ec7a8f5397046b0e",
+   "app.py": "aa04ea4426571f5348a86eb70f7ea9357b993afb671bc43ebee16e6b5a9a50e7",
+-  "apt_core.py": "436c7b4a0fddae2a1fd17f50da2c9482c0f73da547c35135f9e33264891ee599",
++  "apt_core.py": "19bedcdf72ba3cbf01e5f66376ff071a6ad287df77a9ff426ca78c8b1e6bd75c",
+   "arch_core.py": "25217aec2df390b5c9c1b0aa4193640a67ea1c729ba1f546c9ca7b7945aebcfc",
+   "artifact_cache.py": "2680caccc4e9fd517896aa19f445e61461099319c1ebac9ecafe1c9011b859f4",
+   "background_jobs.py": "f90e152b75b4ae995f78f71354ee1cf3045476948698f1f0c5e1cfe52f2258fd",
+@@ -28,7 +28,7 @@
+   "check_installer_syntax.py": "6e2272288f8ed468b0aaa43a66c94fc64e4190d4af43cdfbdc9bbc8c7bb456b8",
+   "checksum_inspection.py": "dd719fe78fcd82eb97463330ff7c8f0184d3de40a91ffac90d6a859d75c61601",
+   "conftest.py": "181b0c4350afdc00c502be59deeff33e5d001b03fa28b1a3af4d76bb983887b0",
+-  "core.py": "909e1bf437ebbc8b85cb366f56ed3b3ab4d5ddfec36d03a16fbe16a42fc5c380",
++  "core.py": "5657179fc41db50b26eff68112e85de317fea4cdfc96fa7da18c4332f9eb5003",
+   "create_smoke_iso.ps1": "3737b3919975570100bb32b288b7d082fbd5cfe8f7070f60399b9f8c1e242cf2",
+   "evidence_model.py": "7fda39af27c6d79ba18f8018b78f105d79035d6473a3d8f5dfd789d8af189b81",
+   "feathered_app/ARCHITECTURE.md": "bee24f4a1ad087b6e294e1b6850e7b528fa438c47308cff8b92a5fd5bb57ee4d",
+diff --git a/apt_core.py b/apt_core.py
+index 1cfe5e7..f107336 100644
+--- a/apt_core.py
++++ b/apt_core.py
+@@ -1355,56 +1355,9 @@ def package_versions(packages: Sequence[DebPackage], name: str, role: Optional[s
+ 
+ 
+ def _copy_or_download(pkg: DebPackage, dest: Path, options: BuildOptions, reporter: Reporter) -> None:
+-    # Confined join: a hostile index cannot redirect this off-origin.
+-    src = repo_relative_url(pkg.repo.normalized_url, pkg.location)
+-    tmp = dest.with_suffix(dest.suffix + ".partial")
+-    for attempt in range(1, options.retries + 1):
+-        reporter.check_cancel()
+-        try:
+-            if tmp.exists(): tmp.unlink()
+-            parsed = urllib.parse.urlparse(src)
+-            if parsed.scheme == "file":
+-                local = Path(urllib.request.url2pathname(parsed.path))
+-                reporter.log(f"COPY {local} -> {dest.name}")
+-                limit, expected = core.package_download_limit(pkg)
+-                actual = local.stat().st_size
+-                if actual > limit:
+-                    raise RuntimeError(
+-                        f"{pkg.nevra}: local package is {actual:,} bytes, above the allowed "
+-                        f"{limit:,}-byte package limit")
+-                if expected and actual != expected:
+-                    raise RuntimeError(
+-                        f"{pkg.nevra}: local package size {actual:,} does not match repository "
+-                        f"metadata size {expected:,}")
+-                shutil.copy2(local, tmp)
+-            else:
+-                reporter.log(f"DOWNLOAD {redact_url(src)}")
+-                with _urlopen(src, timeout=90, repo=pkg.repo) as response, tmp.open("wb") as f:
+-                    declared = response.headers.get("Content-Length") if hasattr(response, "headers") else None
+-                    core.copy_package_stream_bounded(response, f, pkg, reporter, declared)
+-            # one verification path for fresh and cached
+-            # artifacts.  It may use a strong digest from the acquisition index
+-            # or from independent evidence metadata; transient artifact corroboration is
+-            # handled separately and the evidence copy is never bundled.
+-            # downloaded.
+-            verify_package_artifact(pkg, tmp, options, reporter)
+-            tmp.replace(dest); return
+-        except Exception as exc:
+-            if tmp.exists(): tmp.unlink()
+-            # An operator cancel raised mid-download must surface as Cancelled,
+-            # not be retried or reported as a per-package failure on the final
+-            # attempt.  Re-checking re-raises Cancelled if the event is set.
+-            reporter.check_cancel()
+-            # Certificate validation failures are deterministic; fail fast with
+-            # the concrete remedy instead of burning retries.
+-            cert_advice = _transport.certificate_failure_advice(exc, src)
+-            if cert_advice:
+-                raise RuntimeError(f"Failed {pkg.nevra}: {cert_advice}") from exc
+-            if attempt == options.retries:
+-                raise RuntimeError(f"Failed {pkg.nevra}: {exc}") from exc
+-            reporter.log(redact_text(f"Healing download failure for {pkg.nevra}: {exc}; "
+-                                     f"retry {attempt + 1}/{options.retries}"))
+-            time.sleep(min(2 ** (attempt - 1), 5))
++    """Compatibility entry point retaining APT's transport and verifier hooks."""
++    core._copy_or_download(pkg, dest, options, reporter,
++                           opener=_urlopen, verifier=verify_package_artifact)
+ 
+ 
+ def write_bundle(result: DebResolutionResult, output_dir: Path, options: BuildOptions, reporter: Reporter,
+@@ -1507,7 +1460,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
+             "evidence_digest_type": getattr(record, "evidence_digest_type", ""),
+             "evidence_digest": getattr(record, "evidence_digest", ""),
+             "evidence_relationship": getattr(record, "evidence_relationship", ""),
+-            "evidence_authority_relationship": getattr(record, "evidence_authority_relationship", "authority-unknown"),
++            "evidence_authority_relationship": getattr(record, "evidence_authority_relationship", core.AUTH_UNKNOWN),
+         })
+     if options.additive_publish:
+         manifest = core.merge_additive_manifest_rows(metadata_dir / "manifest.json", manifest)
+@@ -1586,7 +1539,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
+             evidence_archive_signature_verified=bool(
+                 record and record.evidence_archive_signature_verified),
+             evidence_relationship=getattr(record, "evidence_relationship", "") if record else "",
+-            evidence_authority_relationship=getattr(record, "evidence_authority_relationship", "authority-unknown") if record else "authority-unknown",
++            evidence_authority_relationship=getattr(record, "evidence_authority_relationship", core.AUTH_UNKNOWN) if record else core.AUTH_UNKNOWN,
+             evidence_peer_identity_match=bool(record and record.evidence_peer_identity_match),
+             evidence_source_lineage_match=bool(record and record.evidence_source_lineage_match),
+             evidence_peer_package_id=getattr(record, "evidence_peer_package_id", "") if record else "",
+@@ -1751,41 +1704,10 @@ def emit_apt_repository(output_dir: Path, packages, reporter: RepositoryWriterRe
+ 
+ def _write_provenance(bundle_dir: Path, metadata_dir: Path, entries, already_present, options: BuildOptions,
+                       reporter: Reporter, metadata: Dict[str, object]) -> None:
+-    """Emit payload-scoped provenance beside the package artifacts.
++    """Compatibility entry point for the shared payload-scoped record writer."""
++    core._write_provenance(bundle_dir, metadata_dir, entries, already_present,
++                           options, reporter, metadata)
+ 
+-    ``bundle_dir`` keeps the stable bundle identity while ``metadata_dir`` is the
+-    package-family directory (rpms/, debs/, or packages/) that owns these records.
+-    """
+-    record = provenance.build_provenance(
+-        bundle_id=bundle_dir.name,
+-        target={k: str(v) for k, v in metadata.items()
+-                if k in {"distribution", "release", "codename", "arch", "package_family",
+-                         "dependency_mode", "workload", "acquisition_intent",
+-                         "acquisition_capability", "analysis_type", "publication_type",
+-                         "verification_scope", "dependency_completeness"}},
+-        repositories=meta_dict_list(metadata, "repositories"),
+-        entries=entries,
+-        warnings=list(reporter.warnings),
+-    )
+-    if options.additive_publish and (metadata_dir / "provenance.json").is_file():
+-        record = provenance.merge_previous_provenance(record, metadata_dir / "provenance.json")
+-    if already_present:
+-        record.warnings.append(
+-            f"Differential bundle: {len(already_present)} package(s) were omitted because the "
+-            "baseline manifest reports them already present on the target. This bundle is not "
+-            "self-contained.")
+-        (metadata_dir / "baseline-omitted.txt").write_text(
+-            "\n".join(sorted(getattr(p, "nevra", p.name) for p in already_present)) + "\n",
+-            encoding="utf-8")
+-    (metadata_dir / "provenance.json").write_text(record.to_json(), encoding="utf-8")
+-    # apt_core keeps a forked copy of this writer (arch_core reuses core's), so
+-    # the legend has to be emitted here too or APT bundles silently lose it.
+-    core._write_assurance_legend(metadata_dir, record)
+-    counts = ", ".join(f"{v} {k}" for k, v in sorted(record.summary().items()))
+-    reporter.log(f"Provenance recorded: {counts or 'no packages'}")
+-    if options.signing_key:
+-        provenance.sign_bundle(metadata_dir / "manifest.json", options.signing_key, reporter)
+-        provenance.sign_bundle(metadata_dir / "provenance.json", options.signing_key, reporter)
+ 
+ def write_bundle_archive(bundle_dir: Path, reporter: Optional[Reporter] = None) -> Path:
+     bundle_dir = bundle_dir.resolve()
+diff --git a/core.py b/core.py
+index 1e3e706..6e03c93 100644
+--- a/core.py
++++ b/core.py
+@@ -4169,7 +4169,11 @@ def verify_package_artifact(pkg, path: Path, options: BuildOptions, reporter: Re
+ 
+     return True
+ 
+-def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, reporter: Reporter) -> None:
++def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, reporter: Reporter,
++                      *, opener=None, verifier=None) -> None:
++    # Resolve defaults at call time; backend wrappers retain their local hooks.
++    opener = _urlopen if opener is None else opener
++    verifier = verify_package_artifact if verifier is None else verifier
+     # Confined join: a hostile index cannot redirect this off-origin.
+     src = repo_relative_url(pkg.repo.normalized_url, pkg.location)
+     tmp = dest.with_suffix(dest.suffix + ".partial")
+@@ -4194,12 +4198,12 @@ def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, r
+                 shutil.copy2(local, tmp)
+             else:
+                 reporter.log(f"DOWNLOAD {redact_url(src)}")
+-                with _urlopen(src, timeout=90, repo=pkg.repo) as response, tmp.open("wb") as f:
++                with opener(src, timeout=90, repo=pkg.repo) as response, tmp.open("wb") as f:
+                     declared = response.headers.get("Content-Length") if hasattr(response, "headers") else None
+                     copy_package_stream_bounded(response, f, pkg, reporter, declared)
+             # use the shared strong-digest/evidence
+             # verifier, eliminating RPM's previous missing/MD5 fail-open path.
+-            verify_package_artifact(pkg, tmp, options, reporter)
++            verifier(pkg, tmp, options, reporter)
+             tmp.replace(dest)
+             return
+         except Exception as exc:
+-- 
+2.51.1
+

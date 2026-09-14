@@ -102,11 +102,9 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
 
 
     def _set_repo_tier(self, repo, tier: str):
-        """Tag a repository as source-plan/base or supplemental UI state.
+        """Tag a repository as base or supplemental UI state.
 
-        1.0.46 keeps this as an App-side
-        presentation attribute rather than changing the backend repository
-        contract. The tier controls which editor owns the row; it never changes
+        The tier controls which editor owns the row; it never changes
         dependency semantics, trust, or the repository URL itself.
         """
         repo.source_tier = tier if tier in {"base", "workload", "additional"} else "additional"
@@ -1104,9 +1102,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
 
     def _apply_source_method_inner(self):
         method = self.source_method_var.get()
-        # 1.0.46 source-plan changes
-        # repopulate only the base tier. Supplemental repositories remain
-        # exactly as the operator configured them.
+        # Source-plan changes repopulate only the base tier.
         self.repo_rows = [r for r in self.repo_rows if self._repo_tier(r) != "base"]
         p = self._profile()
         if not self.release_var.get().strip():
@@ -1240,8 +1236,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         if isinstance(data, dict) and isinstance(data.get("vendors"), dict):
             profiles = data.get("vendors", {})
         else:
-            # 1.0.44 and older stored one Red Hat tuple globally. Migrate it to
-            # the vendor-scoped shape without copying any credential material.
+            # Migrate the legacy global Red Hat tuple to vendor-scoped state.
             profiles = {"redhat": {k: str(data.get(k, "")) for k in ("cert", "key", "ca", "last_folder")}} if isinstance(data, dict) else {}
         cleaned = {}
         for vendor_id, profile in profiles.items():
@@ -1689,9 +1684,8 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             self.custom_var.set("docker" if self._profile().key == "photon" else "")
         if custom:
             self._update_custom_guidance()
-        # 1.0.52: selecting the workload is the moment its explicit
-        # side-channel source requirements become known. Materialize them now,
-        # while still on Packages, so the next Repositories page is already
+        # Materialize workload-specific source requirements before Repositories is shown.
+        # This keeps the next page
         # populated and coverage checks never observe a half-applied plan.
         if not self._single_mode() and not self._mirror_mode():
             self._activate_workload_repository_selection()
@@ -2133,8 +2127,8 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             self, "dependency_mode", "mode_var") == "Target-aware complete"
         if target_aware and not self.inventory_var.get().strip():
             self.workload_note.configure(
-                text="Target-aware mode needs the target's installed-package inventory. "
-                     "Load it on Linux Distribution (step 1) before analyzing.")
+                text="Target-aware mode uses an installed inventory when one is loaded. "
+                     "Without one, Feathered resolves the complete repository dependency closure.")
         self._update_source_status()
 
     def _acquisition_state(self):

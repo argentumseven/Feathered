@@ -1,0 +1,25 @@
+{
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "nodes": [
+    "tests/test_source_scope.py::test_mirror_checkboxes_are_authoritative_even_for_disabled_or_foreign_sources",
+    "tests/test_source_scope.py::test_init_incompatible_transaction_repository_is_logged_and_excluded",
+    "tests/test_source_scope.py::test_disabled_repository_does_not_read_url_or_host_state",
+    "tests/test_source_scope.py::test_ordinary_source_does_not_need_exact_package_identity",
+    "tests/test_source_scope.py::test_unknown_target_and_blank_release_keep_existing_compatibility_semantics",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-user:PRIVATE_PASSWORD@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-PRIVATE_BEARER@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
+    "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
+    "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]"
+  ]
+}

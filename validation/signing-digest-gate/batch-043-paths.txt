@@ -1,0 +1,4 @@
+tests/test_cli_replay.py
+tests/test_discovery_recovery.py
+tests/test_download_compatibility.py
+tests/test_end_to_end_build.py

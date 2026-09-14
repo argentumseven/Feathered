@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[line\\nbreak]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[line\\rbreak]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[nul\\x00name]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[7]",
+    "tests/test_root_requests.py::test_invalid_names_fail_for_both_records_and_direct_construction[None]",
+    "tests/test_root_requests.py::test_typed_roots_retain_identity_order_duplicates_and_empty_optional_fields",
+    "tests/test_root_requests.py::test_contradictory_pins_fail_but_unpinned_and_distinct_names_remain_valid[version]",
+    "tests/test_root_requests.py::test_contradictory_pins_fail_but_unpinned_and_distinct_names_remain_valid[architecture]",
+    "tests/test_root_requests.py::test_contradictory_pins_fail_but_unpinned_and_distinct_names_remain_valid[source_identity]",
+    "tests/test_root_requests.py::test_repository_and_role_constraints_are_preserved_without_merging",
+    "tests/test_root_requests.py::test_historical_import_and_pickle_paths_remain_usable",
+    "tests/test_root_requests.py::test_normalization_revalidates_records_restored_without_constructor",
+    "tests/test_root_requests.py::test_public_resolver_rejects_string_record_before_invoking_backend[rpm]",
+    "tests/test_root_requests.py::test_public_resolver_rejects_string_record_before_invoking_backend[deb]",
+    "tests/test_root_requests.py::test_public_resolver_rejects_string_record_before_invoking_backend[arch]",
+    "tests/test_root_requests.py::test_public_resolver_preserves_valid_legacy_exact_source_pins[rpm]",
+    "tests/test_root_requests.py::test_public_resolver_preserves_valid_legacy_exact_source_pins[deb]",
+    "tests/test_root_requests.py::test_public_resolver_preserves_valid_legacy_exact_source_pins[arch]",
+    "tests/test_rpm_installer_gpgcheck.py::test_all_vendor_signed_enables_gpgcheck",
+    "tests/test_rpm_installer_gpgcheck.py::test_one_unverified_package_disables_the_whole_transaction"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "nodes": [
+    "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible + EPEL (broad fallback)]",
+    "tests/test_metadata_loading.py::test_coverage_can_bypass_distribution_policy_without_accessing_it",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[rpm-rpm]",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[deb-deb]",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[arch-arch]",
+    "tests/test_mirror_unification.py::test_selection_order_decides_which_repository_supplies_the_bytes",
+    "tests/test_mirror_unification.py::test_stronger_shared_algorithm_is_preferred_for_the_proof",
+    "tests/test_mirror_unification.py::test_different_versions_of_one_package_are_distinct_identities",
+    "tests/test_mirror_unification.py::test_three_repositories_publishing_one_artifact_collapse_to_one",
+    "tests/test_mirror_unification.py::test_same_identity_with_different_bytes_is_a_conflict_not_a_choice",
+    "tests/test_mirror_unification.py::test_no_shared_algorithm_is_a_conflict_under_the_default_policy",
+    "tests/test_mirror_unification.py::test_matching_digest_with_disagreeing_size_is_a_conflict",
+    "tests/test_mirror_unification.py::test_agreeing_weak_digest_plus_size_is_recorded_as_a_weak_merge",
+    "tests/test_mirror_unification.py::test_disagreeing_weak_digest_is_still_decisive",
+    "tests/test_mirror_unification.py::test_conflict_report_names_the_identities_and_offers_the_way_out",
+    "tests/test_mirror_unification.py::test_conflicts_do_not_hide_behind_a_truncated_report",
+    "tests/test_mirror_unification.py::test_note_states_that_a_unified_mirror_is_nobody_upstream",
+    "tests/test_mirror_unification.py::test_sources_record_attributes_every_retained_package",
+    "tests/test_mirror_unification.py::test_empty_selection_summarises_without_raising",
+    "tests/test_mirror_unification.py::test_layout_label_round_trips_and_defaults_conservatively"
+  ]
+}

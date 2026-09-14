@@ -1,0 +1,544 @@
+{
+  "schema": 1,
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_artifact_digests.py::test_unavailable_windows_change_time_falls_back_to_reading",
+    "tests/test_artifact_digests.py::test_final_seal_reads_bytes_independently_of_digest_ledger",
+    "tests/test_assurance_semantics.py::test_every_assurance_mode_has_a_definition",
+    "tests/test_assurance_semantics.py::test_every_definition_states_both_halves",
+    "tests/test_assurance_semantics.py::test_peer_lineage_ranks_below_signatures_and_byte_match",
+    "tests/test_assurance_semantics.py::test_signature_modes_outrank_every_corroboration_mode",
+    "tests/test_assurance_semantics.py::test_legend_is_ordered_strongest_first_and_scoped_to_present_modes",
+    "tests/test_assurance_semantics.py::test_unknown_mode_gets_an_explicit_placeholder_not_a_guess",
+    "tests/test_assurance_semantics.py::test_bundle_provenance_embeds_the_legend_for_its_own_modes",
+    "tests/test_assurance_semantics.py::test_both_provenance_writers_emit_the_plain_text_legend",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-rpm]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-deb]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-arch]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-rpm]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-deb]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-arch]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-rpm]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-deb]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-arch]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[rpm-rpm]"
+  ],
+  "batch_excluded": [
+    "tests/test_artifact_digests.py::test_scope_reuses_bytes_but_not_across_builds",
+    "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[overwrite]",
+    "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[replace]",
+    "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[delete]",
+    "tests/test_artifact_digests.py::test_change_during_hash_is_not_remembered",
+    "tests/test_artifact_digests.py::test_exception_closes_scope",
+    "tests/test_artifact_digests.py::test_verification_reuse_and_controlled_rename[sha256]",
+    "tests/test_artifact_digests.py::test_verification_reuse_and_controlled_rename[sha512]",
+    "tests/test_artifact_digests.py::test_failed_verification_does_not_leave_a_reusable_digest",
+    "tests/test_artifact_digests.py::test_failed_independent_evidence_does_not_cache_primary_digest",
+    "tests/test_artifact_digests.py::test_mutation_between_verification_and_rename_forces_read",
+    "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[rpm]",
+    "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[deb]",
+    "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[arch]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[rpm-deb]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[rpm-arch]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[apt-rpm]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[apt-deb]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[apt-arch]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[pacman-rpm]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[pacman-deb]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[pacman-arch]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[auto-rpm]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[auto-deb]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[auto-arch]",
+    "tests/test_backend_dispatch.py::test_pacman_repository_does_not_query_host_predicates"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_unavailable_windows_change_time_falls_back_to_reading",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_unavailable_windows_change_time_falls_back_to_reading",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_unavailable_windows_change_time_falls_back_to_reading",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_final_seal_reads_bytes_independently_of_digest_ledger",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_final_seal_reads_bytes_independently_of_digest_ledger",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_final_seal_reads_bytes_independently_of_digest_ledger",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_every_assurance_mode_has_a_definition",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_every_assurance_mode_has_a_definition",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_every_assurance_mode_has_a_definition",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_every_definition_states_both_halves",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_every_definition_states_both_halves",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_every_definition_states_both_halves",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_peer_lineage_ranks_below_signatures_and_byte_match",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_peer_lineage_ranks_below_signatures_and_byte_match",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_peer_lineage_ranks_below_signatures_and_byte_match",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_signature_modes_outrank_every_corroboration_mode",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_signature_modes_outrank_every_corroboration_mode",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_signature_modes_outrank_every_corroboration_mode",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_legend_is_ordered_strongest_first_and_scoped_to_present_modes",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_legend_is_ordered_strongest_first_and_scoped_to_present_modes",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_legend_is_ordered_strongest_first_and_scoped_to_present_modes",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_unknown_mode_gets_an_explicit_placeholder_not_a_guess",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_unknown_mode_gets_an_explicit_placeholder_not_a_guess",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_unknown_mode_gets_an_explicit_placeholder_not_a_guess",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_bundle_provenance_embeds_the_legend_for_its_own_modes",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_bundle_provenance_embeds_the_legend_for_its_own_modes",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_bundle_provenance_embeds_the_legend_for_its_own_modes",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_both_provenance_writers_emit_the_plain_text_legend",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_both_provenance_writers_emit_the_plain_text_legend",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_assurance_semantics.py::test_both_provenance_writers_emit_the_plain_text_legend",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[rpm-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[rpm-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[rpm-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

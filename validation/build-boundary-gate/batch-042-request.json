@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[arch]",
+    "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[deb]",
+    "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[rpm]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/plain/bundle-path_1.0~rc-/plain/bundle-path_1.0~rc]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/media/user/My Passport/bundle-/media/user/My%20Passport/bundle]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/100% full/bundle-/srv/100%25%20full/bundle]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/tag#3/bundle-/srv/tag%233/bundle]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/\\xfcn\\xefcode/bundle-/srv/%C3%BCn%C3%AFcode/bundle]",
+    "tests/test_installer_paths.py::test_apt_installer_refuses_an_unindexed_bundle_repository",
+    "tests/test_installer_paths.py::test_awkward_bundle_directory_still_produces_a_valid_script",
+    "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments0-0]",
+    "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\ndef test_case(): pytest.skip('no tool')\\n-arguments1-1]",
+    "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\npytest.skip('no module', allow_module_level=True)\\n-arguments2-1]",
+    "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments3-1]",
+    "tests/test_integration_gate.py::test_native_workflow_shell_steps_parse_individually",
+    "tests/test_k8s_knowledge.py::test_upstream_releases_extend_beyond_former_ceiling_and_skip_future_dates",
+    "tests/test_k8s_knowledge.py::test_known_repository_candidates_survive_missing_older_repositories",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.19-19]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[19-19]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.61-61]"
+  ]
+}

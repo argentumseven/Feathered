@@ -1,0 +1,51 @@
+name: Linux GUI and CLI installation
+on:
+  workflow_call:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  installed-client:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['debian:12', 'ubuntu:22.04', 'ubuntu:24.04']
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Install native prerequisites
+        run: |
+          apt-get update -qq
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 python3-venv ca-certificates gnupg dpkg-dev
+      - name: Exercise CLI installation before Tk is installed
+        shell: bash
+        run: |
+          set -euo pipefail
+          client_root="$RUNNER_TEMP/Feathered installed source"
+          mkdir -p "$client_root" validation/linux-client
+          cp -a . "$client_root/"
+          cd "$client_root"
+          bash install_linux.sh --cli-only --bin-dir "$RUNNER_TEMP/client-bin" 2>&1 | tee "$GITHUB_WORKSPACE/validation/linux-client/setup-cli.log"
+          .venv/current/bin/python -I -c "import importlib.util; assert importlib.util.find_spec('_tkinter') is None"
+          .venv/current/bin/python check_linux_installation.py --cli-only 2>&1 | tee "$GITHUB_WORKSPACE/validation/linux-client/headless-client.log"
+      - name: Add desktop prerequisites
+        run: DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-tk xvfb xauth desktop-file-utils
+      - name: Install and exercise both entry points from a path containing spaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          client_root="$RUNNER_TEMP/Feathered installed source"
+          cd "$client_root"
+          bash install_linux.sh --bin-dir "$RUNNER_TEMP/client-bin" --desktop-dir "$RUNNER_TEMP/client-desktop" 2>&1 | tee "$GITHUB_WORKSPACE/validation/linux-client/setup-gui.log"
+          desktop-file-validate "$RUNNER_TEMP/client-desktop/org.feathered.Feathered.desktop"
+          "$RUNNER_TEMP/client-bin/feathered" --help
+          xvfb-run -a "$RUNNER_TEMP/client-bin/feathered-gui" --check
+          xvfb-run -a .venv/current/bin/python check_linux_installation.py 2>&1 | tee "$GITHUB_WORKSPACE/validation/linux-client/installed-client.log"
+      - name: Retain installation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: linux-client-${{ strategy.job-index }}-${{ github.sha }}
+          path: validation/linux-client/
+          if-no-files-found: warn

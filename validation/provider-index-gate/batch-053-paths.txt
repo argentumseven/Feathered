@@ -1,0 +1,3 @@
+tests/test_linux_installation.py
+tests/test_linux_shortcuts.py
+tests/test_metadata_loading.py

@@ -1,0 +1,196 @@
+From d965f2924e34589fcd3be655b69bd969f23738af Mon Sep 17 00:00:00 2001
+From: Feathered Maintenance <maintenance@localhost>
+Date: Sun, 13 Sep 2026 07:52:01 -0400
+Subject: [PATCH 2/6] Keep Arch reporting failures out of cache verification
+ recovery
+
+---
+ SOURCE-SHA256.json                            |  6 ++-
+ arch_core.py                                  |  9 ++--
+ .../bundle_snapshots/arch-corrupt.json        |  8 ++++
+ tests/test_cached_reporter_failures.py        | 41 +++++++++++++++++++
+ tests/test_download_compatibility.py          | 37 +++++++++++++++++
+ 5 files changed, 96 insertions(+), 5 deletions(-)
+ create mode 100644 tests/test_cached_reporter_failures.py
+ create mode 100644 tests/test_download_compatibility.py
+
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index 29987a6..e8c6654 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -18,7 +18,7 @@
+   "acquisition_model.py": "e90fca096aa320a8768fef39c21bbaa42e152f3c02a81926ec7a8f5397046b0e",
+   "app.py": "aa04ea4426571f5348a86eb70f7ea9357b993afb671bc43ebee16e6b5a9a50e7",
+   "apt_core.py": "436c7b4a0fddae2a1fd17f50da2c9482c0f73da547c35135f9e33264891ee599",
+-  "arch_core.py": "d13e8f6a64181d8389d8fb8fa7356f8a578a47ac72fd7fdf543df52c6c899dea",
++  "arch_core.py": "25217aec2df390b5c9c1b0aa4193640a67ea1c729ba1f546c9ca7b7945aebcfc",
+   "artifact_cache.py": "2680caccc4e9fd517896aa19f445e61461099319c1ebac9ecafe1c9011b859f4",
+   "background_jobs.py": "f90e152b75b4ae995f78f71354ee1cf3045476948698f1f0c5e1cfe52f2258fd",
+   "build_exe.bat": "5baca57c0113d2dc133a9ddabf0503bf06d36a2b2cc0e7571102650a0860025e",
+@@ -136,7 +136,7 @@
+   "test_evidence_workflow.py": "fa0c0f53bf767032741b57e2b4b2e03179be788bb27ebb855682208ae0f499cc",
+   "test_feather.py": "708b5b98f62fc680fbd5b199f887e6fd7cf2f189213543b9036914dede6e859b",
+   "tests/fixtures/bundle_snapshots/arch-additive.json": "50863cae7a18cd055daf30859ec3255a10be91801ff5da571d3df52a8635c5ec",
+-  "tests/fixtures/bundle_snapshots/arch-corrupt.json": "ff4e718c0cbe602418a21d726cbe9cd7eaf00e6cb52f2cd98ba8f93d6e78290c",
++  "tests/fixtures/bundle_snapshots/arch-corrupt.json": "76f946d805728273e5c7465a9478d96cc0feee5a51606fa2d954527a585aefe6",
+   "tests/fixtures/bundle_snapshots/arch-differential.json": "18cc21fac7233677d7cb9531581bbf8f0b9f196bdb0be8f1cbbaa551bd44e1b5",
+   "tests/fixtures/bundle_snapshots/arch-fresh.json": "2897dba931d346521d5b7d422d5cd445753e77cd61741ec28214dc53f2035792",
+   "tests/fixtures/bundle_snapshots/arch-reuse.json": "7588d678320d7e98e76582ecb1ebe1dced8fc66853e3a89227d821602904a0c2",
+@@ -161,11 +161,13 @@
+   "tests/test_build_spec.py": "ca10e9996d602ca7e7b0002b00b339bffc96edf11501482bcaf71710b75a392a",
+   "tests/test_build_worker_isolation.py": "b623339a690fe4e9a48da191ba8521d0fa9da22ce7b424cefe2024b0b643d1fd",
+   "tests/test_bundle_characterization.py": "3b7aa5448770438e296e0c2853d429271d1e3b90629321ac8794e43407763172",
++  "tests/test_cached_reporter_failures.py": "c0589d0f0ca7934dc5b6dcba1c79332155f213a50d86d7c6bc1abc1435597d52",
+   "tests/test_checksum_release_fixes.py": "003cf3cb88dc5ce4ea16b7b0aa5b4ffd52802c3823f53f9c52a93a4f2b429982",
+   "tests/test_chooser_stale_activation.py": "7dcf1c8c5e704f71ca7e179c1a4a02fa928386697da113dbd7cad1f6bc43b9cf",
+   "tests/test_cli_native_families.py": "3ec83717e3b3fc2252fef3992fcce616ecbc152361a519fbe48be4db7a0c9767",
+   "tests/test_cli_replay.py": "23131a3e936499261f36aea9ab6c5c0d1baaa41b2891c0c3dbb74afa3de69a36",
+   "tests/test_discovery_recovery.py": "7b871cac6a8d110949af92f0c02436e01d805560016a254e2db0136cce40b2ee",
++  "tests/test_download_compatibility.py": "ecbb4e8be73e4a946a39ef0bb35a5781de7c25c3aeb16cbd0ceb1c2f833dd6fa",
+   "tests/test_end_to_end_build.py": "05c4872ef68f4fdb7cd94cbc0f8a3a1d2529f13e83ff8e5dc14112a25c28c29b",
+   "tests/test_execution_feedback.py": "f7bb1ffd1de9bca8bfb4617eceb6cea6b0c6b3c8b0a81f2e17fe28d4ffdf5fab",
+   "tests/test_footer_status.py": "f018082a321b35f2b69229daf853548391df6fbede34017684352d06b31e630f",
+diff --git a/arch_core.py b/arch_core.py
+index 273b741..4c89813 100644
+--- a/arch_core.py
++++ b/arch_core.py
+@@ -826,14 +826,17 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
+         import artifact_cache
+         artifact_cache.restore(pkg, dest, final_dir.parent, options, reporter)
+         if dest.exists() and dest.stat().st_size > 0:
++            reporter.item(pkg.nevra, "verifying", size=dest.stat().st_size)
+             try:
+-                reporter.item(pkg.nevra, "verifying", size=dest.stat().st_size)
+                 core.verify_package_artifact(pkg, dest, options, reporter)
++            except RuntimeError:
++                reporter.item(pkg.nevra, "stale", size=dest.stat().st_size)
++                reporter.log(f"Healing corrupt cached ALPM package: {dest.name}")
++                dest.unlink()
++            else:
+                 reporter.item(pkg.nevra, "reused", size=dest.stat().st_size)
+                 reporter.progress(f"ALPM {i}/{total}", i / total)
+                 continue
+-            except RuntimeError:
+-                reporter.item(pkg.nevra, "stale", size=dest.stat().st_size); dest.unlink()
+         reporter.item(pkg.nevra, "active", size=pkg.size)
+         try:
+             _copy_or_download(pkg, dest, options, reporter)
+diff --git a/tests/fixtures/bundle_snapshots/arch-corrupt.json b/tests/fixtures/bundle_snapshots/arch-corrupt.json
+index c2b2196..644eb73 100644
+--- a/tests/fixtures/bundle_snapshots/arch-corrupt.json
++++ b/tests/fixtures/bundle_snapshots/arch-corrupt.json
+@@ -50,6 +50,10 @@
+         "size": 6
+       }
+     ],
++    [
++      "log",
++      "Healing corrupt cached ALPM package: demo.pkg.tar.gz"
++    ],
+     [
+       "item",
+       "demo-1.2-3-x86_64",
+@@ -91,6 +95,10 @@
+         "size": 6
+       }
+     ],
++    [
++      "log",
++      "Healing corrupt cached ALPM package: extra.pkg.tar.gz"
++    ],
+     [
+       "item",
+       "extra-1.2-3-x86_64",
+diff --git a/tests/test_cached_reporter_failures.py b/tests/test_cached_reporter_failures.py
+new file mode 100644
+index 0000000..06d1e5d
+--- /dev/null
++++ b/tests/test_cached_reporter_failures.py
+@@ -0,0 +1,41 @@
++"""Reporting failures must not invalidate verified cached payloads."""
++import pytest
++
++import core
++from test_bundle_characterization import characterize
++
++
++@pytest.mark.parametrize('family', ('rpm', 'deb', 'arch'))
++@pytest.mark.parametrize('stage', ('verifying', 'reused', 'progress'))
++def test_cached_reporting_failure_propagates(tmp_path, monkeypatch, family, stage):
++    original_item = core.Reporter.item
++    original_progress = core.Reporter.progress
++
++    def item(self, identity, state, **info):
++        if state == stage:
++            raise RuntimeError('reporting callback failed')
++        return original_item(self, identity, state, **info)
++
++    def progress(self, label, value):
++        if stage == 'progress' and label.startswith(('RPM ', 'DEB ', 'ALPM ')):
++            raise RuntimeError('reporting callback failed')
++        return original_progress(self, label, value)
++
++    monkeypatch.setattr(core.Reporter, 'item', item)
++    monkeypatch.setattr(core.Reporter, 'progress', progress)
++    import artifact_cache
++    restores = []
++    original_restore = artifact_cache.restore
++
++    def restore(pkg, dest, *args):
++        restores.append(dest)
++        return original_restore(pkg, dest, *args)
++
++    monkeypatch.setattr(artifact_cache, 'restore', restore)
++    from test_bundle_characterization import FAMILIES
++    backend = FAMILIES[family][0]
++    monkeypatch.setattr(backend, '_copy_or_download', lambda *args: pytest.fail(
++        'A reporting failure must not cause a replacement download'))
++    with pytest.raises(RuntimeError, match='reporting callback failed'):
++        characterize(tmp_path, monkeypatch, family, 'reuse')
++    assert len(restores) == 1
+diff --git a/tests/test_download_compatibility.py b/tests/test_download_compatibility.py
+new file mode 100644
+index 0000000..6c1eabc
+--- /dev/null
++++ b/tests/test_download_compatibility.py
+@@ -0,0 +1,37 @@
++"""APT delegation must retain its backend-specific transport/verifier hooks."""
++from io import BytesIO
++from pathlib import Path
++import pytest
++import apt_core
++import core
++
++
++def test_apt_transfer_keeps_transport_url_and_verifier_hooks(tmp_path,monkeypatch):
++    url='https://repo.invalid/linux/?token=PRIVATE&arch=amd64'
++    repo=core.RepoSpec('Fixture',url,repo_format='apt')
++    pkg=apt_core.DebPackage('demo','amd64','1','demo.deb','sha256','',repo,size=7)
++    seen=[]
++    def opener(address,**kwargs):seen.append(('open',address,kwargs['repo']));return BytesIO(b'payload')
++    def verify(package,path,options,reporter):seen.append(('verify',package,path.read_bytes()));return True
++    monkeypatch.setattr(apt_core,'_urlopen',opener)
++    monkeypatch.setattr(apt_core,'verify_package_artifact',verify)
++    monkeypatch.setattr(core,'_urlopen',lambda *a,**kw:pytest.fail('APT transport hook bypassed'))
++    monkeypatch.setattr(core,'verify_package_artifact',lambda *a,**kw:pytest.fail('APT verifier hook bypassed'))
++    output=tmp_path/'demo.deb'
++    apt_core._copy_or_download(pkg,output,core.BuildOptions(),core.Reporter())
++    assert seen==[('open',core.repo_relative_url(url,pkg.location),repo),('verify',pkg,b'payload')]
++    assert output.read_bytes()==b'payload'
++    assert not output.with_suffix('.deb.partial').exists()
++
++
++def test_apt_verifier_failure_keeps_destination_and_cleans_partial(tmp_path,monkeypatch):
++    repo=core.RepoSpec('Fixture',tmp_path.as_uri()+'/',repo_format='apt')
++    source=tmp_path/'source.deb';source.write_bytes(b'payload')
++    pkg=apt_core.DebPackage('demo','amd64','1',source.name,'sha256','',repo,size=7)
++    def reject(*args):raise RuntimeError('rejected fixture')
++    monkeypatch.setattr(apt_core,'verify_package_artifact',reject)
++    output=tmp_path/'output.deb';output.write_bytes(b'existing')
++    with pytest.raises(RuntimeError,match='rejected fixture'):
++        apt_core._copy_or_download(pkg,output,core.BuildOptions(retries=1),core.Reporter())
++    assert output.read_bytes()==b'existing'
++    assert not output.with_suffix('.deb.partial').exists()
+-- 
+2.51.1
+

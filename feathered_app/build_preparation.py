@@ -14,6 +14,7 @@ from core import BuildOptions, Cancelled, infer_vendor_id
 from feathered_app.build_output import FOLDER_SCHEMES
 from feathered_app.build_request import BuildRequestMixin
 from feathered_app.build_runner import BuildPlan
+from feathered_app.prepared_plan import PreparedPlan
 from source_readiness import evaluate_source_readiness
 from feathered_app.source_scope import (
     BuildScopeContext, ParticipationContext,
@@ -221,12 +222,6 @@ class BuildPreparationMixin:
                 max_resolution_passes=self.resolution_pass_budget or 8,
                 **trust,
             )
-        if self._profile().package_family == "arch":
-            if not BuildRequestMixin._selected_inventory(self):
-                raise RuntimeError("Arch transactions require a captured target inventory for a full repository upgrade. Collect target_inventory.sh with target_inventory_details.py on the receiver first.")
-            inv = self._parse_target_inventory_backend(Path(BuildRequestMixin._selected_inventory(self)))
-            return BuildOptions(include_dependencies=True, include_recommends=False,
-                                target_inventory=inv, max_resolution_passes=self.resolution_pass_budget or 8, **trust)
         if self._single_mode():
             # Exact-package mode is intentionally strict: only strong RPM
             # Requires or APT Depends/Pre-Depends are followed. Weak recommendations are excluded.
@@ -237,9 +232,9 @@ class BuildPreparationMixin:
         mode = BuildRequestMixin._selected_content(self, "dependency_mode", "mode_var")
         inv = None
         if mode == "Target-aware complete":
-            if not BuildRequestMixin._selected_inventory(self):
-                raise RuntimeError("Choose a target inventory file first")
-            inv = self._parse_target_inventory_backend(Path(BuildRequestMixin._selected_inventory(self)))
+            inventory_path = BuildRequestMixin._selected_inventory(self)
+            if inventory_path:
+                inv = self._parse_target_inventory_backend(Path(inventory_path))
         return BuildOptions(
             include_dependencies=True,
             include_recommends=mode == "Complete + weak dependencies",
@@ -398,7 +393,7 @@ class BuildPreparationMixin:
 
 
 def prepare_job(host, *, do_download=True, state=None, picked_at_start=None,
-                confirm_package_only=None):
+                confirm_package_only=None) -> PreparedPlan:
     """Validate one operation and lock its publication choices before execution.
 
     Callers own source configuration and selected-package resolution. A GUI
@@ -422,21 +417,27 @@ def prepare_job(host, *, do_download=True, state=None, picked_at_start=None,
     requested_source_plan = host._request_source_plan_metadata(requests)
     repositories = copy.deepcopy(host._build_repository_scope(package_only=package_only))
     opts = host._build_options(package_only=package_only)
-    from kubernetes_workflow import VKS_KEY, INVENTORY_MESSAGE, rolling_source
+    from dataclasses import replace
+    from kubernetes_workflow import VKS_KEY, rolling_source
     context = BuildRequestMixin._selected_workload_context(host)
     context.validate()
-    opts.workload_context = context
     if context.workload == VKS_KEY and not host._mirror_mode():
         path = BuildRequestMixin._selected_inventory(host)
-        if not path:
-            raise PreparationRejected(INVENTORY_MESSAGE)
-        opts.target_inventory = host._parse_target_inventory_backend(Path(path))
-        if not opts.target_inventory.retained_packages:
-            raise PreparationRejected(INVENTORY_MESSAGE + ' Capture package versions with target_inventory_details.py; this inventory has no usable package baseline.')
+        if path:
+            opts.target_inventory = host._parse_target_inventory_backend(Path(path))
+        baseline_available = bool(
+            opts.target_inventory is not None
+            and getattr(opts.target_inventory, "retained_packages", None))
+        if context.pin_baseline and not baseline_available:
+            context = replace(context, pin_baseline=False)
+            log = getattr(host, "_log", None)
+            if callable(log):
+                log("Pin to inventory baseline was ignored because no usable installed inventory is loaded.")
         if context.pin_baseline:
             repositories = [r for r in repositories if not rolling_source(r)]
         opts.include_dependencies = True
         opts.emit_repository = True
+    opts.workload_context = context
     host._validate_signing()
     host._validate_output_naming()
     host._validate_sources(opts.include_dependencies)

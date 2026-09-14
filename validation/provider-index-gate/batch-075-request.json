@@ -1,0 +1,8 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-client-rpm]",
+    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-client-deb]",
+    "tests/test_workload_version_ui.py::test_generic_package_scan_result_cannot_replace_another_workload"
+  ]
+}

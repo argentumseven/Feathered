@@ -1,5 +1,5 @@
 From 7b745fb7186de5885d9b63f221acc3deef08da5f Mon Sep 17 00:00:00 2001
-From: Codex <codex@openai.com>
+From: Feathered Maintenance <maintenance@localhost>
 Date: Sat, 12 Sep 2026 19:46:31 +0200
 Subject: [PATCH] Make release gate reconcile actual pytest outcomes
 

@@ -1,0 +1,25 @@
+{
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "nodes": [
+    "test_feather.py::test_1058_windows_casefold_payload_collision_is_blocked",
+    "test_feather.py::test_1058_verifier_resource_is_fail_closed",
+    "test_feather.py::test_1058_build_script_embeds_verifier_and_stages_required_sidecars",
+    "test_feather.py::test_1058_manual_repo_prevents_profile_managed_package_only_downgrade",
+    "test_feather.py::test_1058_external_workload_preserves_optional_packages",
+    "test_feather.py::test_1058_gui_log_sink_redacts_registered_secrets",
+    "test_feather.py::test_1058_rpm_installer_uses_local_repository_roots_not_payload_argv",
+    "test_feather.py::test_1059_materializer_uses_first_approved_candidate_present_in_scope",
+    "test_feather.py::test_1059_materializer_fails_closed_on_unapproved_similar_package",
+    "test_feather.py::test_1059_materializer_respects_workload_repository_role",
+    "test_feather.py::test_1059_external_workload_components_support_ordered_candidates",
+    "test_feather.py::test_1059_evidence_gate_matches_per_source_runtime_contract",
+    "test_feather.py::test_1059_basic_strict_and_minimal_do_not_require_evidence",
+    "test_feather.py::test_1059_unconfigured_evidence_dropdown_is_visibly_none_not_automatic",
+    "test_feather.py::test_1059_provenance_evidence_is_own_highlightable_card_and_policy_does_not_auto_mesh",
+    "test_feather.py::test_1059_catalog_signature_contract_is_fail_closed_when_incomplete",
+    "test_feather.py::test_1059_verified_catalog_signature_is_recorded",
+    "test_feather.py::test_workload_catalog_uses_core_authenticated_openpgp_policy",
+    "test_feather.py::test_https_repository_redirect_cannot_downgrade_to_http",
+    "test_feather.py::test_signed_url_credentials_are_recognized_and_redacted"
+  ]
+}

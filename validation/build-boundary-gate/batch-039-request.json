@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "tests/test_cli_replay.py::test_unsigned_metadata_requires_trust_consent",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[exact]",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[workload]",
+    "tests/test_cli_replay.py::test_existing_output_requires_separate_consent",
+    "tests/test_cli_replay.py::test_additive_metadata_requires_its_own_choice",
+    "tests/test_cli_replay.py::test_invalid_request_has_diagnostic_and_nonzero_exit",
+    "tests/test_cli_replay.py::test_dry_run_describes_settings_without_preparing",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+    "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+    "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[503-indeterminate]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[403-indeterminate]",
+    "tests/test_discovery_recovery.py::test_partial_merge_keeps_old_time_and_new_successes_and_removes_proven_absence",
+    "tests/test_discovery_recovery.py::test_stale_refresh_cannot_clear_policy_change",
+    "tests/test_discovery_recovery.py::test_persistent_writer_lease_retains_cache_without_network",
+    "tests/test_discovery_recovery.py::test_concurrent_refreshes_reconcile_the_committed_policy_signal"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
+    "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
+    "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
+    "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
+    "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+    "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
+    "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
+    "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds",
+    "tests/test_chooser_stale_activation.py::test_inline_chooser_accumulates_several_packages",
+    "tests/test_chooser_stale_activation.py::test_inline_add_keeps_its_tree_reference",
+    "tests/test_chooser_stale_activation.py::test_re_adding_the_same_package_inline_reports_instead_of_re_rendering",
+    "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[rpm]",
+    "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[arch]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[workload]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[exact]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[separate]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[unified]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[devuan]",
+    "tests/test_cli_replay.py::test_stable_source_identity_survives_display_label_change",
+    "tests/test_cli_replay.py::test_missing_pin_is_rejected_before_publication"
+  ]
+}

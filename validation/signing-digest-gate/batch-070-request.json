@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "tests/test_transaction_contract.py::test_live_matrix_runs_materialization_optionality_and_closure",
+    "tests/test_transaction_contract.py::test_inventory_relationships_reject_inconsistent_capture",
+    "tests/test_transaction_contract.py::test_modular_header_without_modulemd_is_rejected",
+    "tests/test_transaction_contract.py::test_rpm_module_label_survives_record_copy_without_changing_package_equality",
+    "tests/test_transaction_inventory.py::test_rpm_retained_capabilities_are_owned_by_the_returned_snapshot",
+    "tests/test_transaction_inventory.py::test_rpm_replacement_and_versioned_obsoletes_remove_only_matching_owners",
+    "tests/test_transaction_inventory.py::test_rpm_legacy_unowned_provides_survive_only_without_replacements",
+    "tests/test_transaction_inventory.py::test_deb_replacement_drops_owned_virtual_provides_across_architectures",
+    "tests/test_transaction_inventory.py::test_arch_replaces_honors_version_limits_and_owns_returned_state",
+    "tests/test_transaction_inventory.py::test_uncaptured_relationships_do_not_claim_reverse_validation[rpm]",
+    "tests/test_transaction_inventory.py::test_uncaptured_relationships_do_not_claim_reverse_validation[deb]",
+    "tests/test_transaction_inventory.py::test_uncaptured_relationships_do_not_claim_reverse_validation[arch]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[rpmlib(CompressedFileNames)-providers0-False]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(required if trigger)-providers1-True]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(required if trigger)-providers2-False]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(one or two)-providers3-False]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(one with two)-providers4-True]",
+    "tests/test_transaction_inventory.py::test_retained_rpm_rich_relationships_preserve_owner_semantics[(one with two)-providers5-False]",
+    "tests/test_transaction_inventory.py::test_deb_reverse_validation_checks_alternatives_and_predepends",
+    "tests/test_transaction_inventory.py::test_arch_reverse_validation_uses_versioned_provides"
+  ]
+}

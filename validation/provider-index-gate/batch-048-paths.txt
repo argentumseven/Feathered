@@ -1,0 +1,2 @@
+tests/test_k8s_knowledge.py
+tests/test_kubernetes_workflows.py

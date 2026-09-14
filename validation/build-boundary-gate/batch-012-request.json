@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "test_feather.py::test_trust_findings_are_retained_in_full_for_log_review",
+    "test_feather.py::test_build_trust_review_uses_log_window_decision_instead_of_messagebox",
+    "test_feather.py::test_closing_or_cancelling_trust_log_blocks_pending_build",
+    "test_feather.py::test_review_result_renderer_does_not_create_trust_warning_pseudo_packages",
+    "test_feather.py::test_provenance_table_marks_missing_sha_fields_explicitly",
+    "test_feather.py::test_global_operation_lease_disables_and_restores_process_buttons",
+    "test_feather.py::test_high_resolution_mousewheel_deltas_are_accumulated_instead_of_dropped",
+    "test_feather.py::test_build_keeps_review_rows_visible_during_preflight",
+    "test_feather.py::test_review_exposes_exact_source_url_view",
+    "test_feather.py::test_checksum_inspection_participates_in_global_operation_lock",
+    "test_feather.py::test_rpm_repomd_metadata_location_cannot_escape_repository",
+    "test_feather.py::test_rpm_repomd_metadata_location_cannot_traverse_repository",
+    "test_feather.py::test_source_bond_rejects_redirect_collapse_to_acquisition_effective_host",
+    "test_feather.py::test_metadata_download_limit_is_enforced_without_content_length",
+    "test_feather.py::test_metadata_decompression_limit_stops_compression_bomb_shape",
+    "test_feather.py::test_rpm_signature_reader_does_not_use_path_read_bytes",
+    "test_feather.py::test_local_rpm_primary_size_is_archive_bytes_not_installed_size",
+    "test_feather.py::test_deb822_parser_rejects_pathological_single_line",
+    "test_feather.py::test_deb822_parser_rejects_pathological_continuation_field",
+    "test_feather.py::test_repository_location_rejects_percent_encoded_dotdot_traversal"
+  ]
+}

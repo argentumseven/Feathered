@@ -1,0 +1,574 @@
+{
+  "schema": 1,
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[nginx]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[helm]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kernel-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[linux-image-6.1.0-generic-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[containerd-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubelet-node/control-plane]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubernetes-node/control-plane]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[antrea-cluster add-on]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-29-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-34-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-24-27-27-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-34-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-31-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-31-33-34-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-32-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-apiserver-34-33-33-False]"
+  ],
+  "batch_excluded": [
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1.33-]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1.33.4-]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[v1.33.4-]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[v1.33.4+vmware.1-+vmware.1]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[v1.33.4---vmware.1-fips.1-tkg.1----vmware.1-fips.1-tkg.1]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1.33.4-1.ph5--1.ph5]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1.33.4-150500.1.1--150500.1.1]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1:1.33.4-00--00]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.34.0-rc.1]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[2.0.0]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[latest]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.33.4junk]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.33.4+]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.33.4-rc1]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[kernel-headers]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[kernel-devel]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[kernel-rt-devel]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[linux-headers-generic]",
+    "tests/test_kubernetes_workflows.py::test_only_conflicts_need_acknowledgement",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[photon-5.0-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[ubuntu-22.04-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[ubuntu-24.04-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rhel-9-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rhel-9.6-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[photon-4.0-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[debian-12-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[arch-rolling-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rocky-9-False]",
+    "tests/test_kubernetes_workflows.py::test_minor_materialization_is_idempotent_and_rewrites_owned_row[rpm-rpm/-False]",
+    "tests/test_kubernetes_workflows.py::test_minor_materialization_is_idempotent_and_rewrites_owned_row[deb-deb/-True]",
+    "tests/test_kubernetes_workflows.py::test_discovery_has_no_fallback_list_and_stops_after_three_misses",
+    "tests/test_kubernetes_workflows.py::test_schema_two_migrates_without_replacing_exact_roots",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_verifies_index_and_attempts_signature",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[checksum]",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[architecture]",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[missing-release]",
+    "tests/test_kubernetes_workflows.py::test_flat_missing_architecture_is_observed_not_invented",
+    "tests/test_kubernetes_workflows.py::test_cli_keeps_other_minor_visible_and_records_advice",
+    "tests/test_kubernetes_workflows.py::test_cli_conflict_lists_package_and_acknowledgement_allows_build",
+    "tests/test_kubernetes_workflows.py::test_catalog_and_resolver_never_hide_managed_or_other_minor_packages",
+    "tests/test_kubernetes_workflows.py::test_vks_missing_inventory_has_rolling_channel_explanation",
+    "tests/test_kubernetes_workflows.py::test_baseline_rejects_installed_changes_but_keeps_ordinary_headers",
+    "tests/test_kubernetes_workflows.py::test_vks_build_emits_image_draft_and_keeps_inventory_baseline",
+    "tests/test_kubernetes_workflows.py::test_flat_kubernetes_repository_can_be_mirrored",
+    "tests/test_kubernetes_workflows.py::test_frozen_context_does_not_read_any_widgets",
+    "tests/test_kubernetes_workflows.py::test_kubernetes_bundle_supports_additive_publication",
+    "tests/test_kubernetes_workflows.py::test_discovery_result_defers_during_build_and_keeps_other_family_separate",
+    "tests/test_kubernetes_workflows.py::test_generated_repository_changes_do_not_drop_operator_policy",
+    "tests/test_kubernetes_workflows.py::test_complete_rpm_inventory_satisfies_libraries_without_upgrading_them",
+    "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates0]",
+    "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates1]",
+    "tests/test_kubernetes_workflows.py::test_workload_artifacts_exist_before_indexing",
+    "tests/test_kubernetes_workflows.py::test_saved_workload_patch_pin_builds_requested_version",
+    "tests/test_kubernetes_workflows.py::test_unavailable_workload_patch_never_falls_back_to_latest",
+    "tests/test_kubernetes_workflows.py::test_node_build_requests_pin_components_but_not_cri_or_cni"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[nginx]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[nginx]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[nginx]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[helm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[helm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[helm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kernel-node image]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kernel-node image]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kernel-node image]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[linux-image-6.1.0-generic-node image]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[linux-image-6.1.0-generic-node image]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[linux-image-6.1.0-generic-node image]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[containerd-node image]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[containerd-node image]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[containerd-node image]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubelet-node/control-plane]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubelet-node/control-plane]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubelet-node/control-plane]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubernetes-node/control-plane]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubernetes-node/control-plane]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubernetes-node/control-plane]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[antrea-cluster add-on]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[antrea-cluster add-on]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[antrea-cluster add-on]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-33-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-33-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-33-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-29-33-33-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-29-33-33-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-29-33-33-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-34-33-33-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-34-33-33-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-34-33-33-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-24-27-27-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-24-27-27-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-24-27-27-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-33-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-33-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-33-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-34-33-33-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-34-33-33-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-34-33-33-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-31-33-33-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-31-33-33-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-31-33-33-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-34-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-34-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-34-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-31-33-34-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-31-33-34-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-31-33-34-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-32-33-34-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-32-33-34-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-32-33-34-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-34-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-34-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-34-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-apiserver-34-33-33-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-apiserver-34-33-33-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-apiserver-34-33-33-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

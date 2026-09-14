@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "tests/test_transaction_resolution.py::test_pending_repair_defers_other_failures_until_the_retry",
+    "tests/test_transaction_resolution.py::test_dependencies_disabled_bypasses_reverse_validation",
+    "tests/test_ui_event_budget.py::test_progress_burst_yields_before_consuming_all_events",
+    "tests/test_ui_event_budget.py::test_progress_coalescing_preserves_decision_and_completion_barriers",
+    "tests/test_ui_event_budget.py::test_failed_handler_acknowledges_and_does_not_strand_done",
+    "tests/test_ui_event_budget.py::test_real_gui_heartbeat_runs_before_a_progress_burst_finishes",
+    "tests/test_ui_event_budget.py::test_typed_obsolete_results_do_not_reach_handlers",
+    "tests/test_ui_event_budget.py::test_destroying_window_cancels_discovery_ownership",
+    "tests/test_version_ui_fixes.py::test_readonly_entry_background_is_not_the_clam_frame_colour",
+    "tests/test_version_ui_fixes.py::test_entry_focus_ring_uses_the_application_accent",
+    "tests/test_version_ui_fixes.py::test_every_live_readonly_entry_resolves_a_panel_background",
+    "tests/test_version_ui_fixes.py::test_the_attention_entry_variant_did_not_reintroduce_the_corners",
+    "tests/test_version_ui_fixes.py::test_clam_has_no_indicatorcolor_option",
+    "tests/test_version_ui_fixes.py::test_stray_ttk_checkbuttons_are_still_legible",
+    "tests/test_version_ui_fixes.py::test_no_themed_checkbutton_is_built_into_the_live_tree",
+    "tests/test_version_ui_fixes.py::test_kubernetes_checkboxes_use_the_drawn_house_widget",
+    "tests/test_version_ui_fixes.py::test_a_drawn_checkbutton_survives_the_operation_lock",
+    "tests/test_version_ui_fixes.py::test_a_drawn_checkbutton_runs_its_command_on_click_only",
+    "tests/test_version_ui_fixes.py::test_hiding_a_card_hides_its_heading_too",
+    "tests/test_version_ui_fixes.py::test_a_hidden_card_returns_to_its_original_position"
+  ]
+}

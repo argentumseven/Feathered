@@ -1,0 +1,25 @@
+{
+  "run_id": "cdba484d465e479785a8b1a125914de5",
+  "nodes": [
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha256-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha256-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha384-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha384-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha384-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha512-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha512-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha512-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_and_mixed_policies_never_normalize_without_user_choice",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-None-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-None-full-corroboration]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-coverage1-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-coverage1-full-corroboration]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-coverage2-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-coverage2-full-corroboration]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-None-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-None-full-corroboration]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-coverage1-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-coverage1-full-corroboration]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-coverage2-evidence-fallback]"
+  ]
+}

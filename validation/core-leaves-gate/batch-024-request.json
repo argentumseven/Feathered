@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "test_feather.py::test_110_certificate_failures_fail_fast_with_actionable_remedy",
+    "test_feather.py::test_110_bundled_gpg_verifier_is_preferred_and_name_comparisons_survive_paths",
+    "test_feather.py::test_110_rail_rows_bind_click_and_hover_on_every_child_widget",
+    "test_feather.py::test_110_rail_navigation_is_free_in_every_direction",
+    "test_feather.py::test_110_custom_packages_preset_uses_the_choose_packages_workflow",
+    "test_feather.py::test_110_init_system_axis_for_artix_and_devuan",
+    "test_feather.py::test_110_dynamic_workload_resolution_and_comet_rail",
+    "test_feather.py::test_110_init_lock_refuses_systemd_packages_and_incompatible_repositories",
+    "test_feather.py::test_110_chooser_add_survives_workflow_rerender_after_removal",
+    "test_feather.py::test_110_content_stage_has_no_second_package_entry_for_custom",
+    "test_feather.py::test_110_gnupg_absence_gates_signature_controls_and_multi_host_cert_failures",
+    "test_feather.py::test_110_workflow_polish_batch",
+    "test_feather.py::test_110_repository_view_rebuilds_on_target_change_and_cert_advice_is_evidence_based",
+    "test_feather.py::test_111_artix_default_uses_official_mirror_layout_and_current_list_source",
+    "test_feather.py::test_111_checksum_inspection_routes_transport_and_failures_to_activity_log",
+    "test_feather.py::test_112_custom_label_names_publish_folder_exactly",
+    "test_feather.py::test_112_confirm_output_folder_can_choose_sibling",
+    "test_feather.py::test_112_confirm_output_folder_keeps_requested_name_on_replace",
+    "test_feather.py::test_113_custom_label_empty_has_no_fallback_folder_name",
+    "test_feather.py::test_113_custom_label_preview_clears_immediately"
+  ]
+}

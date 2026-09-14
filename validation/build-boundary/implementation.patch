@@ -1,0 +1,892 @@
+From c22d135ce05c79fb9e5b98211bf4237a739cc746 Mon Sep 17 00:00:00 2001
+From: Feathered Maintenance <maintenance@localhost>
+Date: Sat, 12 Sep 2026 23:19:32 -0500
+Subject: [PATCH 1/2] Own prepared build graphs and type execution feedback
+ capabilities
+
+---
+ BUILD-BOUNDARY.md                     | 39 +++++++++++++++++
+ SOURCE-SHA256.json                    | 22 ++++++----
+ VALIDATION.md                         | 34 ++++++++++++---
+ check_host_contracts.py               | 31 ++++++++++++++
+ core.py                               |  8 +++-
+ feathered_app/build_api.py            |  3 +-
+ feathered_app/build_preparation.py    |  3 +-
+ feathered_app/build_runner.py         | 61 ++++++---------------------
+ feathered_app/execution_feedback.py   | 55 ++++++++++++++++++++++++
+ feathered_app/prepared_plan.py        | 56 ++++++++++++++++++++++++
+ mypy.ini                              |  9 ++++
+ tests/test_build_request_module.py    |  2 +
+ tests/test_execution_feedback.py      | 60 ++++++++++++++++++++++++++
+ tests/test_prepared_adapter_parity.py | 53 +++++++++++++++++++++++
+ tests/test_prepared_plan_ownership.py | 52 +++++++++++++++++++++++
+ 15 files changed, 424 insertions(+), 64 deletions(-)
+ create mode 100644 BUILD-BOUNDARY.md
+ create mode 100644 feathered_app/execution_feedback.py
+ create mode 100644 feathered_app/prepared_plan.py
+ create mode 100644 tests/test_execution_feedback.py
+ create mode 100644 tests/test_prepared_adapter_parity.py
+ create mode 100644 tests/test_prepared_plan_ownership.py
+
+diff --git a/BUILD-BOUNDARY.md b/BUILD-BOUNDARY.md
+new file mode 100644
+index 0000000..324d5e9
+--- /dev/null
++++ b/BUILD-BOUNDARY.md
+@@ -0,0 +1,39 @@
++# Prepared execution boundary
++
++`feathered_app.prepared_plan.BuildPlan` owns one run's mutable graph. Construction
++copies options, inventories, repository records, source-policy metadata and
++mirror publication options together, preserving internal aliases but separating
++caller-owned objects and other runs. Repository verification fields remain
++mutable: metadata acquisition legitimately annotates them. Root requests become
++immutable `RootRequest` values without losing pins, architecture, repository or
++source identity. Picked-package identities become a frozen set.
++
++This intentionally strengthens direct construction. A caller can no longer
++modify the original options or repository objects after passing them to a plan
++and thereby alter that run. Use the plan's owned objects to inspect execution
++annotations. Normal GUI/CLI preparation already copied substantial state; the
++change does not claim that those paths previously lacked isolation.
++
++The legacy `feathered_app.build_runner.BuildPlan` import and constructor argument
++order remain supported. `PreparedPlan` is a union of three concrete plan types,
++with RPM, Debian and Arch inventory parameterizations kept distinct. It is not
++a plan whose inventory slot can silently switch among those families.
++
++`execution_feedback` binds reporting, cancellation, decisions, transfer-plan
++notification and terminal events through `BuildFeedbackHost`. The checked
++implementation includes mirror progress mapping and source-qualified item
++identities. Terminal tuples, warning collection and decision defaults retain
++their existing behavior. Each binding creates its own reporter state. The core
++reporter now requires only an `is_set()` cancellation capability rather than a
++particular threading class.
++
++The new modules and build outcomes are checked with strict optional handling,
++complete function annotations, generic parameters and return-value checks.
++The host-contract gate accepts the concrete implementations and rejects mixed
++inventory assignments and malformed root/repository/feedback inputs.
++
++This is a completed vertical slice of implementation instruction 6, not a claim
++that the entire application host is typed. The runner's source/catalog/output
++host remains broad, and backend extraction (instruction 7) is deferred until
++artifact and event characterization covers all three families. No resolver,
++trust policy, repository display URL or bundle schema is rewritten here.
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index d4f3f4c..27721d8 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -6,6 +6,7 @@
+   ".github/workflows/workload-drift.yml": "ad6be6eb2007aa01082c6a54de5b08907d6d9085b0d4e47f3b9688df1aadaad6",
+   ".gitignore": "7af25837f3f8f7ae328b2e61ecdae35b3dbf101fe4e46bb9352961a3f43c2243",
+   "BACKGROUND-REFRESH.md": "9719bf2f7d7ba6b95dbec4f5100c447c4773bdbf03b0c91d5a439a0a678d6d82",
++  "BUILD-BOUNDARY.md": "e5009241779660f45152630ce880f67415ef2a5d767d449de9e8eb55a2c67db4",
+   "CHANGELOG.md": "c6d32c4099fa7e80b2a318fb22443e11c2d2a68d026855274a0ac591945465d0",
+   "CLI.md": "631ed89266c8ff5cacc35215d50110cad15591cca7c6e928519ae3c1bf169a49",
+   "KUBERNETES.md": "bdf620d825281c078b4a9939327303d1730a4c345de5c5fc8894b3aaec5bc6e0",
+@@ -13,7 +14,7 @@
+   "NOTICE.md": "35dc860c6112db9e7bbd493374db0a58a74af118dbfce3b6cd1ae99bc0af5679",
+   "README.md": "0e8ccd95bc662a0165cb01ca85dec8464fd599ef49f378f7a1683599ffff8dfd",
+   "SECURITY.md": "62aa26ffb2f9e2c7f19bf5a3d8d33f0c5ae5ef4f5c45949c9d3de26a9b4ad444",
+-  "VALIDATION.md": "a638adda8a7d1260ae269da04f5cc93917b6e113f790651c1b79922b7ba2dbb6",
++  "VALIDATION.md": "ad76b41fd88a7f9430fdae6a9cd258f5078a7488b01e8fc0995b490da4da68a7",
+   "acquisition_model.py": "e90fca096aa320a8768fef39c21bbaa42e152f3c02a81926ec7a8f5397046b0e",
+   "app.py": "aa04ea4426571f5348a86eb70f7ea9357b993afb671bc43ebee16e6b5a9a50e7",
+   "apt_core.py": "436c7b4a0fddae2a1fd17f50da2c9482c0f73da547c35135f9e33264891ee599",
+@@ -23,11 +24,11 @@
+   "build_exe.bat": "5baca57c0113d2dc133a9ddabf0503bf06d36a2b2cc0e7571102650a0860025e",
+   "build_exe_debug.bat": "0a782bcdf7b269183b62235e6d82a330723f02ea6ac1e3447e7c1de19204cac6",
+   "build_spec.py": "08a7b88434be5c9e09664d8c7213e092f92384da749bd803c47dba3ac2f8b489",
+-  "check_host_contracts.py": "3d344d6a6c5c04557ac6c7b97ca49a1e34210e90cdbf2df2f022e463be53e959",
++  "check_host_contracts.py": "1413b7f776ab8c26cb6e696b460a1e3132d54cbfd1884128ce39a004ed04b9a7",
+   "check_installer_syntax.py": "6e2272288f8ed468b0aaa43a66c94fc64e4190d4af43cdfbdc9bbc8c7bb456b8",
+   "checksum_inspection.py": "dd719fe78fcd82eb97463330ff7c8f0184d3de40a91ffac90d6a859d75c61601",
+   "conftest.py": "181b0c4350afdc00c502be59deeff33e5d001b03fa28b1a3af4d76bb983887b0",
+-  "core.py": "84153084c19e6bad14ded53877bc550b1fbdec0839b50063806fcc0ff3655aca",
++  "core.py": "909e1bf437ebbc8b85cb366f56ed3b3ab4d5ddfec36d03a16fbe16a42fc5c380",
+   "create_smoke_iso.ps1": "3737b3919975570100bb32b288b7d082fbd5cfe8f7070f60399b9f8c1e242cf2",
+   "evidence_model.py": "7fda39af27c6d79ba18f8018b78f105d79035d6473a3d8f5dfd789d8af189b81",
+   "feathered_app/ARCHITECTURE.md": "bee24f4a1ad087b6e294e1b6850e7b528fa438c47308cff8b92a5fd5bb57ee4d",
+@@ -45,7 +46,7 @@
+   "feathered_app/application/selection.py": "04470dc07dd335ef9c045fade491d16d895418a411e2da7cb7917a7dbdd47912",
+   "feathered_app/application/sources.py": "d93cb9b499519c51ec82716df8acfc270a3db7b00a7b9a478fbc59960f556db8",
+   "feathered_app/application/tools.py": "35c628c59a179fe58f6c62cb3ce12f4fce3be60d304871ae5b1d8b7eef645ed3",
+-  "feathered_app/build_api.py": "2a782430b5c37a78f837eb95fbea73ba1b5a54419f8db26eef290d1532ab44a5",
++  "feathered_app/build_api.py": "dc1dd449de16d52ab6e5b77a11108864fa96c76cf49297de86dfc65963a5ca93",
+   "feathered_app/build_backend.py": "7e769b19d94ce6650a4df1f170a70bf9b8aaacdbbf3d9dcd416045277bb2e869",
+   "feathered_app/build_host_contracts.py": "5127c2b529c0467a1f39afb8026ad6e9a46fb223185b8066d26132a07d30a491",
+   "feathered_app/build_intent.py": "913f5e4fc5f91231acb4a6ffb7dc7d9abd331139526d6b6d33d98eec66a5f81a",
+@@ -53,18 +54,20 @@
+   "feathered_app/build_outcome.py": "8529cbcc952b595b3c75c2f585cc4c691d51322a63f5410ce073a2efed4bae83",
+   "feathered_app/build_output.py": "f08a4e283951fe0264df28a97d9914b834bc841e280f366f2eeebc577cf3000e",
+   "feathered_app/build_plan.py": "401d32ca0385d4625b62f06b4660e5e049fa713f93438b7104d5b0be412fa5e5",
+-  "feathered_app/build_preparation.py": "65d2e5ed31e34ec2fbf40311124bdf8c6ba312befed7b1f90da3aeac2948137e",
++  "feathered_app/build_preparation.py": "fba2cf4f7a5212545f7fba9ddc3ce5e3880bdc8839d54b30fc9cc097c51fe09f",
+   "feathered_app/build_publication.py": "5517c4b83a7f4d1ab87ce67cf5664bbdbe8404daa98e82e91813b206e8cd2ac8",
+   "feathered_app/build_request.py": "93ec183b3d67954c84a5bfd206dc4a39db59c3a4a64606948aba3b0bd85d5a21",
+-  "feathered_app/build_runner.py": "b3b9f4ee4977b8cb7b98ea41f553d2f88d4ce41aa508b99ff7ee7a1aead7a151",
++  "feathered_app/build_runner.py": "fdb33aa1a8cc92f1bb9a82f04be23bc8ed478c16325bba30ea3af1366a7e581d",
+   "feathered_app/build_service_host.py": "a92d2f84d5b246fe6b3881b8b5e27aef8ac964d968d318ec5589187c921f6d5f",
+   "feathered_app/build_services.py": "79aaad20b47a8766953ef139dd6c2956c76db0703dde1b8442c1edb5a5d2089d",
+   "feathered_app/build_sources.py": "6cfe7fc282b08f8a4b6c890ec29145ddce06296ab14bad4d12f90710c63d27ee",
+   "feathered_app/context.py": "593eef07f2323c1fbbc1337432f45152ac535510069ea3c4aa822855cd3a3d5b",
++  "feathered_app/execution_feedback.py": "b693457e91a6df5e75b06bf576bdab90e2ec9f09343f4cb2222c125e97104d42",
+   "feathered_app/headless_host.py": "a66a0e5bc59ce57423eaa7146f569c7cdc8c59a9a82db43e531e9a9bba535063",
+   "feathered_app/metadata_loading.py": "b9ff2fcf295aad864607d50c3fb7561c2c68610eb881efbc79e33bf6cedd117f",
+   "feathered_app/persistence/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "feathered_app/persistence/user_state.py": "64b6906e1c1723d28ad6ca67530addab764b2bfc1d03895cad4f775db28abda4",
++  "feathered_app/prepared_plan.py": "f1df56dad6463d080e708187b6fd723c62f75e698bcc34a6b850a13606f403e4",
+   "feathered_app/repository_universe.py": "d6c16d83f0d9571e0a59da7faeca8cb5a2b2c3a24d8b39af24e57e243b3b69e4",
+   "feathered_app/source_scope.py": "a97252829f91cab3f4a34838b6bd26db166467d0754b96fdade00b94179f0c1b",
+   "feathered_app/spec_replay.py": "24fc776cbe18e3376d09828c474d8bfd1e1ea05d55fb4fd63ae75a8aba5ada76",
+@@ -104,7 +107,7 @@
+   "mirror_catalogs/ubuntu.json": "3e8e50c14d8f8071878eeea23aeaf830269f9bd34a7e12091c8dd1d91b42716f",
+   "mirror_unification.py": "cab2695063c2e4dad08ee34b402ea9d93346fb15d3f78ddef61c85e6def991b2",
+   "module_policy.py": "1b9bd38bda3429cd42b05e816922081c76baea45b62f4dc2b657a72fd0d58d2b",
+-  "mypy.ini": "8675b348136f910b2a34cf87f56ef6715210fb77cb340cd93b6914baef7204a8",
++  "mypy.ini": "32a7fe845bd23cad5bff7a82b8c3e8bd4dd8742d2def78e68e9c992f120f087e",
+   "native_conformance.py": "8f3185d89d30292745c1b10adb9b364cff129e8fc2943c061c67b401aeb53b40",
+   "profiles.py": "ec84c3249d75d19f697bb7f52bfd349ac53a028ca73f4fa8fd4804121555fc9e",
+   "provenance.py": "4332d08c1518b81bc66c60129d3b57b7d8dc1b1c7f5469f69f1653a2e1f2513d",
+@@ -139,7 +142,7 @@
+   "tests/test_background_jobs.py": "cba76dcff69fd37b238ce2558e257e2ef645479cdf72ec7d2a347a8e6b39b30e",
+   "tests/test_build_host_contracts.py": "750732dec6699c7dbb36fe22852d5c6420f0c9141c87d67e32a248f529ff156f",
+   "tests/test_build_preparation.py": "913962a9fb0c189e38b29d752c77c8240925e9f5215f0ad1564f32d0024e640a",
+-  "tests/test_build_request_module.py": "2a6f2d5e45830ac00b788e17f6d9de6da4de916aaba2b50326241629898733ba",
++  "tests/test_build_request_module.py": "693dd5d812efb06f4222eb7b2ab499a7ebd16573450d66699608596de205de8d",
+   "tests/test_build_spec.py": "ca10e9996d602ca7e7b0002b00b339bffc96edf11501482bcaf71710b75a392a",
+   "tests/test_build_worker_isolation.py": "b623339a690fe4e9a48da191ba8521d0fa9da22ce7b424cefe2024b0b643d1fd",
+   "tests/test_checksum_release_fixes.py": "003cf3cb88dc5ce4ea16b7b0aa5b4ffd52802c3823f53f9c52a93a4f2b429982",
+@@ -148,6 +151,7 @@
+   "tests/test_cli_replay.py": "23131a3e936499261f36aea9ab6c5c0d1baaa41b2891c0c3dbb74afa3de69a36",
+   "tests/test_discovery_recovery.py": "7b871cac6a8d110949af92f0c02436e01d805560016a254e2db0136cce40b2ee",
+   "tests/test_end_to_end_build.py": "05c4872ef68f4fdb7cd94cbc0f8a3a1d2529f13e83ff8e5dc14112a25c28c29b",
++  "tests/test_execution_feedback.py": "f7bb1ffd1de9bca8bfb4617eceb6cea6b0c6b3c8b0a81f2e17fe28d4ffdf5fab",
+   "tests/test_footer_status.py": "f018082a321b35f2b69229daf853548391df6fbede34017684352d06b31e630f",
+   "tests/test_headless_execution.py": "db8173650be32d161576aa371447b2e92afe52dd7e73fb92e587e9d3eec17f42",
+   "tests/test_installer_paths.py": "066d468274f44eb03a308933ec61030a5b7aedfb0927a594bc9115b6d0e3ec7c",
+@@ -157,6 +161,8 @@
+   "tests/test_metadata_loading.py": "5c093e9f3359658ce27d9876f3d610bd50d36a72247b3a64d28cf9f8d5abb85e",
+   "tests/test_mirror_unification.py": "7cfd93efe78dc7d5967db9f500ca767bf2e1d3239d8d33d906b6bd782b6b9460",
+   "tests/test_payload_filename_safety.py": "71322e61a0fa0fa1671a53bdd86c2b5c984f06985461db2b0f629d2e4c826864",
++  "tests/test_prepared_adapter_parity.py": "30a238eaca897f06958bac9cc58808feb39c4fca9f938d5e52460814be9ccaa3",
++  "tests/test_prepared_plan_ownership.py": "6b42fff777e8cff106beec94bd68ee7e7c1412ac68459fc9c8d8b9ea7615b473",
+   "tests/test_release_gate_outcomes.py": "b0d80ee12bd122e9d98c2893ae13c4dfa54c36c806357465e5b5e23616a28132",
+   "tests/test_release_integrity.py": "f236c195b9519b8c04baad64453c00f6b32ba909d99f72e22754f93328f73a11",
+   "tests/test_reported_defects.py": "914b7fe92d0514e7f8812ebdd83b9c740ee5d7235e61a56b0e0e9c1548d39b9f",
+diff --git a/VALIDATION.md b/VALIDATION.md
+index d18adc2..2fe2770 100644
+--- a/VALIDATION.md
++++ b/VALIDATION.md
+@@ -10,13 +10,13 @@ gate. Normal pytest reporting and shutdown remain enabled.
+ The authoritative result is generated by the runner, rather than maintained as a
+ handwritten test count:
+ 
+-- `validation/release-gate/SUMMARY.md`: human-readable result, actual outcome
++- `validation/build-boundary-gate/SUMMARY.md`: human-readable result, actual outcome
+   counts, commit, source-tree digest, Python/pytest versions and environment.
+-- `validation/release-gate/summary.json`: every final test outcome, allowed skip
++- `validation/build-boundary-gate/summary.json`: every final test outcome, allowed skip
+   reason, batch reference and subprocess exit/signal/timeout result.
+-- `validation/release-gate/collection.json` and `batch-NNN.json`: collected IDs,
++- `validation/build-boundary-gate/collection.json` and `batch-NNN.json`: collected IDs,
+   collection problems, deselections, and individual setup/call/teardown reports.
+-- `validation/release-gate/*.log`: normal pytest failure explanations and output,
++- `validation/build-boundary-gate/*.log`: normal pytest failure explanations and output,
+   retained even when a subprocess crashes or times out.
+ 
+ The source-tree digest includes source changes beyond the named commit. Generated
+@@ -62,7 +62,7 @@ python check_host_contracts.py
+ ruff check .
+ python check_installer_syntax.py
+ python verify_source_checksums.py
+-FEATHERED_USE_XVFB=1 python release_test_runner.py
++FEATHERED_USE_XVFB=1 python release_test_runner.py --report-dir validation/build-boundary-gate
+ ```
+ 
+ On Windows, omit `FEATHERED_USE_XVFB=1`. The runner defaults to a 300-second
+@@ -71,6 +71,28 @@ fails the gate and stops the child process tree. `--report-dir PATH` selects a
+ different evidence directory. Test IDs are passed in JSON and source paths in a
+ pytest argument file, avoiding command-line limits without omitting parameters.
+ 
++## Current build-boundary batch
++
++This batch starts at upstream `b14bf5e0de840269289e5c2e728f1e17e26c39a7`.
++The unmodified source passed 1,341 local tests with no skips or deselections.
++Baseline and focused evidence are in `validation/build-boundary/`; current
++full-tree evidence is in `validation/build-boundary-gate/`. Earlier reports in
++`validation/release-gate/`, `item1/` and `batch25/` are historical evidence.
++
++New coverage checks direct plan ownership, all three inventory types, ordered
++execution feedback, cancellation and terminal outcomes. A real GUI build is
++compared with a CLI replay for exact payload hashes, selected identities,
++source-policy records, provenance (excluding its generated ID and creation
++instant), and installer bytes. Existing Tk-blocked, native-family orchestration,
++mirror, GUI locking and replay tests remain in the complete release gate.
++See `BUILD-BOUNDARY.md` for the typing and compatibility scope.
++
++GitHub run 34737027821 on the baseline passed its native APT/DNF/pacman and static
++analysis jobs but failed the Windows Python/Tk bootstrap before application tests.
++Only its exit-code annotation was publicly available during this review; detailed
++job log access returned HTTP 403. This batch does not claim to fix or certify
++that bootstrap. A local Linux pass does not establish Windows release readiness.
++
+ ## Scope of local validation
+ 
+ The follow-on batch implements instruction items 2-5: credential-safe display
+@@ -78,7 +100,7 @@ with source URLs visible, strict decoding of recognized spec fields and runtime
+ preparation inputs, partial-outage recovery, shared release-knowledge ownership,
+ and bounded UI event processing with incremental query coordination. Each
+ behavioral repair has focused regression evidence in `validation/batch25/`;
+-the complete final-tree result remains `validation/release-gate/SUMMARY.md`.
++the complete final-tree result remains `validation/build-boundary-gate/SUMMARY.md`.
+ Malformed specs formerly accepted by truthiness are intentionally rejected;
+ valid older specs and incomplete drafts remain supported. See
+ `BACKGROUND-REFRESH.md` for cache ownership, cancellation and migration scope.
+diff --git a/check_host_contracts.py b/check_host_contracts.py
+index 6818524..b6ace7a 100644
+--- a/check_host_contracts.py
++++ b/check_host_contracts.py
+@@ -162,6 +162,23 @@ transaction_context = TransactionContext[core.Package, core.Requirement, core.Bu
+     max_resolution_passes=lambda: 8, include_dependencies=lambda: True)
+ transaction_result: core.ResolutionResult = resolve_fixed_point(transaction_context, [RootRequest("root")], [])
+ 
++from acquisition_model import AcquisitionIntent, derive_acquisition_state
++from feathered_app.prepared_plan import BuildPlan
++from feathered_app.execution_feedback import bind_execution_feedback, mirror_reporter, complete
++
++state = derive_acquisition_state(AcquisitionIntent.REPOSITORY_MIRROR, mirror_repository_count=1)
++rpm_plan = BuildPlan[core.TargetInventory](state, core.BuildOptions(), [("demo", None, None)], [], [], False, None)
++deb_plan = BuildPlan[apt_core.AptTargetInventory](state, core.BuildOptions(), [], [], [], False, None)
++arch_plan = BuildPlan[arch_core.ArchTargetInventory](state, core.BuildOptions(), [], [], [], False, None)
++rpm_options: core.BuildOptions[core.TargetInventory] = rpm_plan.opts
++deb_options: core.BuildOptions[apt_core.AptTargetInventory] = deb_plan.opts
++arch_options: core.BuildOptions[arch_core.ArchTargetInventory] = arch_plan.opts
++execution = bind_execution_feedback(feedback)
++execution.reporter.check_cancel()
++execution.decide("title", "message", wait_status="waiting")
++fork = mirror_reporter(feedback, execution.reporter, "source", 0.5, 0.5)
++terminal = complete(execution.events, True, "finished")
++
+ '''
+ 
+ NEGATIVE = '''\
+@@ -257,6 +274,20 @@ def malformed_root_inputs() -> list[str]:
+     core.resolve([("root", None)], [], "x86_64", core.BuildOptions(), core.Reporter())  # reject
+     return normalize_requests([("root", None, None)])  # reject
+ 
++from feathered_app.prepared_plan import BuildPlan
++from feathered_app.execution_feedback import bind_execution_feedback, complete
++
++def mixed_prepared_plans(rpm: BuildPlan[core.TargetInventory], deb: BuildPlan[apt_core.AptTargetInventory], arch: BuildPlan[arch_core.ArchTargetInventory]) -> None:
++    def takes_rpm(options: core.BuildOptions[core.TargetInventory]) -> None: pass
++    takes_rpm(deb.opts)  # reject
++    rpm.opts.target_inventory = apt_core.AptTargetInventory()  # reject
++    deb.opts.target_inventory = arch_core.ArchTargetInventory()  # reject
++    arch.opts.target_inventory = core.TargetInventory()  # reject
++    BuildPlan[core.TargetInventory](rpm.state, rpm.opts, [42], [], [], False, None)  # reject
++    BuildPlan[core.TargetInventory](rpm.state, rpm.opts, [], [], ["https://repo.invalid/"], False, None)  # reject
++    bind_execution_feedback(WrongSink())  # reject
++    complete(WrongSink(), True, "done")  # reject
++
+ '''
+ 
+ 
+diff --git a/core.py b/core.py
+index 6ec7825..1e3e706 100644
+--- a/core.py
++++ b/core.py
+@@ -508,10 +508,16 @@ class Cancelled(RuntimeError):
+     pass
+ 
+ 
++class CancellationProbe(Protocol):
++    """Cancellation needs a query, not a particular threading implementation."""
++
++    def is_set(self) -> bool: ...
++
++
+ class Reporter:
+     def __init__(self, log: Optional[Callable[[str], None]] = None,
+                  progress: Optional[Callable[[str, float], None]] = None,
+-                 cancel_event: Optional[threading.Event] = None,
++                 cancel_event: Optional[CancellationProbe] = None,
+                  item: Optional[Callable[[str, str, dict], None]] = None):
+         self._log = log or (lambda msg: None)
+         self._progress = progress or (lambda label, value: None)
+diff --git a/feathered_app/build_api.py b/feathered_app/build_api.py
+index 1b38fbc..294b6d1 100644
+--- a/feathered_app/build_api.py
++++ b/feathered_app/build_api.py
+@@ -16,6 +16,7 @@ from core import Cancelled, RepoSpec, Reporter, infer_vendor_id, redact_text
+ from feathered_app.build_outcome import BuildOutcome, BuildStatus
+ from feathered_app.build_preparation import DecisionDeclined, PreparationRejected, prepare_job
+ from feathered_app.build_runner import BuildPlan, run
++from feathered_app.prepared_plan import PreparedPlan
+ from feathered_app.build_services import BuildServices
+ from feathered_app.headless_host import HeadlessHost
+ from feathered_app.spec_replay import resolve_exact_packages
+@@ -60,7 +61,7 @@ class PreparationInputs:
+ @dataclass(frozen=True)
+ class PreparedBuild:
+     host: HeadlessHost
+-    plan: BuildPlan
++    plan: PreparedPlan
+ 
+ 
+ def prepare_build(spec: BuildSpec, services: BuildServices,
+diff --git a/feathered_app/build_preparation.py b/feathered_app/build_preparation.py
+index c7f75ad..16ecdf3 100644
+--- a/feathered_app/build_preparation.py
++++ b/feathered_app/build_preparation.py
+@@ -14,6 +14,7 @@ from core import BuildOptions, Cancelled, infer_vendor_id
+ from feathered_app.build_output import FOLDER_SCHEMES
+ from feathered_app.build_request import BuildRequestMixin
+ from feathered_app.build_runner import BuildPlan
++from feathered_app.prepared_plan import PreparedPlan
+ from source_readiness import evaluate_source_readiness
+ from feathered_app.source_scope import (
+     BuildScopeContext, ParticipationContext,
+@@ -398,7 +399,7 @@ class BuildPreparationMixin:
+ 
+ 
+ def prepare_job(host, *, do_download=True, state=None, picked_at_start=None,
+-                confirm_package_only=None):
++                confirm_package_only=None) -> PreparedPlan:
+     """Validate one operation and lock its publication choices before execution.
+ 
+     Callers own source configuration and selected-package resolution. A GUI
+diff --git a/feathered_app/build_runner.py b/feathered_app/build_runner.py
+index 447d120..896ce86 100644
+--- a/feathered_app/build_runner.py
++++ b/feathered_app/build_runner.py
+@@ -11,17 +11,18 @@ import copy
+ import re
+ import threading
+ import traceback
+-from dataclasses import dataclass
+ from pathlib import Path
+-from typing import Optional
+ 
+ import workload_resolution
+ from acquisition_model import AcquisitionCapability
+-from core import (BuildOptions, Cancelled, Reporter, evidence_authority_relationship,
++from core import (BuildOptions, Cancelled, evidence_authority_relationship,
+                   repository_verification_strategy,
+                   evidence_relationship, redact_text, redact_url)
++from feathered_app.prepared_plan import BuildPlan as BuildPlan
++from feathered_app.prepared_plan import PreparedPlan
+ from feathered_app.build_request import BuildRequestMixin
+-from feathered_app.build_outcome import BuildOutcome, BuildStatus
++from feathered_app.build_outcome import BuildOutcome
++from feathered_app.execution_feedback import bind_execution_feedback, complete, mirror_reporter
+ from feathered_app.build_services import BuildServices
+ from mirror_unification import mirror_sources_record, unified_mirror_note
+ 
+@@ -37,39 +38,15 @@ def _indexed_evidence_records(repo, resolver, value_field: str) -> dict:
+     }
+ 
+ 
+-@dataclass(frozen=True)
+-class BuildPlan:
+-    """Prepared inputs for one execution.
+-
+-    Field bindings are frozen. Nested options and repository objects remain
+-    mutable and belong to this run; callers must not share them concurrently.
+-    """
+-
+-    state: object
+-    opts: BuildOptions
+-    requests: object
+-    requested_source_plan: object
+-    build_repositories: object
+-    package_only: bool
+-    picked_at_start: object
+-    #  start_build's own parameter, captured the same way as its locals.
+-    do_download: bool = True
+-    locked_output_folder_name: Optional[str] = None
+-    locked_mirror_publications: Optional[object] = None
+-
+ 
+ def _complete(app, ok, message, output_path=None):
+-    status = BuildStatus.SUCCESS if ok is True else (
+-        BuildStatus.CANCELLED if ok == "cancelled" else BuildStatus.FAILED)
+-    event = ("done", ok, message) + ((output_path,) if output_path is not None else ())
+-    app.events.put(event)
+-    return BuildOutcome(status, message, output_path)
++    return complete(app.events, ok, message, output_path)
+ 
+ 
+-def run(app, job) -> BuildOutcome:
++def run(app, job: PreparedPlan) -> BuildOutcome:
+     try:
+-        rep = Reporter(app._log, app._progress, app.cancel_event,
+-                       item=app._on_item_event)
++        feedback = bind_execution_feedback(app)
++        rep = feedback.reporter
+         rep.check_cancel()
+         if job.state.capability is AcquisitionCapability.REPOSITORY_MIRROR:
+             for repo in job.build_repositories:
+@@ -143,7 +120,7 @@ def run(app, job) -> BuildOutcome:
+                 "Retry them, choose another source/provider where available, or explicitly ignore the "
+                 "requirements you accept as incomplete.")
+         if job.do_download and result.ignored_unresolved:
+-            accepted = app._ask_on_ui_thread(
++            accepted = feedback.decide(
+                 "Build with ignored dependencies?",
+                 f"{len(result.ignored_unresolved)} unresolved requirement(s) were explicitly ignored. "
+                 "The bundle may not install successfully on the target. Feathered will record the waivers "
+@@ -151,9 +128,9 @@ def run(app, job) -> BuildOutcome:
+                 wait_status="Build paused for the dependency-waiver decision")
+             if not accepted:
+                 raise Cancelled("Build cancelled at the unresolved-dependency waiver prompt")
+-        if job.do_download and result.conflicts and not app._confirm_conflicts(result.conflicts):
++        if job.do_download and result.conflicts and not feedback.confirm_conflicts(result.conflicts):
+             raise Cancelled("Build cancelled at the conflict review prompt")
+-        if job.do_download and rep.warnings and not app._confirm_warnings(rep.warnings):
++        if job.do_download and rep.warnings and not feedback.confirm_warnings(rep.warnings):
+             raise Cancelled("Build cancelled at the trust review prompt")
+         if job.do_download and app._pick_mode() and job.picked_at_start is not None:
+             # Captured before the worker started: _show_result runs on
+@@ -172,7 +149,7 @@ def run(app, job) -> BuildOutcome:
+             # Surface the exact aggregate package payload before any
+             # package bytes are fetched. The worker waits only until
+             # the UI has rendered this plan; there is no extra prompt.
+-            app._publish_download_plan(len(result.selected), result.total_size)
++            feedback.publish_download_plan(len(result.selected), result.total_size)
+             app.events.put(("transfer_begin", len(result.selected), result.total_size))
+             release = BuildRequestMixin._selected_release(app)
+             if app._unified_mirror_mode():
+@@ -258,17 +235,7 @@ def run(app, job) -> BuildOutcome:
+                     # sibling repositories update the correct Review row.
+                     fork_base = (fork_index - 1) / total_forks
+                     fork_span = 1.0 / total_forks
+-                    fork_reporter = Reporter(
+-                        app._log,
+-                        lambda label, value, base=fork_base, span=fork_span:
+-                            app._progress(label, base + max(0.0, min(1.0, value)) * span),
+-                        app.cancel_event,
+-                        item=lambda identity, item_state, info, sid=source_id:
+-                            app._on_item_event(f"{sid}|{identity}", item_state, info),
+-                    )
+-                    # Preserve the build-wide warning collection even
+-                    # though each mirror fork has a local progress window.
+-                    fork_reporter.warnings = rep.warnings
++                    fork_reporter = mirror_reporter(app, rep, source_id, fork_base, fork_span)
+                     app._write_bundle_backend(
+                         mirror_result, dest, repo_opts, fork_reporter, meta)
+                 return _complete(app, True, f'Mirror complete: {total_forks} repositories published as independent folders under {base_output}', str(base_output))
+diff --git a/feathered_app/execution_feedback.py b/feathered_app/execution_feedback.py
+new file mode 100644
+index 0000000..638ec25
+--- /dev/null
++++ b/feathered_app/execution_feedback.py
+@@ -0,0 +1,55 @@
++"""Checked feedback capabilities consumed by the shared build runner."""
++from __future__ import annotations
++
++from dataclasses import dataclass
++from typing import Callable, Literal, Protocol, Sequence
++
++from core import Reporter
++from feathered_app.build_host_contracts import BuildFeedbackHost, EventSink
++from feathered_app.build_outcome import BuildOutcome, BuildStatus
++
++
++class Decision(Protocol):
++    def __call__(self, title: str, message: str, **kwargs: object) -> bool: ...
++
++
++@dataclass(frozen=True)
++class ExecutionFeedback:
++    """Bind callbacks once; mutable progress belongs to this run's reporter."""
++    reporter: Reporter
++    events: EventSink
++    decide: Decision
++    confirm_conflicts: Callable[[Sequence[str]], bool]
++    confirm_warnings: Callable[[Sequence[str]], bool]
++    publish_download_plan: Callable[[int, int], None]
++
++
++def bind_execution_feedback(host: BuildFeedbackHost) -> ExecutionFeedback:
++    return ExecutionFeedback(
++        Reporter(host._log, host._progress, host.cancel_event, item=host._on_item_event),
++        host.events, host._ask_on_ui_thread, host._confirm_conflicts,
++        host._confirm_warnings, host._publish_download_plan)
++
++
++def mirror_reporter(host: BuildFeedbackHost, parent: Reporter, source_id: str,
++                    base: float, span: float) -> Reporter:
++    """Keep mirror progress and item identity ordered within the parent run."""
++    def item(identity: str, state: str, info: dict[str, object]) -> None:
++        host._on_item_event(f'{source_id}|{identity}', state, info)
++
++    reporter = Reporter(
++        host._log,
++        lambda label, value: host._progress(label, base + max(0.0, min(1.0, value)) * span),
++        host.cancel_event, item=item)
++    reporter.warnings = parent.warnings
++    return reporter
++
++
++def complete(events: EventSink, ok: bool | Literal['cancelled'], message: str,
++             output_path: str | None = None) -> BuildOutcome:
++    """Preserve the legacy terminal tuple and return the corresponding outcome."""
++    status = BuildStatus.SUCCESS if ok is True else (
++        BuildStatus.CANCELLED if ok == 'cancelled' else BuildStatus.FAILED)
++    event = ('done', ok, message) + ((output_path,) if output_path is not None else ())
++    events.put(event)
++    return BuildOutcome(status, message, output_path)
+diff --git a/feathered_app/prepared_plan.py b/feathered_app/prepared_plan.py
+new file mode 100644
+index 0000000..d367cc5
+--- /dev/null
++++ b/feathered_app/prepared_plan.py
+@@ -0,0 +1,56 @@
++"""Typed, owned inputs for one prepared execution; no toolkit dependencies."""
++from __future__ import annotations
++
++import copy
++from dataclasses import dataclass
++from typing import Collection, Generic, Sequence, TypeAlias, TypeVar
++
++from acquisition_model import AcquisitionState
++from core import BuildOptions, RepoSpec, TargetInventory
++from apt_core import AptTargetInventory
++from arch_core import ArchTargetInventory
++from root_requests import RootInput, RootRequest
++
++InventoryT = TypeVar('InventoryT')
++
++
++@dataclass(frozen=True)
++class BuildPlan(Generic[InventoryT]):
++    """Own the mutable execution graph while fixing the operator's root intent.
++
++    Constructor order and legacy request tuples remain supported. Copy the graph
++    together so intentional aliases inside a run survive, but callers and other
++    runs cannot change it. Verification and publication may annotate the owned
++    options and repositories; they are deliberately not recursively frozen.
++    """
++    state: AcquisitionState
++    opts: BuildOptions[InventoryT]
++    requests: Sequence[RootInput]
++    requested_source_plan: list[dict[str, str]]
++    build_repositories: Sequence[RepoSpec]
++    package_only: bool
++    picked_at_start: Collection[str] | None
++    do_download: bool = True
++    locked_output_folder_name: str | None = None
++    locked_mirror_publications: Sequence[tuple[str, str, BuildOptions[InventoryT]]] | None = None
++
++    def __post_init__(self) -> None:
++        opts, source_plan, repositories, publications = copy.deepcopy((
++            self.opts, self.requested_source_plan, self.build_repositories,
++            self.locked_mirror_publications))
++        # Roots are immutable values, with all seven exact-identity fields kept.
++        roots = tuple(RootRequest.from_value(row) for row in self.requests)
++        object.__setattr__(self, 'opts', opts)
++        object.__setattr__(self, 'requests', roots)
++        object.__setattr__(self, 'requested_source_plan', source_plan)
++        object.__setattr__(self, 'build_repositories', tuple(repositories))
++        object.__setattr__(self, 'picked_at_start',
++                           None if self.picked_at_start is None else frozenset(self.picked_at_start))
++        object.__setattr__(self, 'locked_mirror_publications',
++                           None if publications is None else tuple(publications))
++
++
++# Keep the three concrete option/inventory pairings in public signatures.
++# BuildPlan[InventoryA | InventoryB] would allow swapping families inside a run.
++PreparedPlan: TypeAlias = (BuildPlan[TargetInventory] | BuildPlan[AptTargetInventory]
++                           | BuildPlan[ArchTargetInventory])
+diff --git a/mypy.ini b/mypy.ini
+index 2ab3cd1..5ba4c59 100644
+--- a/mypy.ini
++++ b/mypy.ini
+@@ -36,6 +36,8 @@ ignore_missing_imports = True
+ strict_optional = False
+ warn_unused_configs = True
+ files =
++    feathered_app/prepared_plan.py,
++    feathered_app/execution_feedback.py,
+     background_jobs.py,
+     acquisition_model.py,
+     checksum_inspection.py,
+@@ -107,3 +109,10 @@ disallow_any_generics = True
+ disallow_untyped_defs = True
+ check_untyped_defs = True
+ warn_return_any = True
++
++[mypy-feathered_app.prepared_plan,feathered_app.execution_feedback,feathered_app.build_outcome]
++strict_optional = True
++disallow_any_generics = True
++disallow_untyped_defs = True
++check_untyped_defs = True
++warn_return_any = True
+diff --git a/tests/test_build_request_module.py b/tests/test_build_request_module.py
+index e01bb8c..8e363b3 100644
+--- a/tests/test_build_request_module.py
++++ b/tests/test_build_request_module.py
+@@ -29,6 +29,8 @@ if str(ROOT) not in sys.path:
+ 
+ #  Modules that have been moved into the headless core. Extend as A2 lands.
+ CORE_MODULES = (
++    "feathered_app.prepared_plan",
++    "feathered_app.execution_feedback",
+     "feathered_app.build_request",
+     "feathered_app.build_intent",
+     "feathered_app.build_backend",
+diff --git a/tests/test_execution_feedback.py b/tests/test_execution_feedback.py
+new file mode 100644
+index 0000000..132f950
+--- /dev/null
++++ b/tests/test_execution_feedback.py
+@@ -0,0 +1,60 @@
++"""Keep decision and event behavior while narrowing execution capabilities."""
++from queue import Queue
++from threading import Event
++from unittest.mock import Mock
++
++import pytest
++import core
++from feathered_app.build_service_host import BuildServiceHost
++from feathered_app.build_services import BuildServices
++from feathered_app.build_outcome import BuildStatus
++from feathered_app.execution_feedback import bind_execution_feedback, complete, mirror_reporter
++
++
++def test_feedback_preserves_order_and_mirror_progress_and_warning_collection():
++    trace=[]
++    class Sink:
++        def put(self,event):trace.append(event)
++    reporter=core.Reporter(log=lambda message:trace.append(('log',message)),
++                           progress=lambda label,value:trace.append(('progress',label,value)))
++    host=BuildServiceHost(BuildServices(reporter,events=Sink(),
++        download_plan_sink=lambda count,size:trace.append(('plan',count,size))))
++    feedback=bind_execution_feedback(host)
++    feedback.reporter.log('start')
++    feedback.publish_download_plan(2,10)
++    fork=mirror_reporter(host,feedback.reporter,'origin',.5,.5)
++    fork.progress('transfer',.4)
++    fork.item('demo','done',bytes=10)
++    fork.warn('check upstream')
++    result=complete(feedback.events,True,'finished','bundle')
++    assert trace==[('log','start'),('plan',2,10),('progress','transfer',.7),
++        ('item','origin|demo','done',{'bytes':10}),('log','WARNING: check upstream'),
++        ('done',True,'finished','bundle')]
++    assert feedback.reporter.warnings==['check upstream']
++    assert result.status is BuildStatus.SUCCESS
++
++
++@pytest.mark.parametrize('ok,status',[(True,BuildStatus.SUCCESS),(False,BuildStatus.FAILED),('cancelled',BuildStatus.CANCELLED)])
++def test_terminal_contract_emits_once_and_retains_optional_path_shape(ok,status):
++    events=Queue();outcome=complete(events,ok,'message')
++    assert outcome.status is status and outcome.output_path is None
++    assert events.get_nowait()==('done',ok,'message')
++    assert events.empty()
++
++
++def test_missing_policies_still_decline_and_cancellation_uses_capability():
++    host=BuildServiceHost(BuildServices(core.Reporter()))
++    feedback=bind_execution_feedback(host)
++    assert not feedback.decide('title','body',wait_status='waiting')
++    assert not feedback.confirm_warnings(['warning'])
++    assert not feedback.confirm_conflicts(['conflict'])
++    host.request_cancel()
++    with pytest.raises(core.Cancelled):feedback.reporter.check_cancel()
++
++
++def test_each_binding_has_independent_progress_and_warning_state():
++    host=BuildServiceHost(BuildServices(core.Reporter()))
++    one=bind_execution_feedback(host);two=bind_execution_feedback(host)
++    one.reporter.warn('one');one.reporter.phase(.5,.5)
++    assert two.reporter.warnings==[]
++    assert two.reporter._phase_start==0
+diff --git a/tests/test_prepared_adapter_parity.py b/tests/test_prepared_adapter_parity.py
+new file mode 100644
+index 0000000..091f97e
+--- /dev/null
++++ b/tests/test_prepared_adapter_parity.py
+@@ -0,0 +1,53 @@
++"""Compare actual GUI-worker output to a headless replay of its captured intent."""
++from dataclasses import replace
++import hashlib
++import json
++from pathlib import Path
++
++from build_spec import apply, capture, repositories_from
++from core import RepoSpec
++from tests import test_application_startup as startup
++from tests import test_headless_execution as fixtures
++from tests.test_cli_replay import spec_for, invoke
++from tests.test_end_to_end_build import _run_to_completion
++
++application= startup.application
++isolated_state=startup.isolated_state
++local_repository=fixtures.local_repository
++
++
++@startup.requires_display
++def test_gui_and_cli_preserve_payloads_sources_provenance_and_installer(application,local_repository,tmp_path,monkeypatch):
++    from feathered_app.ui import theme
++    window=application
++    for name in ('showerror','showinfo','showwarning'):
++        monkeypatch.setattr(theme.messagebox,name,lambda *a,**kw:None)
++    monkeypatch.setattr(theme.messagebox,'askyesno',lambda *a,**kw:True)
++    spec=spec_for(local_repository,tmp_path/'gui','workload')
++    apply(window,spec)
++    window.repo_rows=repositories_from(spec,RepoSpec)
++    window.__dict__['_trust_policy']=lambda findings:True
++    captured=capture(window)
++    _run_to_completion(window)
++    assert window.__dict__.get('_activity_state')=='idle',window.log_lines[-10:]
++    gui=Path(window.last_output_path)
++    replay=replace(captured,output=replace(captured.output,directory=str(tmp_path/'cli')))
++    outcome=invoke(tmp_path,replay,'--accept-trust-findings')
++    assert outcome.returncode==0,outcome.stdout+outcome.stderr
++    cli=next(p for p in (tmp_path/'cli').iterdir() if p.is_dir() and not p.name.startswith('.'))
++    def payloads(root):
++        return {p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in root.rglob('*.deb')}
++    assert payloads(gui)==payloads(cli) and payloads(gui)
++    left=json.loads((gui/'debs/manifest.json').read_text())
++    right=json.loads((cli/'debs/manifest.json').read_text())
++    assert left['packages']==right['packages']
++    assert left['summary']==right['summary']
++    for key in ('repositories','job.requested_source_plan','dependency_completeness'):
++        assert key in left['metadata'] and left['metadata'][key]==right['metadata'][key]
++    def provenance(root):
++        data=json.loads((root/'debs/provenance.json').read_text())
++        # Only the generated bundle identifier and creation instant vary.
++        data.pop('created');data.pop('bundle_id')
++        return data
++    assert provenance(gui)==provenance(cli)
++    assert (gui/'install-offline.sh').read_bytes()==(cli/'install-offline.sh').read_bytes()
+diff --git a/tests/test_prepared_plan_ownership.py b/tests/test_prepared_plan_ownership.py
+new file mode 100644
+index 0000000..7f9fe7e
+--- /dev/null
++++ b/tests/test_prepared_plan_ownership.py
+@@ -0,0 +1,52 @@
++"""A prepared run owns its graph; backend verification state stays mutable."""
++from dataclasses import replace
++import pytest
++import core
++import apt_core
++import arch_core
++from acquisition_model import AcquisitionIntent, derive_acquisition_state
++from feathered_app.build_runner import BuildPlan
++
++
++def plan_parts(inventory=None):
++    repo=core.RepoSpec('Origin','https://repo.invalid/packages',evidence_urls=['https://proof.invalid/index'])
++    opts=core.BuildOptions(target_inventory=inventory,optional_roots={'optional'})
++    roots=[['demo','1.2',None,None,None,None,repo.source_identity]]
++    metadata=[{'package':'demo','source_policy':'repository','repository_identity':repo.source_identity}]
++    repos=[repo];picked={'demo-1.2'};forks=[(repo.source_identity,'output',opts)]
++    state=derive_acquisition_state(AcquisitionIntent.REPOSITORY_MIRROR,mirror_repository_count=1)
++    return (state,opts,roots,metadata,repos,False,picked,True,'output',forks)
++
++
++def test_plan_detaches_every_caller_owned_collection():
++    parts=plan_parts();plan=BuildPlan(*parts)
++    parts[1].optional_roots.add('changed')
++    parts[2][0][0]='changed'
++    parts[3][0]['package']='changed'
++    parts[4][0].evidence_urls.append('https://changed.invalid/')
++    parts[6].clear();parts[9].clear()
++    assert plan.opts.optional_roots=={'optional'}
++    assert plan.requests[0][0]=='demo'
++    assert plan.requested_source_plan[0]['package']=='demo'
++    assert plan.build_repositories[0].evidence_urls==['https://proof.invalid/index']
++    assert plan.picked_at_start=={'demo-1.2'}
++    assert len(plan.locked_mirror_publications)==1
++
++
++@pytest.mark.parametrize('inventory_type',[core.TargetInventory,apt_core.AptTargetInventory,arch_core.ArchTargetInventory])
++def test_two_plans_do_not_share_execution_state_or_erase_inventory_family(inventory_type):
++    parts=plan_parts(inventory_type());one=BuildPlan(*parts);two=BuildPlan(*parts)
++    assert type(one.opts.target_inventory) is inventory_type
++    assert one.opts.target_inventory is not two.opts.target_inventory
++    one.opts.optional_roots.add('only-first');one.build_repositories[0].enabled=False
++    assert two.opts.optional_roots=={'optional'} and two.build_repositories[0].enabled
++    # Copies preserve intentional internal aliases, such as a publication's
++    # options, without sharing them with the caller or another run.
++    assert one.locked_mirror_publications[0][2] is one.opts
++
++
++def test_mutable_verification_fields_can_still_be_annotated_by_execution():
++    plan=BuildPlan(*plan_parts())
++    plan.build_repositories[0].allow_unverified_index=True
++    plan.opts.additive_publish=True
++    assert plan.build_repositories[0].allow_unverified_index and plan.opts.additive_publish
+-- 
+2.51.1
+
+
+From aa3a685f4725f7b12c2d96be252a77c94097ad12 Mon Sep 17 00:00:00 2001
+From: Feathered Maintenance <maintenance@localhost>
+Date: Sat, 12 Sep 2026 23:21:48 -0500
+Subject: [PATCH 2/2] Register parity fixture in the explicit Windows
+ capability policy
+
+---
+ SOURCE-SHA256.json                  | 4 ++--
+ release_test_runner.py              | 3 ++-
+ tests/test_release_gate_outcomes.py | 4 ++++
+ 3 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index 27721d8..1dec0fc 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -115,7 +115,7 @@
+   "receiver_preflight.py": "9bfc956e44aa0b536c7fba352f4f1317b705d100252562dc50f9ae467ad8e9d9",
+   "release_pytest_exit.py": "d3f725f4bf17053ac45b5612c9aecb5ef79a69c9bd946e386ba87916983cc900",
+   "release_seed.py": "b02877cd76d8d85b14b9cad2e533d474b93fdc2c5f88074016ccdf5b9188cb47",
+-  "release_test_runner.py": "11bd90c9fb76dc5bb0d581083e1f54669a17618a08ff0f7c7ef049ae4bd5ad04",
++  "release_test_runner.py": "3621faa555812ad1a34603793c856b9dfe656b00f849a6762ce023af633d1d42",
+   "repository_tools.py": "e97eae16caabdd07eadfeae696125298c3fddabc9ee2a83856365b03598e4beb",
+   "repository_transport.py": "f21c4ad2f784c8ebc4000e523fd91f1fc147cc6547c73fec405241004e465cd3",
+   "require_executed_tests.py": "22efa4e4803f3fb5bdcbdb7b15f180d012e3c8cc4f2d796a8db9bd299db9f824",
+@@ -163,7 +163,7 @@
+   "tests/test_payload_filename_safety.py": "71322e61a0fa0fa1671a53bdd86c2b5c984f06985461db2b0f629d2e4c826864",
+   "tests/test_prepared_adapter_parity.py": "30a238eaca897f06958bac9cc58808feb39c4fca9f938d5e52460814be9ccaa3",
+   "tests/test_prepared_plan_ownership.py": "6b42fff777e8cff106beec94bd68ee7e7c1412ac68459fc9c8d8b9ea7615b473",
+-  "tests/test_release_gate_outcomes.py": "b0d80ee12bd122e9d98c2893ae13c4dfa54c36c806357465e5b5e23616a28132",
++  "tests/test_release_gate_outcomes.py": "6c5250d2a662af1bfdf34495402abc64749430ae725d1a48d3b187597a678c87",
+   "tests/test_release_integrity.py": "f236c195b9519b8c04baad64453c00f6b32ba909d99f72e22754f93328f73a11",
+   "tests/test_reported_defects.py": "914b7fe92d0514e7f8812ebdd83b9c740ee5d7235e61a56b0e0e9c1548d39b9f",
+   "tests/test_repository_universe.py": "033bb078d3a403fcfd8479c38b1b6ba7af88e8ea47400f35be97e13b0b835cea",
+diff --git a/release_test_runner.py b/release_test_runner.py
+index f01dd19..e436d08 100644
+--- a/release_test_runner.py
++++ b/release_test_runner.py
+@@ -31,7 +31,8 @@ WINDOWS_SKIPS: dict[str, set[str]] = {
+     "tests/test_end_to_end_build.py": {
+         "dpkg-deb and dpkg-scanpackages are needed to build the repository fixture"},
+     **{f"tests/{name}.py": {"requires dpkg fixture tools"} for name in (
+-        "test_headless_execution", "test_build_preparation", "test_cli_replay")},
++        "test_headless_execution", "test_build_preparation", "test_cli_replay",
++        "test_prepared_adapter_parity")},
+     "tests/test_build_worker_isolation.py": {"needs dpkg tooling to build the repository fixture"},
+     "tests/test_kubernetes_workflows.py": {"native dpkg fixture tools required; enforced in Debian CI"},
+     "tests/test_installer_paths.py": {"bash is required"},
+diff --git a/tests/test_release_gate_outcomes.py b/tests/test_release_gate_outcomes.py
+index 154a12d..5389c02 100644
+--- a/tests/test_release_gate_outcomes.py
++++ b/tests/test_release_gate_outcomes.py
+@@ -208,6 +208,10 @@ def test_platform_skip_policy_is_scoped_and_has_required_linux_coverage():
+     assert not permitted_skip(node, "requires dpkg fixture tools", "linux")
+     assert not permitted_skip(node, "no display", "win32")
+     assert not permitted_skip("tests/test_other.py::test_case", "requires dpkg fixture tools", "win32")
++    parity = "tests/test_prepared_adapter_parity.py::test_gui_and_cli_preserve_payloads_sources_provenance_and_installer"
++    assert permitted_skip(parity, "requires dpkg fixture tools", "win32")
++    assert not permitted_skip(parity, "requires dpkg fixture tools", "linux")
++    assert not permitted_skip(parity, "no display", "win32")
+     native = yaml.safe_load((ROOT / ".github/workflows/native-conformance.yml").read_text())
+     steps = native["jobs"]["apt"]["steps"]
+     assert any("xvfb-run -a python3 release_test_runner.py" in step.get("run", "") for step in steps)
+-- 
+2.51.1
+

@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-24-27-27-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-34-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-31-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-31-33-34-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-32-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-apiserver-34-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_only_conflicts_need_acknowledgement",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[photon-5.0-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[ubuntu-22.04-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[ubuntu-24.04-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rhel-9-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rhel-9.6-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[photon-4.0-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[debian-12-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[arch-rolling-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rocky-9-False]",
+    "tests/test_kubernetes_workflows.py::test_minor_materialization_is_idempotent_and_rewrites_owned_row[rpm-rpm/-False]"
+  ]
+}

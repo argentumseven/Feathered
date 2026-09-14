@@ -1,0 +1,537 @@
+{
+  "schema": 1,
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_background_jobs.py::test_thread_start_failure_is_reported_and_does_not_hold_capacity",
+    "tests/test_background_jobs.py::test_operation_keys_are_bounded",
+    "tests/test_build_host_contracts.py::test_real_headless_host_uses_typed_services_and_caller_event_sink",
+    "tests/test_build_host_contracts.py::test_caller_cancellation_and_local_cancellation_are_independent",
+    "tests/test_build_host_contracts.py::test_trust_and_conflict_decisions_use_separate_policies",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers0-bundle-True-False]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers1-bundle-True-True]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers2-bundle-next-False-True]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers3-bundle-next-False-True]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers4-None-False-True]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers5-None-False-True]",
+    "tests/test_build_host_contracts.py::test_legacy_publication_adapter_needs_no_unused_callbacks_for_new_folder",
+    "tests/test_build_preparation.py::test_preparation_is_owned_and_does_not_publish",
+    "tests/test_build_preparation.py::test_optional_catalogue_members_and_dependency_mode_reach_plan",
+    "tests/test_build_preparation.py::test_package_only_requires_its_own_policy_and_never_parses_inventory",
+    "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|deb\\nDEB|already|1.0|amd64\\n-True]",
+    "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|rpm\\nPKG|already|0|1|1|x86_64\\n-False]",
+    "tests/test_build_preparation.py::test_mirrors_ignore_stale_inventory_and_baseline",
+    "tests/test_build_preparation.py::test_explicit_sealing_without_key_is_rejected",
+    "tests/test_build_preparation.py::test_credentials_are_attached_by_identity_without_mutating_spec"
+  ],
+  "batch_excluded": [
+    "tests/test_background_jobs.py::test_many_replacements_bound_workers_and_only_latest_result_is_current",
+    "tests/test_background_jobs.py::test_cancel_is_cooperative_and_releases_capacity",
+    "tests/test_background_jobs.py::test_failure_and_worker_exit_release_capacity",
+    "tests/test_background_jobs.py::test_close_cancels_active_and_pending_and_rejects_new_work",
+    "tests/test_build_preparation.py::test_cancellation_and_timeout_are_distinct_from_invalid_request",
+    "tests/test_build_preparation.py::test_cancel_during_metadata_prevents_publication",
+    "tests/test_build_preparation.py::test_runner_returns_the_same_terminal_outcome_it_emits",
+    "tests/test_build_preparation.py::test_portable_source_scope_and_evidence_hints_survive_roundtrip",
+    "tests/test_build_preparation.py::test_runtime_vendor_requirement_is_never_downgraded",
+    "tests/test_build_preparation.py::test_timeout_during_metadata_has_a_timeout_outcome",
+    "tests/test_build_preparation.py::test_incompatible_repository_does_not_participate",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data0]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data1]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data2]",
+    "tests/test_build_preparation.py::test_runtime_configuration_rejects_unknown_or_invalid_fields[data3]",
+    "tests/test_build_preparation.py::test_signature_requirements_capture_every_vendor_without_keyring_paths",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[]",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[.]",
+    "tests/test_build_preparation.py::test_custom_name_must_not_resolve_to_the_output_parent[..]"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_background_jobs.py::test_thread_start_failure_is_reported_and_does_not_hold_capacity",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_background_jobs.py::test_thread_start_failure_is_reported_and_does_not_hold_capacity",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_background_jobs.py::test_thread_start_failure_is_reported_and_does_not_hold_capacity",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_background_jobs.py::test_operation_keys_are_bounded",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_background_jobs.py::test_operation_keys_are_bounded",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_background_jobs.py::test_operation_keys_are_bounded",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_real_headless_host_uses_typed_services_and_caller_event_sink",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_real_headless_host_uses_typed_services_and_caller_event_sink",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_real_headless_host_uses_typed_services_and_caller_event_sink",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_caller_cancellation_and_local_cancellation_are_independent",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_caller_cancellation_and_local_cancellation_are_independent",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_caller_cancellation_and_local_cancellation_are_independent",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_trust_and_conflict_decisions_use_separate_policies",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_trust_and_conflict_decisions_use_separate_policies",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_trust_and_conflict_decisions_use_separate_policies",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers0-bundle-True-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers0-bundle-True-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers0-bundle-True-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers1-bundle-True-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers1-bundle-True-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers1-bundle-True-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers2-bundle-next-False-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers2-bundle-next-False-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers2-bundle-next-False-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers3-bundle-next-False-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers3-bundle-next-False-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers3-bundle-next-False-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers4-None-False-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers4-None-False-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers4-None-False-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers5-None-False-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers5-None-False-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers5-None-False-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_legacy_publication_adapter_needs_no_unused_callbacks_for_new_folder",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_legacy_publication_adapter_needs_no_unused_callbacks_for_new_folder",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_host_contracts.py::test_legacy_publication_adapter_needs_no_unused_callbacks_for_new_folder",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_preparation_is_owned_and_does_not_publish",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_preparation_is_owned_and_does_not_publish",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_preparation_is_owned_and_does_not_publish",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_optional_catalogue_members_and_dependency_mode_reach_plan",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_optional_catalogue_members_and_dependency_mode_reach_plan",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_optional_catalogue_members_and_dependency_mode_reach_plan",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_package_only_requires_its_own_policy_and_never_parses_inventory",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_package_only_requires_its_own_policy_and_never_parses_inventory",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_package_only_requires_its_own_policy_and_never_parses_inventory",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|deb\\nDEB|already|1.0|amd64\\n-True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|deb\\nDEB|already|1.0|amd64\\n-True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|deb\\nDEB|already|1.0|amd64\\n-True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|rpm\\nPKG|already|0|1|1|x86_64\\n-False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|rpm\\nPKG|already|0|1|1|x86_64\\n-False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|rpm\\nPKG|already|0|1|1|x86_64\\n-False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_mirrors_ignore_stale_inventory_and_baseline",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_mirrors_ignore_stale_inventory_and_baseline",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_mirrors_ignore_stale_inventory_and_baseline",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_explicit_sealing_without_key_is_rejected",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_explicit_sealing_without_key_is_rejected",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_explicit_sealing_without_key_is_rejected",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_credentials_are_attached_by_identity_without_mutating_spec",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_credentials_are_attached_by_identity_without_mutating_spec",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_preparation.py::test_credentials_are_attached_by_identity_without_mutating_spec",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

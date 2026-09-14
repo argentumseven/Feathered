@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[empty-list]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[wrong-shape]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[yaml-alias]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[invalid-date]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[oversized]",
+    "tests/test_k8s_knowledge.py::test_outage_keeps_good_cache_byte_for_byte_then_recovers",
+    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{]",
+    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{\"schema\":99}]",
+    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[[]]",
+    "tests/test_k8s_knowledge.py::test_fresh_cache_skips_network",
+    "tests/test_k8s_knowledge.py::test_policy_change_is_sticky_and_never_applied_as_rules",
+    "tests/test_k8s_knowledge.py::test_unknown_and_historical_versions_have_notices_not_rejection",
+    "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[30-33]",
+    "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[35-33]",
+    "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[34-33]",
+    "tests/test_k8s_knowledge.py::test_future_dated_or_foreign_cache_is_rejected",
+    "tests/test_k8s_knowledge.py::test_gui_refresh_keeps_minor_and_full_package_pin",
+    "tests/test_k8s_knowledge.py::test_gui_schedules_bounded_retry_and_pauses_it_during_build",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1.33-]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1.33.4-]"
+  ]
+}

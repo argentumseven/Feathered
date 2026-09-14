@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "test_feather.py::test_1063_selection_handler_has_no_automatic_evidence_test_call",
+    "test_feather.py::test_1063_evidence_spot_test_cache_is_bound_to_checksum_policy_and_roots",
+    "test_feather.py::test_1064_manual_evidence_display_is_bounded_and_redacts_credentials",
+    "test_feather.py::test_1064_evidence_row_uses_neutral_status_and_fixed_action_geometry",
+    "test_feather.py::test_1064_current_manual_evidence_value_is_actual_compact_url_not_placeholder",
+    "test_feather.py::test_1065_evidence_card_is_explicitly_conditional_and_clear_is_compact",
+    "test_feather.py::test_1066_evidence_test_button_disabled_outside_enhanced_maximum",
+    "test_feather.py::test_1066_evidence_test_handler_is_noop_for_inactive_strategy",
+    "test_feather.py::test_1066_evidence_button_stays_disabled_while_operation_is_running",
+    "test_feather.py::test_1067_el_rebuilds_are_independent_peers_not_exact_mirrors",
+    "test_feather.py::test_1067_peer_semantics_allow_different_binary_release_and_size",
+    "test_feather.py::test_1067_apply_peer_evidence_does_not_compare_binary_digests",
+    "test_feather.py::test_1067_peer_spot_check_accepts_different_bytes_when_each_own_digest_matches",
+    "test_feather.py::test_1067_maximum_accepts_semantic_peer_but_enhanced_gap_does_not",
+    "test_feather.py::test_1067_step4_accepts_successful_independent_peer_spot_test",
+    "test_feather.py::test_1067_preflight_classifies_alma_rocky_as_peer_without_byte_equality",
+    "test_feather.py::test_1067_peer_provenance_is_not_mislabeled_as_byte_match",
+    "test_feather.py::test_1068_apt_evidence_suggestions_are_same_distribution_mirrors",
+    "test_feather.py::test_1068_profiles_offer_multiple_alternate_archive_mirrors",
+    "test_feather.py::test_1068_mirror_empty_status_never_claims_all_are_mirrored"
+  ]
+}

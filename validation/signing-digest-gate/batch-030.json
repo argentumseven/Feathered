@@ -1,0 +1,530 @@
+{
+  "schema": 1,
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_architecture.py::test_operation_unlock_reapplies_workload_version_semantics",
+    "tests/test_architecture.py::test_component_modules_do_not_depend_on_an_injected_app_global",
+    "tests/test_architecture.py::test_review_dispatch_honors_the_host_state_override",
+    "tests/test_architecture.py::test_pick_summary_uses_the_hosts_download_preview",
+    "tests/test_architecture.py::test_facade_dependency_patching_still_reaches_component_consumers",
+    "tests/test_architecture.py::test_component_callbacks_execute_without_importing_app",
+    "tests/test_artifact_digests.py::test_scope_reuses_bytes_but_not_across_builds",
+    "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[overwrite]",
+    "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[replace]",
+    "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[delete]",
+    "tests/test_artifact_digests.py::test_change_during_hash_is_not_remembered",
+    "tests/test_artifact_digests.py::test_exception_closes_scope",
+    "tests/test_artifact_digests.py::test_verification_reuse_and_controlled_rename[sha256]",
+    "tests/test_artifact_digests.py::test_verification_reuse_and_controlled_rename[sha512]",
+    "tests/test_artifact_digests.py::test_failed_verification_does_not_leave_a_reusable_digest",
+    "tests/test_artifact_digests.py::test_failed_independent_evidence_does_not_cache_primary_digest",
+    "tests/test_artifact_digests.py::test_mutation_between_verification_and_rename_forces_read",
+    "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[rpm]",
+    "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[deb]",
+    "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[arch]"
+  ],
+  "batch_excluded": [
+    "tests/test_architecture.py::test_component_modules_declare_dependencies_explicitly",
+    "tests/test_architecture.py::test_grouped_state_view_preserves_legacy_attribute_storage",
+    "tests/test_architecture.py::test_refactor_does_not_shadow_tk_state_api",
+    "tests/test_architecture.py::test_legacy_state_fields_are_not_replaced_by_class_descriptors",
+    "tests/test_architecture.py::test_grouped_state_view_is_safe_on_partial_tk_app",
+    "tests/test_architecture.py::test_grouped_state_view_preserves_owner_setattr_hooks",
+    "tests/test_architecture.py::test_top_level_star_import_does_not_leak_state_implementation",
+    "tests/test_architecture.py::test_additive_app_state_name_remains_instance_overrideable",
+    "tests/test_architecture.py::test_all_mixin_self_method_calls_resolve_on_composed_app",
+    "tests/test_architecture.py::test_media_layout_help_contract_is_defined",
+    "tests/test_artifact_digests.py::test_unavailable_windows_change_time_falls_back_to_reading",
+    "tests/test_artifact_digests.py::test_final_seal_reads_bytes_independently_of_digest_ledger"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_architecture.py::test_operation_unlock_reapplies_workload_version_semantics",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_operation_unlock_reapplies_workload_version_semantics",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_operation_unlock_reapplies_workload_version_semantics",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_component_modules_do_not_depend_on_an_injected_app_global",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_component_modules_do_not_depend_on_an_injected_app_global",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_component_modules_do_not_depend_on_an_injected_app_global",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_review_dispatch_honors_the_host_state_override",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_review_dispatch_honors_the_host_state_override",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_review_dispatch_honors_the_host_state_override",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_pick_summary_uses_the_hosts_download_preview",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_pick_summary_uses_the_hosts_download_preview",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_pick_summary_uses_the_hosts_download_preview",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_facade_dependency_patching_still_reaches_component_consumers",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_facade_dependency_patching_still_reaches_component_consumers",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_facade_dependency_patching_still_reaches_component_consumers",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_component_callbacks_execute_without_importing_app",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_component_callbacks_execute_without_importing_app",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_component_callbacks_execute_without_importing_app",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_scope_reuses_bytes_but_not_across_builds",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_scope_reuses_bytes_but_not_across_builds",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_scope_reuses_bytes_but_not_across_builds",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[overwrite]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[overwrite]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[overwrite]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[replace]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[replace]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[replace]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[delete]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[delete]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_changed_file_invalidates_even_with_original_size_and_mtime[delete]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_change_during_hash_is_not_remembered",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_change_during_hash_is_not_remembered",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_change_during_hash_is_not_remembered",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_exception_closes_scope",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_exception_closes_scope",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_exception_closes_scope",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_verification_reuse_and_controlled_rename[sha256]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_verification_reuse_and_controlled_rename[sha256]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_verification_reuse_and_controlled_rename[sha256]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_verification_reuse_and_controlled_rename[sha512]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_verification_reuse_and_controlled_rename[sha512]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_verification_reuse_and_controlled_rename[sha512]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_failed_verification_does_not_leave_a_reusable_digest",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_failed_verification_does_not_leave_a_reusable_digest",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_failed_verification_does_not_leave_a_reusable_digest",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_failed_independent_evidence_does_not_cache_primary_digest",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_failed_independent_evidence_does_not_cache_primary_digest",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_failed_independent_evidence_does_not_cache_primary_digest",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_mutation_between_verification_and_rename_forces_read",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_mutation_between_verification_and_rename_forces_read",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_mutation_between_verification_and_rename_forces_read",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_artifact_digests.py::test_fresh_build_hashes_each_payload_once_for_records[arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

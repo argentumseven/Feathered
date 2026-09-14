@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "test_feather.py::test_114_custom_label_empty_uses_date_prefix",
+    "test_feather.py::test_114_custom_label_empty_uses_datetime_prefix",
+    "test_feather.py::test_114_custom_label_none_and_empty_stays_blank",
+    "test_feather.py::test_114_output_naming_validation_accepts_prefix_only",
+    "test_feather.py::test_114_output_naming_validation_rejects_empty_none_prefix",
+    "test_feather.py::test_115_rocky_catalog_derives_same_slice_exact_mirror",
+    "test_feather.py::test_115_arch_catalog_derives_repository_channel_path",
+    "test_feather.py::test_115_devuan_catalog_baseurl_becomes_merged_repository",
+    "test_feather.py::test_115_debian_security_requires_security_scoped_mirror",
+    "test_feather.py::test_115_user_exact_mirror_override_persists_and_defaults_authority_unknown",
+    "test_feather.py::test_115_app_profile_evidence_comes_from_local_catalog_not_profile_suggestion",
+    "test_feather.py::test_115_build_stages_writable_mirror_catalog_sidecar",
+    "test_feather.py::test_116_automatic_catalog_evidence_is_us_only",
+    "test_feather.py::test_116_non_us_manual_override_cannot_assert_independent_authority",
+    "test_feather.py::test_116_us_manual_override_may_assert_independent_authority",
+    "test_feather.py::test_116_bundled_automatic_catalogs_contain_only_us_mirrors",
+    "test_feather.py::test_116_ui_added_override_exposes_country_for_plain_text_policy_edit",
+    "test_feather.py::test_117_commit_staging_merges_without_deleting_destination_only_files",
+    "test_feather.py::test_117_commit_staging_preflights_conflicts_before_publication",
+    "test_feather.py::test_117_commit_staging_rolls_back_if_final_directory_swap_fails"
+  ]
+}

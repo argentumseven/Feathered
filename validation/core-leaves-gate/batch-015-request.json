@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "test_feather.py::test_query_token_repository_normalization_keeps_query_after_root_slash",
+    "test_feather.py::test_url_join_inherits_recognized_query_credentials_same_origin_only",
+    "test_feather.py::test_repo_relative_url_inherits_query_token_and_metadata_cannot_override_it",
+    "test_feather.py::test_credentialed_repository_rejects_cross_origin_redirect_before_following",
+    "test_feather.py::test_query_token_repository_redirect_is_origin_confined_too",
+    "test_feather.py::test_credentialed_repository_can_explicitly_allow_vendor_redirect_origin",
+    "test_feather.py::test_source_plan_models_distribution_dedicated_and_mixed_roots",
+    "test_feather.py::test_app_source_plan_wrappers_derive_from_one_plan_object",
+    "test_feather.py::test_package_requests_consume_source_plan_instead_of_rederiving_roles",
+    "test_feather.py::test_source_plan_required_roles_are_deduplicated_in_root_order",
+    "test_feather.py::test_native_dnf_conformance_has_real_offline_transaction_oracle",
+    "test_feather.py::test_native_conformance_file_urls_are_canonical_for_libcurl",
+    "test_feather.py::test_native_conformance_main_runs_all_registered_tiers",
+    "test_feather.py::test_rpm_resolver_property_fuzz_complete_dags_have_complete_closures",
+    "test_feather.py::test_apt_resolver_property_fuzz_complete_dags_have_complete_closures",
+    "test_feather.py::test_requested_source_plan_provenance_separates_intent_from_resolved_repo",
+    "test_feather.py::test_query_token_is_retained_across_same_origin_redirect_but_not_allowlisted_cross_origin",
+    "test_feather.py::test_dedicated_workload_without_base_enters_package_only_acquisition_mode",
+    "test_feather.py::test_mixed_workload_without_base_does_not_masquerade_as_package_only_complete_selection",
+    "test_feather.py::test_review_exposes_only_download_action_in_package_only_mode"
+  ]
+}

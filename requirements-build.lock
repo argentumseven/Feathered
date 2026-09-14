@@ -1,4 +1,4 @@
-# Feathered 1.2.12 production-build dependency lock.
+# Feathered 1.3.0 production-build dependency lock.
 #
 # Platform contract: Windows x86-64, CPython 3.13.14, binary wheels only.
 # build_exe.bat installs this file with --require-hashes --only-binary=:all:.

@@ -1,0 +1,19 @@
+{
+  "test_feather.py": "6d39f741c0a6a59c7f9792ef93f77db79773e66546480703c47d85363c5ee740",
+  "tests/fixtures/bundle_snapshots/arch-additive.json": "50863cae7a18cd055daf30859ec3255a10be91801ff5da571d3df52a8635c5ec",
+  "tests/fixtures/bundle_snapshots/arch-corrupt.json": "76f946d805728273e5c7465a9478d96cc0feee5a51606fa2d954527a585aefe6",
+  "tests/fixtures/bundle_snapshots/arch-differential.json": "18cc21fac7233677d7cb9531581bbf8f0b9f196bdb0be8f1cbbaa551bd44e1b5",
+  "tests/fixtures/bundle_snapshots/arch-fresh.json": "2897dba931d346521d5b7d422d5cd445753e77cd61741ec28214dc53f2035792",
+  "tests/fixtures/bundle_snapshots/arch-reuse.json": "7588d678320d7e98e76582ecb1ebe1dced8fc66853e3a89227d821602904a0c2",
+  "tests/fixtures/bundle_snapshots/deb-additive.json": "e07d974b0cdb81614a75b81b5bab2dd452f98c8fa54aca35165d2e600dd97611",
+  "tests/fixtures/bundle_snapshots/deb-corrupt.json": "dd5a6fe2f654e8c672247b83848113126efadf7ea5e3dc6862a0e3b7bbed4a15",
+  "tests/fixtures/bundle_snapshots/deb-differential.json": "da0d6fc1a54c739ef0193073462ea84314d0086a928d4e389f2edb6c2d88efd4",
+  "tests/fixtures/bundle_snapshots/deb-fresh.json": "bec0e06e4b503dc3e02d8dbc1c4fba12d51a143457c3aa9edfe38438506de565",
+  "tests/fixtures/bundle_snapshots/deb-reuse.json": "55aa2d4c980be12f33ef133da2b6adf4444b336c7573b99f0d46f5e92bfbb3dc",
+  "tests/fixtures/bundle_snapshots/rpm-additive.json": "faeaac99142ab06784b7759e99c90992bdf8997d3b9fd99dcd00f03cc843517a",
+  "tests/fixtures/bundle_snapshots/rpm-corrupt.json": "be364437054aefb91d638231f731e01ea698011b6a6abe55afa96f08a499ffa0",
+  "tests/fixtures/bundle_snapshots/rpm-differential.json": "1869180ef13b6a6e7700b94feb4216a4fc47efc1163c12ae32654bdead95d7a0",
+  "tests/fixtures/bundle_snapshots/rpm-fresh.json": "a9bf0b343f1c89fb94cf78841c8f42310ba04ec34a39033c7ca24771da05845d",
+  "tests/fixtures/bundle_snapshots/rpm-reuse.json": "bf8ca5bde98d99f1ce7fa13e1b1d6cb6583e6df62faa64c527bb19c43295086c",
+  "tests/fixtures/provider_resolution.json": "c91f344ada0a21bd5b7206315524ced5a58aa717df5bdaf0b967afd7736bf189"
+}

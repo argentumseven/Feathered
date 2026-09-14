@@ -1,0 +1,2 @@
+tests/test_transaction_contract.py
+tests/test_transaction_inventory.py

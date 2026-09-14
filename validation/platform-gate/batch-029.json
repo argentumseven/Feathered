@@ -1,0 +1,528 @@
+{
+  "schema": 1,
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_application_startup.py::test_every_ui_refresh_method_survives_being_called",
+    "tests/test_application_startup.py::test_the_mirror_layout_controls_build_and_respond",
+    "tests/test_application_startup.py::test_distribution_switch_clears_uncached_release_and_rebuilds_sources",
+    "tests/test_application_startup.py::test_kubernetes_uses_content_version_axis_and_shows_repository_context",
+    "tests/test_application_startup.py::test_discovery_failure_makes_version_editable_without_fallback_list",
+    "tests/test_application_startup.py::test_repeated_workload_changes_keep_controls_and_sources_in_sync",
+    "tests/test_application_startup.py::test_patch_pin_survives_workload_switch_and_stale_results",
+    "tests/test_application_startup.py::test_progress_populates_minor_choices_without_overwriting_selection",
+    "tests/test_application_startup.py::test_inventory_entry_uses_flat_readonly_colors",
+    "tests/test_application_startup.py::test_incomplete_minor_does_not_break_workload_switching",
+    "tests/test_architecture.py::test_component_modules_declare_dependencies_explicitly",
+    "tests/test_architecture.py::test_grouped_state_view_preserves_legacy_attribute_storage",
+    "tests/test_architecture.py::test_refactor_does_not_shadow_tk_state_api",
+    "tests/test_architecture.py::test_legacy_state_fields_are_not_replaced_by_class_descriptors",
+    "tests/test_architecture.py::test_grouped_state_view_is_safe_on_partial_tk_app",
+    "tests/test_architecture.py::test_grouped_state_view_preserves_owner_setattr_hooks",
+    "tests/test_architecture.py::test_top_level_star_import_does_not_leak_state_implementation",
+    "tests/test_architecture.py::test_additive_app_state_name_remains_instance_overrideable",
+    "tests/test_architecture.py::test_all_mixin_self_method_calls_resolve_on_composed_app",
+    "tests/test_architecture.py::test_media_layout_help_contract_is_defined"
+  ],
+  "batch_excluded": [
+    "tests/test_application_startup.py::test_the_application_starts",
+    "tests/test_application_startup.py::test_the_footer_status_label_is_built_and_height_capped",
+    "tests/test_application_startup.py::test_a_long_status_cannot_grow_the_footer",
+    "tests/test_application_startup.py::test_every_wizard_pane_can_be_shown",
+    "tests/test_architecture.py::test_operation_unlock_reapplies_workload_version_semantics",
+    "tests/test_architecture.py::test_component_modules_do_not_depend_on_an_injected_app_global",
+    "tests/test_architecture.py::test_review_dispatch_honors_the_host_state_override",
+    "tests/test_architecture.py::test_pick_summary_uses_the_hosts_download_preview",
+    "tests/test_architecture.py::test_facade_dependency_patching_still_reaches_component_consumers",
+    "tests/test_architecture.py::test_component_callbacks_execute_without_importing_app"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_application_startup.py::test_every_ui_refresh_method_survives_being_called",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_every_ui_refresh_method_survives_being_called",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_every_ui_refresh_method_survives_being_called",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_the_mirror_layout_controls_build_and_respond",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_the_mirror_layout_controls_build_and_respond",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_the_mirror_layout_controls_build_and_respond",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_distribution_switch_clears_uncached_release_and_rebuilds_sources",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_distribution_switch_clears_uncached_release_and_rebuilds_sources",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_distribution_switch_clears_uncached_release_and_rebuilds_sources",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_kubernetes_uses_content_version_axis_and_shows_repository_context",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_kubernetes_uses_content_version_axis_and_shows_repository_context",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_kubernetes_uses_content_version_axis_and_shows_repository_context",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_discovery_failure_makes_version_editable_without_fallback_list",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_discovery_failure_makes_version_editable_without_fallback_list",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_discovery_failure_makes_version_editable_without_fallback_list",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_repeated_workload_changes_keep_controls_and_sources_in_sync",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_repeated_workload_changes_keep_controls_and_sources_in_sync",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_repeated_workload_changes_keep_controls_and_sources_in_sync",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_patch_pin_survives_workload_switch_and_stale_results",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_patch_pin_survives_workload_switch_and_stale_results",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_patch_pin_survives_workload_switch_and_stale_results",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_progress_populates_minor_choices_without_overwriting_selection",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_progress_populates_minor_choices_without_overwriting_selection",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_progress_populates_minor_choices_without_overwriting_selection",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_inventory_entry_uses_flat_readonly_colors",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_inventory_entry_uses_flat_readonly_colors",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_inventory_entry_uses_flat_readonly_colors",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_incomplete_minor_does_not_break_workload_switching",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_incomplete_minor_does_not_break_workload_switching",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_application_startup.py::test_incomplete_minor_does_not_break_workload_switching",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_component_modules_declare_dependencies_explicitly",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_component_modules_declare_dependencies_explicitly",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_component_modules_declare_dependencies_explicitly",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_grouped_state_view_preserves_legacy_attribute_storage",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_grouped_state_view_preserves_legacy_attribute_storage",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_grouped_state_view_preserves_legacy_attribute_storage",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_refactor_does_not_shadow_tk_state_api",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_refactor_does_not_shadow_tk_state_api",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_refactor_does_not_shadow_tk_state_api",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_legacy_state_fields_are_not_replaced_by_class_descriptors",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_legacy_state_fields_are_not_replaced_by_class_descriptors",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_legacy_state_fields_are_not_replaced_by_class_descriptors",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_grouped_state_view_is_safe_on_partial_tk_app",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_grouped_state_view_is_safe_on_partial_tk_app",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_grouped_state_view_is_safe_on_partial_tk_app",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_grouped_state_view_preserves_owner_setattr_hooks",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_grouped_state_view_preserves_owner_setattr_hooks",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_grouped_state_view_preserves_owner_setattr_hooks",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_top_level_star_import_does_not_leak_state_implementation",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_top_level_star_import_does_not_leak_state_implementation",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_top_level_star_import_does_not_leak_state_implementation",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_additive_app_state_name_remains_instance_overrideable",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_additive_app_state_name_remains_instance_overrideable",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_additive_app_state_name_remains_instance_overrideable",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_all_mixin_self_method_calls_resolve_on_composed_app",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_all_mixin_self_method_calls_resolve_on_composed_app",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_all_mixin_self_method_calls_resolve_on_composed_app",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_media_layout_help_contract_is_defined",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_media_layout_help_contract_is_defined",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_architecture.py::test_media_layout_help_contract_is_defined",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

@@ -1,0 +1,529 @@
+{
+  "schema": 1,
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[sha256_file]",
+    "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[_sha256_file]",
+    "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[hash_file]",
+    "tests/test_file_hashing_contract.py::test_invalid_algorithm_is_rejected_before_opening_missing_file",
+    "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[sha256_file]",
+    "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[_sha256_file]",
+    "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[hash_file]",
+    "tests/test_footer_status.py::test_a_real_conflict_report_is_reduced_to_one_line",
+    "tests/test_footer_status.py::test_condensed_text_still_says_what_went_wrong",
+    "tests/test_footer_status.py::test_truncation_points_at_the_log_rather_than_just_stopping",
+    "tests/test_footer_status.py::test_short_messages_pass_through_untouched",
+    "tests/test_footer_status.py::test_embedded_newlines_are_collapsed_even_when_short",
+    "tests/test_footer_status.py::test_deliberate_space_runs_survive",
+    "tests/test_footer_status.py::test_truncation_prefers_a_word_boundary_but_survives_one_long_token",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[None]",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[]",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[   ]",
+    "tests/test_footer_status.py::test_first_line_skips_leading_blank_lines",
+    "tests/test_footer_status.py::test_every_status_write_goes_through_the_condenser",
+    "tests/test_footer_status.py::test_set_footer_status_condenses_and_returns_what_is_shown"
+  ],
+  "batch_excluded": [
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[0-sha256_file]",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[0-_sha256_file]",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[0-hash_file]",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[1048593-sha256_file]",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[1048593-_sha256_file]",
+    "tests/test_file_hashing_contract.py::test_existing_hash_entry_points[1048593-hash_file]",
+    "tests/test_file_hashing_contract.py::test_generic_hash_algorithm_contract[SHA-sha1]",
+    "tests/test_file_hashing_contract.py::test_generic_hash_algorithm_contract[SHA512-sha512]",
+    "tests/test_file_hashing_contract.py::test_generic_hash_algorithm_contract[-sha256]",
+    "tests/test_footer_status.py::test_set_footer_status_is_safe_with_no_widget",
+    "tests/test_footer_status.py::test_status_label_height_is_pinned_in_the_layout"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[sha256_file]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[sha256_file]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[sha256_file]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[_sha256_file]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[_sha256_file]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[_sha256_file]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[hash_file]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[hash_file]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_core_constructor_patch_remains_visible[hash_file]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_invalid_algorithm_is_rejected_before_opening_missing_file",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_invalid_algorithm_is_rejected_before_opening_missing_file",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_invalid_algorithm_is_rejected_before_opening_missing_file",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[sha256_file]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[sha256_file]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[sha256_file]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[_sha256_file]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[_sha256_file]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[_sha256_file]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[hash_file]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[hash_file]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_file_hashing_contract.py::test_missing_file_error_is_preserved[hash_file]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_a_real_conflict_report_is_reduced_to_one_line",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_a_real_conflict_report_is_reduced_to_one_line",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_a_real_conflict_report_is_reduced_to_one_line",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_condensed_text_still_says_what_went_wrong",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_condensed_text_still_says_what_went_wrong",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_condensed_text_still_says_what_went_wrong",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_truncation_points_at_the_log_rather_than_just_stopping",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_truncation_points_at_the_log_rather_than_just_stopping",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_truncation_points_at_the_log_rather_than_just_stopping",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_short_messages_pass_through_untouched",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_short_messages_pass_through_untouched",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_short_messages_pass_through_untouched",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_embedded_newlines_are_collapsed_even_when_short",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_embedded_newlines_are_collapsed_even_when_short",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_embedded_newlines_are_collapsed_even_when_short",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_deliberate_space_runs_survive",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_deliberate_space_runs_survive",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_deliberate_space_runs_survive",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_truncation_prefers_a_word_boundary_but_survives_one_long_token",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_truncation_prefers_a_word_boundary_but_survives_one_long_token",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_truncation_prefers_a_word_boundary_but_survives_one_long_token",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_blank_input_produces_blank_output[None]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_blank_input_produces_blank_output[None]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_blank_input_produces_blank_output[None]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_blank_input_produces_blank_output[]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_blank_input_produces_blank_output[]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_blank_input_produces_blank_output[]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_blank_input_produces_blank_output[   ]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_blank_input_produces_blank_output[   ]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_blank_input_produces_blank_output[   ]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_first_line_skips_leading_blank_lines",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_first_line_skips_leading_blank_lines",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_first_line_skips_leading_blank_lines",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_every_status_write_goes_through_the_condenser",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_every_status_write_goes_through_the_condenser",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_every_status_write_goes_through_the_condenser",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_set_footer_status_condenses_and_returns_what_is_shown",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_set_footer_status_condenses_and_returns_what_is_shown",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_footer_status.py::test_set_footer_status_condenses_and_returns_what_is_shown",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

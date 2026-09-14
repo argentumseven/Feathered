@@ -1,0 +1,25 @@
+{
+  "run_id": "73905071d2374794aba1da5f47500989",
+  "nodes": [
+    "test_feather.py::test_1079_mirror_result_cannot_pull_from_same_name_unselected_repository",
+    "test_feather.py::test_1079_mirror_table_allows_duplicate_display_names_without_iid_collision",
+    "test_feather.py::test_1079_exact_package_readiness_rejects_same_name_wrong_source",
+    "test_feather.py::test_1080_rhel_docker_upstream_is_package_only_when_cdn_is_unentitled",
+    "test_feather.py::test_1080_rhel_distribution_roots_still_require_entitled_or_alternate_base",
+    "test_feather.py::test_1080_rhel_docker_package_only_does_not_trigger_entitlement_recovery_gate",
+    "test_feather.py::test_1081_trust_log_marks_build_waiting_and_resumes_after_decision",
+    "test_feather.py::test_1081_waiting_and_failed_activity_states_are_static_and_colour_coded",
+    "test_feather.py::test_1081_footer_activity_rail_has_no_feather_mark_and_is_lowered",
+    "test_feather.py::test_1082_waiting_footer_deduplicates_state_prefix",
+    "test_feather.py::test_1082_staging_reuses_arch_payload_but_not_generated_companions",
+    "test_feather.py::test_1082_rpm_bundle_companion_files_live_with_payload_and_report_shipped_size",
+    "test_feather.py::test_1082_mid_download_cancel_is_not_retried_or_masked_as_fetch_failure",
+    "test_feather.py::test_1082_package_download_cancel_is_not_masked_as_package_failure",
+    "test_feather.py::test_110_worker_done_treats_cancellation_as_typed_outcome_not_failure",
+    "test_feather.py::test_110_catalog_and_repo_loops_do_not_swallow_cancellation",
+    "test_feather.py::test_110_devuan_and_artix_profiles_are_systemd_free_targets",
+    "test_feather.py::test_110_split_desc_depends_alpm_database_resolves_dependencies",
+    "test_feather.py::test_110_pacman_db_fetch_uses_repository_transport_policy",
+    "test_feather.py::test_110_workload_availability_is_per_distro_and_excludes_missing_software"
+  ]
+}

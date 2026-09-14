@@ -1,0 +1,25 @@
+{
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "nodes": [
+    "tests/test_transaction_inventory.py::test_arch_upgrade_distinguishes_foreign_and_managed_missing_packages[True]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[incomplete]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[older]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[pin]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_rejects_inconsistent_snapshot_or_exact_root[source]",
+    "tests/test_transaction_inventory.py::test_arch_upgrade_preserves_caller_roots_and_adds_source_pinned_requests",
+    "tests/test_transaction_resolution.py::test_stability_returns_original_result_and_preserves_caller_options",
+    "tests/test_transaction_resolution.py::test_package_order_does_not_prevent_stability",
+    "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[False]",
+    "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[True]",
+    "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[0-4]",
+    "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[2-4]",
+    "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[5-7]",
+    "tests/test_transaction_resolution.py::test_cancel_before_inventory_preparation_or_resolver",
+    "tests/test_transaction_resolution.py::test_cancel_after_one_pass_cannot_publish_partial_result",
+    "tests/test_transaction_resolution.py::test_backend_exception_propagates_without_reverse_validation",
+    "tests/test_transaction_resolution.py::test_repair_extends_owned_roots_and_restarts_with_empty_prior",
+    "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[False]",
+    "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[True]",
+    "tests/test_transaction_resolution.py::test_pending_repair_defers_other_failures_until_the_retry"
+  ]
+}

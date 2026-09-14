@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "tests/test_artifact_digests.py::test_unavailable_windows_change_time_falls_back_to_reading",
+    "tests/test_artifact_digests.py::test_final_seal_reads_bytes_independently_of_digest_ledger",
+    "tests/test_assurance_semantics.py::test_every_assurance_mode_has_a_definition",
+    "tests/test_assurance_semantics.py::test_every_definition_states_both_halves",
+    "tests/test_assurance_semantics.py::test_peer_lineage_ranks_below_signatures_and_byte_match",
+    "tests/test_assurance_semantics.py::test_signature_modes_outrank_every_corroboration_mode",
+    "tests/test_assurance_semantics.py::test_legend_is_ordered_strongest_first_and_scoped_to_present_modes",
+    "tests/test_assurance_semantics.py::test_unknown_mode_gets_an_explicit_placeholder_not_a_guess",
+    "tests/test_assurance_semantics.py::test_bundle_provenance_embeds_the_legend_for_its_own_modes",
+    "tests/test_assurance_semantics.py::test_both_provenance_writers_emit_the_plain_text_legend",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-rpm]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-deb]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[resolve-arch]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-rpm]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-deb]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[write_bundle-arch]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-rpm]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-deb]",
+    "tests/test_backend_dispatch.py::test_target_dispatch_retains_backend_hooks[parse_target_inventory-arch]",
+    "tests/test_backend_dispatch.py::test_repository_dispatch_precedence[rpm-rpm]"
+  ]
+}

@@ -1,0 +1,3 @@
+tests/test_background_jobs.py
+tests/test_build_host_contracts.py
+tests/test_build_preparation.py

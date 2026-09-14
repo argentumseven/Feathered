@@ -1,0 +1,25 @@
+{
+  "run_id": "cf0efe06a42e42dd97438644e8e1c67e",
+  "nodes": [
+    "test_feather.py::test_metadata_download_limit_rejects_oversized_declared_length",
+    "test_feather.py::test_repository_location_rejects_double_encoded_dotdot_traversal",
+    "test_feather.py::test_vendor_signature_settings_do_not_cross_vendor_boundaries",
+    "test_feather.py::test_vendor_signature_settings_share_only_with_same_vendor",
+    "test_feather.py::test_vendor_signature_legacy_global_keyring_only_used_without_scoped_map",
+    "test_feather.py::test_verification_strategy_labels_keep_policy_identity_with_assurance_suffixes",
+    "test_feather.py::test_entitlement_and_keyring_reference_stores_live_outside_program_tree",
+    "test_feather.py::test_packages_sources_visual_order_is_base_then_additional_then_selection",
+    "test_feather.py::test_scroll_hint_no_longer_pauses_during_wheel_gesture_and_uses_accent",
+    "test_feather.py::test_validation_router_has_explicit_targets_for_missing_source_entitlement_and_signing",
+    "test_feather.py::test_source_plan_rebuild_preserves_additional_repositories",
+    "test_feather.py::test_base_source_editor_is_inline_and_source_plan_is_described_as_population",
+    "test_feather.py::test_additional_repository_manager_is_separate_from_base_source_editor",
+    "test_feather.py::test_wizard_separates_linux_repositories_packages_and_output_directories",
+    "test_feather.py::test_repository_stage_owns_broad_source_test_not_additional_repository_card",
+    "test_feather.py::test_packages_stage_has_selection_specific_source_coverage_check",
+    "test_feather.py::test_package_source_matcher_respects_role_repo_arch_and_version_for_rpm",
+    "test_feather.py::test_workload_repository_roles_are_generic_and_keep_legacy_docker_compatibility",
+    "test_feather.py::test_workload_can_map_different_roots_to_different_repository_roles",
+    "test_feather.py::test_external_workload_catalog_accepts_repository_role_contract"
+  ]
+}

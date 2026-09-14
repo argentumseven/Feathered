@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[no-phases]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-teardown]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[duplicate-call]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[wrong-order]",
+    "tests/test_release_gate_outcomes.py::test_parent_rejects_incomplete_or_duplicate_execution[missing-call]",
+    "tests/test_release_gate_outcomes.py::test_platform_skip_policy_is_scoped_and_has_required_linux_coverage",
+    "tests/test_release_integrity.py::test_frozen_release_rejects_missing_bundled_verifier",
+    "tests/test_release_integrity.py::test_frozen_release_rejects_missing_embedded_policy",
+    "tests/test_release_integrity.py::test_bundled_verifier_exact_hash_set_is_enforced",
+    "tests/test_release_integrity.py::test_bundled_verifier_rejects_unexpected_file",
+    "tests/test_release_integrity.py::test_build_requires_signing_iso_and_embedded_verifier_policy",
+    "tests/test_release_integrity.py::test_production_build_lock_authenticates_every_pinned_requirement",
+    "tests/test_release_integrity.py::test_windows_ci_contains_real_signed_production_release_gate",
+    "tests/test_release_integrity.py::test_project_is_mit_licensed_and_distribution_notice_is_present",
+    "tests/test_release_integrity.py::test_gpg_acquisition_is_pinned_to_expected_installer_hash",
+    "tests/test_release_integrity.py::test_verifier_cache_still_catches_a_later_tamper",
+    "tests/test_release_integrity.py::test_verifier_integrity_error_is_not_a_waivable_signature_failure",
+    "tests/test_release_integrity.py::test_source_checkout_keeps_path_fallback",
+    "tests/test_release_integrity.py::test_backend_modules_can_resolve_every_module_qualified_reference",
+    "tests/test_release_integrity.py::test_windows_release_smoke_executes_actual_mount_path"
+  ]
+}

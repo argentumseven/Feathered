@@ -1,0 +1,546 @@
+{
+  "schema": 1,
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rhel]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rocky]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[ubuntu]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[debian]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[devuan]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[ubuntu-releases0]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[debian-releases1]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[arch-releases2]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[custom-rpm-releases3]",
+    "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[transaction]",
+    "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[mirror]",
+    "tests/test_target_release_transition.py::test_release_discovery_populates_the_cleared_target",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-lib-1-2]",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-hyphenated-component-7.2-11.4]",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-lib-1-2]",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-hyphenated-component-7.2-11.4]",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-lib-1-2]",
+    "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-hyphenated-component-7.2-11.4]",
+    "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[1]",
+    "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[4]"
+  ],
+  "batch_excluded": [
+    "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[11]",
+    "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[rpm-noarch]",
+    "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[deb-all]",
+    "tests/test_transaction_contract.py::test_workload_materialization_family_architecture[arch-any]",
+    "tests/test_transaction_contract.py::test_arch_root_source_scope[app]",
+    "tests/test_transaction_contract.py::test_arch_root_source_scope[other-app]",
+    "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[-False]",
+    "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[no-False]",
+    "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[same-False]",
+    "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[foreign-False]",
+    "tests/test_transaction_contract.py::test_apt_any_respects_multi_arch[allowed-True]",
+    "tests/test_transaction_contract.py::test_rpm_root_constraints_and_missing_root_only",
+    "tests/test_transaction_contract.py::test_root_only_and_conflicting_pins",
+    "tests/test_transaction_contract.py::test_optional_roots_and_exact_contract_reach_published_installer[1.2]",
+    "tests/test_transaction_contract.py::test_optional_roots_and_exact_contract_reach_published_installer[3:7.8-4]",
+    "tests/test_transaction_contract.py::test_receiver_baseline_and_post_install_are_exact",
+    "tests/test_transaction_contract.py::test_full_arch_upgrade_changes_with_target_inventory",
+    "tests/test_transaction_contract.py::test_retained_reverse_dependency_is_repaired_or_blocked[False]",
+    "tests/test_transaction_contract.py::test_retained_reverse_dependency_is_repaired_or_blocked[True]",
+    "tests/test_transaction_contract.py::test_cache_survives_failure_but_rejects_tampering",
+    "tests/test_transaction_contract.py::test_additive_changed_retained_bytes_block_publication",
+    "tests/test_transaction_contract.py::test_repository_cache_tracks_participating_sources",
+    "tests/test_transaction_contract.py::test_rpm_module_streams_follow_defaults_and_captured_state",
+    "tests/test_transaction_contract.py::test_module_yaml_alias_bombs_are_rejected",
+    "tests/test_transaction_contract.py::test_live_matrix_runs_materialization_optionality_and_closure",
+    "tests/test_transaction_contract.py::test_inventory_relationships_reject_inconsistent_capture",
+    "tests/test_transaction_contract.py::test_modular_header_without_modulemd_is_rejected",
+    "tests/test_transaction_contract.py::test_rpm_module_label_survives_record_copy_without_changing_package_equality"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rhel]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rhel]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rhel]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rocky]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rocky]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rocky]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[ubuntu]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[ubuntu]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[ubuntu]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[debian]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[debian]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[debian]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[devuan]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[devuan]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[devuan]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[ubuntu-releases0]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[ubuntu-releases0]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[ubuntu-releases0]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[debian-releases1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[debian-releases1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[debian-releases1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[arch-releases2]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[arch-releases2]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[arch-releases2]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[custom-rpm-releases3]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[custom-rpm-releases3]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[custom-rpm-releases3]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[transaction]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[transaction]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[transaction]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[mirror]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[mirror]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[mirror]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_release_discovery_populates_the_cleared_target",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_release_discovery_populates_the_cleared_target",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_target_release_transition.py::test_release_discovery_populates_the_cleared_target",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-lib-1-2]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-lib-1-2]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-lib-1-2]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-hyphenated-component-7.2-11.4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-hyphenated-component-7.2-11.4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[rpm-hyphenated-component-7.2-11.4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-lib-1-2]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-lib-1-2]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-lib-1-2]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-hyphenated-component-7.2-11.4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-hyphenated-component-7.2-11.4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[deb-hyphenated-component-7.2-11.4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-lib-1-2]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-lib-1-2]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-lib-1-2]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-hyphenated-component-7.2-11.4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-hyphenated-component-7.2-11.4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_replaced_inventory_does_not_satisfy_old_requirement[arch-hyphenated-component-7.2-11.4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_contract.py::test_late_rpm_condition_is_closed_at_fixed_point[4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

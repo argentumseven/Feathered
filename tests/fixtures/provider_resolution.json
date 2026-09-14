@@ -1,0 +1,306 @@
+{
+  "ordinary": {
+    "selected": [
+      [
+        "alpha-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "roots": [
+      [
+        "alpha-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "unresolved": [],
+    "conflicts": [],
+    "reasons": {
+      "alpha-2-1.x86_64": "requested package",
+      "beta-2-1.x86_64": "requested package"
+    },
+    "unresolved_notes": {},
+    "skipped_installed": [],
+    "installed_satisfied": [],
+    "discovered": [],
+    "choices": [],
+    "events": [
+      "Building provider index...",
+      "Root: alpha-2-1.x86_64 [Base]",
+      "Root: beta-2-1.x86_64 [Base]"
+    ]
+  },
+  "constrained": {
+    "selected": [
+      [
+        "alpha-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "roots": [
+      [
+        "alpha-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "unresolved": [],
+    "conflicts": [],
+    "reasons": {
+      "alpha-1-1.x86_64": "requested package",
+      "beta-1-1.x86_64": "requested package"
+    },
+    "unresolved_notes": {},
+    "skipped_installed": [],
+    "installed_satisfied": [],
+    "discovered": [],
+    "choices": [],
+    "events": [
+      "Building provider index...",
+      "Root: alpha-1-1.x86_64 [Base]",
+      "Root: beta-1-1.x86_64 [Base]"
+    ]
+  },
+  "mixed": {
+    "selected": [
+      [
+        "alpha-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "roots": [
+      [
+        "alpha-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "unresolved": [],
+    "conflicts": [],
+    "reasons": {
+      "alpha-1-1.x86_64": "requested package",
+      "beta-2-1.x86_64": "requested package"
+    },
+    "unresolved_notes": {},
+    "skipped_installed": [],
+    "installed_satisfied": [],
+    "discovered": [],
+    "choices": [],
+    "events": [
+      "Building provider index...",
+      "Root: alpha-1-1.x86_64 [Base]",
+      "Root: beta-2-1.x86_64 [Base]"
+    ]
+  },
+  "unsatisfiable": {
+    "selected": [
+      [
+        "alpha-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "roots": [
+      [
+        "alpha-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "unresolved": [],
+    "conflicts": [],
+    "reasons": {
+      "alpha-2-1.x86_64": "requested package",
+      "beta-1-1.x86_64": "requested package"
+    },
+    "unresolved_notes": {},
+    "skipped_installed": [],
+    "installed_satisfied": [],
+    "discovered": [],
+    "choices": [],
+    "events": [
+      "Building provider index...",
+      "Root: alpha-2-1.x86_64 [Base]",
+      "Root: beta-1-1.x86_64 [Base]"
+    ]
+  },
+  "source-pinned": {
+    "selected": [
+      [
+        "alpha-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "roots": [
+      [
+        "alpha-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "unresolved": [],
+    "conflicts": [],
+    "reasons": {
+      "alpha-1-1.x86_64": "requested package",
+      "beta-1-1.x86_64": "requested package"
+    },
+    "unresolved_notes": {},
+    "skipped_installed": [],
+    "installed_satisfied": [],
+    "discovered": [],
+    "choices": [],
+    "events": [
+      "Building provider index...",
+      "Root: alpha-1-1.x86_64 [Base]",
+      "Root: beta-1-1.x86_64 [Base]"
+    ]
+  },
+  "virtual": {
+    "selected": [
+      [
+        "alpha-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "roots": [
+      [
+        "alpha-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "unresolved": [],
+    "conflicts": [],
+    "reasons": {
+      "alpha-1-1.x86_64": "requested package",
+      "beta-1-1.x86_64": "requested package"
+    },
+    "unresolved_notes": {},
+    "skipped_installed": [],
+    "installed_satisfied": [],
+    "discovered": [],
+    "choices": [],
+    "events": [
+      "Building provider index...",
+      "Root: alpha-1-1.x86_64 [Base]",
+      "Root: beta-1-1.x86_64 [Base]"
+    ]
+  },
+  "python-alias": {
+    "selected": [
+      [
+        "alpha-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "roots": [
+      [
+        "alpha-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-1-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "unresolved": [],
+    "conflicts": [],
+    "reasons": {
+      "alpha-1-1.x86_64": "requested package",
+      "beta-1-1.x86_64": "requested package"
+    },
+    "unresolved_notes": {},
+    "skipped_installed": [],
+    "installed_satisfied": [],
+    "discovered": [],
+    "choices": [],
+    "events": [
+      "Building provider index...",
+      "Root: alpha-1-1.x86_64 [Base]",
+      "Root: beta-1-1.x86_64 [Base]"
+    ]
+  },
+  "empty-filter": {
+    "selected": [
+      [
+        "alpha-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "roots": [
+      [
+        "alpha-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ],
+      [
+        "beta-2-1.x86_64",
+        "repo-sha256:03e5049a43790978d7a36f74d7c49c5d72d12e61410a4feb7a1bc98513a14226"
+      ]
+    ],
+    "unresolved": [],
+    "conflicts": [],
+    "reasons": {
+      "alpha-2-1.x86_64": "requested package",
+      "beta-2-1.x86_64": "requested package"
+    },
+    "unresolved_notes": {},
+    "skipped_installed": [],
+    "installed_satisfied": [],
+    "discovered": [],
+    "choices": [],
+    "events": [
+      "Building provider index...",
+      "Root: alpha-2-1.x86_64 [Base]",
+      "Root: beta-2-1.x86_64 [Base]"
+    ]
+  }
+}

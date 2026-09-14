@@ -1,0 +1,25 @@
+{
+  "run_id": "cdba484d465e479785a8b1a125914de5",
+  "nodes": [
+    "test_feather.py::test_regression_1038_skip_strategy_is_first_class",
+    "test_feather.py::test_regression_1038_skip_strategy_does_not_hash_package_claims",
+    "test_feather.py::test_regression_1038_apt_skip_ignores_configured_archive_keyring",
+    "test_feather.py::test_regression_1038_rpm_skip_does_not_fetch_or_verify_repomd_signature",
+    "test_feather.py::test_regression_1038_skip_ui_disables_checksum_and_evidence_controls",
+    "test_feather.py::test_regression_1038_skip_strategy_never_uses_evidence_mirror",
+    "test_feather.py::test_rpm_rich_or_dependency_resolves_available_branch",
+    "test_feather.py::test_rpm_rich_or_can_backtrack_to_other_branch_provider",
+    "test_feather.py::test_repository_sidecar_rebuilds_apt_metadata_without_moving_packages",
+    "test_feather.py::test_repository_sidecar_rejects_mixed_package_families",
+    "test_feather.py::test_review_source_contains_unresolved_waiver_and_retry_controls",
+    "test_feather.py::test_repository_tools_are_sidecar_not_sixth_wizard_step",
+    "test_feather.py::test_repository_sidecar_reads_rpm_dependency_header_and_writes_primary",
+    "test_feather.py::test_review_output_path_combines_base_and_bundle_folder",
+    "test_feather.py::test_resolved_output_path_can_reuse_build_folder_name_without_regenerating",
+    "test_feather.py::test_successful_build_enables_open_output_folder",
+    "test_feather.py::test_review_contract_exposes_single_package_before_analysis",
+    "test_feather.py::test_review_actions_disable_when_contract_is_empty_and_enable_before_analysis",
+    "test_feather.py::test_review_build_disables_for_blocking_analysis_and_reenables_after_waiver",
+    "test_feather.py::test_review_contract_renderer_keeps_requested_root_visible_without_analysis"
+  ]
+}

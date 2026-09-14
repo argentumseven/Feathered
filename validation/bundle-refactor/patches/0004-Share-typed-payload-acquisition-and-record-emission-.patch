@@ -1,0 +1,834 @@
+From 731ba62305d1ce38019568c41cfb4723be7d7d29 Mon Sep 17 00:00:00 2001
+From: Feathered Maintenance <maintenance@localhost>
+Date: Sun, 13 Sep 2026 07:58:33 -0400
+Subject: [PATCH 4/6] Share typed payload acquisition and record emission
+ across RPM APT and Arch
+
+---
+ BUNDLE-WRITER.md                     | 66 +++++++++++++++++++
+ SOURCE-SHA256.json                   | 19 ++++--
+ VALIDATION.md                        | 27 +++++---
+ apt_core.py                          | 73 ++++++---------------
+ arch_core.py                         | 58 ++++-------------
+ bundle_writer.py                     | 97 ++++++++++++++++++++++++++++
+ core.py                              | 87 +++++++------------------
+ mypy.ini                             |  9 +++
+ package_family.py                    | 19 ++++++
+ tests/test_assurance_semantics.py    | 27 +++++---
+ tests/test_build_request_module.py   |  1 +
+ tests/test_bundle_records.py         | 28 ++++++++
+ tests/test_bundle_writer_failures.py | 29 +++++++++
+ 13 files changed, 354 insertions(+), 186 deletions(-)
+ create mode 100644 BUNDLE-WRITER.md
+ create mode 100644 bundle_writer.py
+ create mode 100644 package_family.py
+ create mode 100644 tests/test_bundle_records.py
+ create mode 100644 tests/test_bundle_writer_failures.py
+
+diff --git a/BUNDLE-WRITER.md b/BUNDLE-WRITER.md
+new file mode 100644
+index 0000000..8e1caf9
+--- /dev/null
++++ b/BUNDLE-WRITER.md
+@@ -0,0 +1,66 @@
++# Shared bundle writer batch
++
++Base: `aa3a685f4725f7b12c2d96be252a77c94097ad12` (the completed build-boundary batch).
++This source delivery includes that batch and all earlier upstream changes.
++
++## Changes
++
++- Captured 15 golden writer outputs before extraction: RPM, APT and Arch,
++  each with fresh, reused, corrupt-cache, differential and additive payloads.
++  They compare payload-directory contents, complete record text, JSON key order,
++  checksums, provenance, assurance and ordered log/item/progress events. Only
++  fixture clocks, source IDs, temporary roots and platform line endings are
++  normalized. Synthetic payloads establish writer parity, not native installation.
++- Fixed Arch cache handling: reporting callback failures during verifying,
++  reused or progress notifications propagate instead of invalidating a cached
++  package. Corrupt Arch payloads now log an explicit recovery message. Three
++  regression cases failed before the fix and passed afterward. The only changed
++  golden expectation is the new Arch corrupt-cache log message.
++- Delegated APT transfers to the existing common transfer implementation, retaining
++  its `_copy_or_download` entry point and module-local URL opener and verifier
++  hooks. Defaults resolve at call time; shared globals are not temporarily changed.
++  Original transport URLs still reach the opener; existing credential redaction
++  continues to apply to displayed URLs. Repository provenance remains visible.
++- Delegated APT provenance emission to the existing common writer, preserving its
++  wrapper, signing, additive merging, differential warning and assurance legend.
++  Replaced the duplicated authority-unknown literal with the existing constant.
++- Added immutable package-family conventions and shared acquisition/record writers.
++  All three backends now use the same cache/transfer loop and common record-file
++  emission. Family event ordering, reuse logging, filenames, record newlines and
++  optional-file retention remain compatible. Pacman signature sidecars remain in
++  SHA256SUMS while package summaries continue to exclude them.
++- Kept manifest rows and summaries, provenance assertions, repository emitters,
++  installation contracts and installers in their original backends. RPM's leading
++  `nevra` field, APT archive-chain semantics and Arch signature fields are preserved.
++- Preserved package types through baseline partitioning and acquisition callbacks.
++  Both new modules have strict annotations and are tested with Tk imports blocked.
++- Added regression coverage for cancellation, transfer failures, cleanup, APT hook
++  compatibility, record edges and callback failures across all three families.
++  Replaced a source-text assurance test with an actual writer/output check.
++
++## Validation and evidence
++
++`validation/bundle-refactor-gate/SUMMARY.md` is the final release result; its JSON
++records every test and source revision. Static and focused results, the before-fix
++regression output, patches and archive checks are in `validation/bundle-refactor/`.
++
++Intermediate attempts are retained for audit. The first delegation gate stopped
++when the local virtual display failed to initialize. After correcting that setup,
++its rerun caught a source-text test requiring APT's former duplicated helper call.
++That test now executes both public provenance writers and checks their actual
++assurance output. Focused golden and failure checks cover the extraction; only the
++final full-tree gate establishes the completed batch's release result. No failed
++intermediate run is counted as passing evidence.
++
++## Scope and remaining work
++
++This completes the common writer portion of instruction item 7. It does not merge
++resolvers, version comparators or inventory parsers. A dispatch-registry rewrite
++(item 7.5) remains separate: the existing typed dispatch preserves repository-format
++precedence, and removing a few branches here would add risk without improving the
++writer boundary. No GUI layout or release/version selection behavior is changed.
++
++The upstream Windows Python/Tk bootstrap failure recorded in BUILD-BOUNDARY.md is
++outside this batch. Local Linux tests and a source ZIP smoke check do not certify
++Windows native execution or a frozen/signed Windows release. This work is committed
++locally; it has not been pushed to GitHub.
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index 64f6f80..f6759b3 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -7,6 +7,7 @@
+   ".gitignore": "7af25837f3f8f7ae328b2e61ecdae35b3dbf101fe4e46bb9352961a3f43c2243",
+   "BACKGROUND-REFRESH.md": "9719bf2f7d7ba6b95dbec4f5100c447c4773bdbf03b0c91d5a439a0a678d6d82",
+   "BUILD-BOUNDARY.md": "e5009241779660f45152630ce880f67415ef2a5d767d449de9e8eb55a2c67db4",
++  "BUNDLE-WRITER.md": "1ac7e840f0a42aa0323938c55679d75ae96822d115e7e017a6a4950f123c3036",
+   "CHANGELOG.md": "c6d32c4099fa7e80b2a318fb22443e11c2d2a68d026855274a0ac591945465d0",
+   "CLI.md": "631ed89266c8ff5cacc35215d50110cad15591cca7c6e928519ae3c1bf169a49",
+   "KUBERNETES.md": "bdf620d825281c078b4a9939327303d1730a4c345de5c5fc8894b3aaec5bc6e0",
+@@ -14,21 +15,22 @@
+   "NOTICE.md": "35dc860c6112db9e7bbd493374db0a58a74af118dbfce3b6cd1ae99bc0af5679",
+   "README.md": "0e8ccd95bc662a0165cb01ca85dec8464fd599ef49f378f7a1683599ffff8dfd",
+   "SECURITY.md": "62aa26ffb2f9e2c7f19bf5a3d8d33f0c5ae5ef4f5c45949c9d3de26a9b4ad444",
+-  "VALIDATION.md": "ad76b41fd88a7f9430fdae6a9cd258f5078a7488b01e8fc0995b490da4da68a7",
++  "VALIDATION.md": "33f58307d03dadf156b9a6608e104f5325645124dc5a9562f14b04850874cb1f",
+   "acquisition_model.py": "e90fca096aa320a8768fef39c21bbaa42e152f3c02a81926ec7a8f5397046b0e",
+   "app.py": "aa04ea4426571f5348a86eb70f7ea9357b993afb671bc43ebee16e6b5a9a50e7",
+-  "apt_core.py": "19bedcdf72ba3cbf01e5f66376ff071a6ad287df77a9ff426ca78c8b1e6bd75c",
+-  "arch_core.py": "25217aec2df390b5c9c1b0aa4193640a67ea1c729ba1f546c9ca7b7945aebcfc",
++  "apt_core.py": "98cdc59c64226b853aafabb684207070c84b654795c2f6869f96c5d15c779c59",
++  "arch_core.py": "9b7a362b94cbb96692610aed30b3fcfc630f25ae22bfb521c546496ed3de9622",
+   "artifact_cache.py": "2680caccc4e9fd517896aa19f445e61461099319c1ebac9ecafe1c9011b859f4",
+   "background_jobs.py": "f90e152b75b4ae995f78f71354ee1cf3045476948698f1f0c5e1cfe52f2258fd",
+   "build_exe.bat": "5baca57c0113d2dc133a9ddabf0503bf06d36a2b2cc0e7571102650a0860025e",
+   "build_exe_debug.bat": "0a782bcdf7b269183b62235e6d82a330723f02ea6ac1e3447e7c1de19204cac6",
+   "build_spec.py": "08a7b88434be5c9e09664d8c7213e092f92384da749bd803c47dba3ac2f8b489",
++  "bundle_writer.py": "d8665fe2360b2ba71f3d261809023de667260348d799374685d20c5bc644543c",
+   "check_host_contracts.py": "1413b7f776ab8c26cb6e696b460a1e3132d54cbfd1884128ce39a004ed04b9a7",
+   "check_installer_syntax.py": "6e2272288f8ed468b0aaa43a66c94fc64e4190d4af43cdfbdc9bbc8c7bb456b8",
+   "checksum_inspection.py": "dd719fe78fcd82eb97463330ff7c8f0184d3de40a91ffac90d6a859d75c61601",
+   "conftest.py": "181b0c4350afdc00c502be59deeff33e5d001b03fa28b1a3af4d76bb983887b0",
+-  "core.py": "5657179fc41db50b26eff68112e85de317fea4cdfc96fa7da18c4332f9eb5003",
++  "core.py": "bac3a000439a98df7aeffbe8895612f3626977dc7bb7bf8d0dee9856d373de2a",
+   "create_smoke_iso.ps1": "3737b3919975570100bb32b288b7d082fbd5cfe8f7070f60399b9f8c1e242cf2",
+   "evidence_model.py": "7fda39af27c6d79ba18f8018b78f105d79035d6473a3d8f5dfd789d8af189b81",
+   "feathered_app/ARCHITECTURE.md": "bee24f4a1ad087b6e294e1b6850e7b528fa438c47308cff8b92a5fd5bb57ee4d",
+@@ -107,8 +109,9 @@
+   "mirror_catalogs/ubuntu.json": "3e8e50c14d8f8071878eeea23aeaf830269f9bd34a7e12091c8dd1d91b42716f",
+   "mirror_unification.py": "cab2695063c2e4dad08ee34b402ea9d93346fb15d3f78ddef61c85e6def991b2",
+   "module_policy.py": "1b9bd38bda3429cd42b05e816922081c76baea45b62f4dc2b657a72fd0d58d2b",
+-  "mypy.ini": "32a7fe845bd23cad5bff7a82b8c3e8bd4dd8742d2def78e68e9c992f120f087e",
++  "mypy.ini": "aeafa5a7c8914bea849f05577024d7f2f2071d1abb8d139b22baaec0a7e701a5",
+   "native_conformance.py": "8f3185d89d30292745c1b10adb9b364cff129e8fc2943c061c67b401aeb53b40",
++  "package_family.py": "4ddef8b83aff2201b9b98cd4adaca2e480322ec205efa0dfd2972c796d60c06a",
+   "profiles.py": "ec84c3249d75d19f697bb7f52bfd349ac53a028ca73f4fa8fd4804121555fc9e",
+   "provenance.py": "4332d08c1518b81bc66c60129d3b57b7d8dc1b1c7f5469f69f1653a2e1f2513d",
+   "pytest.ini": "32f8da3af15109196fef8d18001d4ff0f1f05f4f6f6a46d7262c7477dc4d2293",
+@@ -153,14 +156,16 @@
+   "tests/test_activity_log.py": "46fc412b86f1fb801d441e473a0e6aa0261347dd12b871ea65ea0fc338332e16",
+   "tests/test_application_startup.py": "154b33b7b46b2eec8e93f80faa6b0914877f8bbc369f14c4b05f1e8c331ca0f7",
+   "tests/test_architecture.py": "a92908c432be6f251d4a1dbf4b1c29dd067cc87282461d5305475ccf751704ea",
+-  "tests/test_assurance_semantics.py": "93670259154832314496ed2573c10ce3309937fa96e88da23c89f0396518a039",
++  "tests/test_assurance_semantics.py": "9ed307f4037da81a339d997730525659e24ccfb3f8f1c058f64c739fb8d270c5",
+   "tests/test_background_jobs.py": "cba76dcff69fd37b238ce2558e257e2ef645479cdf72ec7d2a347a8e6b39b30e",
+   "tests/test_build_host_contracts.py": "750732dec6699c7dbb36fe22852d5c6420f0c9141c87d67e32a248f529ff156f",
+   "tests/test_build_preparation.py": "913962a9fb0c189e38b29d752c77c8240925e9f5215f0ad1564f32d0024e640a",
+-  "tests/test_build_request_module.py": "693dd5d812efb06f4222eb7b2ab499a7ebd16573450d66699608596de205de8d",
++  "tests/test_build_request_module.py": "25d0d3d53f6857e5b3fb66d5ccc9b7b06a11b883173a96ffc63035f0e63cc221",
+   "tests/test_build_spec.py": "ca10e9996d602ca7e7b0002b00b339bffc96edf11501482bcaf71710b75a392a",
+   "tests/test_build_worker_isolation.py": "b623339a690fe4e9a48da191ba8521d0fa9da22ce7b424cefe2024b0b643d1fd",
+   "tests/test_bundle_characterization.py": "3b7aa5448770438e296e0c2853d429271d1e3b90629321ac8794e43407763172",
++  "tests/test_bundle_records.py": "dd7fb982fba3ca099b8e808b2608d330a0b7df613b4a8e01f6c5677a05d60822",
++  "tests/test_bundle_writer_failures.py": "fd14bc7d75b672858c333e8d9780f4f3d8e856c2e3b18ae25b866d62c0f142d1",
+   "tests/test_cached_reporter_failures.py": "c0589d0f0ca7934dc5b6dcba1c79332155f213a50d86d7c6bc1abc1435597d52",
+   "tests/test_checksum_release_fixes.py": "003cf3cb88dc5ce4ea16b7b0aa5b4ffd52802c3823f53f9c52a93a4f2b429982",
+   "tests/test_chooser_stale_activation.py": "7dcf1c8c5e704f71ca7e179c1a4a02fa928386697da113dbd7cad1f6bc43b9cf",
+diff --git a/VALIDATION.md b/VALIDATION.md
+index 2fe2770..8eb4d29 100644
+--- a/VALIDATION.md
++++ b/VALIDATION.md
+@@ -10,13 +10,13 @@ gate. Normal pytest reporting and shutdown remain enabled.
+ The authoritative result is generated by the runner, rather than maintained as a
+ handwritten test count:
+ 
+-- `validation/build-boundary-gate/SUMMARY.md`: human-readable result, actual outcome
++- `validation/bundle-refactor-gate/SUMMARY.md`: human-readable result, actual outcome
+   counts, commit, source-tree digest, Python/pytest versions and environment.
+-- `validation/build-boundary-gate/summary.json`: every final test outcome, allowed skip
++- `validation/bundle-refactor-gate/summary.json`: every final test outcome, allowed skip
+   reason, batch reference and subprocess exit/signal/timeout result.
+-- `validation/build-boundary-gate/collection.json` and `batch-NNN.json`: collected IDs,
++- `validation/bundle-refactor-gate/collection.json` and `batch-NNN.json`: collected IDs,
+   collection problems, deselections, and individual setup/call/teardown reports.
+-- `validation/build-boundary-gate/*.log`: normal pytest failure explanations and output,
++- `validation/bundle-refactor-gate/*.log`: normal pytest failure explanations and output,
+   retained even when a subprocess crashes or times out.
+ 
+ The source-tree digest includes source changes beyond the named commit. Generated
+@@ -62,7 +62,7 @@ python check_host_contracts.py
+ ruff check .
+ python check_installer_syntax.py
+ python verify_source_checksums.py
+-FEATHERED_USE_XVFB=1 python release_test_runner.py --report-dir validation/build-boundary-gate
++FEATHERED_USE_XVFB=1 python release_test_runner.py --report-dir validation/bundle-refactor-gate
+ ```
+ 
+ On Windows, omit `FEATHERED_USE_XVFB=1`. The runner defaults to a 300-second
+@@ -71,11 +71,22 @@ fails the gate and stops the child process tree. `--report-dir PATH` selects a
+ different evidence directory. Test IDs are passed in JSON and source paths in a
+ pytest argument file, avoiding command-line limits without omitting parameters.
+ 
+-## Current build-boundary batch
++## Current shared-writer batch
++
++The current batch begins at `aa3a685f4725f7b12c2d96be252a77c94097ad12`.
++It adds characterized, shared acquisition and record writing for all three package
++families, APT compatibility delegates and an Arch cache/reporting repair.
++`BUNDLE-WRITER.md` describes preserved behavior and the intentional change.
++Focused, before-fix and static evidence is in `validation/bundle-refactor/`;
++the final complete-corpus result is in `validation/bundle-refactor-gate/`.
++Intermediate failed runs are retained under `validation/bundle-delegation-gate/`
++and `validation/bundle-delegation-gate-rerun/`, with their causes documented.
++
++## Previous build-boundary batch
+ 
+ This batch starts at upstream `b14bf5e0de840269289e5c2e728f1e17e26c39a7`.
+ The unmodified source passed 1,341 local tests with no skips or deselections.
+-Baseline and focused evidence are in `validation/build-boundary/`; current
++Baseline and focused evidence are in `validation/build-boundary/`; that batch's
+ full-tree evidence is in `validation/build-boundary-gate/`. Earlier reports in
+ `validation/release-gate/`, `item1/` and `batch25/` are historical evidence.
+ 
+@@ -100,7 +111,7 @@ with source URLs visible, strict decoding of recognized spec fields and runtime
+ preparation inputs, partial-outage recovery, shared release-knowledge ownership,
+ and bounded UI event processing with incremental query coordination. Each
+ behavioral repair has focused regression evidence in `validation/batch25/`;
+-the complete final-tree result remains `validation/build-boundary-gate/SUMMARY.md`.
++the complete final-tree result remains `validation/bundle-refactor-gate/SUMMARY.md`.
+ Malformed specs formerly accepted by truthiness are intentionally rejected;
+ valid older specs and incomplete drafts remain supported. See
+ `BACKGROUND-REFRESH.md` for cache ownership, cancellation and migration scope.
+diff --git a/apt_core.py b/apt_core.py
+index f107336..dcceba2 100644
+--- a/apt_core.py
++++ b/apt_core.py
+@@ -1380,7 +1380,7 @@ def write_bundle(result: DebResolutionResult, output_dir: Path, options: BuildOp
+         raise
+ 
+ 
+-def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: BuildOptions,
++def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir: Path, options: BuildOptions,
+                        reporter: Reporter, metadata: Dict[str, object]) -> Path:
+     deb_dir = output_dir / "debs"
+     deb_dir.mkdir(exist_ok=True)
+@@ -1398,44 +1398,13 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
+     # Additive publication retains unrelated DEBs already present in the
+     # destination. Same-name files may be verified/overwritten below, but old
+     # package payloads are never pruned automatically.
+-    total = max(1, len(to_ship))
+-    for i, pkg in enumerate(to_ship, 1):
+-        reporter.check_cancel()
+-        filename = filename_map[id(pkg)]
+-        dest = deb_dir / filename
+-        import artifact_cache
+-        artifact_cache.restore(pkg, dest, final_dir.parent, options, reporter)
+-        if dest.exists() and dest.stat().st_size > 0:
+-            # See the note in core.write_bundle: verifying a cached file is far
+-            # cheaper than re-fetching it, so a partial transfer resumes.
+-            reporter.item(pkg.nevra, "verifying", size=dest.stat().st_size)
+-            valid = True
+-            try:
+-                # cache reuse must meet the same evidence policy as a
+-                # fresh transfer; the old branch silently accepted digest-less
+-                # cached artifacts.
+-                verify_package_artifact(pkg, dest, options, reporter)
+-            except RuntimeError:
+-                valid = False
+-            if valid:
+-                reporter.log(f"REUSE {dest.name} (already present, verification policy satisfied)")
+-                reporter.item(pkg.nevra, "reused", size=dest.stat().st_size)
+-                reporter.progress(f"DEB {i}/{total}", i / total); continue
+-            reporter.item(pkg.nevra, "stale", size=dest.stat().st_size)
+-            reporter.log(f"Healing corrupt cached DEB: {dest.name}"); dest.unlink()
+-        reporter.item(pkg.nevra, "active", size=pkg.size)
+-        try:
+-            _copy_or_download(pkg, dest, options, reporter)
+-            artifact_cache.remember(pkg, dest, final_dir.parent, reporter)
+-        except Cancelled:
+-            reporter.item(pkg.nevra, "pending")
+-            raise
+-        except Exception as exc:
+-            reporter.item(pkg.nevra, "failed", detail=str(exc))
+-            raise
+-        reporter.item(pkg.nevra, "done",
+-                      size=dest.stat().st_size if dest.exists() else pkg.size)
+-        reporter.progress(f"DEB {i}/{total}", i / total)
++    from bundle_writer import acquire_payloads, write_records
++    from package_family import DEB
++    acquire_payloads(
++        to_ship, filename_map, deb_dir, final_dir.parent, options, reporter, DEB,
++        verify=lambda pkg, dest: verify_package_artifact(pkg, dest, options, reporter),
++        download=lambda pkg, dest: _copy_or_download(pkg, dest, options, reporter),
++    )
+ 
+     # manifests now bind the actual SHA-256 of shipped bytes and also
+     # retain the upstream source digest so a later differential build can decide
+@@ -1479,19 +1448,13 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
+                     "dependency_completeness": metadata.get("dependency_completeness", "analyzed")},
+         "packages": manifest,
+     }
+-    (metadata_dir / "manifest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+-    (metadata_dir / "manifest.txt").write_text("\n".join(f"{x['package_id']}\t{x['repo']}\t{x['reason']}\t{x['source']}" for x in manifest) + "\n", encoding="utf-8")
+-    (metadata_dir / "unresolved.txt").write_text("\n".join(format_requirement(x) for x in result.unresolved) + ("\n" if result.unresolved else ""), encoding="utf-8")
+-    if getattr(result, "ignored_unresolved", None):
+-        (metadata_dir / "ignored-unresolved.txt").write_text("\n".join(result.ignored_unresolved) + "\n", encoding="utf-8")
+-    (metadata_dir / "conflicts.txt").write_text("\n".join(result.conflicts) + ("\n" if result.conflicts else ""), encoding="utf-8")
+-    if result.skipped_installed:
+-        (metadata_dir / "skipped-installed.txt").write_text("\n".join(result.skipped_installed) + "\n", encoding="utf-8")
+-    if result.installed_satisfied:
+-        (metadata_dir / "satisfied-by-target.txt").write_text("\n".join(result.installed_satisfied) + "\n", encoding="utf-8")
+-    with (metadata_dir / "SHA256SUMS.txt").open("w", encoding="utf-8") as f:
+-        for deb in sorted(deb_dir.glob("*.deb")):
+-            f.write(f"{sha256_file(deb)}  {deb.name}\n")
++    write_records(
++        metadata_dir, deb_dir, DEB, payload, manifest,
++        unresolved=(format_requirement(req) for req in result.unresolved),
++        ignored_unresolved=result.ignored_unresolved,
++        conflicts=result.conflicts, skipped_installed=result.skipped_installed,
++        installed_satisfied=result.installed_satisfied, hash_file=sha256_file,
++    )
+ 
+ 
+     # ---- Provenance -------------------------------------------------------
+@@ -1501,13 +1464,14 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
+     # vendor signature that does not exist.
+     prov_entries = []
+     for pkg in to_ship:
++        archive_trust = getattr(pkg.repo, "trust", None)
+         filename = filename_map[id(pkg)]
+         dest = deb_dir / filename
+         record = getattr(pkg, "verification", None)
+         # The recorded chain, not the configured intent.
+         chain_intact = bool(
+             record and record.index_digest_verified and record.package_digest_checked
+-            and getattr(pkg.repo, "trust", None) and pkg.repo.trust.archive_signature_verified)
++            and archive_trust and archive_trust.archive_signature_verified)
+         entry = provenance.PackageProvenance(
+             package_id=pkg.nevra, filename=filename,
+             sha256=sha256_file(dest) if dest.exists() else "",
+@@ -1520,8 +1484,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
+             index_digest_verified=bool(getattr(pkg, "verification", None)
+                                        and pkg.verification.index_digest_verified),
+             archive_signature_verified=bool(
+-                getattr(pkg.repo, "trust", None)
+-                and pkg.repo.trust.archive_signature_verified),
++                archive_trust and archive_trust.archive_signature_verified),
+             assurance=provenance.UNVERIFIED,
+             digest_checked=bool(record and record.package_digest_checked),
+             # preserve mirror-bond evidence independently from archive
+diff --git a/arch_core.py b/arch_core.py
+index 4c89813..eecbeec 100644
+--- a/arch_core.py
++++ b/arch_core.py
+@@ -820,33 +820,13 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
+     filename_map = _safe_payload_names(to_ship)
+     # Additive publication retains unrelated pacman payloads already present
+     # in the destination. Same-name files may be verified/overwritten below.
+-    total = max(1, len(to_ship))
+-    for i, pkg in enumerate(to_ship, 1):
+-        reporter.check_cancel(); filename = filename_map[id(pkg)]; dest = pkg_dir / filename
+-        import artifact_cache
+-        artifact_cache.restore(pkg, dest, final_dir.parent, options, reporter)
+-        if dest.exists() and dest.stat().st_size > 0:
+-            reporter.item(pkg.nevra, "verifying", size=dest.stat().st_size)
+-            try:
+-                core.verify_package_artifact(pkg, dest, options, reporter)
+-            except RuntimeError:
+-                reporter.item(pkg.nevra, "stale", size=dest.stat().st_size)
+-                reporter.log(f"Healing corrupt cached ALPM package: {dest.name}")
+-                dest.unlink()
+-            else:
+-                reporter.item(pkg.nevra, "reused", size=dest.stat().st_size)
+-                reporter.progress(f"ALPM {i}/{total}", i / total)
+-                continue
+-        reporter.item(pkg.nevra, "active", size=pkg.size)
+-        try:
+-            _copy_or_download(pkg, dest, options, reporter)
+-            artifact_cache.remember(pkg, dest, final_dir.parent, reporter)
+-        except Cancelled:
+-            reporter.item(pkg.nevra, "pending"); raise
+-        except Exception as exc:
+-            reporter.item(pkg.nevra, "failed", detail=str(exc)); raise
+-        reporter.item(pkg.nevra, "done", size=dest.stat().st_size if dest.exists() else pkg.size)
+-        reporter.progress(f"ALPM {i}/{total}", i / total)
++    from bundle_writer import acquire_payloads, write_records
++    from package_family import ARCH
++    acquire_payloads(
++        to_ship, filename_map, pkg_dir, final_dir.parent, options, reporter, ARCH,
++        verify=lambda pkg, dest: core.verify_package_artifact(pkg, dest, options, reporter),
++        download=lambda pkg, dest: _copy_or_download(pkg, dest, options, reporter),
++    )
+ 
+     shipped_ids = {id(p) for p in to_ship}
+     manifest = []
+@@ -888,23 +868,13 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
+                     "dependency_completeness": metadata.get("dependency_completeness", "analyzed")},
+         "packages": manifest,
+     }
+-    (metadata_dir / "manifest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+-    (metadata_dir / "manifest.txt").write_text(
+-        "\n".join(f"{x['package_id']}\t{x['repo']}\t{x['reason']}\t{x['source']}" for x in manifest) + "\n",
+-        encoding="utf-8")
+-    (metadata_dir / "unresolved.txt").write_text(
+-        "\n".join(format_requirement(x) for x in result.unresolved) + ("\n" if result.unresolved else ""), encoding="utf-8")
+-    if result.ignored_unresolved:
+-        (metadata_dir / "ignored-unresolved.txt").write_text(
+-            "\n".join(result.ignored_unresolved) + "\n", encoding="utf-8")
+-    (metadata_dir / "conflicts.txt").write_text("\n".join(result.conflicts) + ("\n" if result.conflicts else ""), encoding="utf-8")
+-    if result.skipped_installed:
+-        (metadata_dir / "skipped-installed.txt").write_text("\n".join(result.skipped_installed) + "\n", encoding="utf-8")
+-    if result.installed_satisfied:
+-        (metadata_dir / "satisfied-by-target.txt").write_text("\n".join(result.installed_satisfied) + "\n", encoding="utf-8")
+-    with (metadata_dir / "SHA256SUMS.txt").open("w", encoding="utf-8") as fh:
+-        for path in sorted(pkg_dir.glob("*.pkg.tar.*")):
+-            fh.write(f"{sha256_file(path)}  {path.name}\n")
++    write_records(
++        metadata_dir, pkg_dir, ARCH, payload, manifest,
++        unresolved=(format_requirement(req) for req in result.unresolved),
++        ignored_unresolved=result.ignored_unresolved,
++        conflicts=result.conflicts, skipped_installed=result.skipped_installed,
++        installed_satisfied=result.installed_satisfied, hash_file=sha256_file,
++    )
+ 
+     prov_entries = []
+     for pkg in to_ship:
+diff --git a/bundle_writer.py b/bundle_writer.py
+new file mode 100644
+index 0000000..d56b12e
+--- /dev/null
++++ b/bundle_writer.py
+@@ -0,0 +1,97 @@
++"""Shared payload acquisition and record emission, without resolver dispatch.
++
++Backends supply their current download/verification hooks and build manifest rows
++and summaries themselves. That preserves family-specific trust and field order.
++"""
++from __future__ import annotations
++
++from collections.abc import Callable, Iterable, Mapping, Sequence
++import json
++from pathlib import Path
++from typing import TypeVar
++
++import artifact_cache
++from core import BuildOptions, Cancelled, DownloadPackage, Reporter
++from package_family import PackageFamily
++
++P = TypeVar('P', bound=DownloadPackage)
++I = TypeVar('I')
++
++
++def acquire_payloads(
++    packages: Sequence[P], filenames: Mapping[int, str], payload_dir: Path,
++    cache_parent: Path, options: BuildOptions[I], reporter: Reporter,
++    family: PackageFamily, *, verify: Callable[[P, Path], object],
++    download: Callable[[P, Path], None],
++) -> None:
++    """Acquire staged payloads while retaining the backend's ordered events."""
++    total = max(1, len(packages))
++    for i, pkg in enumerate(packages, 1):
++        reporter.check_cancel()
++        dest = payload_dir / filenames[id(pkg)]
++        artifact_cache.restore(pkg, dest, cache_parent, options, reporter)
++        if dest.exists() and dest.stat().st_size > 0:
++            reporter.item(pkg.nevra, 'verifying', size=dest.stat().st_size)
++            try:
++                verify(pkg, dest)
++            except RuntimeError:
++                valid = False
++            else:
++                valid = True
++            # Reporting callbacks deliberately sit outside the verifier catch.
++            if valid:
++                if family.log_reuse:
++                    reporter.log(f'REUSE {dest.name} (already present, verification policy satisfied)')
++                reporter.item(pkg.nevra, 'reused', size=dest.stat().st_size)
++                reporter.progress(f'{family.progress_label} {i}/{total}', i / total)
++                continue
++            if family.stale_log_first:
++                reporter.log(family.stale_message + dest.name)
++            reporter.item(pkg.nevra, 'stale', size=dest.stat().st_size)
++            if not family.stale_log_first:
++                reporter.log(family.stale_message + dest.name)
++            dest.unlink()
++        reporter.item(pkg.nevra, 'active', size=pkg.size)
++        try:
++            download(pkg, dest)
++            artifact_cache.remember(pkg, dest, cache_parent, reporter)
++        except Cancelled:
++            reporter.item(pkg.nevra, 'pending')
++            raise
++        except Exception as exc:
++            reporter.item(pkg.nevra, 'failed', detail=str(exc))
++            raise
++        reporter.item(pkg.nevra, 'done', size=dest.stat().st_size if dest.exists() else pkg.size)
++        reporter.progress(f'{family.progress_label} {i}/{total}', i / total)
++
++
++def write_records(
++    metadata_dir: Path, payload_dir: Path, family: PackageFamily,
++    payload: Mapping[str, object], rows: Sequence[Mapping[str, object]], *,
++    unresolved: Iterable[str], ignored_unresolved: Sequence[str],
++    conflicts: Sequence[str], skipped_installed: Sequence[str],
++    installed_satisfied: Sequence[str], hash_file: Callable[[Path], str],
++) -> None:
++    """Write the existing wire format, including optional-file and newline rules.
++
++    The checksum glob is independent of summary counting: pacman signatures
++    belong in SHA256SUMS even though they are not counted as package payloads.
++    """
++    (metadata_dir / 'manifest.json').write_text(json.dumps(payload, indent=2), encoding='utf-8')
++    (metadata_dir / 'manifest.txt').write_text(
++        '\n'.join(f"{row[family.manifest_identity]}\t{row['repo']}\t{row['reason']}\t{row['source']}"
++                  for row in rows) + '\n', encoding='utf-8')
++    unresolved_lines = list(unresolved)
++    for filename, lines, always in (
++        ('unresolved.txt', unresolved_lines, True),
++        ('ignored-unresolved.txt', ignored_unresolved, False),
++        ('conflicts.txt', conflicts, True),
++        ('skipped-installed.txt', skipped_installed, False),
++        ('satisfied-by-target.txt', installed_satisfied, False),
++    ):
++        if lines or always:
++            (metadata_dir / filename).write_text(
++                '\n'.join(lines) + ('\n' if lines else ''), encoding='utf-8')
++    with (metadata_dir / 'SHA256SUMS.txt').open('w', encoding='utf-8') as output:
++        for path in sorted(payload_dir.glob(family.checksum_glob)):
++            output.write(f'{hash_file(path)}  {path.name}\n')
+diff --git a/core.py b/core.py
+index 6e03c93..5b24e1d 100644
+--- a/core.py
++++ b/core.py
+@@ -717,12 +717,16 @@ def load_baseline(manifest_path: str, reporter: Reporter) -> Dict[str, str]:
+     return baseline
+ 
+ 
+-def split_against_baseline(selected, baseline: Dict[str, str], reporter: Reporter):
++BaselinePackageT = TypeVar("BaselinePackageT", bound=DownloadPackage)
++
++
++def split_against_baseline(selected: Iterable[BaselinePackageT], baseline: Dict[str, str],
++                           reporter: Reporter) -> Tuple[List[BaselinePackageT], List[BaselinePackageT]]:
+     """Partition a closure into (to_ship, already_present) using a baseline."""
+     if not baseline:
+         return list(selected), []
+-    ship: List = []
+-    skip: List = []
++    ship: List[BaselinePackageT] = []
++    skip: List[BaselinePackageT] = []
+     unverifiable = 0
+     for pkg in selected:
+         identity = getattr(pkg, "nevra", None) or pkg.name
+@@ -4508,7 +4512,7 @@ def write_bundle(result: ResolutionResult, output_dir: Path, options: BuildOptio
+         raise
+ 
+ 
+-def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: BuildOptions,
++def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Path, options: BuildOptions,
+                        reporter: Reporter, metadata: Dict[str, object]) -> Path:
+     rpm_dir = output_dir / "rpms"
+     rpm_dir.mkdir(exist_ok=True)
+@@ -4530,47 +4534,13 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
+     # artifacts may still be verified and overwritten below, but unrelated
+     # packages are never pruned from a previously populated output folder.
+ 
+-    total = max(1, len(to_ship))
+-    for i, pkg in enumerate(to_ship, 1):
+-        reporter.check_cancel()
+-        filename = filename_map[id(pkg)]
+-        dest = rpm_dir / filename
+-        import artifact_cache
+-        artifact_cache.restore(pkg, dest, final_dir.parent, options, reporter)
+-        if dest.exists() and dest.stat().st_size > 0:
+-            # Re-hashing a cached file costs far less than fetching it again --
+-            # SHA-256 runs around 1 GB/s, an order of magnitude faster than any
+-            # realistic mirror -- so an interrupted transfer resumes rather than
+-            # starting over, and a corrupt file is detected instead of trusted.
+-            reporter.item(pkg.nevra, "verifying", size=dest.stat().st_size)
+-            valid = True
+-            try:
+-                # cached RPMs are no longer a weaker verification
+-                # path than fresh downloads.
+-                verify_package_artifact(pkg, dest, options, reporter)
+-            except RuntimeError:
+-                valid = False
+-            if valid:
+-                reporter.log(f"REUSE {dest.name} (already present, verification policy satisfied)")
+-                reporter.item(pkg.nevra, "reused", size=dest.stat().st_size)
+-                reporter.progress(f"RPM {i}/{total}", i / total)
+-                continue
+-            reporter.log(f"Cached file failed verification, re-fetching: {dest.name}")
+-            reporter.item(pkg.nevra, "stale", size=dest.stat().st_size)
+-            dest.unlink()
+-        reporter.item(pkg.nevra, "active", size=pkg.size)
+-        try:
+-            _copy_or_download(pkg, dest, options, reporter)
+-            artifact_cache.remember(pkg, dest, final_dir.parent, reporter)
+-        except Cancelled:
+-            reporter.item(pkg.nevra, "pending")
+-            raise
+-        except Exception as exc:
+-            reporter.item(pkg.nevra, "failed", detail=str(exc))
+-            raise
+-        reporter.item(pkg.nevra, "done",
+-                      size=dest.stat().st_size if dest.exists() else pkg.size)
+-        reporter.progress(f"RPM {i}/{total}", i / total)
++    from bundle_writer import acquire_payloads, write_records
++    from package_family import RPM
++    acquire_payloads(
++        to_ship, filename_map, rpm_dir, final_dir.parent, options, reporter, RPM,
++        verify=lambda pkg, dest: verify_package_artifact(pkg, dest, options, reporter),
++        download=lambda pkg, dest: _copy_or_download(pkg, dest, options, reporter),
++    )
+ 
+     manifest = []
+     shipped_ids = {id(p) for p in to_ship}
+@@ -4620,22 +4590,13 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
+         },
+         "packages": manifest,
+     }
+-    (metadata_dir / "manifest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+-    (metadata_dir / "manifest.txt").write_text(
+-        "\n".join(f"{x['nevra']}\t{x['repo']}\t{x['reason']}\t{x['source']}" for x in manifest) + "\n", encoding="utf-8")
+-    (metadata_dir / "unresolved.txt").write_text(
+-        "\n".join(format_requirement(r) for r in result.unresolved) + ("\n" if result.unresolved else ""), encoding="utf-8")
+-    if getattr(result, "ignored_unresolved", None):
+-        (metadata_dir / "ignored-unresolved.txt").write_text(
+-            "\n".join(result.ignored_unresolved) + "\n", encoding="utf-8")
+-    (metadata_dir / "conflicts.txt").write_text("\n".join(result.conflicts) + ("\n" if result.conflicts else ""), encoding="utf-8")
+-    if result.skipped_installed:
+-        (metadata_dir / "skipped-installed.txt").write_text("\n".join(result.skipped_installed) + "\n", encoding="utf-8")
+-    if result.installed_satisfied:
+-        (metadata_dir / "satisfied-by-target.txt").write_text("\n".join(result.installed_satisfied) + "\n", encoding="utf-8")
+-    with (metadata_dir / "SHA256SUMS.txt").open("w", encoding="utf-8") as f:
+-        for rpm in sorted(rpm_dir.glob("*.rpm")):
+-            f.write(f"{sha256_file(rpm)}  {rpm.name}\n")
++    write_records(
++        metadata_dir, rpm_dir, RPM, payload, manifest,
++        unresolved=(format_requirement(req) for req in result.unresolved),
++        ignored_unresolved=result.ignored_unresolved,
++        conflicts=result.conflicts, skipped_installed=result.skipped_installed,
++        installed_satisfied=result.installed_satisfied, hash_file=sha256_file,
++    )
+ 
+ 
+     # ---- Provenance -------------------------------------------------------
+@@ -4644,6 +4605,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
+     # report; when a vendor keyring is configured it is enforced here.
+     prov_entries = []
+     for pkg in to_ship:
++        archive_trust = getattr(pkg.repo, "trust", None)
+         filename = filename_map[id(pkg)]
+         dest = rpm_dir / filename
+         entry = provenance.PackageProvenance(
+@@ -4658,8 +4620,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
+             index_digest_verified=bool(getattr(pkg, "verification", None)
+                                        and pkg.verification.index_digest_verified),
+             archive_signature_verified=bool(
+-                getattr(pkg.repo, "trust", None)
+-                and pkg.repo.trust.archive_signature_verified),
++                archive_trust and archive_trust.archive_signature_verified),
+             # source-bond facts are recorded separately from the
+             # acquisition archive's trust chain.
+             evidence_status=getattr(getattr(pkg, "verification", None), "evidence_status", "not-configured"),
+diff --git a/mypy.ini b/mypy.ini
+index 5ba4c59..6b3f43b 100644
+--- a/mypy.ini
++++ b/mypy.ini
+@@ -36,6 +36,8 @@ ignore_missing_imports = True
+ strict_optional = False
+ warn_unused_configs = True
+ files =
++    package_family.py,
++    bundle_writer.py,
+     feathered_app/prepared_plan.py,
+     feathered_app/execution_feedback.py,
+     background_jobs.py,
+@@ -116,3 +118,10 @@ disallow_any_generics = True
+ disallow_untyped_defs = True
+ check_untyped_defs = True
+ warn_return_any = True
++
++[mypy-package_family,bundle_writer]
++strict_optional = True
++disallow_any_generics = True
++disallow_untyped_defs = True
++check_untyped_defs = True
++warn_return_any = True
+diff --git a/package_family.py b/package_family.py
+new file mode 100644
+index 0000000..29908fa
+--- /dev/null
++++ b/package_family.py
+@@ -0,0 +1,19 @@
++"""Stable payload conventions; dependency and trust semantics stay in backends."""
++from dataclasses import dataclass
++
++
++@dataclass(frozen=True)
++class PackageFamily:
++    progress_label: str
++    manifest_identity: str
++    checksum_glob: str
++    stale_message: str
++    stale_log_first: bool = False
++    log_reuse: bool = True
++
++
++RPM = PackageFamily('RPM', 'nevra', '*.rpm',
++                    'Cached file failed verification, re-fetching: ', stale_log_first=True)
++DEB = PackageFamily('DEB', 'package_id', '*.deb', 'Healing corrupt cached DEB: ')
++ARCH = PackageFamily('ALPM', 'package_id', '*.pkg.tar.*',
++                     'Healing corrupt cached ALPM package: ', log_reuse=False)
+diff --git a/tests/test_assurance_semantics.py b/tests/test_assurance_semantics.py
+index 3dd843e..6d16173 100644
+--- a/tests/test_assurance_semantics.py
++++ b/tests/test_assurance_semantics.py
+@@ -105,12 +105,21 @@ def test_bundle_provenance_embeds_the_legend_for_its_own_modes():
+     assert provenance.VERIFIED_METADATA not in modes
+ 
+ 
+-def test_both_provenance_writers_emit_the_plain_text_legend():
+-    """apt_core keeps a forked _write_provenance; it must not drift from core's."""
+-    apt = (ROOT / "apt_core.py").read_text(encoding="utf-8")
+-    core_src = (ROOT / "core.py").read_text(encoding="utf-8")
+-    assert "_write_assurance_legend" in core_src
+-    assert "_write_assurance_legend" in apt, (
+-        "APT bundles would ship without ASSURANCE.txt because apt_core does not "
+-        "reuse core._write_provenance"
+-    )
++def test_both_provenance_writers_emit_the_plain_text_legend(tmp_path):
++    """Both public entry points must emit the real legend, even when delegated."""
++    import core
++    import apt_core
++    legends = []
++    for name, backend in (("rpm", core), ("deb", apt_core)):
++        directory = tmp_path / name
++        directory.mkdir()
++        from provenance import PackageProvenance, VERIFIED_DIGEST
++        entries = [PackageProvenance(package_id="fixture", filename="fixture.pkg",
++                   sha256="a" * 64, size=1, source_url="https://example.test/repo/fixture.pkg",
++                   repository="fixture", assurance=VERIFIED_DIGEST, digest_checked=True)]
++        backend._write_provenance(tmp_path, directory, entries, [], core.BuildOptions(),
++                                  core.Reporter(), {})
++        legend = (directory / "ASSURANCE.txt").read_text(encoding="utf-8")
++        assert len(legend) > 100
++        legends.append(legend)
++    assert legends[0] == legends[1]
+diff --git a/tests/test_build_request_module.py b/tests/test_build_request_module.py
+index 8e363b3..c70d4c1 100644
+--- a/tests/test_build_request_module.py
++++ b/tests/test_build_request_module.py
+@@ -29,6 +29,7 @@ if str(ROOT) not in sys.path:
+ 
+ #  Modules that have been moved into the headless core. Extend as A2 lands.
+ CORE_MODULES = (
++    "package_family", "bundle_writer",
+     "feathered_app.prepared_plan",
+     "feathered_app.execution_feedback",
+     "feathered_app.build_request",
+diff --git a/tests/test_bundle_records.py b/tests/test_bundle_records.py
+new file mode 100644
+index 0000000..4602df3
+--- /dev/null
++++ b/tests/test_bundle_records.py
+@@ -0,0 +1,28 @@
++"""Record edges that payload-only golden fixtures do not exercise."""
++import json
++
++import core
++from bundle_writer import write_records
++from package_family import ARCH
++
++
++def test_arch_checksums_include_signature_sidecars(tmp_path):
++    package = tmp_path / 'demo.pkg.tar.zst'
++    signature = tmp_path / 'demo.pkg.tar.zst.sig'
++    package.write_bytes(b'package bytes')
++    signature.write_bytes(b'signature bytes')
++    (tmp_path / 'unrelated.txt').write_text('operator note')
++    # Optional records are intentionally retained during additive publication.
++    (tmp_path / 'ignored-unresolved.txt').write_text('previous waiver\n')
++    payload = {'metadata': {}, 'summary': {'package_count': 1}, 'packages': []}
++    write_records(tmp_path, tmp_path, ARCH, payload, [], unresolved=iter(()),
++                  ignored_unresolved=[], conflicts=[], skipped_installed=[],
++                  installed_satisfied=[], hash_file=core.sha256_file)
++    assert (tmp_path / 'SHA256SUMS.txt').read_text() == ''.join(
++        f'{core.sha256_file(path)}  {path.name}\n' for path in (package, signature))
++    assert (tmp_path / 'manifest.json').read_text() == json.dumps(payload, indent=2)
++    assert (tmp_path / 'manifest.txt').read_bytes() == b'\n'
++    assert (tmp_path / 'unresolved.txt').read_bytes() == b''
++    assert (tmp_path / 'conflicts.txt').read_bytes() == b''
++    assert (tmp_path / 'ignored-unresolved.txt').read_text() == 'previous waiver\n'
++    assert not (tmp_path / 'skipped-installed.txt').exists()
+diff --git a/tests/test_bundle_writer_failures.py b/tests/test_bundle_writer_failures.py
+new file mode 100644
+index 0000000..5a1eab7
+--- /dev/null
++++ b/tests/test_bundle_writer_failures.py
+@@ -0,0 +1,29 @@
++"""Acquisition failures retain their public state and transactional boundary."""
++import pytest
++import core
++from test_bundle_characterization import FAMILIES, characterize
++
++
++@pytest.mark.parametrize('family', FAMILIES)
++@pytest.mark.parametrize('cancelled', (False, True))
++def test_transfer_failure_does_not_publish(tmp_path, monkeypatch, family, cancelled):
++    failure = core.Cancelled('cancelled') if cancelled else OSError('transfer failed')
++    backend = FAMILIES[family][0]
++    states = []
++    original_item = core.Reporter.item
++
++    def item(self, identity, state, **info):
++        states.append(state)
++        return original_item(self, identity, state, **info)
++
++    def download(*args):
++        raise failure
++
++    monkeypatch.setattr(core.Reporter, 'item', item)
++    monkeypatch.setattr(backend, '_copy_or_download', download)
++    with pytest.raises(type(failure)) as caught:
++        characterize(tmp_path, monkeypatch, family, 'fresh')
++    assert caught.value is failure
++    assert states[-2:] == ['active', 'pending' if cancelled else 'failed']
++    assert not (tmp_path / 'bundle').exists()
++    assert not (tmp_path / '.bundle.feathered-building').exists()
+-- 
+2.51.1
+

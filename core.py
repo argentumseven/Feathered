@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import artifact_digests
+import bundle_baseline
+import payload_identity
+import rpm_capabilities
+import file_hashing
 import base64
 import binascii
 import bz2
@@ -55,7 +60,7 @@ from evidence_model import (
     AUTH_UNKNOWN, classify_relationship, infer_vendor_id, vendor_display_name,
 )
 
-FEATHERED_VERSION = "1.2.12"  # Keep in step with the newest CHANGELOG.md version.
+FEATHERED_VERSION = "1.3.0"  # Keep in step with the newest CHANGELOG.md version.
 
 USER_AGENT = f"Feathered-Airgap-Sideloader/{FEATHERED_VERSION}"
 
@@ -175,14 +180,10 @@ class RepoSpec:
     # requires the selected package to exist on a distinct evidence mirror.
     evidence_policy: str = "off"
 
-    # package-content provenance policy.
-    # 1.0.36 treats an explicit SHA value as a *minimum acceptable strength*, not
-    # an exact algorithm. For example, sha256 accepts SHA-256/384/512 and uses
-    # the strongest one actually published for the package; sha384 accepts
-    # SHA-384/512. `auto` uses the strongest strong SHA published per source.
+    # Minimum accepted package digest strength. ``auto`` uses the strongest
+    # supported digest published by each source.
     digest_preference: str = "auto"
-    # Legacy compatibility field retained for older profiles/tests. The 1.0.36
-    # UI writes `verification_strategy` below and derives these older fields.
+    # Compatibility field for older profiles and callers.
     digest_requirement: str = "preferred"
     # one non-overlapping verification
     # strategy replaces the old Required?/Evidence-policy pair in the UI.
@@ -508,10 +509,16 @@ class Cancelled(RuntimeError):
     pass
 
 
+class CancellationProbe(Protocol):
+    """Cancellation needs a query, not a particular threading implementation."""
+
+    def is_set(self) -> bool: ...
+
+
 class Reporter:
     def __init__(self, log: Optional[Callable[[str], None]] = None,
                  progress: Optional[Callable[[str, float], None]] = None,
-                 cancel_event: Optional[threading.Event] = None,
+                 cancel_event: Optional[CancellationProbe] = None,
                  item: Optional[Callable[[str, str, dict], None]] = None):
         self._log = log or (lambda msg: None)
         self._progress = progress or (lambda label, value: None)
@@ -692,62 +699,23 @@ def load_baseline(manifest_path: str, reporter: Reporter) -> Dict[str, str]:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         raise RuntimeError(f"Baseline manifest {path.name} is not valid JSON: {exc}") from exc
-    baseline: Dict[str, str] = {}
-    for entry in payload.get("packages", []):
-        key = entry.get("package_id") or entry.get("nevra") or entry.get("name")
-        if key:
-            # Only the digest identifies content. Falling back to the version
-            # here made a republished artifact with the same NEVRA but
-            # different bytes look unchanged, so it was omitted from the delta.
-            # prefer a strong repository/evidence digest because it can
-            # be compared before downloading a differential payload. Weak source
-            # digests are not allowed to make an omission decision.
-            source = strong_package_digest(str(entry.get("source_digest_type") or ""),
-                                           str(entry.get("source_digest") or ""))
-            evidence = strong_package_digest(str(entry.get("evidence_digest_type") or ""),
-                                             str(entry.get("evidence_digest") or ""))
-            baseline[str(key)] = (source or evidence or ("sha256", str(entry.get("sha256") or "")))[1]
+    baseline = bundle_baseline.digest_map(
+        payload.get("packages", []),
+        digest=lambda algorithm, value: strong_package_digest(algorithm, value))
     reporter.log(f"Baseline loaded: {len(baseline)} package(s) already present at the target")
     return baseline
 
 
-def split_against_baseline(selected, baseline: Dict[str, str], reporter: Reporter):
+BaselinePackageT = TypeVar("BaselinePackageT", bound=DownloadPackage)
+
+
+def split_against_baseline(selected: Iterable[BaselinePackageT], baseline: Dict[str, str],
+                           reporter: Reporter) -> Tuple[List[BaselinePackageT], List[BaselinePackageT]]:
     """Partition a closure into (to_ship, already_present) using a baseline."""
-    if not baseline:
-        return list(selected), []
-    ship: List = []
-    skip: List = []
-    unverifiable = 0
-    for pkg in selected:
-        identity = getattr(pkg, "nevra", None) or pkg.name
-        recorded = (baseline.get(identity) or "").strip()
-        if not recorded:
-            # Absent from the baseline, or present without a digest (an older
-            # manifest). Ship it rather than assume the bytes match: identity
-            # alone does not establish that a republished artifact is unchanged.
-            if identity in baseline:
-                unverifiable += 1
-            ship.append(pkg)
-            continue
-        primary = strong_package_digest(getattr(pkg, "checksum_type", ""),
-                                        getattr(pkg, "checksum", ""))
-        # preserve compatibility with legacy baseline
-        # callers that carried a bare 64-hex checksum without its algorithm.
-        # This inference is used only for pre-download differential comparison,
-        # never for artifact verification where an explicit algorithm is
-        # required.
-        if primary is None and not getattr(pkg, "checksum_type", ""):
-            bare = str(getattr(pkg, "checksum", "") or "").strip().lower()
-            if len(bare) == 64 and all(ch in "0123456789abcdef" for ch in bare):
-                primary = ("sha256", bare)
-        record = getattr(pkg, "verification", None)
-        evidence = strong_package_digest(getattr(record, "evidence_digest_type", ""),
-                                         getattr(record, "evidence_digest", "")) if record else None
-        current = (primary or evidence or ("", ""))[1]
-        if current and hmac.compare_digest(recorded.lower(), current.lower()):
-            skip.append(pkg)
-        else:
-            ship.append(pkg)
+    ship, skip, unverifiable = bundle_baseline.partition(
+        selected, baseline,
+        digest=lambda algorithm, value: strong_package_digest(algorithm, value),
+        matches=lambda left, right: hmac.compare_digest(left, right))
     if unverifiable:
         reporter.warn(f"{unverifiable} baseline entry/entries record no digest, so their contents "
                       "could not be compared; those packages are included rather than assumed "
@@ -759,15 +727,8 @@ def split_against_baseline(selected, baseline: Dict[str, str], reporter: Reporte
 
 
 def _windows_payload_key(name: str) -> str:
-    """Return the Win32-equivalent destination key for a bundle payload.
-
-    Feathered is primarily built and staged on Windows.  NTFS/Win32 paths are
-    normally case-insensitive and Win32 also ignores trailing spaces/dots, so
-    checking raw Python strings can accept two logical payloads that address
-    the same physical file.  Unicode NFC + casefold is deliberately stricter
-    and platform-independent so Linux CI can regression-test Windows staging.
-    """
-    return unicodedata.normalize("NFC", str(name)).rstrip(" .").casefold()
+    """Return the existing platform-independent Win32-equivalent key."""
+    return payload_identity.windows_key(name, normalize=lambda form, value: unicodedata.normalize(form, value))
 
 
 def write_unified_mirror_records(output_dir: Path, metadata_dir: Path, options) -> None:
@@ -789,41 +750,11 @@ def write_unified_mirror_records(output_dir: Path, metadata_dir: Path, options) 
 
 
 def payload_filenames(packages, expected_suffix: str) -> Dict[int, str]:
-    """Return Windows-safe, collision-free destination payload names."""
-    seen: Dict[str, Tuple[str, str]] = {}
-    result: Dict[int, str] = {}
-    reserved = {"con", "prn", "aux", "nul", *(f"com{i}" for i in range(1, 10)),
-                *(f"lpt{i}" for i in range(1, 10))}
-    for pkg in packages:
-        name = posixpath.basename(urllib.parse.urlparse(getattr(pkg, "location", "")).path)
-        if not name or (expected_suffix and not name.lower().endswith(expected_suffix.lower())):
-            raise RuntimeError(f"{getattr(pkg, 'nevra', getattr(pkg, 'name', 'package'))}: "
-                               f"repository location has no usable {expected_suffix} filename")
-        # posixpath.basename only splits on '/', so a location carrying Windows
-        # separators survives it intact. Path('rpms') / r'\Windows\evil.rpm' is
-        # drive-absolute on Windows, and 'C:x.rpm' is drive-relative, so either
-        # would place the payload outside the bundle. repo_relative_url refuses
-        # these before a fetch is attempted, but this function is what actually
-        # names the destination and must not rely on a check in another module.
-        if "\\" in name or ":" in name or "/" in name:
-            raise RuntimeError(
-                f"Bundle filename is not Windows-safe: {name!r} contains a path separator "
-                "or drive marker; refusing to write a payload outside the bundle directory.")
-        if name.rstrip(" .") != name:
-            raise RuntimeError(f"Bundle filename is not Windows-safe: {name!r} ends in a space or dot.")
-        stem = name.split(".", 1)[0].casefold()
-        if stem in reserved:
-            raise RuntimeError(f"Bundle filename is not Windows-safe: {name!r} uses a reserved device name.")
-        identity = getattr(pkg, "nevra", None) or getattr(pkg, "name", name)
-        key = _windows_payload_key(name)
-        previous = seen.get(key)
-        if previous and previous[1] != identity:
-            raise RuntimeError(
-                f"Bundle filename collision: {previous[1]} ({previous[0]}) and {identity} ({name}) "
-                "map to the same Windows destination. Feathered refuses to overwrite either artifact.")
-        seen[key] = (name, identity)
-        result[id(pkg)] = name
-    return result
+    """Return Windows-safe names, preserving the core dependency hooks."""
+    return payload_identity.payload_filenames(
+        packages, expected_suffix,
+        location_name=lambda location: posixpath.basename(urllib.parse.urlparse(location).path),
+        key=lambda name: _windows_payload_key(name))
 
 
 def meta_str_list(metadata: Dict[str, object], key: str) -> List[str]:
@@ -1668,11 +1599,7 @@ def _verifier_policy_path() -> Optional[Path]:
 
 
 def _sha256_file(path: Path) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
+    return file_hashing.stream_digest(path, hashlib.sha256())
 
 
 _VERIFIER_CACHE_LOCK = threading.Lock()
@@ -2293,10 +2220,7 @@ def load_repository(repo: RepoSpec, arches: Set[str], reporter: Reporter, retrie
     copy later downloaded from the acquisition mirror.
     """
     packages = _load_repository_once(repo, arches, reporter, retries=retries)
-    # 1.0.36 replaces the overlapping
-    # Required?/evidence controls with one verification strategy. Evidence
-    # mirrors are contacted only by strategies whose definition actually uses
-    # independent metadata.
+    # Contact evidence mirrors only when the selected strategy uses them.
     strategy = repository_verification_strategy(repo)
     if strategy in {"checksum-required", "checksum-available", "skip-provenance"}:
         return packages
@@ -2443,36 +2367,16 @@ def compare_evr(left: Tuple[str, str, str], right: Tuple[str, str, str]) -> int:
     return c if c else rpmvercmp(left[2], right[2])
 
 
-_PYDIST_CAP_RE = re.compile(r"^(python(?:\d+(?:\.\d+)?)?dist)\((.+)\)$", re.IGNORECASE)
+_PYDIST_CAP_RE = rpm_capabilities.PYDIST_CAP_RE
 
 
 def _pep503_name(value: str) -> str:
-    """Normalize a Python distribution name using the PEP 503 convention.
-
-    RPM's Python dependency generator uses this namespace for python3dist(...)
-    and pythonX.Ydist(...) virtual capabilities. RHEL 9 can contain both legacy
-    dotted spellings and canonical spellings in Provides while generated
-    Requires use the canonical form. Treat those spellings as the same
-    capability during lookup without inventing a package-name mapping.
-    """
-    return re.sub(r"[-_.]+", "-", (value or "").strip()).lower()
+    return rpm_capabilities.pep503_name(value, substitute=lambda pattern, replacement, text: re.sub(pattern, replacement, text))
 
 
 def canonical_capability_name(name: str) -> str:
-    raw = (name or "").strip()
-    m = _PYDIST_CAP_RE.fullmatch(raw)
-    if not m:
-        return raw
-    prefix, dist = m.groups()
-    extra = ""
-    if "[" in dist and dist.endswith("]"):
-        base, raw_extra = dist[:-1].split("[", 1)
-        extras = [x for x in raw_extra.split(",") if x.strip()]
-        dist = _pep503_name(base)
-        extra = "[" + ",".join(_pep503_name(x) for x in extras) + "]"
-    else:
-        dist = _pep503_name(dist)
-    return f"{prefix.lower()}({dist}{extra})"
+    return rpm_capabilities.canonical_capability_name(
+        name, pattern=_PYDIST_CAP_RE, normalize=lambda value: _pep503_name(value))
 
 
 def capability_names_equal(left: str, right: str) -> bool:
@@ -2480,6 +2384,8 @@ def capability_names_equal(left: str, right: str) -> bool:
 
 
 def _index_keys(name: str) -> Tuple[str, ...]:
+    # Keep this tiny, frequently called index operation local. Capability
+    # normalization remains delegated through the existing core hook.
     raw = (name or "").strip()
     canonical = canonical_capability_name(raw)
     return (raw,) if canonical == raw else (raw, canonical)
@@ -2803,8 +2709,7 @@ def parse_simple_rich_if(req: Requirement) -> Optional[Tuple[Requirement, Requir
 def parse_simple_rich_or(req: Requirement) -> Optional[List[Requirement]]:
     """Parse the common RPM rich ``(A or B [or C])`` form.
 
-    1.0.39 resolves simple top-level
-    alternatives instead of reporting them as unsupported syntax.  Each branch
+    Simple top-level alternatives are supported. Each branch
     must still be a simple leaf requirement; nested boolean expressions remain
     fail-closed so Feathered never guesses at semantics it did not parse.
     """
@@ -3028,6 +2933,11 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                   ) -> Tuple[ResolutionResult, List[Tuple[str, Requirement]]]:
     reporter.log("Building provider index...")
     index = build_provider_index(packages, reporter)
+    # Constraints are read-only in this pass; newly discovered floors are
+    # returned separately. Build the filtered universe only if a root needs it,
+    # then reuse it for the other roots. A new pass always starts fresh, including
+    # after provider rejection. None distinguishes 'not built' from an empty index.
+    constrained_index: Optional[Dict[str, List[ProviderMatch]]] = None
     # Constraints discovered during this pass, fed back into the next one.
     discovered: List[Tuple[str, Requirement]] = []
     rejected_set = rejected if rejected is not None else set()
@@ -3064,8 +2974,9 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
         repo_identity = request[6] if len(request) >= 7 else None
         match = _find_root(name, version, index, preferred_arch, role, repo_name, exact_arch, source_scope, repo_identity)
         if match and not _satisfies_constraints(index, match.package, constraints.get(match.package.name, ())):
-            constrained_index = build_provider_index([
-                p for p in packages if _satisfies_constraints(index, p, constraints.get(p.name, ()))], reporter)
+            if constrained_index is None:
+                constrained_index = build_provider_index([
+                    p for p in packages if _satisfies_constraints(index, p, constraints.get(p.name, ()))], reporter)
             match = _find_root(name, version, constrained_index, preferred_arch, role, repo_name,
                                exact_arch, source_scope, repo_identity) or match
         if not match:
@@ -3337,21 +3248,13 @@ def package_versions(packages: Sequence[Package], name: str, role: Optional[str]
 
 
 def sha256_file(path: Path) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
+    return file_hashing.stream_digest(path, hashlib.sha256())
 
 
 def hash_file(path: Path, algorithm: str) -> str:
     algo = (algorithm or "sha256").lower()
     if algo == "sha": algo = "sha1"
-    h = hashlib.new(algo)
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
+    return file_hashing.stream_digest(path, hashlib.new(algo))
 
 
 # package-content verification is
@@ -3394,8 +3297,7 @@ def normalized_digest_map(values: Optional[Dict[str, str]]) -> Dict[str, str]:
 def select_digest_from_map(values: Optional[Dict[str, str]], preference: str = "auto")         -> Optional[Tuple[str, str]]:
     """Return the strongest published digest meeting the configured minimum.
 
-    1.0.36 changes explicit SHA choices from
-    exact-algorithm requests to minimum-strength policy. This is what makes a
+    Explicit SHA choices are minimum-strength requirements. This keeps a
     mixed repository set coherent: a SHA-256 minimum accepts a source publishing
     SHA-512 without forcing every source to expose the identical field.
     """
@@ -3435,7 +3337,7 @@ def vendor_signature_settings(repo: RepoSpec, options: BuildOptions) -> Tuple[st
 
 
 def repository_verification_strategy(repo: RepoSpec) -> str:
-    """Return the non-overlapping 1.0.36 verification strategy for a repository.
+    """Return the verification strategy for a repository.
 
     Older RepoSpec instances may not have an explicit strategy. Infer their
     historical Required?/evidence combination so CLI callers and existing
@@ -3451,7 +3353,7 @@ def repository_verification_strategy(repo: RepoSpec) -> str:
     if required and evidence == "required":
         return "full-corroboration"
     if required:
-        # 1.0.35 explicitly disabled evidence when Required? was Yes.
+        # Legacy required-checksum mode did not use evidence mirrors.
         return "checksum-required"
     if evidence == "fallback-required":
         return "evidence-fallback"
@@ -4059,6 +3961,7 @@ def verify_package_artifact(pkg, path: Path, options: BuildOptions, reporter: Re
     Evidence-repository metadata remains useful extra provenance when present,
     but an artifact-only mirror can still corroborate bytes.
     """
+    before = artifact_digests.begin_verification(path)
     record = _artifact_verification(pkg)
     strategy = repository_verification_strategy(pkg.repo)
     primary = selected_package_digest(pkg)
@@ -4114,7 +4017,7 @@ def verify_package_artifact(pkg, path: Path, options: BuildOptions, reporter: Re
         artifact_evidence_required = True
 
     elif strategy in {"legacy-fallback", "legacy-corroborate", "legacy-evidence-required"}:
-        # Backwards compatibility for RepoSpec instances created before 1.0.36.
+        # Compatibility for RepoSpec instances using legacy evidence fields.
         if strategy == "legacy-evidence-required" and not record.evidence_metadata_match:
             raise RuntimeError(f"{pkg.nevra}: required evidence source does not publish this exact package identity")
         if options.verify_checksums and primary:
@@ -4143,6 +4046,7 @@ def verify_package_artifact(pkg, path: Path, options: BuildOptions, reporter: Re
 
     if artifact_evidence_required:
         _verify_independent_evidence_payload(pkg, path, primary, computed, reporter)
+        artifact_digests.remember_verified(path, before, computed)
         return True
 
     if not checks:
@@ -4161,9 +4065,14 @@ def verify_package_artifact(pkg, path: Path, options: BuildOptions, reporter: Re
         record.notes.append("No qualifying strong package digest was checked; artifact accepted by checksum-available strategy.")
         return False
 
+    artifact_digests.remember_verified(path, before, computed)
     return True
 
-def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, reporter: Reporter) -> None:
+def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, reporter: Reporter,
+                      *, opener=None, verifier=None) -> None:
+    # Resolve defaults at call time; backend wrappers retain their local hooks.
+    opener = _urlopen if opener is None else opener
+    verifier = verify_package_artifact if verifier is None else verifier
     # Confined join: a hostile index cannot redirect this off-origin.
     src = repo_relative_url(pkg.repo.normalized_url, pkg.location)
     tmp = dest.with_suffix(dest.suffix + ".partial")
@@ -4188,13 +4097,13 @@ def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, r
                 shutil.copy2(local, tmp)
             else:
                 reporter.log(f"DOWNLOAD {redact_url(src)}")
-                with _urlopen(src, timeout=90, repo=pkg.repo) as response, tmp.open("wb") as f:
+                with opener(src, timeout=90, repo=pkg.repo) as response, tmp.open("wb") as f:
                     declared = response.headers.get("Content-Length") if hasattr(response, "headers") else None
                     copy_package_stream_bounded(response, f, pkg, reporter, declared)
             # use the shared strong-digest/evidence
             # verifier, eliminating RPM's previous missing/MD5 fail-open path.
-            verify_package_artifact(pkg, tmp, options, reporter)
-            tmp.replace(dest)
+            verifier(pkg, tmp, options, reporter)
+            artifact_digests.publish_payload(tmp, dest)
             return
         except Exception as exc:
             if tmp.exists(): tmp.unlink()
@@ -4271,8 +4180,7 @@ def emit_rpm_repository(output_dir: Path, packages, reporter: RepositoryWriterRe
                 raise RuntimeError(f"{pkg.nevra}: cannot rewrite RPM repository location: {exc}") from exc
             chunks.append(raw)
             continue
-        # 1.0.39 local repository
-        # rebuilds construct Package objects directly from RPM headers.  When
+        # Local repository rebuilds construct Package objects directly from RPM headers. When
         # no upstream raw XML exists, emit the dependency/file metadata Feathered
         # actually parsed instead of writing an empty <format/> element.
         package_el = ET.Element(f"{{{ns}}}package", {"type": "rpm"})
@@ -4490,7 +4398,8 @@ def write_bundle(result: ResolutionResult, output_dir: Path, options: BuildOptio
     if not options.sign_bundle_index:
         invalidate_bundle_seal(output_dir, reporter)
     try:
-        return _write_bundle_body(result, output_dir, final_dir, options, reporter, metadata)
+        with artifact_digests.digest_scope():
+            return _write_bundle_body(result, output_dir, final_dir, options, reporter, metadata)
     except BaseException:
         # Anything short of success leaves the previous bundle untouched and
         # removes the half-built one, so nothing can be mistaken for finished.
@@ -4498,7 +4407,7 @@ def write_bundle(result: ResolutionResult, output_dir: Path, options: BuildOptio
         raise
 
 
-def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: BuildOptions,
+def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Path, options: BuildOptions,
                        reporter: Reporter, metadata: Dict[str, object]) -> Path:
     rpm_dir = output_dir / "rpms"
     rpm_dir.mkdir(exist_ok=True)
@@ -4520,47 +4429,13 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
     # artifacts may still be verified and overwritten below, but unrelated
     # packages are never pruned from a previously populated output folder.
 
-    total = max(1, len(to_ship))
-    for i, pkg in enumerate(to_ship, 1):
-        reporter.check_cancel()
-        filename = filename_map[id(pkg)]
-        dest = rpm_dir / filename
-        import artifact_cache
-        artifact_cache.restore(pkg, dest, final_dir.parent, options, reporter)
-        if dest.exists() and dest.stat().st_size > 0:
-            # Re-hashing a cached file costs far less than fetching it again --
-            # SHA-256 runs around 1 GB/s, an order of magnitude faster than any
-            # realistic mirror -- so an interrupted transfer resumes rather than
-            # starting over, and a corrupt file is detected instead of trusted.
-            reporter.item(pkg.nevra, "verifying", size=dest.stat().st_size)
-            valid = True
-            try:
-                # cached RPMs are no longer a weaker verification
-                # path than fresh downloads.
-                verify_package_artifact(pkg, dest, options, reporter)
-            except RuntimeError:
-                valid = False
-            if valid:
-                reporter.log(f"REUSE {dest.name} (already present, verification policy satisfied)")
-                reporter.item(pkg.nevra, "reused", size=dest.stat().st_size)
-                reporter.progress(f"RPM {i}/{total}", i / total)
-                continue
-            reporter.log(f"Cached file failed verification, re-fetching: {dest.name}")
-            reporter.item(pkg.nevra, "stale", size=dest.stat().st_size)
-            dest.unlink()
-        reporter.item(pkg.nevra, "active", size=pkg.size)
-        try:
-            _copy_or_download(pkg, dest, options, reporter)
-            artifact_cache.remember(pkg, dest, final_dir.parent, reporter)
-        except Cancelled:
-            reporter.item(pkg.nevra, "pending")
-            raise
-        except Exception as exc:
-            reporter.item(pkg.nevra, "failed", detail=str(exc))
-            raise
-        reporter.item(pkg.nevra, "done",
-                      size=dest.stat().st_size if dest.exists() else pkg.size)
-        reporter.progress(f"RPM {i}/{total}", i / total)
+    from bundle_writer import acquire_payloads, write_records
+    from package_family import RPM
+    acquire_payloads(
+        to_ship, filename_map, rpm_dir, final_dir.parent, options, reporter, RPM,
+        verify=lambda pkg, dest: verify_package_artifact(pkg, dest, options, reporter),
+        download=lambda pkg, dest: _copy_or_download(pkg, dest, options, reporter),
+    )
 
     manifest = []
     shipped_ids = {id(p) for p in to_ship}
@@ -4573,7 +4448,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
         manifest.append({
             "nevra": p.nevra, "package_id": p.nevra, "name": p.name, "arch": p.arch,
             "version": p.version, "release": p.release, "source_rpm": getattr(p, "source_rpm", ""), "filename": filename,
-            "sha256": sha256_file(dest) if id(p) in shipped_ids and dest.exists() else "",
+            "sha256": artifact_digests.payload_sha256(dest, sha256_file) if id(p) in shipped_ids and dest.exists() else "",
             "source_digest_type": p.checksum_type or "", "source_digest": p.checksum or "",
             "repo": p.repo.name, "repo_url": redact_url(p.repo.normalized_url),
             "source": redact_url(url_join(p.repo.normalized_url, p.location)), "size": p.size,
@@ -4610,22 +4485,13 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
         },
         "packages": manifest,
     }
-    (metadata_dir / "manifest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    (metadata_dir / "manifest.txt").write_text(
-        "\n".join(f"{x['nevra']}\t{x['repo']}\t{x['reason']}\t{x['source']}" for x in manifest) + "\n", encoding="utf-8")
-    (metadata_dir / "unresolved.txt").write_text(
-        "\n".join(format_requirement(r) for r in result.unresolved) + ("\n" if result.unresolved else ""), encoding="utf-8")
-    if getattr(result, "ignored_unresolved", None):
-        (metadata_dir / "ignored-unresolved.txt").write_text(
-            "\n".join(result.ignored_unresolved) + "\n", encoding="utf-8")
-    (metadata_dir / "conflicts.txt").write_text("\n".join(result.conflicts) + ("\n" if result.conflicts else ""), encoding="utf-8")
-    if result.skipped_installed:
-        (metadata_dir / "skipped-installed.txt").write_text("\n".join(result.skipped_installed) + "\n", encoding="utf-8")
-    if result.installed_satisfied:
-        (metadata_dir / "satisfied-by-target.txt").write_text("\n".join(result.installed_satisfied) + "\n", encoding="utf-8")
-    with (metadata_dir / "SHA256SUMS.txt").open("w", encoding="utf-8") as f:
-        for rpm in sorted(rpm_dir.glob("*.rpm")):
-            f.write(f"{sha256_file(rpm)}  {rpm.name}\n")
+    write_records(
+        metadata_dir, rpm_dir, RPM, payload, manifest,
+        unresolved=(format_requirement(req) for req in result.unresolved),
+        ignored_unresolved=result.ignored_unresolved,
+        conflicts=result.conflicts, skipped_installed=result.skipped_installed,
+        installed_satisfied=result.installed_satisfied, hash_file=sha256_file,
+    )
 
 
     # ---- Provenance -------------------------------------------------------
@@ -4634,11 +4500,12 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
     # report; when a vendor keyring is configured it is enforced here.
     prov_entries = []
     for pkg in to_ship:
+        archive_trust = getattr(pkg.repo, "trust", None)
         filename = filename_map[id(pkg)]
         dest = rpm_dir / filename
         entry = provenance.PackageProvenance(
             package_id=pkg.nevra, filename=filename,
-            sha256=sha256_file(dest) if dest.exists() else "",
+            sha256=artifact_digests.payload_sha256(dest, sha256_file) if dest.exists() else "",
             size=dest.stat().st_size if dest.exists() else 0,
             source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location)),
             repository=pkg.repo.name,
@@ -4648,8 +4515,7 @@ def _write_bundle_body(result, output_dir: Path, final_dir: Path, options: Build
             index_digest_verified=bool(getattr(pkg, "verification", None)
                                        and pkg.verification.index_digest_verified),
             archive_signature_verified=bool(
-                getattr(pkg.repo, "trust", None)
-                and pkg.repo.trust.archive_signature_verified),
+                archive_trust and archive_trust.archive_signature_verified),
             # source-bond facts are recorded separately from the
             # acquisition archive's trust chain.
             evidence_status=getattr(getattr(pkg, "verification", None), "evidence_status", "not-configured"),

@@ -1,0 +1,661 @@
+{
+  "ordinary": {
+    "elapsed_seconds": 1.1625872629999776,
+    "index_calls": [
+      {
+        "seconds": 0.5644542590000015,
+        "packages": 12033,
+        "keys": 168238
+      },
+      {
+        "seconds": 0.5133896870000285,
+        "packages": 12033,
+        "keys": 168238
+      }
+    ],
+    "profile": "",
+    "result": {
+      "selected": [
+        [
+          "application-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-00-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-01-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-02-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-03-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-04-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-05-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-06-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-07-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-08-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-09-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-10-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-11-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-12-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-13-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-14-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-15-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ]
+      ],
+      "roots": [
+        [
+          "root-00-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-01-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-02-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-03-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-04-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-05-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-06-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-07-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-08-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-09-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-10-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-11-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-12-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-13-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-14-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-15-2-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "application-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ]
+      ],
+      "unresolved": [],
+      "conflicts": [],
+      "reasons": {
+        "root-00-2-1.x86_64": "requested package",
+        "root-01-2-1.x86_64": "requested package",
+        "root-02-2-1.x86_64": "requested package",
+        "root-03-2-1.x86_64": "requested package",
+        "root-04-2-1.x86_64": "requested package",
+        "root-05-2-1.x86_64": "requested package",
+        "root-06-2-1.x86_64": "requested package",
+        "root-07-2-1.x86_64": "requested package",
+        "root-08-2-1.x86_64": "requested package",
+        "root-09-2-1.x86_64": "requested package",
+        "root-10-2-1.x86_64": "requested package",
+        "root-11-2-1.x86_64": "requested package",
+        "root-12-2-1.x86_64": "requested package",
+        "root-13-2-1.x86_64": "requested package",
+        "root-14-2-1.x86_64": "requested package",
+        "root-15-2-1.x86_64": "requested package",
+        "application-1-1.x86_64": "requested package"
+      },
+      "unresolved_notes": {},
+      "skipped_installed": [],
+      "installed_satisfied": []
+    },
+    "logs": [
+      "Building provider index...",
+      "Indexed 12,000/12,033 package records",
+      "Root: root-00-2-1.x86_64 [Fixture]",
+      "Root: root-01-2-1.x86_64 [Fixture]",
+      "Root: root-02-2-1.x86_64 [Fixture]",
+      "Root: root-03-2-1.x86_64 [Fixture]",
+      "Root: root-04-2-1.x86_64 [Fixture]",
+      "Root: root-05-2-1.x86_64 [Fixture]",
+      "Root: root-06-2-1.x86_64 [Fixture]",
+      "Root: root-07-2-1.x86_64 [Fixture]",
+      "Root: root-08-2-1.x86_64 [Fixture]",
+      "Root: root-09-2-1.x86_64 [Fixture]",
+      "Root: root-10-2-1.x86_64 [Fixture]",
+      "Root: root-11-2-1.x86_64 [Fixture]",
+      "Root: root-12-2-1.x86_64 [Fixture]",
+      "Root: root-13-2-1.x86_64 [Fixture]",
+      "Root: root-14-2-1.x86_64 [Fixture]",
+      "Root: root-15-2-1.x86_64 [Fixture]",
+      "Root: application-1-1.x86_64 [Fixture]",
+      "Building provider index...",
+      "Indexed 12,000/12,033 package records",
+      "Root: root-00-2-1.x86_64 [Fixture]",
+      "Root: root-01-2-1.x86_64 [Fixture]",
+      "Root: root-02-2-1.x86_64 [Fixture]",
+      "Root: root-03-2-1.x86_64 [Fixture]",
+      "Root: root-04-2-1.x86_64 [Fixture]",
+      "Root: root-05-2-1.x86_64 [Fixture]",
+      "Root: root-06-2-1.x86_64 [Fixture]",
+      "Root: root-07-2-1.x86_64 [Fixture]",
+      "Root: root-08-2-1.x86_64 [Fixture]",
+      "Root: root-09-2-1.x86_64 [Fixture]",
+      "Root: root-10-2-1.x86_64 [Fixture]",
+      "Root: root-11-2-1.x86_64 [Fixture]",
+      "Root: root-12-2-1.x86_64 [Fixture]",
+      "Root: root-13-2-1.x86_64 [Fixture]",
+      "Root: root-14-2-1.x86_64 [Fixture]",
+      "Root: root-15-2-1.x86_64 [Fixture]",
+      "Root: application-1-1.x86_64 [Fixture]"
+    ]
+  },
+  "one-constrained-root": {
+    "elapsed_seconds": 3.6455742080000277,
+    "index_calls": [
+      {
+        "seconds": 0.528633630999991,
+        "packages": 12003,
+        "keys": 168028
+      },
+      {
+        "seconds": 0.5952661260000127,
+        "packages": 12003,
+        "keys": 168028
+      },
+      {
+        "seconds": 0.6218321370000126,
+        "packages": 12002,
+        "keys": 168028
+      },
+      {
+        "seconds": 0.6401338179999811,
+        "packages": 12003,
+        "keys": 168028
+      },
+      {
+        "seconds": 0.585445797000034,
+        "packages": 12003,
+        "keys": 168028
+      },
+      {
+        "seconds": 0.5261250159999804,
+        "packages": 12002,
+        "keys": 168028
+      }
+    ],
+    "profile": "",
+    "result": {
+      "selected": [
+        [
+          "application-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-00-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ]
+      ],
+      "roots": [
+        [
+          "root-00-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "application-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ]
+      ],
+      "unresolved": [],
+      "conflicts": [],
+      "reasons": {
+        "root-00-1-1.x86_64": "requested package",
+        "application-1-1.x86_64": "requested package"
+      },
+      "unresolved_notes": {},
+      "skipped_installed": [],
+      "installed_satisfied": []
+    },
+    "logs": [
+      "Building provider index...",
+      "Indexed 12,000/12,003 package records",
+      "Root: root-00-2-1.x86_64 [Fixture]",
+      "Root: application-1-1.x86_64 [Fixture]",
+      "VERSION CONFLICT root-00 EQ 1-1; selected root-00-2-1.x86_64",
+      "Re-resolving with version floor root-00 root-00 EQ 1-1 (pass 2)",
+      "Building provider index...",
+      "Indexed 12,000/12,003 package records",
+      "Indexed 12,000/12,002 package records",
+      "Root: root-00-1-1.x86_64 [Fixture]",
+      "Root: application-1-1.x86_64 [Fixture]",
+      "Building provider index...",
+      "Indexed 12,000/12,003 package records",
+      "Root: root-00-2-1.x86_64 [Fixture]",
+      "Root: application-1-1.x86_64 [Fixture]",
+      "VERSION CONFLICT root-00 EQ 1-1; selected root-00-2-1.x86_64",
+      "Re-resolving with version floor root-00 root-00 EQ 1-1 (pass 2)",
+      "Building provider index...",
+      "Indexed 12,000/12,003 package records",
+      "Indexed 12,000/12,002 package records",
+      "Root: root-00-1-1.x86_64 [Fixture]",
+      "Root: application-1-1.x86_64 [Fixture]"
+    ]
+  },
+  "sixteen-constrained-roots": {
+    "elapsed_seconds": 3.4193478879999475,
+    "index_calls": [
+      {
+        "seconds": 0.5233583349999549,
+        "packages": 12033,
+        "keys": 168238
+      },
+      {
+        "seconds": 0.6105074589999617,
+        "packages": 12033,
+        "keys": 168238
+      },
+      {
+        "seconds": 0.454925578999962,
+        "packages": 12017,
+        "keys": 168238
+      },
+      {
+        "seconds": 0.6077926560000151,
+        "packages": 12033,
+        "keys": 168238
+      },
+      {
+        "seconds": 0.49278741000000537,
+        "packages": 12033,
+        "keys": 168238
+      },
+      {
+        "seconds": 0.5723966170000381,
+        "packages": 12017,
+        "keys": 168238
+      }
+    ],
+    "profile": "",
+    "result": {
+      "selected": [
+        [
+          "application-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-00-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-01-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-02-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-03-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-04-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-05-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-06-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-07-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-08-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-09-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-10-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-11-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-12-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-13-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-14-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-15-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ]
+      ],
+      "roots": [
+        [
+          "root-00-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-01-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-02-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-03-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-04-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-05-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-06-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-07-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-08-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-09-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-10-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-11-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-12-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-13-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-14-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "root-15-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ],
+        [
+          "application-1-1.x86_64",
+          "repo-sha256:8b861a935fc9ffd2e350df679e8631a22bd8b4ea7fef7c55d8b312fe4c8e57d2"
+        ]
+      ],
+      "unresolved": [],
+      "conflicts": [],
+      "reasons": {
+        "root-00-1-1.x86_64": "requested package",
+        "root-01-1-1.x86_64": "requested package",
+        "root-02-1-1.x86_64": "requested package",
+        "root-03-1-1.x86_64": "requested package",
+        "root-04-1-1.x86_64": "requested package",
+        "root-05-1-1.x86_64": "requested package",
+        "root-06-1-1.x86_64": "requested package",
+        "root-07-1-1.x86_64": "requested package",
+        "root-08-1-1.x86_64": "requested package",
+        "root-09-1-1.x86_64": "requested package",
+        "root-10-1-1.x86_64": "requested package",
+        "root-11-1-1.x86_64": "requested package",
+        "root-12-1-1.x86_64": "requested package",
+        "root-13-1-1.x86_64": "requested package",
+        "root-14-1-1.x86_64": "requested package",
+        "root-15-1-1.x86_64": "requested package",
+        "application-1-1.x86_64": "requested package"
+      },
+      "unresolved_notes": {},
+      "skipped_installed": [],
+      "installed_satisfied": []
+    },
+    "logs": [
+      "Building provider index...",
+      "Indexed 12,000/12,033 package records",
+      "Root: root-00-2-1.x86_64 [Fixture]",
+      "Root: root-01-2-1.x86_64 [Fixture]",
+      "Root: root-02-2-1.x86_64 [Fixture]",
+      "Root: root-03-2-1.x86_64 [Fixture]",
+      "Root: root-04-2-1.x86_64 [Fixture]",
+      "Root: root-05-2-1.x86_64 [Fixture]",
+      "Root: root-06-2-1.x86_64 [Fixture]",
+      "Root: root-07-2-1.x86_64 [Fixture]",
+      "Root: root-08-2-1.x86_64 [Fixture]",
+      "Root: root-09-2-1.x86_64 [Fixture]",
+      "Root: root-10-2-1.x86_64 [Fixture]",
+      "Root: root-11-2-1.x86_64 [Fixture]",
+      "Root: root-12-2-1.x86_64 [Fixture]",
+      "Root: root-13-2-1.x86_64 [Fixture]",
+      "Root: root-14-2-1.x86_64 [Fixture]",
+      "Root: root-15-2-1.x86_64 [Fixture]",
+      "Root: application-1-1.x86_64 [Fixture]",
+      "VERSION CONFLICT root-00 EQ 1-1; selected root-00-2-1.x86_64",
+      "VERSION CONFLICT root-01 EQ 1-1; selected root-01-2-1.x86_64",
+      "VERSION CONFLICT root-02 EQ 1-1; selected root-02-2-1.x86_64",
+      "VERSION CONFLICT root-03 EQ 1-1; selected root-03-2-1.x86_64",
+      "VERSION CONFLICT root-04 EQ 1-1; selected root-04-2-1.x86_64",
+      "VERSION CONFLICT root-05 EQ 1-1; selected root-05-2-1.x86_64",
+      "VERSION CONFLICT root-06 EQ 1-1; selected root-06-2-1.x86_64",
+      "VERSION CONFLICT root-07 EQ 1-1; selected root-07-2-1.x86_64",
+      "VERSION CONFLICT root-08 EQ 1-1; selected root-08-2-1.x86_64",
+      "VERSION CONFLICT root-09 EQ 1-1; selected root-09-2-1.x86_64",
+      "VERSION CONFLICT root-10 EQ 1-1; selected root-10-2-1.x86_64",
+      "VERSION CONFLICT root-11 EQ 1-1; selected root-11-2-1.x86_64",
+      "VERSION CONFLICT root-12 EQ 1-1; selected root-12-2-1.x86_64",
+      "VERSION CONFLICT root-13 EQ 1-1; selected root-13-2-1.x86_64",
+      "VERSION CONFLICT root-14 EQ 1-1; selected root-14-2-1.x86_64",
+      "VERSION CONFLICT root-15 EQ 1-1; selected root-15-2-1.x86_64",
+      "Re-resolving with version floor root-00 root-00 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-01 root-01 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-02 root-02 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-03 root-03 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-04 root-04 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-05 root-05 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-06 root-06 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-07 root-07 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-08 root-08 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-09 root-09 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-10 root-10 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-11 root-11 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-12 root-12 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-13 root-13 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-14 root-14 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-15 root-15 EQ 1-1 (pass 2)",
+      "Building provider index...",
+      "Indexed 12,000/12,033 package records",
+      "Indexed 12,000/12,017 package records",
+      "Root: root-00-1-1.x86_64 [Fixture]",
+      "Root: root-01-1-1.x86_64 [Fixture]",
+      "Root: root-02-1-1.x86_64 [Fixture]",
+      "Root: root-03-1-1.x86_64 [Fixture]",
+      "Root: root-04-1-1.x86_64 [Fixture]",
+      "Root: root-05-1-1.x86_64 [Fixture]",
+      "Root: root-06-1-1.x86_64 [Fixture]",
+      "Root: root-07-1-1.x86_64 [Fixture]",
+      "Root: root-08-1-1.x86_64 [Fixture]",
+      "Root: root-09-1-1.x86_64 [Fixture]",
+      "Root: root-10-1-1.x86_64 [Fixture]",
+      "Root: root-11-1-1.x86_64 [Fixture]",
+      "Root: root-12-1-1.x86_64 [Fixture]",
+      "Root: root-13-1-1.x86_64 [Fixture]",
+      "Root: root-14-1-1.x86_64 [Fixture]",
+      "Root: root-15-1-1.x86_64 [Fixture]",
+      "Root: application-1-1.x86_64 [Fixture]",
+      "Building provider index...",
+      "Indexed 12,000/12,033 package records",
+      "Root: root-00-2-1.x86_64 [Fixture]",
+      "Root: root-01-2-1.x86_64 [Fixture]",
+      "Root: root-02-2-1.x86_64 [Fixture]",
+      "Root: root-03-2-1.x86_64 [Fixture]",
+      "Root: root-04-2-1.x86_64 [Fixture]",
+      "Root: root-05-2-1.x86_64 [Fixture]",
+      "Root: root-06-2-1.x86_64 [Fixture]",
+      "Root: root-07-2-1.x86_64 [Fixture]",
+      "Root: root-08-2-1.x86_64 [Fixture]",
+      "Root: root-09-2-1.x86_64 [Fixture]",
+      "Root: root-10-2-1.x86_64 [Fixture]",
+      "Root: root-11-2-1.x86_64 [Fixture]",
+      "Root: root-12-2-1.x86_64 [Fixture]",
+      "Root: root-13-2-1.x86_64 [Fixture]",
+      "Root: root-14-2-1.x86_64 [Fixture]",
+      "Root: root-15-2-1.x86_64 [Fixture]",
+      "Root: application-1-1.x86_64 [Fixture]",
+      "VERSION CONFLICT root-00 EQ 1-1; selected root-00-2-1.x86_64",
+      "VERSION CONFLICT root-01 EQ 1-1; selected root-01-2-1.x86_64",
+      "VERSION CONFLICT root-02 EQ 1-1; selected root-02-2-1.x86_64",
+      "VERSION CONFLICT root-03 EQ 1-1; selected root-03-2-1.x86_64",
+      "VERSION CONFLICT root-04 EQ 1-1; selected root-04-2-1.x86_64",
+      "VERSION CONFLICT root-05 EQ 1-1; selected root-05-2-1.x86_64",
+      "VERSION CONFLICT root-06 EQ 1-1; selected root-06-2-1.x86_64",
+      "VERSION CONFLICT root-07 EQ 1-1; selected root-07-2-1.x86_64",
+      "VERSION CONFLICT root-08 EQ 1-1; selected root-08-2-1.x86_64",
+      "VERSION CONFLICT root-09 EQ 1-1; selected root-09-2-1.x86_64",
+      "VERSION CONFLICT root-10 EQ 1-1; selected root-10-2-1.x86_64",
+      "VERSION CONFLICT root-11 EQ 1-1; selected root-11-2-1.x86_64",
+      "VERSION CONFLICT root-12 EQ 1-1; selected root-12-2-1.x86_64",
+      "VERSION CONFLICT root-13 EQ 1-1; selected root-13-2-1.x86_64",
+      "VERSION CONFLICT root-14 EQ 1-1; selected root-14-2-1.x86_64",
+      "VERSION CONFLICT root-15 EQ 1-1; selected root-15-2-1.x86_64",
+      "Re-resolving with version floor root-00 root-00 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-01 root-01 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-02 root-02 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-03 root-03 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-04 root-04 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-05 root-05 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-06 root-06 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-07 root-07 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-08 root-08 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-09 root-09 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-10 root-10 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-11 root-11 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-12 root-12 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-13 root-13 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-14 root-14 EQ 1-1 (pass 2)",
+      "Re-resolving with version floor root-15 root-15 EQ 1-1 (pass 2)",
+      "Building provider index...",
+      "Indexed 12,000/12,033 package records",
+      "Indexed 12,000/12,017 package records",
+      "Root: root-00-1-1.x86_64 [Fixture]",
+      "Root: root-01-1-1.x86_64 [Fixture]",
+      "Root: root-02-1-1.x86_64 [Fixture]",
+      "Root: root-03-1-1.x86_64 [Fixture]",
+      "Root: root-04-1-1.x86_64 [Fixture]",
+      "Root: root-05-1-1.x86_64 [Fixture]",
+      "Root: root-06-1-1.x86_64 [Fixture]",
+      "Root: root-07-1-1.x86_64 [Fixture]",
+      "Root: root-08-1-1.x86_64 [Fixture]",
+      "Root: root-09-1-1.x86_64 [Fixture]",
+      "Root: root-10-1-1.x86_64 [Fixture]",
+      "Root: root-11-1-1.x86_64 [Fixture]",
+      "Root: root-12-1-1.x86_64 [Fixture]",
+      "Root: root-13-1-1.x86_64 [Fixture]",
+      "Root: root-14-1-1.x86_64 [Fixture]",
+      "Root: root-15-1-1.x86_64 [Fixture]",
+      "Root: application-1-1.x86_64 [Fixture]"
+    ]
+  }
+}

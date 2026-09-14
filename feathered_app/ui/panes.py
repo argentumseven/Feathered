@@ -115,10 +115,7 @@ class PaneMixin(KubernetesWorkloadMixin):
                 pane, "Package sources",
                 "Choose the distribution sources that provide the operating-system base, then layer any additional repositories on top.")
 
-        # 1.0.52 shows package-derived
-        # side-channel requirements first.  They are selected on Packages and
-        # pre-populated before this page opens; the base distribution plan is
-        # still available immediately below for native roots and dependencies.
+        # Workload-specific source requirements are populated before this page opens.
         if include_workload:
             # Distribution/base sources render first; the workload-derived
             # side-channel card is built after them (see below). Same visual
@@ -134,10 +131,7 @@ class PaneMixin(KubernetesWorkloadMixin):
             self.package_workload_repo_tree = None
             self.workload_repo_status_var = None
 
-        # 1.0.55: keep the workload-derived requirements and the distribution
-        # source plan visually distinct.  The required card is intentionally
-        # first; this margin prevents the base-source heading from reading as
-        # part of the same panel.
+        # Keep workload-specific requirements visually separate from the base source plan.
         card = self._card(pane, "Base distribution sources", pady=(18, 0))
         self.base_sources_card = card
         sr = ttk.Frame(card, style="Panel.TFrame"); sr.pack(fill="x")
@@ -167,11 +161,7 @@ class PaneMixin(KubernetesWorkloadMixin):
         # on callback ordering.
         self._sync_transaction_source_controls()
 
-        # 1.0.46 treats the source-plan
-        # dropdown as a population mechanism, not a locked recipe.  The plan
-        # seeds the exact base repositories below; the operator may then
-        # enable, disable, edit, add, or remove individual entries before
-        # package selection or analysis.
+        # The source plan seeds the base repository list but does not lock it.
         self._panel_hint(
             card,
             "The source plan populates this base list. Tailor the repositories below as needed; "
@@ -1368,14 +1358,11 @@ class PaneMixin(KubernetesWorkloadMixin):
                 self.package_source_status.configure(foreground=OK_FG)
 
     def _build_keyrings_pane(self, pane):
-        """Configure checksum strength and one non-overlapping verification strategy.
+        """Configure checksum strength and one verification strategy.
 
-        1.0.36 removes the overlapping
-        overlapping checksum/evidence controls. Packages owns the
-        repository set. This page inspects every repository that can participate
-        in the current operation for all strong SHA fields, then exposes only two high-level decisions: the
-        minimum checksum strength and what Feathered should do when that strength
-        is unavailable. Changes apply immediately.
+        Packages owns the repository set. This page inspects participating
+        repositories for supported SHA fields, then configures the minimum
+        checksum strength and the policy used when that strength is unavailable.
         """
         self._pane_heading(
             pane, "Provenance and Keying",
@@ -1724,9 +1711,10 @@ class PaneMixin(KubernetesWorkloadMixin):
         # were previously offset by one, so each checkbox appeared under the
         # wrong explanation.
         self.sign_index_var = tk.BooleanVar(value=False)
-        self._image_checkbutton(
+        self.sign_index_row = self._image_checkbutton(
             repo, self.sign_index_var,
-            "Seal the bundle: hash every finished file and sign that index")
+            "Seal the bundle: hash every finished file and sign that index",
+            command=self._signing_requested)
         self._panel_hint(repo, "Hashes are computed from the finished files at the end of the "
                                "build, so the signature attests to the exact bundle produced. "
                                "Requires a signing key on the Provenance & Keying step. Adds a final hashing "
@@ -1873,11 +1861,7 @@ class PaneMixin(KubernetesWorkloadMixin):
                                       command=lambda: self.start_build(False), state="disabled")
         self.analyze_btn.pack(side="left")
         self._register_operation_control(self.analyze_btn)
-        # 1.0.41 treats the visible Review
-        # package list as the build contract. Build is available before a
-        # separate analysis when that contract is non-empty because the build
-        # path performs the same analysis first; it is disabled when there is
-        # nothing to build or when analyzed results still contain blockers.
+        # The visible Review package list is the build contract.
         self.build_btn = ttk.Button(actions, text="Build bundle",
                                     command=lambda: self.start_build(True), state="disabled")
         self.build_btn.pack(side="left", padx=(10, 0))
@@ -1900,10 +1884,7 @@ class PaneMixin(KubernetesWorkloadMixin):
         ttk.Label(pane, textvariable=self.download_size_var, style="Hint.TLabel", wraplength=740).pack(
             anchor="w", pady=(0, 6))
 
-        # 1.0.42 keeps trust/provenance
-        # findings out of the package result table. A compact review strip
-        # points to the Activity log, where the complete messages remain
-        # readable and can be closed without altering the analysis result.
+        # Keep trust findings out of the package result table and link to the full log.
         self.trust_review_bar = ttk.Frame(pane)
         self.trust_review_var = tk.StringVar(value="")
         ttk.Label(self.trust_review_bar, textvariable=self.trust_review_var,
@@ -2025,12 +2006,10 @@ class PaneMixin(KubernetesWorkloadMixin):
         vs.grid(row=1, column=1, sticky="ns"); hs.grid(row=2, column=0, sticky="ew")
 
     def _build_tools_pane(self, pane):
-        """Sidecar maintenance tools that do not alter the wizard sequence.
+        """Maintenance tools that do not alter the wizard sequence.
 
-        1.0.39 keeps these workflows small
-        and task-oriented.  The first utility rebuilds repository metadata
-        around package files already on disk; it never downloads or moves the
-        payloads.
+        Repository rebuilds operate on package files already on disk and do not
+        download or move payloads.
         """
         self._pane_heading(
             pane, "Repository utilities",

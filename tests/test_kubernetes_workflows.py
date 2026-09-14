@@ -220,10 +220,12 @@ def test_catalog_and_resolver_never_hide_managed_or_other_minor_packages(local_k
         assert rows==before and len(rows)==8
 
 
-def test_vks_missing_inventory_has_rolling_channel_explanation(local_kubernetes,tmp_path):
+def test_vks_missing_inventory_does_not_block_build_preparation(local_kubernetes,tmp_path):
     spec=workload_spec(local_kubernetes,tmp_path/'out','vks-node-additions',('cryptsetup',))
-    with pytest.raises(RuntimeError,match='rolling channels'):
-        prepare_build(spec,BuildServices(core.Reporter()))
+    spec=replace(spec,content=replace(spec.content,pin_to_inventory_baseline=True))
+    prepared=prepare_build(spec,BuildServices(core.Reporter()))
+    assert prepared.plan.opts.target_inventory is None
+    assert not prepared.plan.opts.workload_context.pin_baseline
 
 
 def test_baseline_rejects_installed_changes_but_keeps_ordinary_headers():
@@ -242,7 +244,8 @@ def test_vks_build_emits_image_draft_and_keeps_inventory_baseline(local_kubernet
     inventory=tmp_path/'inventory.txt'
     inventory.write_text('META|family|deb\nMETA|relationships|complete\nDEB|libc6|1.0|amd64\nDETAIL|'+json.dumps(
         {'Package':'libc6','Version':'1.0','Architecture':'amd64'})+'\n')
-    spec=replace(spec,target=replace(spec.target,inventory_path=str(inventory)))
+    spec=replace(spec,target=replace(spec.target,inventory_path=str(inventory)),
+                 content=replace(spec.content,pin_to_inventory_baseline=True))
     result=invoke(tmp_path,spec,'--accept-trust-findings')
     assert result.returncode==0,result.stdout+result.stderr
     drafts=list((tmp_path/'out').rglob('imagebaker-image.yaml'))

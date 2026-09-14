@@ -1,0 +1,94 @@
+From 8a1f6af1cefa8191aed71aa7e7ef8af7f0b4a900 Mon Sep 17 00:00:00 2001
+From: Feathered Maintenance <maintenance@localhost>
+Date: Sun, 13 Sep 2026 07:59:53 -0400
+Subject: [PATCH 5/6] Verify waiver records through all public bundle writers
+
+---
+ BUNDLE-WRITER.md   |  7 +++++--
+ SOURCE-SHA256.json |  4 ++--
+ test_feather.py    | 18 ++++++++++++++----
+ 3 files changed, 21 insertions(+), 8 deletions(-)
+
+diff --git a/BUNDLE-WRITER.md b/BUNDLE-WRITER.md
+index 8e1caf9..9c79597 100644
+--- a/BUNDLE-WRITER.md
++++ b/BUNDLE-WRITER.md
+@@ -36,7 +36,7 @@ This source delivery includes that batch and all earlier upstream changes.
+   Both new modules have strict annotations and are tested with Tk imports blocked.
+ - Added regression coverage for cancellation, transfer failures, cleanup, APT hook
+   compatibility, record edges and callback failures across all three families.
+-  Replaced a source-text assurance test with an actual writer/output check.
++  Replaced source-text assurance and waiver-file checks with actual public writer/output checks.
+ 
+ ## Validation and evidence
+ 
+@@ -48,7 +48,10 @@ Intermediate attempts are retained for audit. The first delegation gate stopped
+ when the local virtual display failed to initialize. After correcting that setup,
+ its rerun caught a source-text test requiring APT's former duplicated helper call.
+ That test now executes both public provenance writers and checks their actual
+-assurance output. Focused golden and failure checks cover the extraction; only the
++assurance output. The first shared-writer gate similarly caught a filename-string
++check requiring duplicated waiver-file emission; it now checks actual waiver files
++from all three public writers. That attempt is retained in
++`validation/bundle-refactor-gate-first/`. Focused golden and failure checks cover the extraction; only the
+ final full-tree gate establishes the completed batch's release result. No failed
+ intermediate run is counted as passing evidence.
+ 
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index f6759b3..7e3194b 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -7,7 +7,7 @@
+   ".gitignore": "7af25837f3f8f7ae328b2e61ecdae35b3dbf101fe4e46bb9352961a3f43c2243",
+   "BACKGROUND-REFRESH.md": "9719bf2f7d7ba6b95dbec4f5100c447c4773bdbf03b0c91d5a439a0a678d6d82",
+   "BUILD-BOUNDARY.md": "e5009241779660f45152630ce880f67415ef2a5d767d449de9e8eb55a2c67db4",
+-  "BUNDLE-WRITER.md": "1ac7e840f0a42aa0323938c55679d75ae96822d115e7e017a6a4950f123c3036",
++  "BUNDLE-WRITER.md": "1995e5f5563588f325c99ed2f1d6fe8c573f73e15011a23cf0086fa53669a352",
+   "CHANGELOG.md": "c6d32c4099fa7e80b2a318fb22443e11c2d2a68d026855274a0ac591945465d0",
+   "CLI.md": "631ed89266c8ff5cacc35215d50110cad15591cca7c6e928519ae3c1bf169a49",
+   "KUBERNETES.md": "bdf620d825281c078b4a9939327303d1730a4c345de5c5fc8894b3aaec5bc6e0",
+@@ -137,7 +137,7 @@
+   "target_inventory.sh": "11f22bfef1e7f47c2cd70a8003d0a8b8d30e6b6cd69e809f241b1edf1757fcb0",
+   "target_inventory_details.py": "4a75a15e86294e8d37467c2d391a3df7885bff9bd3c38710be6786b403c0c021",
+   "test_evidence_workflow.py": "fa0c0f53bf767032741b57e2b4b2e03179be788bb27ebb855682208ae0f499cc",
+-  "test_feather.py": "708b5b98f62fc680fbd5b199f887e6fd7cf2f189213543b9036914dede6e859b",
++  "test_feather.py": "6d39f741c0a6a59c7f9792ef93f77db79773e66546480703c47d85363c5ee740",
+   "tests/fixtures/bundle_snapshots/arch-additive.json": "50863cae7a18cd055daf30859ec3255a10be91801ff5da571d3df52a8635c5ec",
+   "tests/fixtures/bundle_snapshots/arch-corrupt.json": "76f946d805728273e5c7465a9478d96cc0feee5a51606fa2d954527a585aefe6",
+   "tests/fixtures/bundle_snapshots/arch-differential.json": "18cc21fac7233677d7cb9531581bbf8f0b9f196bdb0be8f1cbbaa551bd44e1b5",
+diff --git a/test_feather.py b/test_feather.py
+index 74a7394..376a517 100644
+--- a/test_feather.py
++++ b/test_feather.py
+@@ -2882,14 +2882,24 @@ def test_repository_sidecar_rejects_mixed_package_families(tmp_path):
+         raise AssertionError("mixed package families must not be silently combined")
+ 
+ 
+-def test_review_source_contains_unresolved_waiver_and_retry_controls():
++def test_review_source_contains_unresolved_waiver_and_retry_controls(tmp_path):
+     import app, inspect
+-    root = Path(__file__).resolve().parent
++    import core, apt_core, arch_core
+     source = inspect.getsource(app.App._build_review_pane)
+     assert 'text="Retry unresolved"' in source
+     assert 'text="Ignore selected"' in source
+-    assert "ignored-unresolved.txt" in (root / "core.py").read_text(encoding="utf-8")
+-    assert "ignored-unresolved.txt" in (root / "apt_core.py").read_text(encoding="utf-8")
++    # Exercise the public writers: shared helpers need not repeat filenames in
++    # each backend's source to preserve the operator's recorded waivers.
++    for backend, result_type, directory in (
++        (core, core.ResolutionResult, "rpms"),
++        (apt_core, apt_core.DebResolutionResult, "debs"),
++        (arch_core, arch_core.ArchResolutionResult, "packages"),
++    ):
++        result = result_type([], [], [], ignored_unresolved=["operator waiver"])
++        output = tmp_path / directory
++        backend.write_bundle(result, output, core.BuildOptions(emit_repository=False),
++                             core.Reporter(), {"package_only_acquisition": True})
++        assert (output / directory / "ignored-unresolved.txt").read_text() == "operator waiver\n"
+ 
+ 
+ def test_repository_tools_are_sidecar_not_sixth_wizard_step():
+-- 
+2.51.1
+

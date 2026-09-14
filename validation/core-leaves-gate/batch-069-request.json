@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_rpm_installer_gpgcheck.py::test_key_ids_are_deduplicated",
+    "tests/test_signing_navigation.py::test_next_routes_missing_signing_key_to_provenance",
+    "tests/test_signing_navigation.py::test_folder_naming_failure_still_targets_its_own_control",
+    "tests/test_signing_navigation.py::test_missing_openpgp_routes_to_setup_card",
+    "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[-False-keyrings]",
+    "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[example-key-False-transfer]",
+    "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[-True-transfer]",
+    "tests/test_source_launch.py::test_source_app_imports_in_isolated_python_from_another_directory",
+    "tests/test_source_manifest.py::test_shipped_manifest_describes_the_shipped_tree",
+    "tests/test_source_manifest.py::test_manifest_covers_every_tracked_source_file",
+    "tests/test_source_manifest.py::test_manifest_excludes_derived_and_cache_artifacts",
+    "tests/test_source_manifest.py::test_writer_is_idempotent_and_check_mode_detects_drift",
+    "tests/test_source_manifest.py::test_verifier_reports_missing_modified_and_unlisted",
+    "tests/test_source_manifest.py::test_verifier_ignores_byte_compiled_caches",
+    "tests/test_source_manifest.py::test_verifier_rejects_unsafe_duplicate_and_self_referential_entries",
+    "tests/test_source_manifest.py::test_verifier_refuses_a_symlinked_source_tree",
+    "tests/test_source_manifest.py::test_windows_source_gate_verifies_the_source_manifest",
+    "tests/test_source_scope.py::test_transaction_excludes_foreign_target_without_removing_source[fields0]",
+    "tests/test_source_scope.py::test_transaction_excludes_foreign_target_without_removing_source[fields1]",
+    "tests/test_source_scope.py::test_transaction_excludes_foreign_target_without_removing_source[fields2]"
+  ]
+}

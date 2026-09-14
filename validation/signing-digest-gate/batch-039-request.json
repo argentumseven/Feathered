@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "tests/test_build_worker_isolation.py::test_the_interactive_prompt_remains_the_default",
+    "tests/test_build_worker_isolation.py::test_a_host_that_cannot_answer_declines",
+    "tests/test_build_worker_isolation.py::test_the_download_plan_does_not_deadlock_without_a_consumer",
+    "tests/test_build_worker_isolation.py::test_an_injected_sink_replaces_the_queue_handshake",
+    "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-arch]"
+  ]
+}

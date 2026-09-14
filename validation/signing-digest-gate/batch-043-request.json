@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+    "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+    "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[503-indeterminate]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[403-indeterminate]",
+    "tests/test_discovery_recovery.py::test_partial_merge_keeps_old_time_and_new_successes_and_removes_proven_absence",
+    "tests/test_discovery_recovery.py::test_stale_refresh_cannot_clear_policy_change",
+    "tests/test_discovery_recovery.py::test_persistent_writer_lease_retains_cache_without_network",
+    "tests/test_discovery_recovery.py::test_concurrent_refreshes_reconcile_the_committed_policy_signal",
+    "tests/test_discovery_recovery.py::test_family_switch_shares_one_knowledge_refresh",
+    "tests/test_download_compatibility.py::test_apt_transfer_keeps_transport_url_and_verifier_hooks",
+    "tests/test_download_compatibility.py::test_apt_verifier_failure_keeps_destination_and_cleans_partial",
+    "tests/test_end_to_end_build.py::test_a_complete_build_touches_no_widget_from_the_worker",
+    "tests/test_end_to_end_build.py::test_a_repository_mirror_build_completes[separate]",
+    "tests/test_end_to_end_build.py::test_a_repository_mirror_build_completes[unified]",
+    "tests/test_end_to_end_build.py::test_a_workload_preset_build_completes"
+  ]
+}

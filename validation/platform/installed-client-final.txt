@@ -1,0 +1,3 @@
+dpkg-deb: building package 'demo-tool' in '/workspace/scratch/f2c614fac6a1/review/tmp/Feathered installed client 8ktpag1q/fixture repository/pool/demo-tool_1.0_amd64.deb'.
+Feathered GUI startup check passed.
+Installed CLI: decline=2, publication=0, real DEB bytes/checksum/provenance preserved; no display.

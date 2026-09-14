@@ -12,6 +12,10 @@ if ([string]::IsNullOrWhiteSpace($env:GITHUB_ENV) -or
     throw 'GITHUB_ENV/GITHUB_PATH are required; this bootstrap is intended for GitHub Actions.'
 }
 
+$Diagnostics = Join-Path $env:RUNNER_TEMP 'feathered-python-diagnostics'
+New-Item -ItemType Directory -Path $Diagnostics -Force | Out-Null
+Start-Transcript -Path (Join-Path $Diagnostics 'bootstrap.log') -Force | Out-Null
+try {
 $Installer = Join-Path $env:RUNNER_TEMP "python-$Version-amd64.exe"
 $Target = Join-Path $env:RUNNER_TEMP "feathered-python-$Version"
 
@@ -27,10 +31,13 @@ if (Test-Path -LiteralPath $Target) {
     Remove-Item -LiteralPath $Target -Recurse -Force
 }
 
+$InstallerLog = Join-Path $Diagnostics 'installer.log'
 $Arguments = @(
     '/quiet',
+    '/log',
+    "`"$InstallerLog`"",
     'InstallAllUsers=0',
-    "TargetDir=$Target",
+    "TargetDir=`"$Target`"",
     'Include_launcher=0',
     'Include_test=0',
     'Include_tcltk=1',
@@ -77,6 +84,12 @@ if (-not $TkTcl) {
     throw "The full python.org installation did not contain Tk tk.tcl under $Target\tcl"
 }
 
+# GITHUB_ENV affects later steps only. The validation below must use this
+# installation's Tcl/Tk now, not settings inherited from actions/setup-python.
+$env:TCL_LIBRARY = $InitTcl.Directory.FullName
+$env:TK_LIBRARY = $TkTcl.Directory.FullName
+Write-Host "TCL_LIBRARY=$env:TCL_LIBRARY"
+Write-Host "TK_LIBRARY=$env:TK_LIBRARY"
 Write-Host "Validating interpreter and Tcl/Tk before running Feathered tests..."
 & $Python -c "import struct,sys,tkinter as tk; assert sys.version_info[:3] == (3,13,14); assert struct.calcsize('P')*8 == 64; r=tk.Tk(); print('CPython',sys.version.split()[0],'Tcl',r.tk.call('info','patchlevel')); r.destroy()"
 if ($LASTEXITCODE -ne 0) {
@@ -105,3 +118,7 @@ $Target | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 Write-Host "Authenticated CPython ready: $Python"
 Write-Host "TCL_LIBRARY=$($InitTcl.Directory.FullName)"
 Write-Host "TK_LIBRARY=$($TkTcl.Directory.FullName)"
+
+} finally {
+    Stop-Transcript | Out-Null
+}

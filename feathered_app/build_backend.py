@@ -19,6 +19,7 @@ from typing import Collection, Protocol
 import apt_core
 import arch_core
 import core
+from feathered_app.backend_registry import select_backend
 
 
 class BackendHost(Protocol):
@@ -34,9 +35,7 @@ class BuildBackendMixin:
 
     def _resolve_backend(self: BackendHost, requests, packages, arch: str, opts,
                          reporter: core.Reporter) -> core.ResolutionResult | apt_core.DebResolutionResult | arch_core.ArchResolutionResult:
-        if self._is_arch():
-            return arch_core.resolve(requests, packages, arch, opts, reporter)
-        return apt_core.resolve(requests, packages, arch, opts, reporter) if self._is_deb() else core.resolve(requests, packages, arch, opts, reporter)
+        return select_backend(self._is_arch, self._is_deb).resolve(requests, packages, arch, opts, reporter)
 
     def _write_bundle_backend(self: BackendHost, result, dest: Path, opts, reporter: core.Reporter, meta):
         from kubernetes_workflow import WorkloadContext, VKS_KEY, report, check_acknowledgement, enforce_baseline
@@ -52,17 +51,11 @@ class BuildBackendMixin:
                     from dataclasses import asdict
                     data['image_draft_context'] = asdict(context)
                 meta['kubernetes'] = data
-        if self._is_arch():
-            return arch_core.write_bundle(result, dest, opts, reporter, meta)
-        return apt_core.write_bundle(result, dest, opts, reporter, meta) if self._is_deb() else core.write_bundle(result, dest, opts, reporter, meta)
+        return select_backend(self._is_arch, self._is_deb).write(result, dest, opts, reporter, meta)
 
     def _load_repository_backend(self: BackendHost, repo: core.RepoSpec, arches: set[str],
                                  reporter: core.Reporter) -> list[core.Package] | list[apt_core.DebPackage] | list[arch_core.ArchPackage]:
-        if repo.repo_format == "pacman" or self._is_arch():
-            return arch_core.load_repository(repo, arches, reporter)
-        if repo.repo_format == "apt" or self._is_deb():
-            return apt_core.load_repository(repo, arches, reporter)
-        return core.load_repository(repo, arches, reporter)
+        return select_backend(self._is_arch, self._is_deb, repo.repo_format).load(repo, arches, reporter)
 
     def _repo_tier(self: BackendHost, repo: object) -> str:
         tier = getattr(repo, "source_tier", "")
@@ -80,6 +73,4 @@ class BuildBackendMixin:
         return "base"
 
     def _parse_target_inventory_backend(self: BackendHost, path: Path) -> core.TargetInventory | apt_core.AptTargetInventory | arch_core.ArchTargetInventory:
-        if self._is_arch():
-            return arch_core.parse_target_inventory(path)
-        return apt_core.parse_target_inventory(path) if self._is_deb() else core.parse_target_inventory(path)
+        return select_backend(self._is_arch, self._is_deb).inventory(path)

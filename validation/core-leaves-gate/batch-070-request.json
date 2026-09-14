@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_source_scope.py::test_transaction_excludes_foreign_target_without_removing_source[fields3]",
+    "tests/test_source_scope.py::test_managed_workload_sources_participate_only_for_the_current_roots[workload-False-True]",
+    "tests/test_source_scope.py::test_managed_workload_sources_participate_only_for_the_current_roots[exact-False-False]",
+    "tests/test_source_scope.py::test_managed_workload_sources_participate_only_for_the_current_roots[exact-True-True]",
+    "tests/test_source_scope.py::test_package_only_uses_root_coverage_and_preserves_original_objects[False]",
+    "tests/test_source_scope.py::test_package_only_uses_root_coverage_and_preserves_original_objects[True]",
+    "tests/test_source_scope.py::test_normal_transaction_keeps_all_eligible_dependency_sources_in_order",
+    "tests/test_source_scope.py::test_mirror_checkboxes_are_authoritative_even_for_disabled_or_foreign_sources",
+    "tests/test_source_scope.py::test_init_incompatible_transaction_repository_is_logged_and_excluded",
+    "tests/test_source_scope.py::test_disabled_repository_does_not_read_url_or_host_state",
+    "tests/test_source_scope.py::test_ordinary_source_does_not_need_exact_package_identity",
+    "tests/test_source_scope.py::test_unknown_target_and_blank_release_keep_existing_compatibility_semantics",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-user:PRIVATE_PASSWORD@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-PRIVATE_BEARER@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
+    "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
+    "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials"
+  ]
+}

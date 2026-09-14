@@ -1,0 +1,523 @@
+{
+  "schema": 1,
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_rpm_installer_gpgcheck.py::test_all_vendor_signed_enables_gpgcheck",
+    "tests/test_rpm_installer_gpgcheck.py::test_one_unverified_package_disables_the_whole_transaction",
+    "tests/test_rpm_installer_gpgcheck.py::test_absent_provenance_is_not_read_as_signed",
+    "tests/test_rpm_installer_gpgcheck.py::test_archive_assurance_alone_does_not_satisfy_vendor_policy",
+    "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[0xFD431D51B4B5F9B4-b4b5f9b4]",
+    "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[FD431D51B4B5F9B4-b4b5f9b4]",
+    "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[rsa4096 key FD431D51B4B5F9B4:-b4b5f9b4]",
+    "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[short-None]",
+    "tests/test_rpm_installer_gpgcheck.py::test_key_ids_are_deduplicated",
+    "tests/test_signing_navigation.py::test_next_routes_missing_signing_key_to_provenance",
+    "tests/test_signing_navigation.py::test_folder_naming_failure_still_targets_its_own_control",
+    "tests/test_signing_navigation.py::test_missing_openpgp_routes_to_setup_card",
+    "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[-False-keyrings]",
+    "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[example-key-False-transfer]",
+    "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[-True-transfer]",
+    "tests/test_source_launch.py::test_source_app_imports_in_isolated_python_from_another_directory",
+    "tests/test_source_manifest.py::test_shipped_manifest_describes_the_shipped_tree",
+    "tests/test_source_manifest.py::test_manifest_covers_every_tracked_source_file",
+    "tests/test_source_manifest.py::test_manifest_excludes_derived_and_cache_artifacts",
+    "tests/test_source_manifest.py::test_writer_is_idempotent_and_check_mode_detects_drift"
+  ],
+  "batch_excluded": [
+    "tests/test_source_manifest.py::test_verifier_reports_missing_modified_and_unlisted",
+    "tests/test_source_manifest.py::test_verifier_ignores_byte_compiled_caches",
+    "tests/test_source_manifest.py::test_verifier_rejects_unsafe_duplicate_and_self_referential_entries",
+    "tests/test_source_manifest.py::test_verifier_refuses_a_symlinked_source_tree",
+    "tests/test_source_manifest.py::test_windows_source_gate_verifies_the_source_manifest"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_all_vendor_signed_enables_gpgcheck",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_all_vendor_signed_enables_gpgcheck",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_all_vendor_signed_enables_gpgcheck",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_one_unverified_package_disables_the_whole_transaction",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_one_unverified_package_disables_the_whole_transaction",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_one_unverified_package_disables_the_whole_transaction",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_absent_provenance_is_not_read_as_signed",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_absent_provenance_is_not_read_as_signed",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_absent_provenance_is_not_read_as_signed",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_archive_assurance_alone_does_not_satisfy_vendor_policy",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_archive_assurance_alone_does_not_satisfy_vendor_policy",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_archive_assurance_alone_does_not_satisfy_vendor_policy",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[0xFD431D51B4B5F9B4-b4b5f9b4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[0xFD431D51B4B5F9B4-b4b5f9b4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[0xFD431D51B4B5F9B4-b4b5f9b4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[FD431D51B4B5F9B4-b4b5f9b4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[FD431D51B4B5F9B4-b4b5f9b4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[FD431D51B4B5F9B4-b4b5f9b4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[rsa4096 key FD431D51B4B5F9B4:-b4b5f9b4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[rsa4096 key FD431D51B4B5F9B4:-b4b5f9b4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[rsa4096 key FD431D51B4B5F9B4:-b4b5f9b4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[short-None]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[short-None]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_normalize_to_the_form_rpm_answers_to[short-None]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_are_deduplicated",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_are_deduplicated",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_rpm_installer_gpgcheck.py::test_key_ids_are_deduplicated",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_next_routes_missing_signing_key_to_provenance",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_next_routes_missing_signing_key_to_provenance",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_next_routes_missing_signing_key_to_provenance",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_folder_naming_failure_still_targets_its_own_control",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_folder_naming_failure_still_targets_its_own_control",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_folder_naming_failure_still_targets_its_own_control",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_missing_openpgp_routes_to_setup_card",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_missing_openpgp_routes_to_setup_card",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_missing_openpgp_routes_to_setup_card",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[-False-keyrings]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[-False-keyrings]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[-False-keyrings]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[example-key-False-transfer]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[example-key-False-transfer]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[example-key-False-transfer]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[-True-transfer]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[-True-transfer]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_signing_navigation.py::test_signing_checkbox_routes_only_when_setup_needed[-True-transfer]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_launch.py::test_source_app_imports_in_isolated_python_from_another_directory",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_launch.py::test_source_app_imports_in_isolated_python_from_another_directory",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_launch.py::test_source_app_imports_in_isolated_python_from_another_directory",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_shipped_manifest_describes_the_shipped_tree",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_shipped_manifest_describes_the_shipped_tree",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_shipped_manifest_describes_the_shipped_tree",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_manifest_covers_every_tracked_source_file",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_manifest_covers_every_tracked_source_file",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_manifest_covers_every_tracked_source_file",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_manifest_excludes_derived_and_cache_artifacts",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_manifest_excludes_derived_and_cache_artifacts",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_manifest_excludes_derived_and_cache_artifacts",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_writer_is_idempotent_and_check_mode_detects_drift",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_writer_is_idempotent_and_check_mode_detects_drift",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_manifest.py::test_writer_is_idempotent_and_check_mode_detects_drift",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

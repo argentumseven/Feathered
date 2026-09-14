@@ -1,0 +1,3 @@
+tests/test_footer_status.py
+tests/test_headless_execution.py
+tests/test_installer_paths.py

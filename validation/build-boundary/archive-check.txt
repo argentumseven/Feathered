@@ -1,0 +1,5 @@
+ZIP CRC and unique-entry checks passed.
+Complete application folder; extracted from a path containing spaces.
+OK: 202 source files match SOURCE-SHA256.json, and nothing else is present.
+Extracted App, CLI, three backends and new boundaries import in isolated Python.
+This smoke check does not execute Windows launchers or a frozen binary.

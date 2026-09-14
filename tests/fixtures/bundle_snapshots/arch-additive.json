@@ -1,0 +1,94 @@
+{
+  "listing": [
+    "ASSURANCE.txt",
+    "INSTALLATION-CONTRACT.json",
+    "REQUESTED-ROOTS.txt",
+    "SHA256SUMS.txt",
+    "conflicts.txt",
+    "demo.pkg.tar.gz",
+    "extra.pkg.tar.gz",
+    "manifest.json",
+    "manifest.txt",
+    "provenance.json",
+    "retained.pkg.tar.gz",
+    "satisfied-by-target.txt",
+    "skipped-installed.txt",
+    "unresolved.txt"
+  ],
+  "files": {
+    "ASSURANCE.txt": "FEATHERED BUNDLE ASSURANCE LEGEND\n\nWhat Feathered proved about the artifacts in this bundle, strongest first.\nCounts are the number of packages recording that mode; one package can\nrecord several, because provenance is multi-axis rather than a single tier.\n\nRead 'DOES NOT PROVE' before relying on any row. A stronger-sounding name\ndoes not mean a stronger guarantee; the rank below is the ordering.\n\n[rank  30] Acquisition digest  (acquisition-digest)\n    packages       : 3\n    authority      : acquisition\n    proves         : The acquisition repository's digest for this artifact was checked against the downloaded bytes.\n    does not prove : Authenticity of that digest on its own. Read this axis together with whether an archive or vendor signature also applies.\n\n[rank  30] Digest only  (digest-only)\n    packages       : 3\n    authority      : acquisition\n    proves         : The digest published by the acquisition repository matched the bytes that were downloaded, so the transfer was not corrupted.\n    does not prove : That the digest is authentic. Nothing signed the metadata, so a party able to alter the payload could alter the published digest with it.\n\nFull per-package detail is in provenance.json.\n",
+    "INSTALLATION-CONTRACT.json": "{\n  \"schema\": 2,\n  \"family\": \"arch\",\n  \"captured_target\": {},\n  \"arch_full_upgrade\": false,\n  \"module_states\": null,\n  \"target\": {\n    \"distribution\": \"Fixture\",\n    \"release\": \"1\",\n    \"arch\": \"x86_64\"\n  },\n  \"roots\": [\n    {\n      \"name\": \"demo\",\n      \"version\": \"1.2-3\",\n      \"architecture\": \"x86_64\",\n      \"package_id\": \"demo-1.2-3-x86_64\",\n      \"source_identity\": \"<SOURCE-ID>\"\n    },\n    {\n      \"name\": \"extra\",\n      \"version\": \"1.2-3\",\n      \"architecture\": \"x86_64\",\n      \"package_id\": \"extra-1.2-3-x86_64\",\n      \"source_identity\": \"<SOURCE-ID>\"\n    }\n  ],\n  \"native_arguments\": [\n    \"demo=1.2-3\",\n    \"extra=1.2-3\"\n  ],\n  \"baseline_required\": [],\n  \"selected\": [\n    {\n      \"name\": \"demo\",\n      \"version\": \"1.2-3\",\n      \"architecture\": \"x86_64\",\n      \"package_id\": \"demo-1.2-3-x86_64\"\n    },\n    {\n      \"name\": \"extra\",\n      \"version\": \"1.2-3\",\n      \"architecture\": \"x86_64\",\n      \"package_id\": \"extra-1.2-3-x86_64\"\n    }\n  ],\n  \"inventory\": null\n}",
+    "REQUESTED-ROOTS.txt": "demo=1.2-3\nextra=1.2-3\n",
+    "SHA256SUMS.txt": "ed0b651d8eb40b5681efda23bb027853d2d41ba464732eac88ccad903692bec3  demo.pkg.tar.gz\n71f30547de768c6f4a36b9cd03d9efbfc0668f8df6b5fb88eff75d23813ed371  extra.pkg.tar.gz\n5b7df277c91d6af360508b35ff416c4969bf23216bf851c8c3947da4c513ff3e  retained.pkg.tar.gz\n",
+    "conflicts.txt": "fixture notice\n",
+    "demo.pkg.tar.gz": "demo fixture payload\n",
+    "extra.pkg.tar.gz": "extra fixture payload\n",
+    "manifest.json": "{\n  \"metadata\": {\n    \"distribution\": \"Fixture\",\n    \"release\": \"1\",\n    \"arch\": \"x86_64\",\n    \"package_family\": \"arch\",\n    \"workload\": \"Fixture\",\n    \"repositories\": [\n      {\n        \"name\": \"Fixture\",\n        \"url\": \"file:///fixture/source/\"\n      }\n    ]\n  },\n  \"summary\": {\n    \"package_count\": 3,\n    \"total_size\": 68,\n    \"resolved_package_count\": 2,\n    \"resolved_total_size\": 43,\n    \"baseline_omitted_count\": 0,\n    \"unresolved_count\": 0,\n    \"ignored_unresolved_count\": 0,\n    \"conflict_count\": 1,\n    \"dependency_completeness\": \"analyzed\"\n  },\n  \"packages\": [\n    {\n      \"package_id\": \"demo-1.2-3-x86_64\",\n      \"name\": \"demo\",\n      \"arch\": \"x86_64\",\n      \"version\": \"1.2-3\",\n      \"filename\": \"demo.pkg.tar.gz\",\n      \"sha256\": \"ed0b651d8eb40b5681efda23bb027853d2d41ba464732eac88ccad903692bec3\",\n      \"source_digest_type\": \"sha256\",\n      \"source_digest\": \"ed0b651d8eb40b5681efda23bb027853d2d41ba464732eac88ccad903692bec3\",\n      \"repo\": \"Fixture\",\n      \"repo_url\": \"file:///fixture/source/\",\n      \"suite\": \"fixture\",\n      \"source\": \"file:///fixture/source/demo.pkg.tar.gz\",\n      \"size\": 21,\n      \"reason\": \"requested\",\n      \"shipped\": true,\n      \"package_signature_published\": false,\n      \"evidence_status\": \"not-configured\",\n      \"evidence_source\": \"\",\n      \"evidence_digest_type\": \"\",\n      \"evidence_digest\": \"\",\n      \"evidence_relationship\": \"\",\n      \"evidence_authority_relationship\": \"authority-unknown\"\n    },\n    {\n      \"package_id\": \"extra-1.2-3-x86_64\",\n      \"name\": \"extra\",\n      \"arch\": \"x86_64\",\n      \"version\": \"1.2-3\",\n      \"filename\": \"extra.pkg.tar.gz\",\n      \"sha256\": \"71f30547de768c6f4a36b9cd03d9efbfc0668f8df6b5fb88eff75d23813ed371\",\n      \"source_digest_type\": \"sha256\",\n      \"source_digest\": \"71f30547de768c6f4a36b9cd03d9efbfc0668f8df6b5fb88eff75d23813ed371\",\n      \"repo\": \"Fixture\",\n      \"repo_url\": \"file:///fixture/source/\",\n      \"suite\": \"fixture\",\n      \"source\": \"file:///fixture/source/extra.pkg.tar.gz\",\n      \"size\": 22,\n      \"reason\": \"requested\",\n      \"shipped\": true,\n      \"package_signature_published\": false,\n      \"evidence_status\": \"not-configured\",\n      \"evidence_source\": \"\",\n      \"evidence_digest_type\": \"\",\n      \"evidence_digest\": \"\",\n      \"evidence_relationship\": \"\",\n      \"evidence_authority_relationship\": \"authority-unknown\"\n    },\n    {\n      \"package_id\": \"retained-1.2-3-x86_64\",\n      \"name\": \"retained\",\n      \"arch\": \"x86_64\",\n      \"version\": \"1.2-3\",\n      \"filename\": \"retained.pkg.tar.gz\",\n      \"sha256\": \"5b7df277c91d6af360508b35ff416c4969bf23216bf851c8c3947da4c513ff3e\",\n      \"source_digest_type\": \"sha256\",\n      \"source_digest\": \"5b7df277c91d6af360508b35ff416c4969bf23216bf851c8c3947da4c513ff3e\",\n      \"repo\": \"Fixture\",\n      \"repo_url\": \"file:///fixture/source/\",\n      \"suite\": \"fixture\",\n      \"source\": \"file:///fixture/source/retained.pkg.tar.gz\",\n      \"size\": 25,\n      \"reason\": \"requested\",\n      \"shipped\": true,\n      \"package_signature_published\": false,\n      \"evidence_status\": \"not-configured\",\n      \"evidence_source\": \"\",\n      \"evidence_digest_type\": \"\",\n      \"evidence_digest\": \"\",\n      \"evidence_relationship\": \"\",\n      \"evidence_authority_relationship\": \"authority-unknown\"\n    }\n  ]\n}",
+    "manifest.txt": "demo-1.2-3-x86_64\tFixture\trequested\tfile:///fixture/source/demo.pkg.tar.gz\nextra-1.2-3-x86_64\tFixture\trequested\tfile:///fixture/source/extra.pkg.tar.gz\nretained-1.2-3-x86_64\tFixture\trequested\tfile:///fixture/source/retained.pkg.tar.gz\n",
+    "provenance.json": "{\n  \"bundle_id\": \".bundle.feathered-building\",\n  \"created\": \"2020-01-02T03:04:05Z\",\n  \"tool\": \"Feathered <VERSION>; python <PYTHON>; zstandard <ZSTANDARD>\",\n  \"target\": {\n    \"distribution\": \"Fixture\",\n    \"release\": \"1\",\n    \"arch\": \"x86_64\",\n    \"package_family\": \"arch\",\n    \"workload\": \"Fixture\"\n  },\n  \"repositories\": [\n    {\n      \"name\": \"Fixture\",\n      \"url\": \"file:///fixture/source/\"\n    }\n  ],\n  \"packages\": [\n    {\n      \"package_id\": \"demo-1.2-3-x86_64\",\n      \"filename\": \"demo.pkg.tar.gz\",\n      \"sha256\": \"ed0b651d8eb40b5681efda23bb027853d2d41ba464732eac88ccad903692bec3\",\n      \"size\": 21,\n      \"source_url\": \"file:///fixture/source/demo.pkg.tar.gz\",\n      \"repository\": \"Fixture\",\n      \"assurance\": \"digest-only\",\n      \"signature_algorithm\": \"\",\n      \"signing_key_id\": \"\",\n      \"signer\": \"\",\n      \"index_digest_verified\": false,\n      \"archive_signature_verified\": false,\n      \"digest_checked\": true,\n      \"evidence_status\": \"not-configured\",\n      \"evidence_source\": \"\",\n      \"evidence_digest_type\": \"\",\n      \"evidence_digest\": \"\",\n      \"evidence_digest_checked\": false,\n      \"evidence_metadata_match\": false,\n      \"evidence_artifact_checked\": false,\n      \"evidence_artifact_digest_type\": \"\",\n      \"evidence_artifact_digest\": \"\",\n      \"evidence_artifact_size\": 0,\n      \"evidence_archive_signature_verified\": false,\n      \"evidence_relationship\": \"\",\n      \"evidence_authority_relationship\": \"authority-unknown\",\n      \"evidence_peer_identity_match\": false,\n      \"evidence_source_lineage_match\": false,\n      \"evidence_peer_package_id\": \"\",\n      \"evidence_peer_source_rpm\": \"\",\n      \"provenance_modes\": [\n        \"acquisition-digest\"\n      ],\n      \"archive_provenance\": \"none\",\n      \"evidence_provenance\": \"none\",\n      \"content_provenance\": \"acquisition-digest\",\n      \"vendor_provenance\": \"none\",\n      \"notes\": [\n        \"The upstream ALPM repository did not publish an embedded package OpenPGP signature for this record.\"\n      ]\n    },\n    {\n      \"package_id\": \"extra-1.2-3-x86_64\",\n      \"filename\": \"extra.pkg.tar.gz\",\n      \"sha256\": \"71f30547de768c6f4a36b9cd03d9efbfc0668f8df6b5fb88eff75d23813ed371\",\n      \"size\": 22,\n      \"source_url\": \"file:///fixture/source/extra.pkg.tar.gz\",\n      \"repository\": \"Fixture\",\n      \"assurance\": \"digest-only\",\n      \"signature_algorithm\": \"\",\n      \"signing_key_id\": \"\",\n      \"signer\": \"\",\n      \"index_digest_verified\": false,\n      \"archive_signature_verified\": false,\n      \"digest_checked\": true,\n      \"evidence_status\": \"not-configured\",\n      \"evidence_source\": \"\",\n      \"evidence_digest_type\": \"\",\n      \"evidence_digest\": \"\",\n      \"evidence_digest_checked\": false,\n      \"evidence_metadata_match\": false,\n      \"evidence_artifact_checked\": false,\n      \"evidence_artifact_digest_type\": \"\",\n      \"evidence_artifact_digest\": \"\",\n      \"evidence_artifact_size\": 0,\n      \"evidence_archive_signature_verified\": false,\n      \"evidence_relationship\": \"\",\n      \"evidence_authority_relationship\": \"authority-unknown\",\n      \"evidence_peer_identity_match\": false,\n      \"evidence_source_lineage_match\": false,\n      \"evidence_peer_package_id\": \"\",\n      \"evidence_peer_source_rpm\": \"\",\n      \"provenance_modes\": [\n        \"acquisition-digest\"\n      ],\n      \"archive_provenance\": \"none\",\n      \"evidence_provenance\": \"none\",\n      \"content_provenance\": \"acquisition-digest\",\n      \"vendor_provenance\": \"none\",\n      \"notes\": [\n        \"The upstream ALPM repository did not publish an embedded package OpenPGP signature for this record.\"\n      ]\n    },\n    {\n      \"package_id\": \"retained-1.2-3-x86_64\",\n      \"filename\": \"retained.pkg.tar.gz\",\n      \"sha256\": \"5b7df277c91d6af360508b35ff416c4969bf23216bf851c8c3947da4c513ff3e\",\n      \"size\": 25,\n      \"source_url\": \"file:///fixture/source/retained.pkg.tar.gz\",\n      \"repository\": \"Fixture\",\n      \"assurance\": \"digest-only\",\n      \"signature_algorithm\": \"\",\n      \"signing_key_id\": \"\",\n      \"signer\": \"\",\n      \"index_digest_verified\": false,\n      \"archive_signature_verified\": false,\n      \"digest_checked\": true,\n      \"evidence_status\": \"not-configured\",\n      \"evidence_source\": \"\",\n      \"evidence_digest_type\": \"\",\n      \"evidence_digest\": \"\",\n      \"evidence_digest_checked\": false,\n      \"evidence_metadata_match\": false,\n      \"evidence_artifact_checked\": false,\n      \"evidence_artifact_digest_type\": \"\",\n      \"evidence_artifact_digest\": \"\",\n      \"evidence_artifact_size\": 0,\n      \"evidence_archive_signature_verified\": false,\n      \"evidence_relationship\": \"\",\n      \"evidence_authority_relationship\": \"authority-unknown\",\n      \"evidence_peer_identity_match\": false,\n      \"evidence_source_lineage_match\": false,\n      \"evidence_peer_package_id\": \"\",\n      \"evidence_peer_source_rpm\": \"\",\n      \"provenance_modes\": [\n        \"acquisition-digest\"\n      ],\n      \"archive_provenance\": \"none\",\n      \"evidence_provenance\": \"none\",\n      \"content_provenance\": \"acquisition-digest\",\n      \"vendor_provenance\": \"none\",\n      \"notes\": [\n        \"The upstream ALPM repository did not publish an embedded package OpenPGP signature for this record.\"\n      ]\n    }\n  ],\n  \"warnings\": [\n    \"Additive publication: prior package provenance was preserved and merged with this build.\"\n  ],\n  \"summary\": {\n    \"digest-only\": 3\n  },\n  \"mode_summary\": {\n    \"acquisition-digest\": 3\n  },\n  \"assurance_legend\": [\n    {\n      \"mode\": \"acquisition-digest\",\n      \"label\": \"Acquisition digest\",\n      \"authority\": \"acquisition\",\n      \"rank\": 30,\n      \"proves\": \"The acquisition repository's digest for this artifact was checked against the downloaded bytes.\",\n      \"does_not_prove\": \"Authenticity of that digest on its own. Read this axis together with whether an archive or vendor signature also applies.\"\n    },\n    {\n      \"mode\": \"digest-only\",\n      \"label\": \"Digest only\",\n      \"authority\": \"acquisition\",\n      \"rank\": 30,\n      \"proves\": \"The digest published by the acquisition repository matched the bytes that were downloaded, so the transfer was not corrupted.\",\n      \"does_not_prove\": \"That the digest is authentic. Nothing signed the metadata, so a party able to alter the payload could alter the published digest with it.\"\n    }\n  ]\n}",
+    "retained.pkg.tar.gz": "retained fixture payload\n",
+    "satisfied-by-target.txt": "target capability\n",
+    "skipped-installed.txt": "installed fixture\n",
+    "unresolved.txt": ""
+  },
+  "events": [
+    [
+      "log",
+      "Prepared additive staging from the existing folder: 3 package payload(s) reused and 12 other file(s) copied; published files remain untouched until final publication."
+    ],
+    [
+      "log",
+      "Validated prior provenance against 1 retained payload(s)."
+    ],
+    [
+      "item",
+      "demo-1.2-3-x86_64",
+      "verifying",
+      {
+        "size": 21
+      }
+    ],
+    [
+      "item",
+      "demo-1.2-3-x86_64",
+      "reused",
+      {
+        "size": 21
+      }
+    ],
+    [
+      "progress",
+      "ALPM 1/2",
+      0.5
+    ],
+    [
+      "item",
+      "extra-1.2-3-x86_64",
+      "verifying",
+      {
+        "size": 22
+      }
+    ],
+    [
+      "item",
+      "extra-1.2-3-x86_64",
+      "reused",
+      {
+        "size": 22
+      }
+    ],
+    [
+      "progress",
+      "ALPM 2/2",
+      1.0
+    ],
+    [
+      "log",
+      "Provenance recorded: 3 digest-only"
+    ],
+    [
+      "log",
+      "Bundle published transactionally: <ROOT>/bundle; preserved 0 destination-only file(s), with no per-file in-place mutation of the previously published bundle."
+    ]
+  ]
+}

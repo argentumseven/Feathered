@@ -1,0 +1,558 @@
+{
+  "schema": 1,
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:evidence]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:primary-before-evidence]",
+    "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names0]",
+    "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names1]",
+    "tests/test_core_leaf_contracts.py::test_equal_package_identity_keeps_distinct_object_keys",
+    "tests/test_core_leaf_contracts.py::test_filename_key_patch_is_resolved_at_call_time",
+    "tests/test_core_leaf_contracts.py::test_capability_normalizer_patch_is_resolved_at_call_time",
+    "tests/test_core_leaf_contracts.py::test_baseline_digest_and_comparator_patches_remain_visible",
+    "tests/test_core_leaf_contracts.py::test_baseline_manifest_digest_precedence_and_duplicate_keys",
+    "tests/test_core_leaf_contracts.py::test_baseline_partition_preserves_order_duplicates_and_input_objects",
+    "tests/test_core_leaf_contracts.py::test_normalization_and_location_dependency_patches_remain_visible",
+    "tests/test_core_leaf_contracts.py::test_capability_pattern_patch_remains_visible",
+    "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo.]",
+    "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo ]",
+    "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[nested/a:b]",
+    "tests/test_core_leaf_contracts.py::test_payload_name_fallback_accepts_legacy_minimal_records",
+    "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]"
+  ],
+  "batch_excluded": [
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:Packages/demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:https://repo.invalid/Packages/DEMO.RPM?token=fixture]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:C:\\\\Windows\\\\demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:..\\\\demo.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.deb]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:CON.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:COM1.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nul.txt.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm.]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:demo.rpm ]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nested/caf\\xe9.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:nested/cafe\\u0301.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[filename:space name.rpm]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:  libfoo.so.1()(64bit) ]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:Python3Dist(Foo_Bar.Baz)]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3.11dist(Foo.Bar[Extra_One, ,Extra.Two])]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(foo[])]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(Foo[Bad)]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(Foo[Bad])]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:PythonDist(A..__B)]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist(Foo) trailing]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:python3dist()]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[capability:/usr/bin/Python]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:same]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:republished]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:empty]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:missing-digest]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:weak]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:legacy-bare]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:bad-legacy]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[503-indeterminate]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[403-indeterminate]",
+    "tests/test_discovery_recovery.py::test_partial_merge_keeps_old_time_and_new_successes_and_removes_proven_absence",
+    "tests/test_discovery_recovery.py::test_stale_refresh_cannot_clear_policy_change",
+    "tests/test_discovery_recovery.py::test_persistent_writer_lease_retains_cache_without_network",
+    "tests/test_discovery_recovery.py::test_concurrent_refreshes_reconcile_the_committed_policy_signal",
+    "tests/test_discovery_recovery.py::test_family_switch_shares_one_knowledge_refresh"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:evidence]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:evidence]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:evidence]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:primary-before-evidence]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:primary-before-evidence]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:primary-before-evidence]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names0]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names0]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names0]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_equal_package_identity_keeps_distinct_object_keys",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_equal_package_identity_keeps_distinct_object_keys",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_equal_package_identity_keeps_distinct_object_keys",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_filename_key_patch_is_resolved_at_call_time",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_filename_key_patch_is_resolved_at_call_time",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_filename_key_patch_is_resolved_at_call_time",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_capability_normalizer_patch_is_resolved_at_call_time",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_capability_normalizer_patch_is_resolved_at_call_time",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_capability_normalizer_patch_is_resolved_at_call_time",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_baseline_digest_and_comparator_patches_remain_visible",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_baseline_digest_and_comparator_patches_remain_visible",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_baseline_digest_and_comparator_patches_remain_visible",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_baseline_manifest_digest_precedence_and_duplicate_keys",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_baseline_manifest_digest_precedence_and_duplicate_keys",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_baseline_manifest_digest_precedence_and_duplicate_keys",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_baseline_partition_preserves_order_duplicates_and_input_objects",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_baseline_partition_preserves_order_duplicates_and_input_objects",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_baseline_partition_preserves_order_duplicates_and_input_objects",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_normalization_and_location_dependency_patches_remain_visible",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_normalization_and_location_dependency_patches_remain_visible",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_normalization_and_location_dependency_patches_remain_visible",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_capability_pattern_patch_remains_visible",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_capability_pattern_patch_remains_visible",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_capability_pattern_patch_remains_visible",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo.]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo.]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo.]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo ]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo ]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo ]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[nested/a:b]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[nested/a:b]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[nested/a:b]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_payload_name_fallback_accepts_legacy_minimal_records",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_payload_name_fallback_accepts_legacy_minimal_records",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_core_leaf_contracts.py::test_payload_name_fallback_accepts_legacy_minimal_records",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

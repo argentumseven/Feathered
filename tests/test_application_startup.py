@@ -107,6 +107,29 @@ def test_every_wizard_pane_can_be_shown(application):
         application.update_idletasks()
 
 
+
+
+@requires_display
+def test_tooltip_is_destroyed_when_navigating_to_another_pane(application):
+    application.show_pane("keyrings")
+    label = tk.Label(application.panes["keyrings"], text="tooltip source")
+    label.pack()
+    application._attach_tooltip(label, "Testing...")
+    application.update_idletasks()
+
+    label.event_generate("<Enter>")
+    application.update()
+    windows = list(application.__dict__.get("_tooltip_windows", ()))
+    assert len(windows) == 1
+    tooltip = windows[0]
+    assert tooltip.winfo_exists()
+
+    application.show_pane("target")
+    application.update()
+    assert not application.__dict__.get("_tooltip_windows")
+    assert not tooltip.winfo_exists()
+
+
 @requires_display
 def test_every_ui_refresh_method_survives_being_called(application):
     """The bug class, not the one instance of it.

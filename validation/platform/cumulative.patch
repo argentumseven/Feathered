@@ -1,0 +1,1484 @@
+diff --git a/.github/workflows/windows-release.yml b/.github/workflows/windows-release.yml
+index 47364c6..b406950 100644
+--- a/.github/workflows/windows-release.yml
++++ b/.github/workflows/windows-release.yml
+@@ -31,6 +31,13 @@ jobs:
+       - name: Install authenticated python.org CPython with Tcl/Tk
+         shell: powershell
+         run: .\install_windows_python.ps1
++      - name: Retain Python bootstrap diagnostics
++        if: always()
++        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
++        with:
++          name: python-bootstrap-${{ github.job }}-${{ github.sha }}
++          path: ${{ runner.temp }}/feathered-python-diagnostics/
++          if-no-files-found: warn
+       - name: Install authenticated build dependencies
+         shell: powershell
+         run: |
+@@ -75,6 +82,10 @@ jobs:
+     name: Native package-manager conformance
+     uses: ./.github/workflows/native-conformance.yml
+ 
++  linux-client:
++    name: Installed Linux GUI and CLI
++    uses: ./.github/workflows/linux-client.yml
++
+   # Runs on its own Linux runner rather than inside .release-venv. That venv is
+   # hash-locked and builds the signed artifact; adding linters to it would widen
+   # the trusted dependency set of the signing path to buy nothing.
+@@ -88,11 +99,13 @@ jobs:
+       (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')) &&
+       needs.windows-source-gate.result == 'success' &&
+       needs.native-conformance.result == 'success' &&
+-      needs.static-analysis.result == 'success'
++      needs.static-analysis.result == 'success' &&
++      needs.linux-client.result == 'success'
+     needs:
+       - windows-source-gate
+       - native-conformance
+       - static-analysis
++      - linux-client
+     runs-on: windows-latest
+     steps:
+       # Must precede checkout. Git for Windows defaults core.autocrlf=true on
+@@ -111,6 +124,13 @@ jobs:
+       - name: Install authenticated python.org CPython with Tcl/Tk
+         shell: powershell
+         run: .\install_windows_python.ps1
++      - name: Retain Python bootstrap diagnostics
++        if: always()
++        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
++        with:
++          name: python-bootstrap-${{ github.job }}-${{ github.sha }}
++          path: ${{ runner.temp }}/feathered-python-diagnostics/
++          if-no-files-found: warn
+       - name: Locate Windows SDK signing tool
+         shell: powershell
+         run: |
+diff --git a/README.md b/README.md
+index c4122a4..2145f0d 100644
+--- a/README.md
++++ b/README.md
+@@ -182,6 +182,23 @@ For Kubernetes-specific behavior, see [KUBERNETES.md](KUBERNETES.md).
+ 
+ The launcher installs the Python dependencies listed in `requirements.txt` when required. The complete `feathered_app` package must remain beside the launcher and top-level source files.
+ 
++## Running on Ubuntu or Debian
++
++Both the existing GUI and CLI are available through the Linux source installer.
++Install `python3`, `python3-venv`, `python3-tk`, `ca-certificates` and `gnupg`, then
++run these commands from the extracted source directory:
++
++```bash
++bash install_linux.sh
++bash run_gui.sh
++bash run_cli.sh --help
++```
++
++For headless machines, omit `python3-tk` and use `bash install_linux.sh --cli-only`.
++Setup provides `feathered` (CLI) and `feathered-gui` commands plus an optional
++application-menu entry. See [LINUX.md](LINUX.md) for offline installation,
++updates, platform validation and directory choices.
++
+ ## Target inventory
+ 
+ For target-aware builds, copy both inventory files to the target:
+diff --git a/SOURCE-SHA256.json b/SOURCE-SHA256.json
+index b5ca44c..83b1e57 100644
+--- a/SOURCE-SHA256.json
++++ b/SOURCE-SHA256.json
+@@ -1,8 +1,9 @@
+ {
+   ".gitattributes": "9befaefb19053d57a39514510ced34deaef8ec4d601f9b5f46d2dbdaae99bfe7",
++  ".github/workflows/linux-client.yml": "562944ecee302462af03425d8bb1079da5b22fee08bea012a2100b0344544895",
+   ".github/workflows/native-conformance.yml": "5d9b08431938fc2890183952f8038cbda60bb63ef1af186e9b199a5669f4e0db",
+   ".github/workflows/static-analysis.yml": "66911125aae03498abcc0ca03b8a9b9efdec92a902d433b91f5c65e233e8a38b",
+-  ".github/workflows/windows-release.yml": "5803fad925b95d74374f0c6b8fb890df92215f5a4f769094bc766baa173786dd",
++  ".github/workflows/windows-release.yml": "c2c213153a7d2fa678059a3695d73704cd6df7bbc22ebebea781ebbc84f47068",
+   ".github/workflows/workload-drift.yml": "ad6be6eb2007aa01082c6a54de5b08907d6d9085b0d4e47f3b9688df1aadaad6",
+   ".gitignore": "7af25837f3f8f7ae328b2e61ecdae35b3dbf101fe4e46bb9352961a3f43c2243",
+   "BACKGROUND-REFRESH.md": "9719bf2f7d7ba6b95dbec4f5100c447c4773bdbf03b0c91d5a439a0a678d6d82",
+@@ -12,25 +13,28 @@
+   "CLI.md": "631ed89266c8ff5cacc35215d50110cad15591cca7c6e928519ae3c1bf169a49",
+   "KUBERNETES.md": "bdf620d825281c078b4a9939327303d1730a4c345de5c5fc8894b3aaec5bc6e0",
+   "LICENSE": "aaefd7298b44ee93a16fb96f5e307e60ec7cfed6eaa7cd13681254e842e42b33",
++  "LINUX.md": "544ccfaca1910aacf9ed35c23d1058f96e8a4693545296fd3dc80febbcb7b58c",
+   "NOTICE.md": "35dc860c6112db9e7bbd493374db0a58a74af118dbfce3b6cd1ae99bc0af5679",
+-  "README.md": "0e8ccd95bc662a0165cb01ca85dec8464fd599ef49f378f7a1683599ffff8dfd",
++  "PLATFORM-CHANGES.md": "84e41c009b00529a35f5f6eb99aa9d55ee92c413605324f9bc67622a24d74695",
++  "README.md": "f536c7766a8f125c102b944528bb32162fcec4adeaf67eb4d8f4c67978fca5fe",
+   "SECURITY.md": "62aa26ffb2f9e2c7f19bf5a3d8d33f0c5ae5ef4f5c45949c9d3de26a9b4ad444",
+-  "VALIDATION.md": "5ed8f124f8edea14639845532e9d0a603785d6cc6a0143c25858205b9f435bbd",
++  "VALIDATION.md": "8965c22e90ea74dca90b8e88e4994da9e82c147dd93c6756560617edbec7cf85",
+   "acquisition_model.py": "e90fca096aa320a8768fef39c21bbaa42e152f3c02a81926ec7a8f5397046b0e",
+   "app.py": "aa04ea4426571f5348a86eb70f7ea9357b993afb671bc43ebee16e6b5a9a50e7",
+   "apt_core.py": "98cdc59c64226b853aafabb684207070c84b654795c2f6869f96c5d15c779c59",
+-  "arch_core.py": "9b7a362b94cbb96692610aed30b3fcfc630f25ae22bfb521c546496ed3de9622",
++  "arch_core.py": "f1edf7f7a7b0746c37a2a1d585a904f7cd77b7661bcf8ecc161b7fc4cb201a77",
+   "artifact_cache.py": "2680caccc4e9fd517896aa19f445e61461099319c1ebac9ecafe1c9011b859f4",
+   "background_jobs.py": "f90e152b75b4ae995f78f71354ee1cf3045476948698f1f0c5e1cfe52f2258fd",
+   "build_exe.bat": "5baca57c0113d2dc133a9ddabf0503bf06d36a2b2cc0e7571102650a0860025e",
+   "build_exe_debug.bat": "0a782bcdf7b269183b62235e6d82a330723f02ea6ac1e3447e7c1de19204cac6",
+   "build_spec.py": "08a7b88434be5c9e09664d8c7213e092f92384da749bd803c47dba3ac2f8b489",
+   "bundle_writer.py": "d8665fe2360b2ba71f3d261809023de667260348d799374685d20c5bc644543c",
+-  "check_host_contracts.py": "1413b7f776ab8c26cb6e696b460a1e3132d54cbfd1884128ce39a004ed04b9a7",
++  "check_host_contracts.py": "6585855170aa43db9874b2198dbc02548e5c58b97df522e9426ea02f5b214da3",
+   "check_installer_syntax.py": "6e2272288f8ed468b0aaa43a66c94fc64e4190d4af43cdfbdc9bbc8c7bb456b8",
++  "check_linux_installation.py": "d13ec447d1ea931ba8c2e8afeaa4ee3903f9d0691ace0310b625a2aef7b2d63f",
+   "checksum_inspection.py": "dd719fe78fcd82eb97463330ff7c8f0184d3de40a91ffac90d6a859d75c61601",
+   "conftest.py": "181b0c4350afdc00c502be59deeff33e5d001b03fa28b1a3af4d76bb983887b0",
+-  "core.py": "bac3a000439a98df7aeffbe8895612f3626977dc7bb7bf8d0dee9856d373de2a",
++  "core.py": "1a57cf59d4d1c828a5f9db4e3a02d9679f874f9a341453badd191c793b0b95d8",
+   "create_smoke_iso.ps1": "3737b3919975570100bb32b288b7d082fbd5cfe8f7070f60399b9f8c1e242cf2",
+   "evidence_model.py": "7fda39af27c6d79ba18f8018b78f105d79035d6473a3d8f5dfd789d8af189b81",
+   "feathered_app/ARCHITECTURE.md": "bee24f4a1ad087b6e294e1b6850e7b528fa438c47308cff8b92a5fd5bb57ee4d",
+@@ -48,8 +52,9 @@
+   "feathered_app/application/selection.py": "04470dc07dd335ef9c045fade491d16d895418a411e2da7cb7917a7dbdd47912",
+   "feathered_app/application/sources.py": "d93cb9b499519c51ec82716df8acfc270a3db7b00a7b9a478fbc59960f556db8",
+   "feathered_app/application/tools.py": "35c628c59a179fe58f6c62cb3ce12f4fce3be60d304871ae5b1d8b7eef645ed3",
++  "feathered_app/backend_registry.py": "a282f45f6fa95bd942ebe7613ba1c70285a139b776cfde289147041cdc4e5098",
+   "feathered_app/build_api.py": "dc1dd449de16d52ab6e5b77a11108864fa96c76cf49297de86dfc65963a5ca93",
+-  "feathered_app/build_backend.py": "7e769b19d94ce6650a4df1f170a70bf9b8aaacdbbf3d9dcd416045277bb2e869",
++  "feathered_app/build_backend.py": "fe9f8643e2f96901cf9a6c85c04f7699d3356a8bdfacaf7967fbd02a3c59f3b0",
+   "feathered_app/build_host_contracts.py": "5127c2b529c0467a1f39afb8026ad6e9a46fb223185b8066d26132a07d30a491",
+   "feathered_app/build_intent.py": "913f5e4fc5f91231acb4a6ffb7dc7d9abd331139526d6b6d33d98eec66a5f81a",
+   "feathered_app/build_mirror.py": "4c04046fa8a86cecafdfdbe81e213b4d38ecc2f0739baafba5e7b92e80cb48de",
+@@ -81,8 +86,9 @@
+   "feathered_app/ui/panes.py": "e40895e77fb21704e2fa8cb6ee3cf8ee64d3a40f3d629346b017ce6aa6fad945",
+   "feathered_app/ui/theme.py": "3e582bba99c65d1499d0b9fb2e4691c73340b3f26ee004f8ef1a30c40e0f297a",
+   "feathered_cli.py": "521e42de9b7ce23082b7222f789084bab31c5bdee7b29c43edb011269efdfada",
++  "install_linux.sh": "fc7607ffd18c9571dc15c1d22f53b1abcb9235196e40515ac2b2bb9153d84fa3",
+   "install_python_deps.bat": "eb7741b34e588ebcbc2abdd1ce26aeb4b39e01d8d19f69b4c4b80d0ff560baba",
+-  "install_windows_python.ps1": "49e658f13da15f3347d4eaf6e614ffb0885accb20fefd71d32c5c6e925cfc319",
++  "install_windows_python.ps1": "ba1d420477a64f9559a58687d5ca0cdadc96c4912628f3f04cbe2ddc7d321d9a",
+   "installer.py": "a41df167abcd4cbff86196bdec1eae902f2a571d4ce890c121df5acae91f67df",
+   "inventory_relationships.py": "7f0e035e4093d3679222f157ed4fa2c952d3d17b081488b069397c171596bb10",
+   "k8s_discovery.py": "bb685b7eac206acbecc1dcc2539066beb715d7c2c6d35541b7e9812201347d08",
+@@ -91,6 +97,8 @@
+   "k8s_policy.py": "8c2c2cf1d58daf8260ed8c3b5b22011dc5e2fc065948db250a52af8eca35de8f",
+   "k8s_version.py": "302e59bdfa890dbd058c16d6388833ee7d023ba77ead33ca36ad7e52b2b699dc",
+   "kubernetes_workflow.py": "13c8a5d97dab3ec01bed483f834bf9f566073f986adb4711f397d28354f83998",
++  "linux_launch.py": "1c9868260da1cae647af8ca705ce91e5dc4557d67374ef6c9b5f38c242c7dbf5",
++  "linux_setup.py": "606608fe63b482b45e5b2ddb4d25a0f8a7f7c96015dfc1b3a4255c8e8b523a93",
+   "mirror_catalog.py": "fc0a8de85ec9d2f91a8ecf5e743cb41a24d1e014f58912d2970c803b3189667a",
+   "mirror_catalogs/README.txt": "94da3b5bae64adeb8d43ce8baefacf2c508ed3197d7de4c5710f400de9b51477",
+   "mirror_catalogs/alma.json": "e947e20757d11668612f6cb54d38930a3864faee9e201b1c72c25cad1b43cab7",
+@@ -109,7 +117,7 @@
+   "mirror_catalogs/ubuntu.json": "3e8e50c14d8f8071878eeea23aeaf830269f9bd34a7e12091c8dd1d91b42716f",
+   "mirror_unification.py": "cab2695063c2e4dad08ee34b402ea9d93346fb15d3f78ddef61c85e6def991b2",
+   "module_policy.py": "1b9bd38bda3429cd42b05e816922081c76baea45b62f4dc2b657a72fd0d58d2b",
+-  "mypy.ini": "aeafa5a7c8914bea849f05577024d7f2f2071d1abb8d139b22baaec0a7e701a5",
++  "mypy.ini": "fd127e590ad2b695a6f0f39cabb9dcc8b561781290ac7728098fa025626c495d",
+   "native_conformance.py": "8f3185d89d30292745c1b10adb9b364cff129e8fc2943c061c67b401aeb53b40",
+   "package_family.py": "4ddef8b83aff2201b9b98cd4adaca2e480322ec205efa0dfd2972c796d60c06a",
+   "profiles.py": "ec84c3249d75d19f697bb7f52bfd349ac53a028ca73f4fa8fd4804121555fc9e",
+@@ -118,7 +126,7 @@
+   "receiver_preflight.py": "9bfc956e44aa0b536c7fba352f4f1317b705d100252562dc50f9ae467ad8e9d9",
+   "release_pytest_exit.py": "d3f725f4bf17053ac45b5612c9aecb5ef79a69c9bd946e386ba87916983cc900",
+   "release_seed.py": "b02877cd76d8d85b14b9cad2e533d474b93fdc2c5f88074016ccdf5b9188cb47",
+-  "release_test_runner.py": "3621faa555812ad1a34603793c856b9dfe656b00f849a6762ce023af633d1d42",
++  "release_test_runner.py": "ed38fd138429d62f6e86435aebe5685dd75f9364c28ba82bf1b1f486c7b8851e",
+   "repository_tools.py": "e97eae16caabdd07eadfeae696125298c3fddabc9ee2a83856365b03598e4beb",
+   "repository_transport.py": "f21c4ad2f784c8ebc4000e523fd91f1fc147cc6547c73fec405241004e465cd3",
+   "require_executed_tests.py": "22efa4e4803f3fb5bdcbdb7b15f180d012e3c8cc4f2d796a8db9bd299db9f824",
+@@ -127,7 +135,9 @@
+   "requirements.txt": "5dd52791215eb326dbc6cbcc0360d707192253a0d0dc98af1afe2255db58cfaf",
+   "root_requests.py": "2f098e02f3ecf9773c88183daf1dde72f4330a9d2fa1b1e0d80a14e7663c446b",
+   "ruff.toml": "fcb96545f306e632c84dae082e7b19bb6ba181b55534ca6279c14e48ba203b25",
++  "run_cli.sh": "3a89753f225d058cebc2edd6b3dd811501b0ba96dffd83c268c56010876c1871",
+   "run_gui.bat": "34a5ff1c387ead4403116986c8543e13ffd84d7ac120e088d8c2def4967307a3",
++  "run_gui.sh": "1bb03d407c212b5c5df22bf1b1bf6d4dc2d9e7498d380c973a414025adf39801",
+   "run_native_conformance.sh": "94a871571ad46248e173b46d2335fd8eb40c73a47e276a26d7832dbf206f3115",
+   "solv_oracle.py": "1e2c1903e3b5db711c2097c6122e050bc3d8b6295cc42bdfed2f4f739d628009",
+   "source_manifest.py": "8290c67cdb4a72aa6514f9eead2eb1013dd11e6a738a71cae46f216a8025b334",
+@@ -157,10 +167,11 @@
+   "tests/test_application_startup.py": "154b33b7b46b2eec8e93f80faa6b0914877f8bbc369f14c4b05f1e8c331ca0f7",
+   "tests/test_architecture.py": "a92908c432be6f251d4a1dbf4b1c29dd067cc87282461d5305475ccf751704ea",
+   "tests/test_assurance_semantics.py": "9ed307f4037da81a339d997730525659e24ccfb3f8f1c058f64c739fb8d270c5",
++  "tests/test_backend_dispatch.py": "d23cd11204ec2a81abfcc5c9b51b2dd85400e7ff753544c7173965b85405d70c",
+   "tests/test_background_jobs.py": "cba76dcff69fd37b238ce2558e257e2ef645479cdf72ec7d2a347a8e6b39b30e",
+   "tests/test_build_host_contracts.py": "750732dec6699c7dbb36fe22852d5c6420f0c9141c87d67e32a248f529ff156f",
+   "tests/test_build_preparation.py": "913962a9fb0c189e38b29d752c77c8240925e9f5215f0ad1564f32d0024e640a",
+-  "tests/test_build_request_module.py": "25d0d3d53f6857e5b3fb66d5ccc9b7b06a11b883173a96ffc63035f0e63cc221",
++  "tests/test_build_request_module.py": "36899b598c353b68e578d071cfedbc3d9f7225b546c7fb119a2e1a211ca637b0",
+   "tests/test_build_spec.py": "ca10e9996d602ca7e7b0002b00b339bffc96edf11501482bcaf71710b75a392a",
+   "tests/test_build_worker_isolation.py": "b623339a690fe4e9a48da191ba8521d0fa9da22ce7b424cefe2024b0b643d1fd",
+   "tests/test_bundle_characterization.py": "3b7aa5448770438e296e0c2853d429271d1e3b90629321ac8794e43407763172",
+@@ -181,9 +192,12 @@
+   "tests/test_integration_gate.py": "1724c2fd53a8473b5230c6d6540eca0bae89fbb0078a9af447d6cda571f28508",
+   "tests/test_k8s_knowledge.py": "ed9fac9bc63501953e1256393749fe587530efde16079023ff9430cf176ea442",
+   "tests/test_kubernetes_workflows.py": "c2fa7186677509e35ad895bf752a210ee96e11ad77d2b0aa96bce3d58a163017",
++  "tests/test_linux_installation.py": "672f4d1aeee5e6619e55d99f3b7d433de12a81d20533b9af6f67e362d394c5e2",
++  "tests/test_linux_shortcuts.py": "fb8d37d07bb6285e0c0f988af55725e05592019d91cce2aaf5432b230c45fe1d",
+   "tests/test_metadata_loading.py": "5c093e9f3359658ce27d9876f3d610bd50d36a72247b3a64d28cf9f8d5abb85e",
+   "tests/test_mirror_unification.py": "7cfd93efe78dc7d5967db9f500ca767bf2e1d3239d8d33d906b6bd782b6b9460",
+   "tests/test_payload_filename_safety.py": "71322e61a0fa0fa1671a53bdd86c2b5c984f06985461db2b0f629d2e4c826864",
++  "tests/test_platform_workflows.py": "ed1609964389e2bec70829afc384ab2b6e7fc6982d45266f950692ecfbe9f427",
+   "tests/test_prepared_adapter_parity.py": "30a238eaca897f06958bac9cc58808feb39c4fca9f938d5e52460814be9ccaa3",
+   "tests/test_prepared_plan_ownership.py": "6b42fff777e8cff106beec94bd68ee7e7c1412ac68459fc9c8d8b9ea7615b473",
+   "tests/test_release_gate_outcomes.py": "6c5250d2a662af1bfdf34495402abc64749430ae725d1a48d3b187597a678c87",
+diff --git a/VALIDATION.md b/VALIDATION.md
+index 4dd1919..f55de62 100644
+--- a/VALIDATION.md
++++ b/VALIDATION.md
+@@ -10,13 +10,13 @@ gate. Normal pytest reporting and shutdown remain enabled.
+ The authoritative result is generated by the runner, rather than maintained as a
+ handwritten test count:
+ 
+-- `validation/bundle-refactor-verified/SUMMARY.md`: human-readable result, actual outcome
++- `validation/platform-gate/SUMMARY.md`: human-readable result, actual outcome
+   counts, commit, source-tree digest, Python/pytest versions and environment.
+-- `validation/bundle-refactor-verified/summary.json`: every final test outcome, allowed skip
++- `validation/platform-gate/summary.json`: every final test outcome, allowed skip
+   reason, batch reference and subprocess exit/signal/timeout result.
+-- `validation/bundle-refactor-verified/collection.json` and `batch-NNN.json`: collected IDs,
++- `validation/platform-gate/collection.json` and `batch-NNN.json`: collected IDs,
+   collection problems, deselections, and individual setup/call/teardown reports.
+-- `validation/bundle-refactor-verified/*.log`: normal pytest failure explanations and output,
++- `validation/platform-gate/*.log`: normal pytest failure explanations and output,
+   retained even when a subprocess crashes or times out.
+ 
+ The source-tree digest includes source changes beyond the named commit. Generated
+@@ -49,7 +49,7 @@ complete batched gate in addition to its existing required integration slice.
+ 
+ Windows may record only the exact file/reason combinations listed in
+ `release_test_runner.WINDOWS_SKIPS`: missing dpkg fixtures, the named Bash checks,
+-and the symlink-capability check. These are reported as skips, never as passed or
++the Linux-only installation checks, and the symlink-capability check. These are reported as skips, never as passed or
+ executed tests. Missing Tk/display, unrelated skips, collection skips, deselection,
+ xfail and xpass fail the gate. Every permitted Windows skip must execute in the
+ required Linux full-corpus job; production publication requires both jobs.
+@@ -62,7 +62,7 @@ python check_host_contracts.py
+ ruff check .
+ python check_installer_syntax.py
+ python verify_source_checksums.py
+-FEATHERED_USE_XVFB=1 python release_test_runner.py --report-dir validation/bundle-refactor-verified
++FEATHERED_USE_XVFB=1 python release_test_runner.py --report-dir validation/platform-gate
+ ```
+ 
+ On Windows, omit `FEATHERED_USE_XVFB=1`. The runner defaults to a 300-second
+@@ -71,14 +71,24 @@ fails the gate and stops the child process tree. `--report-dir PATH` selects a
+ different evidence directory. Test IDs are passed in JSON and source paths in a
+ pytest argument file, avoiding command-line limits without omitting parameters.
+ 
+-## Current shared-writer batch
++## Current platform and dispatch batch
++
++This batch starts from `720749d28ba8011a6d1e8f0f17430981e5080bb8` without fetching
++or merging upstream changes. It completes typed backend dispatch, adds Linux
++GUI/CLI installation and launch checks, and improves Windows bootstrap quoting,
++current-process Tcl/Tk configuration and retained diagnostics.
++See `PLATFORM-CHANGES.md` and `LINUX.md` for scope and limitations. Current evidence
++is in `validation/platform/` and `validation/platform-gate/`. The latter records
++the source-tree digest and any tracked source edits independently of the base SHA.
++
++## Previous shared-writer batch
+ 
+ The current batch begins at `aa3a685f4725f7b12c2d96be252a77c94097ad12`.
+ It adds characterized, shared acquisition and record writing for all three package
+ families, APT compatibility delegates and an Arch cache/reporting repair.
+ `BUNDLE-WRITER.md` describes preserved behavior and the intentional change.
+ Focused, before-fix and static evidence is in `validation/bundle-refactor/`;
+-the final complete-corpus result is in `validation/bundle-refactor-verified/`.
++that batch's complete-corpus result is in `validation/bundle-refactor-verified/`.
+ Intermediate failed runs are retained under `validation/bundle-delegation-gate/`
+ and `validation/bundle-delegation-gate-rerun/`, with their causes documented.
+ 
+@@ -111,7 +121,7 @@ with source URLs visible, strict decoding of recognized spec fields and runtime
+ preparation inputs, partial-outage recovery, shared release-knowledge ownership,
+ and bounded UI event processing with incremental query coordination. Each
+ behavioral repair has focused regression evidence in `validation/batch25/`;
+-the complete final-tree result remains `validation/bundle-refactor-verified/SUMMARY.md`.
++the complete final-tree result remains `validation/platform-gate/SUMMARY.md`.
+ Malformed specs formerly accepted by truthiness are intentionally rejected;
+ valid older specs and incomplete drafts remain supported. See
+ `BACKGROUND-REFRESH.md` for cache ownership, cancellation and migration scope.
+diff --git a/arch_core.py b/arch_core.py
+index eecbeec..9d892e5 100644
+--- a/arch_core.py
++++ b/arch_core.py
+@@ -780,6 +780,9 @@ def _copy_or_download(pkg: ArchPackage, dest: Path, options: BuildOptions, repor
+ 
+ 
+ def _safe_payload_names(packages: Sequence[ArchPackage]) -> Dict[int, str]:
++    # Object identity distinguishes equal package names/versions from different
++    # repositories. Callers retain the original package objects through writing;
++    # copying, streaming or releasing them would invalidate these id() keys.
+     seen: Dict[str, str] = {}
+     result: Dict[int, str] = {}
+     for pkg in packages:
+diff --git a/check_host_contracts.py b/check_host_contracts.py
+index b6ace7a..f1d1021 100644
+--- a/check_host_contracts.py
++++ b/check_host_contracts.py
+@@ -179,6 +179,11 @@ execution.decide("title", "message", wait_status="waiting")
+ fork = mirror_reporter(feedback, execution.reporter, "source", 0.5, 0.5)
+ terminal = complete(execution.events, True, "finished")
+ 
++from feathered_app.backend_registry import Backend, RPM, DEB, ARCH
++rpm_registry: Backend[core.Package, core.ResolutionResult, core.TargetInventory] = RPM
++deb_registry: Backend[apt_core.DebPackage, apt_core.DebResolutionResult, apt_core.AptTargetInventory] = DEB
++arch_registry: Backend[arch_core.ArchPackage, arch_core.ArchResolutionResult, arch_core.ArchTargetInventory] = ARCH
++
+ '''
+ 
+ NEGATIVE = '''\
+@@ -288,6 +293,12 @@ def mixed_prepared_plans(rpm: BuildPlan[core.TargetInventory], deb: BuildPlan[ap
+     bind_execution_feedback(WrongSink())  # reject
+     complete(WrongSink(), True, "done")  # reject
+ 
++from pathlib import Path
++from feathered_app.backend_registry import Backend, RPM, DEB
++bad_registry: Backend[core.Package, core.ResolutionResult, core.TargetInventory] = DEB  # reject
++bad_registry_inventory: apt_core.AptTargetInventory = RPM.inventory(Path("inventory"))  # reject
++RPM.resolve([], [], "x86_64", core.BuildOptions[apt_core.AptTargetInventory](), core.Reporter())  # reject
++
+ '''
+ 
+ 
+diff --git a/core.py b/core.py
+index 5b24e1d..cd6dbc9 100644
+--- a/core.py
++++ b/core.py
+@@ -800,6 +800,9 @@ def write_unified_mirror_records(output_dir: Path, metadata_dir: Path, options)
+ 
+ def payload_filenames(packages, expected_suffix: str) -> Dict[int, str]:
+     """Return Windows-safe, collision-free destination payload names."""
++    # Object identity distinguishes equal package names/versions from different
++    # repositories. Callers retain the original package objects through writing;
++    # copying, streaming or releasing them would invalidate these id() keys.
+     seen: Dict[str, Tuple[str, str]] = {}
+     result: Dict[int, str] = {}
+     reserved = {"con", "prn", "aux", "nul", *(f"com{i}" for i in range(1, 10)),
+diff --git a/feathered_app/build_backend.py b/feathered_app/build_backend.py
+index 544abda..81bb2ab 100644
+--- a/feathered_app/build_backend.py
++++ b/feathered_app/build_backend.py
+@@ -19,6 +19,7 @@ from typing import Collection, Protocol
+ import apt_core
+ import arch_core
+ import core
++from feathered_app.backend_registry import select_backend
+ 
+ 
+ class BackendHost(Protocol):
+@@ -34,9 +35,7 @@ class BuildBackendMixin:
+ 
+     def _resolve_backend(self: BackendHost, requests, packages, arch: str, opts,
+                          reporter: core.Reporter) -> core.ResolutionResult | apt_core.DebResolutionResult | arch_core.ArchResolutionResult:
+-        if self._is_arch():
+-            return arch_core.resolve(requests, packages, arch, opts, reporter)
+-        return apt_core.resolve(requests, packages, arch, opts, reporter) if self._is_deb() else core.resolve(requests, packages, arch, opts, reporter)
++        return select_backend(self._is_arch, self._is_deb).resolve(requests, packages, arch, opts, reporter)
+ 
+     def _write_bundle_backend(self: BackendHost, result, dest: Path, opts, reporter: core.Reporter, meta):
+         from kubernetes_workflow import WorkloadContext, VKS_KEY, report, check_acknowledgement, enforce_baseline
+@@ -52,17 +51,11 @@ class BuildBackendMixin:
+                     from dataclasses import asdict
+                     data['image_draft_context'] = asdict(context)
+                 meta['kubernetes'] = data
+-        if self._is_arch():
+-            return arch_core.write_bundle(result, dest, opts, reporter, meta)
+-        return apt_core.write_bundle(result, dest, opts, reporter, meta) if self._is_deb() else core.write_bundle(result, dest, opts, reporter, meta)
++        return select_backend(self._is_arch, self._is_deb).write(result, dest, opts, reporter, meta)
+ 
+     def _load_repository_backend(self: BackendHost, repo: core.RepoSpec, arches: set[str],
+                                  reporter: core.Reporter) -> list[core.Package] | list[apt_core.DebPackage] | list[arch_core.ArchPackage]:
+-        if repo.repo_format == "pacman" or self._is_arch():
+-            return arch_core.load_repository(repo, arches, reporter)
+-        if repo.repo_format == "apt" or self._is_deb():
+-            return apt_core.load_repository(repo, arches, reporter)
+-        return core.load_repository(repo, arches, reporter)
++        return select_backend(self._is_arch, self._is_deb, repo.repo_format).load(repo, arches, reporter)
+ 
+     def _repo_tier(self: BackendHost, repo: object) -> str:
+         tier = getattr(repo, "source_tier", "")
+@@ -80,6 +73,4 @@ class BuildBackendMixin:
+         return "base"
+ 
+     def _parse_target_inventory_backend(self: BackendHost, path: Path) -> core.TargetInventory | apt_core.AptTargetInventory | arch_core.ArchTargetInventory:
+-        if self._is_arch():
+-            return arch_core.parse_target_inventory(path)
+-        return apt_core.parse_target_inventory(path) if self._is_deb() else core.parse_target_inventory(path)
++        return select_backend(self._is_arch, self._is_deb).inventory(path)
+diff --git a/install_windows_python.ps1 b/install_windows_python.ps1
+index 9462035..6205908 100644
+--- a/install_windows_python.ps1
++++ b/install_windows_python.ps1
+@@ -12,6 +12,10 @@ if ([string]::IsNullOrWhiteSpace($env:GITHUB_ENV) -or
+     throw 'GITHUB_ENV/GITHUB_PATH are required; this bootstrap is intended for GitHub Actions.'
+ }
+ 
++$Diagnostics = Join-Path $env:RUNNER_TEMP 'feathered-python-diagnostics'
++New-Item -ItemType Directory -Path $Diagnostics -Force | Out-Null
++Start-Transcript -Path (Join-Path $Diagnostics 'bootstrap.log') -Force | Out-Null
++try {
+ $Installer = Join-Path $env:RUNNER_TEMP "python-$Version-amd64.exe"
+ $Target = Join-Path $env:RUNNER_TEMP "feathered-python-$Version"
+ 
+@@ -27,10 +31,13 @@ if (Test-Path -LiteralPath $Target) {
+     Remove-Item -LiteralPath $Target -Recurse -Force
+ }
+ 
++$InstallerLog = Join-Path $Diagnostics 'installer.log'
+ $Arguments = @(
+     '/quiet',
++    '/log',
++    "`"$InstallerLog`"",
+     'InstallAllUsers=0',
+-    "TargetDir=$Target",
++    "TargetDir=`"$Target`"",
+     'Include_launcher=0',
+     'Include_test=0',
+     'Include_tcltk=1',
+@@ -77,6 +84,12 @@ if (-not $TkTcl) {
+     throw "The full python.org installation did not contain Tk tk.tcl under $Target\tcl"
+ }
+ 
++# GITHUB_ENV affects later steps only. The validation below must use this
++# installation's Tcl/Tk now, not settings inherited from actions/setup-python.
++$env:TCL_LIBRARY = $InitTcl.Directory.FullName
++$env:TK_LIBRARY = $TkTcl.Directory.FullName
++Write-Host "TCL_LIBRARY=$env:TCL_LIBRARY"
++Write-Host "TK_LIBRARY=$env:TK_LIBRARY"
+ Write-Host "Validating interpreter and Tcl/Tk before running Feathered tests..."
+ & $Python -c "import struct,sys,tkinter as tk; assert sys.version_info[:3] == (3,13,14); assert struct.calcsize('P')*8 == 64; r=tk.Tk(); print('CPython',sys.version.split()[0],'Tcl',r.tk.call('info','patchlevel')); r.destroy()"
+ if ($LASTEXITCODE -ne 0) {
+@@ -105,3 +118,7 @@ $Target | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+ Write-Host "Authenticated CPython ready: $Python"
+ Write-Host "TCL_LIBRARY=$($InitTcl.Directory.FullName)"
+ Write-Host "TK_LIBRARY=$($TkTcl.Directory.FullName)"
++
++} finally {
++    Stop-Transcript | Out-Null
++}
+diff --git a/mypy.ini b/mypy.ini
+index 6b3f43b..e587789 100644
+--- a/mypy.ini
++++ b/mypy.ini
+@@ -36,6 +36,10 @@ ignore_missing_imports = True
+ strict_optional = False
+ warn_unused_configs = True
+ files =
++    check_linux_installation.py,
++    linux_setup.py,
++    linux_launch.py,
++    feathered_app/backend_registry.py,
+     package_family.py,
+     bundle_writer.py,
+     feathered_app/prepared_plan.py,
+@@ -119,7 +123,7 @@ disallow_untyped_defs = True
+ check_untyped_defs = True
+ warn_return_any = True
+ 
+-[mypy-package_family,bundle_writer]
++[mypy-package_family,bundle_writer,feathered_app.backend_registry,linux_setup,linux_launch,check_linux_installation]
+ strict_optional = True
+ disallow_any_generics = True
+ disallow_untyped_defs = True
+diff --git a/release_test_runner.py b/release_test_runner.py
+index e436d08..11c320d 100644
+--- a/release_test_runner.py
++++ b/release_test_runner.py
+@@ -28,6 +28,7 @@ DEFAULT_TIMEOUT = 300.0
+ # required Debian full-corpus job; production publication needs both jobs.
+ # Match file AND exact reason so unrelated skips cannot inherit an exemption.
+ WINDOWS_SKIPS: dict[str, set[str]] = {
++    "tests/test_linux_installation.py": {"Linux setup requires a Linux host"},
+     "tests/test_end_to_end_build.py": {
+         "dpkg-deb and dpkg-scanpackages are needed to build the repository fixture"},
+     **{f"tests/{name}.py": {"requires dpkg fixture tools"} for name in (
+diff --git a/tests/test_build_request_module.py b/tests/test_build_request_module.py
+index c70d4c1..f9a25b3 100644
+--- a/tests/test_build_request_module.py
++++ b/tests/test_build_request_module.py
+@@ -29,6 +29,7 @@ if str(ROOT) not in sys.path:
+ 
+ #  Modules that have been moved into the headless core. Extend as A2 lands.
+ CORE_MODULES = (
++    "feathered_app.backend_registry",
+     "package_family", "bundle_writer",
+     "feathered_app.prepared_plan",
+     "feathered_app.execution_feedback",
+diff --git a/.github/workflows/linux-client.yml b/.github/workflows/linux-client.yml
+new file mode 100644
+index 0000000..1f62c8f
+--- /dev/null
++++ b/.github/workflows/linux-client.yml
+@@ -0,0 +1,51 @@
++name: Linux GUI and CLI installation
++on:
++  workflow_call:
++  workflow_dispatch:
++permissions:
++  contents: read
++jobs:
++  installed-client:
++    runs-on: ubuntu-latest
++    strategy:
++      fail-fast: false
++      matrix:
++        image: ['debian:12', 'ubuntu:22.04', 'ubuntu:24.04']
++    container: ${{ matrix.image }}
++    steps:
++      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
++      - name: Install native prerequisites
++        run: |
++          apt-get update -qq
++          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 python3-venv ca-certificates gnupg dpkg-dev
++      - name: Exercise CLI installation before Tk is installed
++        shell: bash
++        run: |
++          set -euo pipefail
++          client_root="$RUNNER_TEMP/Feathered installed source"
++          mkdir -p "$client_root" validation/linux-client
++          cp -a . "$client_root/"
++          cd "$client_root"
++          bash install_linux.sh --cli-only --bin-dir "$RUNNER_TEMP/client-bin" 2>&1 | tee "$GITHUB_WORKSPACE/validation/linux-client/setup-cli.log"
++          .venv/current/bin/python -I -c "import importlib.util; assert importlib.util.find_spec('_tkinter') is None"
++          .venv/current/bin/python check_linux_installation.py --cli-only 2>&1 | tee "$GITHUB_WORKSPACE/validation/linux-client/headless-client.log"
++      - name: Add desktop prerequisites
++        run: DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-tk xvfb xauth desktop-file-utils
++      - name: Install and exercise both entry points from a path containing spaces
++        shell: bash
++        run: |
++          set -euo pipefail
++          client_root="$RUNNER_TEMP/Feathered installed source"
++          cd "$client_root"
++          bash install_linux.sh --bin-dir "$RUNNER_TEMP/client-bin" --desktop-dir "$RUNNER_TEMP/client-desktop" 2>&1 | tee "$GITHUB_WORKSPACE/validation/linux-client/setup-gui.log"
++          desktop-file-validate "$RUNNER_TEMP/client-desktop/org.feathered.Feathered.desktop"
++          "$RUNNER_TEMP/client-bin/feathered" --help
++          xvfb-run -a "$RUNNER_TEMP/client-bin/feathered-gui" --check
++          xvfb-run -a .venv/current/bin/python check_linux_installation.py 2>&1 | tee "$GITHUB_WORKSPACE/validation/linux-client/installed-client.log"
++      - name: Retain installation evidence
++        if: always()
++        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
++        with:
++          name: linux-client-${{ strategy.job-index }}-${{ github.sha }}
++          path: validation/linux-client/
++          if-no-files-found: warn
+diff --git a/LINUX.md b/LINUX.md
+new file mode 100644
+index 0000000..7f05e11
+--- /dev/null
++++ b/LINUX.md
+@@ -0,0 +1,128 @@
++# Ubuntu and Debian: GUI and CLI
++
++Feathered uses the same Tk GUI, saved specifications, build engine and CLI on
++Linux and Windows. The Linux distribution is the complete source ZIP with a
++per-user installer. It installs the pinned Python dependencies into an isolated
++environment; it does not install Python packages into the OS interpreter.
++
++The platform matrix targets Debian 12 and Ubuntu 22.04/24.04, with Python 3.10 or
++newer. The GUI requires a desktop session with Tk support (X11 or XWayland). The
++CLI requires neither Tk nor a display.
++
++## Install both interfaces
++
++Extract the complete archive into a directory you own and intend to keep. Keep
++all subdirectories together. Install the OS prerequisites:
++
++```bash
++sudo apt-get update
++sudo apt-get install python3 python3-venv python3-tk ca-certificates gnupg
++```
++
++From the extracted Feathered directory:
++
++```bash
++bash install_linux.sh
++bash run_gui.sh
++bash run_cli.sh --help
++```
++
++Setup adds the Feathered application-menu entry and these commands under
++`~/.local/bin`:
++
++- `feathered-gui`: launch the existing desktop GUI.
++- `feathered`: run the existing command-line interface.
++
++Add `~/.local/bin` to PATH if your session does not already include it. The desktop
++entry uses an absolute source path and does not depend on PATH. `XDG_DATA_HOME`
++controls the application-menu entry's location; `--bin-dir` and `--desktop-dir`
++provide explicit alternatives. `--no-shortcuts` installs only the runtime, leaving
++both source launchers available.
++
++Existing files not managed by this installer are not overwritten. Setup does not
++copy the source into a different installation prefix; keep the extracted folder.
++
++## CLI-only machines
++
++```bash
++sudo apt-get install python3 python3-venv ca-certificates gnupg
++bash install_linux.sh --cli-only
++bash run_cli.sh show --spec build.json
++bash run_cli.sh build --spec build.json --out ./bundles
++```
++
++CLI-only setup omits the Tk check and creates only the `feathered` command. Add
++`python3-tk` and rerun setup without `--cli-only` to enable the GUI later. Switching
++to CLI-only setup does not delete previously created desktop shortcuts.
++
++Arguments and exit codes are passed through unchanged. Relative specification,
++runtime-configuration and output paths are resolved from the caller's working
++directory. Launching never downloads dependencies automatically. The CLI retains
++its explicit trust, conflict and output-reuse decisions; see [CLI.md](CLI.md).
++
++## Offline dependency installation
++
++On a connected Linux machine matching the destination's CPU architecture and
++Python minor version, prepare the wheels:
++
++```bash
++python3 -m pip download --only-binary=:all: -r requirements.txt -d wheels
++```
++
++Transfer the complete source archive and that wheel directory to the workstation:
++
++```bash
++bash install_linux.sh --wheelhouse /path/to/wheels
++# Or add --cli-only on a headless workstation.
++```
++
++This mode disables package-index access. OS prerequisites must already be
++installed or supplied separately through the organization's OS package process.
++A missing compatible wheel fails installation rather than silently selecting
++another version or contacting an index.
++
++## Updates, rollback and removal
++
++Rerun setup after replacing the source or moving the extracted directory. Setup
++creates a fresh environment at its permanent path under `.venv/environments/`,
++installs dependencies, probes imports and CLI startup, then changes
++`.venv/current`. A failed attempt keeps the previously selected runtime and
++restores any shortcuts it changed. An installation lock rejects a concurrent
++setup against the same source directory.
++
++Old environments remain in place. Setup prints the previous environment's path;
++retain it if you need to roll back the dependency environment. This does not roll
++back source changes: retain the previous complete archive for a full rollback.
++Python environments are not portable between moved folders or machines.
++
++To remove the installation, remove its generated `feathered`/`feathered-gui`
++commands, `org.feathered.Feathered.desktop` entry, and extracted source folder.
++GUI settings remain under `$XDG_CONFIG_HOME/feathered` (normally
++`~/.config/feathered`); output bundles remain where you chose to save them.
++
++Advanced users can set `FEATHERED_PYTHON` to an explicit interpreter when running
++the source launchers. That interpreter must have the required dependencies.
++
++## Validation
++
++`bash run_gui.sh --check` constructs and closes the actual application window.
++For a complete installed-client check, install `dpkg-dev` and run:
++
++```bash
++.venv/current/bin/python check_linux_installation.py
++# Headless variant:
++.venv/current/bin/python check_linux_installation.py --cli-only
++```
++
++The check creates a real DEB and local APT repository, invokes the installed CLI
++from a different working directory, verifies declined/accepted trust exit codes,
++and compares bundled bytes, checksums and provenance. The GUI variant opens the
++same App used by normal launches. Xvfb can supply a display in CI.
++
++Local evidence in this batch covers Ubuntu 24.04 with CPython 3.12.14. The added
++CI matrix tests Debian 12 and Ubuntu 22.04/24.04 using their system interpreters,
++including a CLI installation before Tk is installed. Those new matrix jobs have
++not yet run remotely. Native `.deb` application packaging remains separate work.
++
++The setup design follows Python's [virtual-environment lifecycle rules](https://docs.python.org/3/library/venv.html)
++and the desktop entry's [argument-escaping rules](https://specifications.freedesktop.org/desktop-entry-spec/latest/exec-variables.html).
+diff --git a/PLATFORM-CHANGES.md b/PLATFORM-CHANGES.md
+new file mode 100644
+index 0000000..3442125
+--- /dev/null
++++ b/PLATFORM-CHANGES.md
+@@ -0,0 +1,68 @@
++# Accumulated platform and dispatch changes
++
++Starting source: the completed shared-writer delivery at
++`720749d28ba8011a6d1e8f0f17430981e5080bb8`. This delivery includes that entire tree
++and the earlier build-boundary and application repairs. No GitHub reconciliation,
++merge, push or remote workflow run was performed for this batch.
++
++## This batch
++
++- Completed instruction 7.5 with one typed backend registry. Named mixin wrappers
++  remain available. Package, result and inventory types remain distinct, and
++  backend functions are looked up at invocation time so existing monkeypatches
++  continue to work. Workload/VKS pre-publication checks are unchanged.
++- Captured 22 dispatch cases before the refactor, covering all target families,
++  resolution/publication/inventory wrappers, mixed repository formats and host
++  predicate short-circuiting. Preserved the actual Arch-first precedence rather
++  than treating an explicit APT repository format as an unconditional override.
++- Added Linux GUI/CLI source launchers, per-user installation, desktop integration,
++  isolated pinned dependencies and an offline wheel-directory option. CLI-only
++  installation requires neither Tk nor a display. Normal launches preserve
++  caller-relative paths and CLI status codes, without installing dependencies.
++- Installation creates environments at permanent paths and switches to them only
++  after probes pass. Failed upgrades preserve the selected runtime and restore
++  changed shortcuts. Unmanaged shortcut files are protected from replacement.
++- Added an installed-client check using a genuine DEB/local APT repository and the
++  real GUI. Added required Debian 12 and Ubuntu 22.04/24.04 CI jobs that install
++  CLI-only first, then add Tk and upgrade to GUI support.
++- Corrected Windows installer quoting for paths containing spaces, set the current
++  process's Tcl/Tk paths before probing the interpreter, and retained installer
++  and bootstrap logs in both Windows workflow jobs. The interpreter version,
++  installer hash and verification requirements remain unchanged.
++- Documented why payload filename maps use object identity (instruction 8.3).
++  The mapping mechanism and bundle formats are unchanged.
++
++## Evidence
++
++The authoritative full-tree outcome is `validation/platform-gate/SUMMARY.md`.
++`validation/platform/` contains focused tests, static checks, the before-refactor
++characterization, installed-client output, packaging checks and a cumulative
++patch. The source digest identifies the complete modified tree; it is not a
++claim that the changes have been merged or committed upstream.
++
++Local installation was performed from a directory containing spaces, a quote,
++a dollar sign and a percent sign, using actual pinned wheels with index access
++disabled. The installed GUI opened under Xvfb on Ubuntu 24.04; its CLI built a
++real DEB bundle without a display. Windows native execution and the new remote
++Debian/Ubuntu matrix remain unverified. Windows changes address concrete code
++issues and missing diagnostics; they do not establish the root cause or resolution
++of the previously observed Windows CI failure. A separate native APT oracle attempt
++was blocked by the local runner's denied setgroups/setuid operations before it
++could read the fixture repository. Its failure is retained, not counted as a pass;
++DNF and pacman are not installed here. Existing required native-conformance CI
++jobs remain intact.
++
++## Still to do
++
++- Run the added Linux matrix and Windows bootstrap/source/frozen-build gates after
++  the accumulated changes are merged. Resolve actual failures from their logs.
++- Instruction 8.1: retain verified digests with explicit artifact identity and
++  invalidation, then measure the reduction in hashing. Blindly caching a digest
++  on a mutable package record could attach it to different bytes.
++- Instruction 8.2: profile provider-index rebuilding before choosing an optimization.
++- Instruction 9: extract small core responsibilities once the efficiency work is
++  stable, retaining legacy import and patching seams.
++- Native `.deb` application packaging, if required beyond the source installer.
++
++The Windows quoting repair follows the documented
++[Start-Process argument handling](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/start-process).
+diff --git a/check_linux_installation.py b/check_linux_installation.py
+new file mode 100644
+index 0000000..c8e7bb1
+--- /dev/null
++++ b/check_linux_installation.py
+@@ -0,0 +1,90 @@
++"""Exercise installed launchers with a real DEB and optional GUI startup.
++
++Run after install_linux.sh, under Xvfb or a desktop for the GUI check. Requires
++native dpkg fixture tools; missing tools fail this check rather than skipping it.
++"""
++from __future__ import annotations
++import argparse
++import hashlib
++import json
++import os
++from pathlib import Path
++import shutil
++import subprocess
++import tempfile
++
++from build_spec import (BuildSpec, ContentSpec, ExactPackageRecord, OutputSpec,
++                        RepositoryRecord, SourceSpec, TargetSpec)
++from core import RepoSpec
++
++ROOT = Path(__file__).resolve().parent
++
++
++def check(root: Path, workspace: Path, cli_only: bool) -> None:
++    for tool in ('dpkg-deb', 'dpkg-scanpackages'):
++        if not shutil.which(tool):
++            raise RuntimeError(f'{tool} is required for the Linux installed-client check')
++    repo = workspace / 'fixture repository'
++    index = repo / 'dists/stable/main/binary-amd64'
++    index.mkdir(parents=True)
++    (repo / 'pool').mkdir()
++    control = workspace / 'package source/DEBIAN'
++    control.mkdir(parents=True)
++    (control / 'control').write_text('Package: demo-tool\nVersion: 1.0\nArchitecture: amd64\n'
++        'Maintainer: Fixture <test@example.invalid>\nDescription: launcher fixture\n', encoding='utf-8')
++    original = repo / 'pool/demo-tool_1.0_amd64.deb'
++    subprocess.run(['dpkg-deb', '--build', str(control.parent), str(original)], check=True)
++    raw = subprocess.run(['dpkg-scanpackages', '-m', 'pool', '/dev/null'], cwd=repo,
++                         capture_output=True, check=True).stdout
++    (index / 'Packages').write_bytes(raw)
++    (repo / 'dists/stable/Release').write_text(
++        'Suite: stable\nCodename: stable\nComponents: main\nArchitectures: amd64\nSHA256:\n '
++        f'{hashlib.sha256(raw).hexdigest()} {len(raw)} main/binary-amd64/Packages\n', encoding='utf-8')
++    row = RepoSpec('Local fixture', repo.as_uri() + '/', 'dependency', repo_format='apt',
++                   suite='stable', components='main', allow_unverified_index=True)
++    spec = BuildSpec(
++        target=TargetSpec(distribution='Debian', release='12', arch='amd64'),
++        content=ContentSpec(selection_mode='Choose packages', workload='Custom', exact_packages=(
++            ExactPackageRecord('demo-tool', '1.0', 'dependency', row.name, 'amd64', row.source_identity),)),
++        sources=SourceSpec(method='Custom repositories', repositories=(RepositoryRecord.capture(row),)),
++        output=OutputSpec(directory='output bundles', folder_scheme='Custom label', folder_label='bundle',
++                          folder_stamp='none', emit_repository=True))
++    (workspace / 'saved request.json').write_text(spec.to_json(), encoding='utf-8')
++    env = dict(os.environ)
++    for name in ('DISPLAY', 'WAYLAND_DISPLAY', 'FEATHERED_PYTHON', 'PYTHONPATH'):
++        env.pop(name, None)
++    command = ['/bin/sh', str(root / 'run_cli.sh'), 'build', '--spec', 'saved request.json', '--quiet']
++    declined = subprocess.run(command, cwd=workspace, env=env, capture_output=True, text=True, timeout=60)
++    assert declined.returncode == 2, declined.stdout + declined.stderr
++    assert not list((workspace / 'output bundles').rglob('*.deb'))
++    built = subprocess.run(command + ['--accept-trust-findings'], cwd=workspace, env=env,
++                           capture_output=True, text=True, timeout=60)
++    assert built.returncode == 0, built.stdout + built.stderr
++    payload = next((workspace / 'output bundles').rglob('*.deb'))
++    assert payload.read_bytes() == original.read_bytes()
++    manifest = json.loads((payload.parent / 'manifest.json').read_text())
++    assert manifest['packages'][0]['sha256'] == hashlib.sha256(original.read_bytes()).hexdigest()
++    assert (payload.parent / 'provenance.json').is_file()
++    assert (payload.parent / 'ASSURANCE.txt').is_file()
++    print('Installed CLI: decline=2, publication=0, real DEB bytes/checksum/provenance preserved; no display.')
++    if not cli_only:
++        gui_env = dict(os.environ)
++        gui_env.pop('FEATHERED_PYTHON', None)
++        gui_env.pop('PYTHONPATH', None)
++        # Keep this validation from reading or migrating the operator's settings.
++        gui_env['XDG_CONFIG_HOME'] = str(workspace / 'isolated GUI settings')
++        subprocess.run(['/bin/sh', str(root / 'run_gui.sh'), '--check'], cwd=workspace,
++                       env=gui_env, check=True, timeout=45)
++
++
++def main() -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--cli-only', action='store_true')
++    args = parser.parse_args()
++    with tempfile.TemporaryDirectory(prefix='Feathered installed client ') as name:
++        check(ROOT, Path(name), args.cli_only)
++    return 0
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())
+diff --git a/feathered_app/backend_registry.py b/feathered_app/backend_registry.py
+new file mode 100644
+index 0000000..1e272f9
+--- /dev/null
++++ b/feathered_app/backend_registry.py
+@@ -0,0 +1,59 @@
++"""Typed, late-bound backend operations with the legacy selection precedence."""
++from __future__ import annotations
++from collections.abc import Callable, Sequence
++from dataclasses import dataclass
++from pathlib import Path
++from types import MappingProxyType
++from typing import Generic, TypeVar
++import core
++import apt_core
++import arch_core
++from root_requests import RootInput
++
++P = TypeVar('P')
++R = TypeVar('R')
++I = TypeVar('I')
++
++
++@dataclass(frozen=True)
++class Backend(Generic[P, R, I]):
++    resolve: Callable[[Sequence[RootInput], Sequence[P], str, core.BuildOptions[I], core.Reporter], R]
++    write: Callable[[R, Path, core.BuildOptions[I], core.Reporter, dict[str, object]], Path]
++    load: Callable[[core.RepoSpec, set[str], core.Reporter], list[P]]
++    inventory: Callable[[Path], I]
++
++
++# Lambdas look up module attributes at invocation time. Capturing the functions
++# themselves would silently bypass the public backend monkeypatch/override seams.
++RPM = Backend[core.Package, core.ResolutionResult, core.TargetInventory](
++    lambda roots, packages, arch, options, reporter: core.resolve(roots, packages, arch, options, reporter),
++    lambda result, path, options, reporter, metadata: core.write_bundle(result, path, options, reporter, metadata),
++    lambda repo, arches, reporter: core.load_repository(repo, arches, reporter),
++    lambda path: core.parse_target_inventory(path),
++)
++DEB = Backend[apt_core.DebPackage, apt_core.DebResolutionResult, apt_core.AptTargetInventory](
++    lambda roots, packages, arch, options, reporter: apt_core.resolve(roots, packages, arch, options, reporter),
++    lambda result, path, options, reporter, metadata: apt_core.write_bundle(result, path, options, reporter, metadata),
++    lambda repo, arches, reporter: apt_core.load_repository(repo, arches, reporter),
++    lambda path: apt_core.parse_target_inventory(path),
++)
++ARCH = Backend[arch_core.ArchPackage, arch_core.ArchResolutionResult, arch_core.ArchTargetInventory](
++    lambda roots, packages, arch, options, reporter: arch_core.resolve(roots, packages, arch, options, reporter),
++    lambda result, path, options, reporter, metadata: arch_core.write_bundle(result, path, options, reporter, metadata),
++    lambda repo, arches, reporter: arch_core.load_repository(repo, arches, reporter),
++    lambda path: arch_core.parse_target_inventory(path),
++)
++SelectedBackend = (Backend[core.Package, core.ResolutionResult, core.TargetInventory]
++                   | Backend[apt_core.DebPackage, apt_core.DebResolutionResult, apt_core.AptTargetInventory]
++                   | Backend[arch_core.ArchPackage, arch_core.ArchResolutionResult, arch_core.ArchTargetInventory])
++BACKENDS: MappingProxyType[str, SelectedBackend] = MappingProxyType({'rpm': RPM, 'deb': DEB, 'arch': ARCH})
++
++
++def select_backend(is_arch: Callable[[], bool], is_deb: Callable[[], bool],
++                   repository_format: str = '') -> SelectedBackend:
++    # Preserve short-circuit order, including APT-format sources on Arch hosts.
++    if repository_format == 'pacman' or is_arch():
++        return BACKENDS['arch']
++    if repository_format == 'apt' or is_deb():
++        return BACKENDS['deb']
++    return BACKENDS['rpm']
+diff --git a/install_linux.sh b/install_linux.sh
+new file mode 100755
+index 0000000..d8fe041
+--- /dev/null
++++ b/install_linux.sh
+@@ -0,0 +1,4 @@
++#!/bin/sh
++set -eu
++FEATHERED_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
++exec "${FEATHERED_PYTHON:-python3}" "$FEATHERED_ROOT/linux_setup.py" "$@"
+diff --git a/linux_launch.py b/linux_launch.py
+new file mode 100644
+index 0000000..277edf5
+--- /dev/null
++++ b/linux_launch.py
+@@ -0,0 +1,57 @@
++"""Linux entry point: CLI remains independent of Tk and preserves caller paths."""
++from __future__ import annotations
++import sys
++import importlib
++from collections.abc import Callable
++from typing import Protocol, cast
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parent
++sys.path.insert(0, str(ROOT))
++
++
++class DesktopWindow(Protocol):
++    def destroy(self) -> None: ...
++    def mainloop(self) -> None: ...
++
++
++def main(mode: str, args: list[str]) -> int:
++    if mode not in {'cli', 'gui'}:
++        print('Choose cli or gui.', file=sys.stderr)
++        return 5
++    try:
++        import zstandard, yaml  # noqa: F401
++    except ImportError as exc:
++        print(f'Missing Python dependency: {exc}. Run bash install_linux.sh again.', file=sys.stderr)
++        return 5
++    if mode == 'cli':
++        cli_main = cast(Callable[[list[str]], int], importlib.import_module('feathered_cli').main)
++        return cli_main(args)
++    if args not in ([], ['--check']):
++        print('Usage: feathered-gui [--check]', file=sys.stderr)
++        return 5
++    try:
++        import tkinter as tk
++    except ImportError:
++        print('The GUI requires Tk. Install python3-tk and rerun bash install_linux.sh. '
++              'The CLI does not require Tk.', file=sys.stderr)
++        return 5
++    # The legacy Tk composition root is loaded only for GUI launches. Keep the
++    # launch boundary limited to the two lifecycle operations it actually uses.
++    factory = cast(Callable[[], DesktopWindow], importlib.import_module('app').App)
++    try:
++        window = factory()
++    except tk.TclError as exc:
++        print(f'Cannot open the GUI: {exc}. Start it in a desktop session, '
++              'or use feathered for a headless build.', file=sys.stderr)
++        return 5
++    if args == ['--check']:
++        window.destroy()
++        print('Feathered GUI startup check passed.')
++    else:
++        window.mainloop()
++    return 0
++
++
++if __name__ == '__main__':
++    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else '', sys.argv[2:]))
+diff --git a/linux_setup.py b/linux_setup.py
+new file mode 100644
+index 0000000..f104991
+--- /dev/null
++++ b/linux_setup.py
+@@ -0,0 +1,174 @@
++"""Install pinned dependencies and optional user shortcuts without system pip.
++
++Each environment is created at its permanent path. A successful dependency and
++entry-point probe precedes switching `current`; failed upgrades retain the old
++runtime. Existing environments remain available for manual rollback/removal.
++"""
++from __future__ import annotations
++import argparse
++from contextlib import contextmanager
++import os
++from pathlib import Path
++import shlex
++import shutil
++import subprocess
++import sys
++import tempfile
++from typing import Iterator
++import uuid
++import venv
++
++ROOT = Path(__file__).resolve().parent
++MANAGED = '# Managed by Feathered Linux setup\n'
++DESKTOP_MARKER = 'X-Feathered-Managed=true\n'
++
++
++def desktop_argument(value: str) -> str:
++    """Apply Exec quoting, then desktop-entry string escaping (two layers)."""
++    if any(ch in value for ch in '\n\r\x00'):
++        raise ValueError('Launcher paths must not contain newlines or NUL.')
++    quoted = ''.join('\\' + ch if ch in '\\"`$' else ch for ch in value)
++    return '"' + quoted.replace('\\', '\\\\').replace('%', '%%') + '"'
++
++
++def shortcuts(root: Path, bin_dir: Path, desktop_dir: Path, cli_only: bool) -> dict[Path, tuple[str, int]]:
++    result = {}
++    for command, mode in (('feathered', 'cli'), ('feathered-gui', 'gui')):
++        if cli_only and mode == 'gui':
++            continue
++        script = root / f'run_{mode}.sh'
++        result[bin_dir / command] = ('#!/bin/sh\n' + MANAGED +
++            f'exec /bin/sh {shlex.quote(str(script))} "$@"\n', 0o755)
++    if not cli_only:
++        # The executable is a fixed path; the source path is a quoted argument,
++        # so even '=' in an extraction directory is valid per the Exec grammar.
++        result[desktop_dir / 'org.feathered.Feathered.desktop'] = (
++            '[Desktop Entry]\nType=Application\nName=Feathered\n'
++            'Comment=Build verified offline Linux package bundles\n'
++            'Exec=/bin/sh ' + desktop_argument(str(root / 'run_gui.sh')) + '\n'
++            'Icon=applications-system\nTerminal=false\nCategories=System;Utility;\n' + DESKTOP_MARKER,
++            0o644)
++    return result
++
++
++def check_shortcuts(files: dict[Path, tuple[str, int]]) -> None:
++    for path in files:
++        if path.is_symlink():
++            raise ValueError(f'Refusing to replace shortcut symlink: {path}')
++        if path.exists():
++            text = path.read_text(encoding='utf-8')
++            if not (text.startswith('#!/bin/sh\n' + MANAGED) or
++                    (text.startswith('[Desktop Entry]\n') and DESKTOP_MARKER in text.splitlines(keepends=True))):
++                raise ValueError(f'Refusing to overwrite a file not managed by Feathered: {path}')
++
++
++def atomic_text(path: Path, text: str, mode: int) -> None:
++    path.parent.mkdir(parents=True, exist_ok=True)
++    fd, name = tempfile.mkstemp(prefix='.feathered-', dir=path.parent)
++    temporary = Path(name)
++    try:
++        with os.fdopen(fd, 'w', encoding='utf-8', newline='\n') as stream:
++            stream.write(text)
++        temporary.chmod(mode)
++        temporary.replace(path)
++    finally:
++        temporary.unlink(missing_ok=True)
++
++
++@contextmanager
++def installation_lock(root: Path) -> Iterator[None]:
++    lock = root / '.venv' / 'install.lock'
++    lock.parent.mkdir(parents=True, exist_ok=True)
++    try:
++        lock.mkdir()
++    except FileExistsError:
++        raise ValueError(f'Another setup may be running. If it stopped, remove {lock} and retry.') from None
++    try:
++        yield
++    finally:
++        lock.rmdir()
++
++
++def install(root: Path, *, cli_only: bool, wheelhouse: Path | None,
++            files: dict[Path, tuple[str, int]]) -> Path:
++    for name in ('requirements.txt', 'app.py', 'feathered_cli.py', 'linux_launch.py', 'feathered_app/__init__.py'):
++        if not (root / name).is_file():
++            raise ValueError(f'Incomplete source folder: missing {name}. Extract the complete archive.')
++    if wheelhouse is not None and not wheelhouse.is_dir():
++        raise ValueError(f'Wheel directory does not exist: {wheelhouse}')
++    check_shortcuts(files)
++    with installation_lock(root):
++        current = root / '.venv' / 'current'
++        if current.exists() and not current.is_symlink():
++            raise ValueError(f'Refusing to replace an unmanaged runtime path: {current}')
++        previous = os.readlink(current) if current.is_symlink() else None
++        candidate = root / '.venv' / 'environments' / uuid.uuid4().hex
++        saved: dict[Path, tuple[str, int] | None] = {}
++        pending = current.with_name('current-' + uuid.uuid4().hex)
++        switched = False
++        try:
++            print('Preparing an isolated Python environment...', flush=True)
++            venv.EnvBuilder(with_pip=True).create(candidate)
++            python = candidate / 'bin' / 'python'
++            if not cli_only:
++                subprocess.run([str(python), '-I', '-c', 'import tkinter'], check=True)
++            command = [str(python), '-I', '-m', 'pip', 'install', '--disable-pip-version-check',
++                       '--only-binary=:all:', '-r', str(root / 'requirements.txt')]
++            if wheelhouse is not None:
++                command.extend(['--no-index', '--find-links', str(wheelhouse)])
++            subprocess.run(command, check=True)
++            subprocess.run([str(python), '-I', '-c', 'import zstandard, yaml'], check=True)
++            subprocess.run([str(python), '-I', str(root / 'feathered_cli.py'), '--help'],
++                           check=True, stdout=subprocess.DEVNULL)
++            # Recheck before publication in case setup took a long time.
++            check_shortcuts(files)
++            for path, (text, mode) in files.items():
++                saved[path] = (path.read_text(encoding='utf-8'), path.stat().st_mode & 0o777) if path.exists() else None
++                atomic_text(path, text, mode)
++            pending.symlink_to(candidate.relative_to(current.parent), target_is_directory=True)
++            pending.replace(current)
++            switched = True
++            return python
++        finally:
++            pending.unlink(missing_ok=True)
++            if not switched:
++                for path, content in reversed(list(saved.items())):
++                    if content is None:
++                        path.unlink(missing_ok=True)
++                    else:
++                        atomic_text(path, *content)
++                shutil.rmtree(candidate, ignore_errors=True)
++            elif previous:
++                print(f'Previous environment retained for rollback: {previous}')
++
++
++def main(argv: list[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description='Install Feathered GUI and CLI for the current Linux user.')
++    parser.add_argument('--cli-only', action='store_true', help='omit Tk checks and desktop/GUI shortcuts')
++    parser.add_argument('--no-shortcuts', action='store_true', help='install dependencies only; use the source launchers')
++    parser.add_argument('--wheelhouse', type=Path, help='install only from this local wheel directory, without a package index')
++    parser.add_argument('--bin-dir', type=Path, default=Path.home() / '.local/bin')
++    data_home = Path(os.environ.get('XDG_DATA_HOME', ''))
++    if not data_home.is_absolute():
++        data_home = Path.home() / '.local/share'
++    parser.add_argument('--desktop-dir', type=Path, default=data_home / 'applications')
++    args = parser.parse_args(argv)
++    if not sys.platform.startswith('linux') or sys.version_info < (3, 10):
++        parser.error('Use Linux with Python 3.10 or newer.')
++    try:
++        files = {} if args.no_shortcuts else shortcuts(ROOT, args.bin_dir.expanduser().resolve(),
++                                                      args.desktop_dir.expanduser().resolve(), args.cli_only)
++        install(ROOT, cli_only=args.cli_only, wheelhouse=args.wheelhouse, files=files)
++    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
++        print(f'Setup failed: {exc}', file=sys.stderr)
++        print('On Ubuntu/Debian, install python3 and python3-venv; add python3-tk for the GUI. '
++              'An existing runtime remains selected when setup fails.', file=sys.stderr)
++        return 1
++    print('Installed. CLI: bash run_cli.sh --help' + ('' if args.cli_only else '; GUI: bash run_gui.sh'))
++    if files:
++        print(f'Commands installed in {args.bin_dir.expanduser().resolve()}. Add this directory to PATH if needed.')
++    return 0
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())
+diff --git a/run_cli.sh b/run_cli.sh
+new file mode 100755
+index 0000000..4e67dfa
+--- /dev/null
++++ b/run_cli.sh
+@@ -0,0 +1,13 @@
++#!/bin/sh
++set -eu
++FEATHERED_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
++FEATHERED_RUNTIME=${FEATHERED_PYTHON:-"$FEATHERED_ROOT/.venv/current/bin/python"}
++if [ ! -f "$FEATHERED_ROOT/linux_launch.py" ] || [ ! -f "$FEATHERED_ROOT/feathered_app/__init__.py" ]; then
++    echo 'ERROR: Extract the complete Feathered archive, preserving its subfolders.' >&2
++    exit 5
++fi
++if ! command -v "$FEATHERED_RUNTIME" >/dev/null 2>&1; then
++    echo 'ERROR: Run bash install_linux.sh from the extracted Feathered folder first.' >&2
++    exit 5
++fi
++exec "$FEATHERED_RUNTIME" "$FEATHERED_ROOT/linux_launch.py" cli "$@"
+diff --git a/run_gui.sh b/run_gui.sh
+new file mode 100755
+index 0000000..ae1b2db
+--- /dev/null
++++ b/run_gui.sh
+@@ -0,0 +1,13 @@
++#!/bin/sh
++set -eu
++FEATHERED_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
++FEATHERED_RUNTIME=${FEATHERED_PYTHON:-"$FEATHERED_ROOT/.venv/current/bin/python"}
++if [ ! -f "$FEATHERED_ROOT/linux_launch.py" ] || [ ! -f "$FEATHERED_ROOT/feathered_app/__init__.py" ]; then
++    echo 'ERROR: Extract the complete Feathered archive, preserving its subfolders.' >&2
++    exit 5
++fi
++if ! command -v "$FEATHERED_RUNTIME" >/dev/null 2>&1; then
++    echo 'ERROR: Run bash install_linux.sh from the extracted Feathered folder first.' >&2
++    exit 5
++fi
++exec "$FEATHERED_RUNTIME" "$FEATHERED_ROOT/linux_launch.py" gui "$@"
+diff --git a/tests/test_backend_dispatch.py b/tests/test_backend_dispatch.py
+new file mode 100644
+index 0000000..ac11587
+--- /dev/null
++++ b/tests/test_backend_dispatch.py
+@@ -0,0 +1,61 @@
++"""Freeze family precedence and retain late-bound backend monkeypatch seams."""
++from types import SimpleNamespace
++from pathlib import Path
++import pytest
++import core, apt_core, arch_core
++from feathered_app.build_backend import BuildBackendMixin
++
++BACKENDS = {'rpm': core, 'deb': apt_core, 'arch': arch_core}
++
++
++def host(family):
++    return SimpleNamespace(_is_arch=lambda: family == 'arch', _is_deb=lambda: family == 'deb')
++
++
++@pytest.mark.parametrize('family', BACKENDS)
++@pytest.mark.parametrize('operation', ('resolve', 'write_bundle', 'parse_target_inventory'))
++def test_target_dispatch_retains_backend_hooks(monkeypatch, family, operation, tmp_path):
++    sentinel = object()
++    calls = []
++    for key, backend in BACKENDS.items():
++        def call(*args, key=key):
++            calls.append((key, args))
++            return sentinel
++        monkeypatch.setattr(backend, operation, call)
++    target = host(family)
++    reporter = core.Reporter()
++    options = core.BuildOptions()
++    if operation == 'resolve':
++        args = ([], [], 'x86_64', options, reporter)
++        value = BuildBackendMixin._resolve_backend(target, *args)
++    elif operation == 'write_bundle':
++        args = (object(), tmp_path, options, reporter, {})
++        value = BuildBackendMixin._write_bundle_backend(target, *args)
++    else:
++        args = (Path('inventory.txt'),)
++        value = BuildBackendMixin._parse_target_inventory_backend(target, *args)
++    assert value is sentinel
++    assert calls == [(family, args)]
++
++
++@pytest.mark.parametrize('family', BACKENDS)
++@pytest.mark.parametrize('format', ('rpm', 'apt', 'pacman', 'auto'))
++def test_repository_dispatch_precedence(monkeypatch, family, format):
++    expected = 'arch' if format == 'pacman' or family == 'arch' else 'deb' if format == 'apt' or family == 'deb' else 'rpm'
++    calls = []
++    for key, backend in BACKENDS.items():
++        monkeypatch.setattr(backend, 'load_repository', lambda *args, key=key: calls.append((key, args)) or [])
++    repo = core.RepoSpec('fixture', 'https://example.test/repo/', repo_format=format)
++    reporter = core.Reporter()
++    args = (repo, {'x86_64'}, reporter)
++    assert BuildBackendMixin._load_repository_backend(host(family), *args) == []
++    assert calls == [(expected, args)]
++
++
++def test_pacman_repository_does_not_query_host_predicates(monkeypatch):
++    def unexpected():
++        pytest.fail('Explicit pacman format must short-circuit the host predicates')
++    target = SimpleNamespace(_is_arch=unexpected, _is_deb=unexpected)
++    monkeypatch.setattr(arch_core, 'load_repository', lambda *args: [])
++    assert BuildBackendMixin._load_repository_backend(target, core.RepoSpec(
++        'fixture', 'https://example.test/', repo_format='pacman'), set(), core.Reporter()) == []
+diff --git a/tests/test_linux_installation.py b/tests/test_linux_installation.py
+new file mode 100644
+index 0000000..e747bcc
+--- /dev/null
++++ b/tests/test_linux_installation.py
+@@ -0,0 +1,123 @@
++"""Linux setup transactions and actual shell argument/exit-code behavior."""
++import os
++from pathlib import Path
++import subprocess
++import sys
++import pytest
++import linux_setup
++
++pytestmark = pytest.mark.skipif(not sys.platform.startswith('linux'), reason='Linux setup requires a Linux host')
++ROOT = Path(__file__).resolve().parents[1]
++
++
++@pytest.fixture
++def source(tmp_path):
++    root = tmp_path / "Feathered source ' $ % with spaces"
++    root.mkdir()
++    for name in ('app.py', 'feathered_cli.py', 'linux_launch.py', 'requirements.txt', 'feathered_app/__init__.py'):
++        path = root / name
++        path.parent.mkdir(exist_ok=True)
++        path.write_text('')
++    for name in ('run_cli.sh', 'run_gui.sh'):
++        (root / name).write_bytes((ROOT / name).read_bytes())
++    return root
++
++
++@pytest.fixture
++def fake_runtime(monkeypatch):
++    calls = []
++    class Builder:
++        def __init__(self, **kwargs):
++            assert kwargs == {'with_pip': True}
++        def create(self, path):
++            (path / 'bin').mkdir(parents=True)
++            (path / 'bin/python').write_text('fixture interpreter')
++    monkeypatch.setattr(linux_setup.venv, 'EnvBuilder', Builder)
++    monkeypatch.setattr(linux_setup.subprocess, 'run', lambda command, **kwargs: calls.append(command))
++    return calls
++
++
++def test_cli_only_installs_without_tk_or_package_index(source, fake_runtime, tmp_path):
++    wheelhouse = tmp_path / 'wheels'; wheelhouse.mkdir()
++    files = linux_setup.shortcuts(source, tmp_path / 'bin', tmp_path / 'desktop', True)
++    runtime = linux_setup.install(source, cli_only=True, wheelhouse=wheelhouse, files=files)
++    assert (source / '.venv/current/bin/python').resolve() == runtime
++    assert all('tkinter' not in ' '.join(command) for command in fake_runtime)
++    pip = next(command for command in fake_runtime if 'pip' in command)
++    assert '--no-index' in pip and '--only-binary=:all:' in pip
++    assert pip[-2:] == ['--find-links', str(wheelhouse)]
++    assert list((tmp_path / 'bin').iterdir()) == [tmp_path / 'bin/feathered']
++    assert not (tmp_path / 'desktop').exists()
++
++
++def test_failed_upgrade_preserves_selected_runtime_and_shortcuts(source, fake_runtime, monkeypatch, tmp_path):
++    files = linux_setup.shortcuts(source, tmp_path / 'bin', tmp_path / 'desktop', False)
++    original = linux_setup.install(source, cli_only=False, wheelhouse=None, files=files)
++    before = {p: p.read_bytes() for p in files}
++    assert any('tkinter' in ' '.join(command) for command in fake_runtime)
++    def fail(command, **kwargs):
++        raise subprocess.CalledProcessError(1, command)
++    monkeypatch.setattr(linux_setup.subprocess, 'run', fail)
++    with pytest.raises(subprocess.CalledProcessError):
++        linux_setup.install(source, cli_only=False, wheelhouse=None, files=files)
++    assert (source / '.venv/current/bin/python').resolve() == original
++    assert {p: p.read_bytes() for p in files} == before
++    assert list((source / '.venv/environments').iterdir()) == [original.parent.parent]
++    assert not (source / '.venv/install.lock').exists()
++
++
++def test_partial_shortcut_publication_rolls_back(source, fake_runtime, monkeypatch, tmp_path):
++    files = linux_setup.shortcuts(source, tmp_path / 'bin', tmp_path / 'desktop', False)
++    original = linux_setup.atomic_text
++    count = 0
++    def fail_second(path, text, mode):
++        nonlocal count
++        count += 1
++        if count == 2:
++            raise OSError('fixture write failure')
++        return original(path, text, mode)
++    monkeypatch.setattr(linux_setup, 'atomic_text', fail_second)
++    with pytest.raises(OSError, match='fixture write failure'):
++        linux_setup.install(source, cli_only=False, wheelhouse=None, files=files)
++    assert not any(p.exists() for p in files)
++    assert not (source / '.venv/current').exists()
++    assert not list((source / '.venv/environments').iterdir())
++
++
++def test_unmanaged_shortcut_is_not_overwritten(source, fake_runtime, tmp_path):
++    path = tmp_path / 'feathered'; path.write_text('existing program')
++    with pytest.raises(ValueError, match='not managed'):
++        linux_setup.install(source, cli_only=True, wheelhouse=None, files={path: ('new', 0o755)})
++    assert path.read_text() == 'existing program'
++    assert not fake_runtime
++
++
++def test_parallel_install_is_rejected(source, fake_runtime):
++    with linux_setup.installation_lock(source):
++        with pytest.raises(ValueError, match='Another setup'):
++            linux_setup.install(source, cli_only=True, wheelhouse=None, files={})
++    assert not fake_runtime
++
++
++@pytest.mark.parametrize('mode', ['cli', 'gui'])
++def test_source_launcher_preserves_arguments_cwd_and_status(source, tmp_path, mode):
++    # A real child process verifies shell quoting, including spaces and quotes.
++    (source / 'linux_launch.py').write_text('''import json,os,sys
++print(json.dumps([os.getcwd(),sys.argv[1:]]))
++raise SystemExit(4)
++''')
++    import json
++    env = dict(os.environ, FEATHERED_PYTHON=sys.executable)
++    args = ['build', '--spec', "local ' spec.json", '--out', 'output $ with % spaces']
++    process = subprocess.run(['/bin/sh', str(source / f'run_{mode}.sh'), *args], cwd=tmp_path,
++                             env=env, capture_output=True, text=True)
++    assert process.returncode == 4, process.stderr
++    assert json.loads(process.stdout) == [str(tmp_path), [mode, *args]]
++
++
++def test_launcher_without_setup_has_actionable_error(source, tmp_path):
++    env = dict(os.environ); env.pop('FEATHERED_PYTHON', None)
++    process = subprocess.run(['/bin/sh', str(source / 'run_cli.sh'), '--help'], cwd=tmp_path,
++                             env=env, capture_output=True, text=True)
++    assert process.returncode == 5
++    assert 'install_linux.sh' in process.stderr
+diff --git a/tests/test_linux_shortcuts.py b/tests/test_linux_shortcuts.py
+new file mode 100644
+index 0000000..c3aa618
+--- /dev/null
++++ b/tests/test_linux_shortcuts.py
+@@ -0,0 +1,30 @@
++"""Desktop escaping and headless dispatch are testable on every platform."""
++import builtins
++import sys
++from types import SimpleNamespace
++import pytest
++from linux_setup import desktop_argument
++import linux_launch
++
++
++def test_desktop_exec_uses_both_required_escaping_layers():
++    assert desktop_argument('/tmp/a b%/"`$\\') == '"/tmp/a b%%/\\\\"\\\\`\\\\$\\\\\\\\"'
++
++
++@pytest.mark.parametrize('value', ['/tmp/a\nb', '/tmp/a\rb', '/tmp/a\x00b'])
++def test_desktop_paths_cannot_inject_new_keys(value):
++    with pytest.raises(ValueError):
++        desktop_argument(value)
++
++
++def test_cli_launch_does_not_import_tk_and_retains_exit_status(monkeypatch):
++    original = builtins.__import__
++    def guarded(name, *args, **kwargs):
++        if name.split('.')[0] in {'tkinter', 'app'}:
++            pytest.fail('CLI imported the GUI')
++        return original(name, *args, **kwargs)
++    monkeypatch.setattr(builtins, '__import__', guarded)
++    received = []
++    monkeypatch.setitem(sys.modules, 'feathered_cli', SimpleNamespace(main=lambda args: received.append(args) or 2))
++    assert linux_launch.main('cli', ['build', '--spec', 'local spec.json']) == 2
++    assert received == [['build', '--spec', 'local spec.json']]
+diff --git a/tests/test_platform_workflows.py b/tests/test_platform_workflows.py
+new file mode 100644
+index 0000000..d2d041c
+--- /dev/null
++++ b/tests/test_platform_workflows.py
+@@ -0,0 +1,26 @@
++"""The new platform validation paths must be required and retain diagnostics."""
++from pathlib import Path
++import yaml
++ROOT = Path(__file__).resolve().parents[1]
++
++
++def test_linux_client_matrix_is_a_release_prerequisite():
++    workflow = yaml.safe_load((ROOT / '.github/workflows/linux-client.yml').read_text())
++    job = workflow['jobs']['installed-client']
++    assert set(job['strategy']['matrix']['image']) == {'debian:12', 'ubuntu:22.04', 'ubuntu:24.04'}
++    commands = '\n'.join(step.get('run', '') for step in job['steps'])
++    assert 'check_linux_installation.py' in commands
++    assert 'client-bin/feathered" --help' in commands
++    assert 'client-bin/feathered-gui" --check' in commands
++    release = yaml.safe_load((ROOT / '.github/workflows/windows-release.yml').read_text())
++    assert release['jobs']['linux-client']['uses'] == './.github/workflows/linux-client.yml'
++    assert 'linux-client' in release['jobs']['production-release']['needs']
++    assert "needs.linux-client.result == 'success'" in release['jobs']['production-release']['if']
++
++
++def test_both_windows_bootstraps_retain_failure_logs():
++    jobs = yaml.safe_load((ROOT / '.github/workflows/windows-release.yml').read_text())['jobs']
++    for name in ('windows-source-gate', 'production-release'):
++        uploads = [step for step in jobs[name]['steps'] if step.get('with', {}).get('path', '').endswith('/feathered-python-diagnostics/')]
++        assert len(uploads) == 1
++        assert uploads[0]['if'] == 'always()'

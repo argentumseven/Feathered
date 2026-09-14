@@ -1,6 +1,6 @@
 <img width="2172" height="724" alt="473458245872458" src="https://github.com/user-attachments/assets/b3b9d422-2540-471e-9814-e636100a0a4b" />
 
-# Feathered 1.2.12
+# Feathered 1.3.0
 
 Feathered builds controlled Linux software repositories for air-gapped environments.
 
@@ -108,7 +108,7 @@ Important boundaries:
 - Native APT, DNF/YUM, and pacman transaction checks remain authoritative.
 - RPM module metadata is retained when needed; modular RPMs without matching module metadata are refused rather than published as orphan modular content.
 - Full DNF module-context/dependency solving and automatic stream transitions are not reimplemented by Feathered.
-- Arch-family target-aware installation uses full-upgrade semantics and requires sufficiently rich target state for workflows where a partial rolling upgrade would be unsafe.
+- Arch-family installs use full-upgrade semantics. Installed inventory is optional; when it is absent Feathered transfers a complete repository-derived dependency closure and leaves the final transaction to pacman.
 - Unsupported or ambiguous dependency expressions are blocked or surfaced rather than guessed.
 
 ## Provenance and verification
@@ -178,13 +178,30 @@ For Kubernetes-specific behavior, see [KUBERNETES.md](KUBERNETES.md).
 
 1. Extract the complete release archive into a normal directory. Do not run it from the ZIP preview.
 2. Install Python 3 with Tk support.
-3. Double-click `run_gui.bat` from the extracted `Feathered_1.2.12` directory.
+3. Double-click `run_gui.bat` from the extracted `Feathered_1.3.0` directory.
 
 The launcher installs the Python dependencies listed in `requirements.txt` when required. The complete `feathered_app` package must remain beside the launcher and top-level source files.
 
+## Running on Ubuntu or Debian
+
+Both the existing GUI and CLI are available through the Linux source installer.
+Install `python3`, `python3-venv`, `python3-tk`, `ca-certificates` and `gnupg`, then
+run these commands from the extracted source directory:
+
+```bash
+bash install_linux.sh
+bash run_gui.sh
+bash run_cli.sh --help
+```
+
+For headless machines, omit `python3-tk` and use `bash install_linux.sh --cli-only`.
+Setup provides `feathered` (CLI) and `feathered-gui` commands plus an optional
+application-menu entry. See [LINUX.md](LINUX.md) for offline installation,
+updates, platform validation and directory choices.
+
 ## Target inventory
 
-For target-aware builds, copy both inventory files to the target:
+Target inventory is optional. Load it when you want repository planning to account for the packages and capabilities already installed on the disconnected system. To capture one, copy both inventory files to the target:
 
 ```text
 target_inventory.sh

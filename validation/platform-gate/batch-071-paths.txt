@@ -1,0 +1,2 @@
+tests/test_ui_event_budget.py
+tests/test_version_ui_fixes.py

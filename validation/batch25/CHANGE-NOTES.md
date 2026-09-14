@@ -1,21 +1,21 @@
-# Items 2–5 implementation batch
+# Items 2-5 implementation batch
 
 Repository provenance stays visible. Display redaction preserves scheme, host,
 port, path and ordinary query fields, hiding authentication secrets. Execution
 receives the original credential-bearing source URL and source identity.
 
-- **12f8619 — item 2:** CLI show, dry-run and failure diagnostics use existing
+- **12f8619 - item 2:** CLI show, dry-run and failure diagnostics use existing
   credential redactors. README explains credential-bearing saved URLs accurately.
-- **bc2595a — item 3:** recognized spec fields are decoded explicitly; malformed
+- **bc2595a - item 3:** recognized spec fields are decoded explicitly; malformed
   booleans, shapes and versions report field paths. Direct preparation inputs
   share validation. This deliberately rejects previously accepted malformed
   input. Valid v1/v2 migrations, v3 round trips and incomplete drafts remain.
-- **83fb07b — item 4a:** available/absent/indeterminate probes, partial-outage
+- **83fb07b - item 4a:** available/absent/indeterminate probes, partial-outage
   retention, per-check evidence and atomic observation writes.
-- **f542ea2 — item 4b:** shared knowledge refresh owner, generations, persistent
+- **f542ea2 - item 4b:** shared knowledge refresh owner, generations, persistent
   reconciliation and OS writer lease. Sticky policy-change flags survive restart;
   downloaded prose never becomes executable compatibility policy.
-- **217e02d — item 5:** 100-event GUI budget, adjacent-progress coalescing, typed
+- **217e02d - item 5:** 100-event GUI budget, adjacent-progress coalescing, typed
   query completions and bounded replaceable Kubernetes queries. Existing build
   control locking and full selection-context checks remain. Other query producers
   keep their existing guards; their coordinator migration is deferred.
@@ -35,6 +35,6 @@ all source modules; it is not a signed Windows binary. Local commits and their
 patch series are included for review and rollback. No remote PR or merge is
 claimed.
 
-Remaining instruction scope: items 6–9 (typed build boundaries, measured backend
+Remaining instruction scope: items 6-9 (typed build boundaries, measured backend
 deduplication, efficiency, and core extraction). Those require their own behavior
 fixtures and are not silently bundled into this change.

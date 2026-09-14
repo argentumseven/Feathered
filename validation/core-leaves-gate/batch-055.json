@@ -1,0 +1,612 @@
+{
+  "schema": 1,
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates0]",
+    "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates1]",
+    "tests/test_kubernetes_workflows.py::test_workload_artifacts_exist_before_indexing",
+    "tests/test_kubernetes_workflows.py::test_saved_workload_patch_pin_builds_requested_version",
+    "tests/test_kubernetes_workflows.py::test_unavailable_workload_patch_never_falls_back_to_latest",
+    "tests/test_kubernetes_workflows.py::test_node_build_requests_pin_components_but_not_cri_or_cni",
+    "tests/test_linux_installation.py::test_cli_only_installs_without_tk_or_package_index",
+    "tests/test_linux_installation.py::test_failed_upgrade_preserves_selected_runtime_and_shortcuts",
+    "tests/test_linux_installation.py::test_partial_shortcut_publication_rolls_back",
+    "tests/test_linux_installation.py::test_unmanaged_shortcut_is_not_overwritten",
+    "tests/test_linux_installation.py::test_parallel_install_is_rejected",
+    "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[cli]",
+    "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[gui]",
+    "tests/test_linux_installation.py::test_launcher_without_setup_has_actionable_error",
+    "tests/test_linux_shortcuts.py::test_desktop_exec_uses_both_required_escaping_layers",
+    "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\nb]",
+    "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\rb]",
+    "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\x00b]",
+    "tests/test_linux_shortcuts.py::test_cli_launch_does_not_import_tk_and_retains_exit_status",
+    "tests/test_metadata_loading.py::test_normal_load_retains_order_progress_cache_identity_and_laziness"
+  ],
+  "batch_excluded": [
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1.33-]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1.33.4-]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[v1.33.4-]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[v1.33.4+vmware.1-+vmware.1]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[v1.33.4---vmware.1-fips.1-tkg.1----vmware.1-fips.1-tkg.1]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1.33.4-1.ph5--1.ph5]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1.33.4-150500.1.1--150500.1.1]",
+    "tests/test_kubernetes_workflows.py::test_vendor_version_precision[1:1.33.4-00--00]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.34.0-rc.1]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[2.0.0]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[latest]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.33.4junk]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.33.4+]",
+    "tests/test_kubernetes_workflows.py::test_unusable_version_has_actionable_error[1.33.4-rc1]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[kernel-headers]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[kernel-devel]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[kernel-rt-devel]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[linux-headers-generic]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[nginx]",
+    "tests/test_kubernetes_workflows.py::test_ordinary_and_development_packages_are_not_managed[helm]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kernel-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[linux-image-6.1.0-generic-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[containerd-node image]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubelet-node/control-plane]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[kubernetes-node/control-plane]",
+    "tests/test_kubernetes_workflows.py::test_managed_classification_is_only_advice[antrea-cluster add-on]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-29-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-34-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-24-27-27-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-34-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-31-33-33-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-30-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubelet-31-33-34-False]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-controller-manager-32-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kubectl-32-33-34-True]",
+    "tests/test_kubernetes_workflows.py::test_skew_intersects_all_api_servers[kube-apiserver-34-33-33-False]",
+    "tests/test_kubernetes_workflows.py::test_only_conflicts_need_acknowledgement",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[photon-5.0-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[ubuntu-22.04-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[ubuntu-24.04-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rhel-9-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rhel-9.6-True]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[photon-4.0-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[debian-12-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[arch-rolling-False]",
+    "tests/test_kubernetes_workflows.py::test_vks_release_availability[rocky-9-False]",
+    "tests/test_kubernetes_workflows.py::test_minor_materialization_is_idempotent_and_rewrites_owned_row[rpm-rpm/-False]",
+    "tests/test_kubernetes_workflows.py::test_minor_materialization_is_idempotent_and_rewrites_owned_row[deb-deb/-True]",
+    "tests/test_kubernetes_workflows.py::test_discovery_has_no_fallback_list_and_stops_after_three_misses",
+    "tests/test_kubernetes_workflows.py::test_schema_two_migrates_without_replacing_exact_roots",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_verifies_index_and_attempts_signature",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[checksum]",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[architecture]",
+    "tests/test_kubernetes_workflows.py::test_flat_repository_failures_preserve_provenance[missing-release]",
+    "tests/test_kubernetes_workflows.py::test_flat_missing_architecture_is_observed_not_invented",
+    "tests/test_kubernetes_workflows.py::test_cli_keeps_other_minor_visible_and_records_advice",
+    "tests/test_kubernetes_workflows.py::test_cli_conflict_lists_package_and_acknowledgement_allows_build",
+    "tests/test_kubernetes_workflows.py::test_catalog_and_resolver_never_hide_managed_or_other_minor_packages",
+    "tests/test_kubernetes_workflows.py::test_vks_missing_inventory_has_rolling_channel_explanation",
+    "tests/test_kubernetes_workflows.py::test_baseline_rejects_installed_changes_but_keeps_ordinary_headers",
+    "tests/test_kubernetes_workflows.py::test_vks_build_emits_image_draft_and_keeps_inventory_baseline",
+    "tests/test_kubernetes_workflows.py::test_flat_kubernetes_repository_can_be_mirrored",
+    "tests/test_kubernetes_workflows.py::test_frozen_context_does_not_read_any_widgets",
+    "tests/test_kubernetes_workflows.py::test_kubernetes_bundle_supports_additive_publication",
+    "tests/test_kubernetes_workflows.py::test_discovery_result_defers_during_build_and_keeps_other_family_separate",
+    "tests/test_kubernetes_workflows.py::test_generated_repository_changes_do_not_drop_operator_policy",
+    "tests/test_kubernetes_workflows.py::test_complete_rpm_inventory_satisfies_libraries_without_upgrading_them",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[priority-9]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[source_tier-workload]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[url-https://example.test/new]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[keyring-keys.gpg]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[allow_unverified_index-True]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[evidence_urls-value5]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[redirect_allow_origins-value6]",
+    "tests/test_metadata_loading.py::test_architecture_change_invalidates_cache",
+    "tests/test_metadata_loading.py::test_successful_empty_metadata_is_retried",
+    "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[False-expected0]",
+    "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[True-expected1]",
+    "tests/test_metadata_loading.py::test_scoped_load_cannot_replace_or_reuse_populated_global_cache",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows0]",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows1]",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows2]",
+    "tests/test_metadata_loading.py::test_failed_sources_warn_or_log_and_validate_only_successful_providers",
+    "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[False]",
+    "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[True]",
+    "tests/test_metadata_loading.py::test_cancellation_after_backend_failure_is_not_reported_as_source_failure",
+    "tests/test_metadata_loading.py::test_preexisting_cancellation_stops_before_backend",
+    "tests/test_metadata_loading.py::test_failed_scope_validation_preserves_previous_cache",
+    "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible mirrors (recommended fallback)]",
+    "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible + EPEL (broad fallback)]",
+    "tests/test_metadata_loading.py::test_coverage_can_bypass_distribution_policy_without_accessing_it"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates0]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates0]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates0]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_invalid_workload_request_rejected_before_fetch[updates1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_workload_artifacts_exist_before_indexing",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_workload_artifacts_exist_before_indexing",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_workload_artifacts_exist_before_indexing",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_saved_workload_patch_pin_builds_requested_version",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_saved_workload_patch_pin_builds_requested_version",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_saved_workload_patch_pin_builds_requested_version",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_unavailable_workload_patch_never_falls_back_to_latest",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_unavailable_workload_patch_never_falls_back_to_latest",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_unavailable_workload_patch_never_falls_back_to_latest",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_node_build_requests_pin_components_but_not_cri_or_cni",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_node_build_requests_pin_components_but_not_cri_or_cni",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_kubernetes_workflows.py::test_node_build_requests_pin_components_but_not_cri_or_cni",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_cli_only_installs_without_tk_or_package_index",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_cli_only_installs_without_tk_or_package_index",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_cli_only_installs_without_tk_or_package_index",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_failed_upgrade_preserves_selected_runtime_and_shortcuts",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_failed_upgrade_preserves_selected_runtime_and_shortcuts",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_failed_upgrade_preserves_selected_runtime_and_shortcuts",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_partial_shortcut_publication_rolls_back",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_partial_shortcut_publication_rolls_back",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_partial_shortcut_publication_rolls_back",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_unmanaged_shortcut_is_not_overwritten",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_unmanaged_shortcut_is_not_overwritten",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_unmanaged_shortcut_is_not_overwritten",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_parallel_install_is_rejected",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_parallel_install_is_rejected",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_parallel_install_is_rejected",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[cli]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[cli]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[cli]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[gui]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[gui]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_source_launcher_preserves_arguments_cwd_and_status[gui]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_launcher_without_setup_has_actionable_error",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_launcher_without_setup_has_actionable_error",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_installation.py::test_launcher_without_setup_has_actionable_error",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_exec_uses_both_required_escaping_layers",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_exec_uses_both_required_escaping_layers",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_exec_uses_both_required_escaping_layers",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\nb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\nb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\nb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\rb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\rb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\rb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\x00b]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\x00b]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_desktop_paths_cannot_inject_new_keys[/tmp/a\\x00b]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_cli_launch_does_not_import_tk_and_retains_exit_status",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_cli_launch_does_not_import_tk_and_retains_exit_status",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_linux_shortcuts.py::test_cli_launch_does_not_import_tk_and_retains_exit_status",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_normal_load_retains_order_progress_cache_identity_and_laziness",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_normal_load_retains_order_progress_cache_identity_and_laziness",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_metadata_loading.py::test_normal_load_retains_order_progress_cache_identity_and_laziness",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

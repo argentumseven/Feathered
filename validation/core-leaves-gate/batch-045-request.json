@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:evidence]",
+    "tests/test_core_leaf_contracts.py::test_pre_extraction_contract[baseline:primary-before-evidence]",
+    "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names0]",
+    "tests/test_core_leaf_contracts.py::test_filename_collision_cannot_merge_distinct_artifacts[names1]",
+    "tests/test_core_leaf_contracts.py::test_equal_package_identity_keeps_distinct_object_keys",
+    "tests/test_core_leaf_contracts.py::test_filename_key_patch_is_resolved_at_call_time",
+    "tests/test_core_leaf_contracts.py::test_capability_normalizer_patch_is_resolved_at_call_time",
+    "tests/test_core_leaf_contracts.py::test_baseline_digest_and_comparator_patches_remain_visible",
+    "tests/test_core_leaf_contracts.py::test_baseline_manifest_digest_precedence_and_duplicate_keys",
+    "tests/test_core_leaf_contracts.py::test_baseline_partition_preserves_order_duplicates_and_input_objects",
+    "tests/test_core_leaf_contracts.py::test_normalization_and_location_dependency_patches_remain_visible",
+    "tests/test_core_leaf_contracts.py::test_capability_pattern_patch_remains_visible",
+    "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo.]",
+    "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[demo ]",
+    "tests/test_core_leaf_contracts.py::test_unsuffixed_destination_checks_remain_enforced[nested/a:b]",
+    "tests/test_core_leaf_contracts.py::test_payload_name_fallback_accepts_legacy_minimal_records",
+    "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]"
+  ]
+}

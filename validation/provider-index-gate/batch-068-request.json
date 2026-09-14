@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-user:PRIVATE_PASSWORD@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-PRIVATE_BEARER@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
+    "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
+    "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]"
+  ]
+}

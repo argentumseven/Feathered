@@ -1,0 +1,4 @@
+tests/test_headless_execution.py
+tests/test_installer_paths.py
+tests/test_integration_gate.py
+tests/test_k8s_knowledge.py

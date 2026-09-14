@@ -1,0 +1,529 @@
+{
+  "schema": 1,
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[2.0]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33-rc.1]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[html-error]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[empty-list]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[wrong-shape]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[yaml-alias]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[invalid-date]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[oversized]",
+    "tests/test_k8s_knowledge.py::test_outage_keeps_good_cache_byte_for_byte_then_recovers",
+    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{]",
+    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{\"schema\":99}]",
+    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[[]]",
+    "tests/test_k8s_knowledge.py::test_fresh_cache_skips_network",
+    "tests/test_k8s_knowledge.py::test_policy_change_is_sticky_and_never_applied_as_rules",
+    "tests/test_k8s_knowledge.py::test_unknown_and_historical_versions_have_notices_not_rejection",
+    "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[30-33]",
+    "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[35-33]",
+    "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[34-33]",
+    "tests/test_k8s_knowledge.py::test_future_dated_or_foreign_cache_is_rejected",
+    "tests/test_k8s_knowledge.py::test_gui_refresh_keeps_minor_and_full_package_pin"
+  ],
+  "batch_excluded": [
+    "tests/test_k8s_knowledge.py::test_upstream_releases_extend_beyond_former_ceiling_and_skip_future_dates",
+    "tests/test_k8s_knowledge.py::test_known_repository_candidates_survive_missing_older_repositories",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.19-19]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[19-19]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.61-61]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[133-133]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.0-0]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[abc]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[-1]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33 garbage]",
+    "tests/test_k8s_knowledge.py::test_gui_schedules_bounded_retry_and_pauses_it_during_build"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[2.0]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[2.0]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[2.0]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33-rc.1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33-rc.1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33-rc.1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[html-error]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[html-error]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[html-error]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[empty-list]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[empty-list]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[empty-list]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[wrong-shape]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[wrong-shape]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[wrong-shape]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[yaml-alias]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[yaml-alias]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[yaml-alias]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[invalid-date]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[invalid-date]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[invalid-date]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[oversized]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[oversized]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[oversized]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_outage_keeps_good_cache_byte_for_byte_then_recovers",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_outage_keeps_good_cache_byte_for_byte_then_recovers",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_outage_keeps_good_cache_byte_for_byte_then_recovers",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{\"schema\":99}]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{\"schema\":99}]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{\"schema\":99}]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[[]]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[[]]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[[]]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_fresh_cache_skips_network",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_fresh_cache_skips_network",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_fresh_cache_skips_network",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_policy_change_is_sticky_and_never_applied_as_rules",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_policy_change_is_sticky_and_never_applied_as_rules",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_policy_change_is_sticky_and_never_applied_as_rules",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_unknown_and_historical_versions_have_notices_not_rejection",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_unknown_and_historical_versions_have_notices_not_rejection",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_unknown_and_historical_versions_have_notices_not_rejection",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[30-33]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[30-33]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[30-33]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[35-33]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[35-33]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[35-33]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[34-33]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[34-33]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_lifecycle_inference_is_advisory_without_operation_context[34-33]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_future_dated_or_foreign_cache_is_rejected",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_future_dated_or_foreign_cache_is_rejected",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_future_dated_or_foreign_cache_is_rejected",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_gui_refresh_keeps_minor_and_full_package_pin",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_gui_refresh_keeps_minor_and_full_package_pin",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_k8s_knowledge.py::test_gui_refresh_keeps_minor_and_full_package_pin",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

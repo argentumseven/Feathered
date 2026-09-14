@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha384-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha512-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha512-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha512-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-auto-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-auto-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-auto-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha256-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha256-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha256-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha384-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha384-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha384-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha512-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha512-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha512-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-auto-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-auto-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-auto-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha256-evidence-fallback]"
+  ]
+}

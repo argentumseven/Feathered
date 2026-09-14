@@ -1,5 +1,5 @@
 From 83fb07b087e2be29d41d545adf2bde42e7112581 Mon Sep 17 00:00:00 2001
-From: Codex <codex@openai.com>
+From: Feathered Maintenance <maintenance@localhost>
 Date: Sat, 12 Sep 2026 18:48:47 -0400
 Subject: [PATCH 3/5] Retain confirmed repository versions during partial
  outages

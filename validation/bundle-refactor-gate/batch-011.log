@@ -1,0 +1,19 @@
+..........F.........                                                     [100%]
+=================================== FAILURES ===================================
+_______ test_review_source_contains_unresolved_waiver_and_retry_controls _______
+
+    def test_review_source_contains_unresolved_waiver_and_retry_controls():
+        import app, inspect
+        root = Path(__file__).resolve().parent
+        source = inspect.getsource(app.App._build_review_pane)
+        assert 'text="Retry unresolved"' in source
+        assert 'text="Ignore selected"' in source
+>       assert "ignored-unresolved.txt" in (root / "core.py").read_text(encoding="utf-8")
+E       assert 'ignored-unresolved.txt' in "from __future__ import annotations\n\nimport base64\nimport binascii\nimport bz2\nimport gzip\nimport hashlib\nimport...xt, write_image_draft\n        write_image_draft(output_dir, WorkloadContext(**data['image_draft_context']), result)\n"
+E        +  where "from __future__ import annotations\n\nimport base64\nimport binascii\nimport bz2\nimport gzip\nimport hashlib\nimport...xt, write_image_draft\n        write_image_draft(output_dir, WorkloadContext(**data['image_draft_context']), result)\n" = read_text(encoding='utf-8')
+E        +    where read_text = (PosixPath('/workspace/scratch/f2c614fac6a1/current-build-boundary') / 'core.py').read_text
+
+test_feather.py:2891: AssertionError
+=========================== short test summary info ============================
+FAILED test_feather.py::test_review_source_contains_unresolved_waiver_and_retry_controls
+1 failed, 19 passed in 1.08s

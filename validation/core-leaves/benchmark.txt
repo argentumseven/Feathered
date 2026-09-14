@@ -1,0 +1,22 @@
+ordinary 1.133s 2 index builds
+one-constrained-root 3.129s 6 index builds
+sixteen-constrained-roots 3.377s 6 index builds
+ordinary 1.163s 2 index builds
+one-constrained-root 3.646s 6 index builds
+sixteen-constrained-roots 3.419s 6 index builds
+ordinary 1.298s 2 index builds
+one-constrained-root 3.259s 6 index builds
+sixteen-constrained-roots 3.237s 6 index builds
+ordinary 1.227s 2 index builds
+one-constrained-root 3.432s 6 index builds
+sixteen-constrained-roots 3.793s 6 index builds
+ordinary 1.130s 2 index builds
+one-constrained-root 3.055s 6 index builds
+sixteen-constrained-roots 3.580s 6 index builds
+ordinary 1.131s 2 index builds
+one-constrained-root 3.247s 6 index builds
+sixteen-constrained-roots 3.546s 6 index builds
+ordinary {'before': 1.1327633369999717, 'after': 1.1625872629999776}
+one-constrained-root {'before': 3.1285006889999636, 'after': 3.259314324999991}
+sixteen-constrained-roots {'before': 3.579735873000004, 'after': 3.4193478879999475}
+Every full resolution result and non-index diagnostic matches.

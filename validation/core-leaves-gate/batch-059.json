@@ -1,0 +1,527 @@
+{
+  "schema": 1,
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_payload_filename_safety.py::test_ordinary_repository_location_still_works",
+    "tests/test_payload_filename_safety.py::test_the_existing_windows_guards_are_unchanged",
+    "tests/test_platform_workflows.py::test_linux_client_matrix_is_a_release_prerequisite",
+    "tests/test_platform_workflows.py::test_both_windows_bootstraps_retain_failure_logs",
+    "tests/test_prepared_adapter_parity.py::test_gui_and_cli_preserve_payloads_sources_provenance_and_installer",
+    "tests/test_prepared_plan_ownership.py::test_plan_detaches_every_caller_owned_collection",
+    "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[TargetInventory]",
+    "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[AptTargetInventory]",
+    "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[ArchTargetInventory]",
+    "tests/test_prepared_plan_ownership.py::test_mutable_verification_fields_can_still_be_annotated_by_execution",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[ordinary]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[constrained]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[mixed]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[unsatisfiable]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[source-pinned]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[virtual]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[python-alias]",
+    "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[empty-filter]",
+    "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[ordinary-1]",
+    "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[mixed-2]"
+  ],
+  "batch_excluded": [
+    "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[C:\\\\Windows\\\\System32\\\\evil.rpm]",
+    "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[\\\\\\\\server\\\\share\\\\evil.rpm]",
+    "tests/test_payload_filename_safety.py::test_windows_path_semantics_are_refused[..\\\\..\\\\evil.rpm]",
+    "tests/test_payload_filename_safety.py::test_bare_drive_relative_name_is_normalized_not_refused",
+    "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[constrained-2]",
+    "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[python-alias-2]",
+    "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[empty-filter-2]",
+    "tests/test_provider_index_reuse.py::test_new_pass_rebuilds_for_new_constraints_and_metadata",
+    "tests/test_provider_index_reuse.py::test_cancelled_pass_does_not_retain_filtered_candidates"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_ordinary_repository_location_still_works",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_ordinary_repository_location_still_works",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_ordinary_repository_location_still_works",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_the_existing_windows_guards_are_unchanged",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_the_existing_windows_guards_are_unchanged",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_payload_filename_safety.py::test_the_existing_windows_guards_are_unchanged",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_platform_workflows.py::test_linux_client_matrix_is_a_release_prerequisite",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_platform_workflows.py::test_linux_client_matrix_is_a_release_prerequisite",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_platform_workflows.py::test_linux_client_matrix_is_a_release_prerequisite",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_platform_workflows.py::test_both_windows_bootstraps_retain_failure_logs",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_platform_workflows.py::test_both_windows_bootstraps_retain_failure_logs",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_platform_workflows.py::test_both_windows_bootstraps_retain_failure_logs",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_adapter_parity.py::test_gui_and_cli_preserve_payloads_sources_provenance_and_installer",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_adapter_parity.py::test_gui_and_cli_preserve_payloads_sources_provenance_and_installer",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_adapter_parity.py::test_gui_and_cli_preserve_payloads_sources_provenance_and_installer",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_plan_detaches_every_caller_owned_collection",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_plan_detaches_every_caller_owned_collection",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_plan_detaches_every_caller_owned_collection",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[TargetInventory]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[TargetInventory]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[TargetInventory]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[AptTargetInventory]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[AptTargetInventory]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[AptTargetInventory]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[ArchTargetInventory]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[ArchTargetInventory]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[ArchTargetInventory]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_mutable_verification_fields_can_still_be_annotated_by_execution",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_mutable_verification_fields_can_still_be_annotated_by_execution",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_prepared_plan_ownership.py::test_mutable_verification_fields_can_still_be_annotated_by_execution",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[ordinary]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[ordinary]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[ordinary]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[constrained]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[constrained]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[constrained]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[mixed]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[mixed]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[mixed]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[unsatisfiable]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[unsatisfiable]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[unsatisfiable]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[source-pinned]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[source-pinned]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[source-pinned]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[virtual]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[virtual]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[virtual]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[python-alias]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[python-alias]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[python-alias]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[empty-filter]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[empty-filter]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_provider_selection_matches_pre_optimization[empty-filter]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[ordinary-1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[ordinary-1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[ordinary-1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[mixed-2]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[mixed-2]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_provider_index_reuse.py::test_at_most_one_constrained_index_per_pass[mixed-2]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

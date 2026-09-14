@@ -1,0 +1,531 @@
+{
+  "schema": 1,
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_build_worker_isolation.py::test_the_build_path_has_exactly_one_ui_dependency",
+    "tests/test_build_worker_isolation.py::test_the_interactive_policy_is_still_the_default",
+    "tests/test_build_worker_isolation.py::test_an_injected_policy_replaces_the_dialog_entirely",
+    "tests/test_build_worker_isolation.py::test_every_mid_build_question_goes_through_a_policy",
+    "tests/test_build_worker_isolation.py::test_the_interactive_prompt_remains_the_default",
+    "tests/test_build_worker_isolation.py::test_a_host_that_cannot_answer_declines",
+    "tests/test_build_worker_isolation.py::test_the_download_plan_does_not_deadlock_without_a_consumer",
+    "tests/test_build_worker_isolation.py::test_an_injected_sink_replaces_the_queue_handshake",
+    "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-deb]"
+  ],
+  "batch_excluded": [
+    "tests/test_build_worker_isolation.py::test_the_tripwire_detects_a_read_from_another_thread",
+    "tests/test_build_worker_isolation.py::test_main_thread_reads_are_not_flagged",
+    "tests/test_build_worker_isolation.py::test_the_snapshot_serves_the_values_the_worker_needs",
+    "tests/test_build_worker_isolation.py::test_releasing_the_snapshot_returns_the_wizard_to_live_controls",
+    "tests/test_build_worker_isolation.py::test_a_build_snapshot_is_taken_before_the_worker_is_created",
+    "tests/test_build_worker_isolation.py::test_the_snapshot_is_dropped_when_the_operation_ends",
+    "tests/test_build_worker_isolation.py::test_the_wider_build_path_reads_no_widgets_from_the_worker",
+    "tests/test_build_worker_isolation.py::test_folder_naming_cannot_drift_between_confirmation_and_write",
+    "tests/test_build_worker_isolation.py::test_naming_follows_the_clock_when_no_build_is_running",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-arch]"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_build_path_has_exactly_one_ui_dependency",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_build_path_has_exactly_one_ui_dependency",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_build_path_has_exactly_one_ui_dependency",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_interactive_policy_is_still_the_default",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_interactive_policy_is_still_the_default",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_interactive_policy_is_still_the_default",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_an_injected_policy_replaces_the_dialog_entirely",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_an_injected_policy_replaces_the_dialog_entirely",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_an_injected_policy_replaces_the_dialog_entirely",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_every_mid_build_question_goes_through_a_policy",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_every_mid_build_question_goes_through_a_policy",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_every_mid_build_question_goes_through_a_policy",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_interactive_prompt_remains_the_default",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_interactive_prompt_remains_the_default",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_interactive_prompt_remains_the_default",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_a_host_that_cannot_answer_declines",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_a_host_that_cannot_answer_declines",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_a_host_that_cannot_answer_declines",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_download_plan_does_not_deadlock_without_a_consumer",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_download_plan_does_not_deadlock_without_a_consumer",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_the_download_plan_does_not_deadlock_without_a_consumer",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_an_injected_sink_replaces_the_queue_handshake",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_an_injected_sink_replaces_the_queue_handshake",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_an_injected_sink_replaces_the_queue_handshake",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

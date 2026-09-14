@@ -1,0 +1,536 @@
+{
+  "schema": 1,
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+    "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+    "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[503-indeterminate]",
+    "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[403-indeterminate]",
+    "tests/test_discovery_recovery.py::test_partial_merge_keeps_old_time_and_new_successes_and_removes_proven_absence",
+    "tests/test_discovery_recovery.py::test_stale_refresh_cannot_clear_policy_change",
+    "tests/test_discovery_recovery.py::test_persistent_writer_lease_retains_cache_without_network",
+    "tests/test_discovery_recovery.py::test_concurrent_refreshes_reconcile_the_committed_policy_signal",
+    "tests/test_discovery_recovery.py::test_family_switch_shares_one_knowledge_refresh",
+    "tests/test_download_compatibility.py::test_apt_transfer_keeps_transport_url_and_verifier_hooks",
+    "tests/test_download_compatibility.py::test_apt_verifier_failure_keeps_destination_and_cleans_partial",
+    "tests/test_end_to_end_build.py::test_a_complete_build_touches_no_widget_from_the_worker",
+    "tests/test_end_to_end_build.py::test_a_repository_mirror_build_completes[separate]",
+    "tests/test_end_to_end_build.py::test_a_repository_mirror_build_completes[unified]",
+    "tests/test_end_to_end_build.py::test_a_workload_preset_build_completes"
+  ],
+  "batch_excluded": [
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[workload]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[exact]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[separate]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[unified]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[devuan]",
+    "tests/test_cli_replay.py::test_stable_source_identity_survives_display_label_change",
+    "tests/test_cli_replay.py::test_missing_pin_is_rejected_before_publication",
+    "tests/test_cli_replay.py::test_unsigned_metadata_requires_trust_consent",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[exact]",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[workload]",
+    "tests/test_cli_replay.py::test_existing_output_requires_separate_consent",
+    "tests/test_cli_replay.py::test_additive_metadata_requires_its_own_choice",
+    "tests/test_cli_replay.py::test_invalid_request_has_diagnostic_and_nonzero_exit",
+    "tests/test_cli_replay.py::test_dry_run_describes_settings_without_preparing",
+    "tests/test_end_to_end_build.py::test_the_cli_builds_the_same_bundle_from_a_saved_spec",
+    "tests/test_end_to_end_build.py::test_the_cli_does_not_report_success_without_a_bundle",
+    "tests/test_end_to_end_build.py::test_a_unified_mirror_replays_from_a_saved_spec",
+    "tests/test_end_to_end_build.py::test_cli_replays_an_exact_package_into_a_real_bundle"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_partial_outage_is_not_a_successful_smaller_snapshot",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[404-absent]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[410-absent]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[429-indeterminate]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[503-indeterminate]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[503-indeterminate]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[503-indeterminate]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[403-indeterminate]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[403-indeterminate]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_probe_distinguishes_authoritative_absence[403-indeterminate]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_partial_merge_keeps_old_time_and_new_successes_and_removes_proven_absence",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_partial_merge_keeps_old_time_and_new_successes_and_removes_proven_absence",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_partial_merge_keeps_old_time_and_new_successes_and_removes_proven_absence",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_stale_refresh_cannot_clear_policy_change",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_stale_refresh_cannot_clear_policy_change",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_stale_refresh_cannot_clear_policy_change",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_persistent_writer_lease_retains_cache_without_network",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_persistent_writer_lease_retains_cache_without_network",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_persistent_writer_lease_retains_cache_without_network",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_concurrent_refreshes_reconcile_the_committed_policy_signal",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_concurrent_refreshes_reconcile_the_committed_policy_signal",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_concurrent_refreshes_reconcile_the_committed_policy_signal",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_family_switch_shares_one_knowledge_refresh",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_family_switch_shares_one_knowledge_refresh",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_discovery_recovery.py::test_family_switch_shares_one_knowledge_refresh",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_download_compatibility.py::test_apt_transfer_keeps_transport_url_and_verifier_hooks",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_download_compatibility.py::test_apt_transfer_keeps_transport_url_and_verifier_hooks",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_download_compatibility.py::test_apt_transfer_keeps_transport_url_and_verifier_hooks",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_download_compatibility.py::test_apt_verifier_failure_keeps_destination_and_cleans_partial",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_download_compatibility.py::test_apt_verifier_failure_keeps_destination_and_cleans_partial",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_download_compatibility.py::test_apt_verifier_failure_keeps_destination_and_cleans_partial",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_complete_build_touches_no_widget_from_the_worker",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_complete_build_touches_no_widget_from_the_worker",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_complete_build_touches_no_widget_from_the_worker",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_repository_mirror_build_completes[separate]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_repository_mirror_build_completes[separate]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_repository_mirror_build_completes[separate]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_repository_mirror_build_completes[unified]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_repository_mirror_build_completes[unified]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_repository_mirror_build_completes[unified]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_workload_preset_build_completes",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_workload_preset_build_completes",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_end_to_end_build.py::test_a_workload_preset_build_completes",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

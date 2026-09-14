@@ -14,7 +14,7 @@ E       AssertionError: s                                                       
 E         Release batch complete: 1 collected, 0 failed, pytest status 0.
 E         
 E       assert 0 == 1
-E        +  where 0 = CompletedProcess(args=['/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python', '-m', 'pytest', '-q...                                 [100%]\nRelease batch complete: 1 collected, 0 failed, pytest status 0.\n', stderr='').returncode
+E        +  where 0 = CompletedProcess(args=['/opt/python-runtime/bin/python', '-m', 'pytest', '-q...                                 [100%]\nRelease batch complete: 1 collected, 0 failed, pytest status 0.\n', stderr='').returncode
 
 item1-evidence/baseline_test_release_gate_outcomes.py:38: AssertionError
 _____________ test_release_plugin_preserves_assertion_diagnostics ______________
@@ -28,7 +28,7 @@ tmp_path = PosixPath('/workspace/scratch/f2c614fac6a1/review/tmp/pytest-of-root/
         assert result.returncode == 1
 >       assert "visible failure explanation" in result.stdout
 E       AssertionError: assert 'visible failure explanation' in 'F                                                                        [100%]\nRelease batch complete: 1 collected, 1 failed, pytest status 1.\n'
-E        +  where 'F                                                                        [100%]\nRelease batch complete: 1 collected, 1 failed, pytest status 1.\n' = CompletedProcess(args=['/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python', '-m', 'pytest', '-q...                                 [100%]\nRelease batch complete: 1 collected, 1 failed, pytest status 1.\n', stderr='').stdout
+E        +  where 'F                                                                        [100%]\nRelease batch complete: 1 collected, 1 failed, pytest status 1.\n' = CompletedProcess(args=['/opt/python-runtime/bin/python', '-m', 'pytest', '-q...                                 [100%]\nRelease batch complete: 1 collected, 1 failed, pytest status 1.\n', stderr='').stdout
 
 item1-evidence/baseline_test_release_gate_outcomes.py:47: AssertionError
 __________________ test_runner_does_not_count_skips_as_passes __________________
@@ -48,7 +48,7 @@ E
 E         Feathered release test gate PASSED: 1 tests.
 E         
 E       assert 0 != 0
-E        +  where 0 = CompletedProcess(args=['/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python', '/workspace/scratch... batch complete: 1 collected, 0 failed, pytest status 0.\n\nFeathered release test gate PASSED: 1 tests.\n', stderr='').returncode
+E        +  where 0 = CompletedProcess(args=['/opt/python-runtime/bin/python', '/workspace/scratch... batch complete: 1 collected, 0 failed, pytest status 0.\n\nFeathered release test gate PASSED: 1 tests.\n', stderr='').returncode
 
 item1-evidence/baseline_test_release_gate_outcomes.py:54: AssertionError
 =========================== short test summary info ============================

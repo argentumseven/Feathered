@@ -1,0 +1,3 @@
+tests/test_chooser_stale_activation.py
+tests/test_cli_native_families.py
+tests/test_cli_replay.py

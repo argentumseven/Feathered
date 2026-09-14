@@ -1,0 +1,2 @@
+tests/test_application_startup.py
+tests/test_architecture.py

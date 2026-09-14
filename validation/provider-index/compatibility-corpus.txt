@@ -1,0 +1,2 @@
+test_feather.py is byte-identical to the starting delivery.
+SHA-256: 6d39f741c0a6a59c7f9792ef93f77db79773e66546480703c47d85363c5ee740

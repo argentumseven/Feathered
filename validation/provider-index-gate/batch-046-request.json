@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "tests/test_footer_status.py::test_set_footer_status_is_safe_with_no_widget",
+    "tests/test_footer_status.py::test_status_label_height_is_pinned_in_the_layout",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[workload]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[exact]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[separate]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[unified]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[devuan]",
+    "tests/test_headless_execution.py::test_services_forward_progress_events_cancellation_and_conflict_details",
+    "tests/test_headless_execution.py::test_frozen_signing_and_baseline_options_never_fall_back_to_controls",
+    "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[arch]",
+    "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[deb]",
+    "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[rpm]",
+    "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[arch]",
+    "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[deb]",
+    "tests/test_installer_paths.py::test_encoder_runs_before_any_privileged_step[rpm]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/plain/bundle-path_1.0~rc-/plain/bundle-path_1.0~rc]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/media/user/My Passport/bundle-/media/user/My%20Passport/bundle]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/100% full/bundle-/srv/100%25%20full/bundle]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/tag#3/bundle-/srv/tag%233/bundle]",
+    "tests/test_installer_paths.py::test_emitted_encoder_produces_a_usable_file_url[/srv/\\xfcn\\xefcode/bundle-/srv/%C3%BCn%C3%AFcode/bundle]"
+  ]
+}

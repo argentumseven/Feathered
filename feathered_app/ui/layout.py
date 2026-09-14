@@ -60,10 +60,7 @@ class LayoutMixin:
         style.configure("Hint.TLabel", background=BG_APP, foreground=FG_MUTED, font=("Segoe UI", 9))
         style.configure("PanelHint.TLabel", background=BG_PANEL, foreground=FG_MUTED,
                         font=("Segoe UI", 9))
-        # 1.0.37 avoids ttk's native
-        # disabled label paint. On clam that state can render a light system
-        # highlight against Feathered's dark palette. Inactive provenance controls
-        # use explicit muted styles instead, while remaining functionally disabled.
+        # Use explicit muted styles for disabled provenance controls.
         style.configure("MutedPanel.TLabel", background=BG_PANEL, foreground=FG_DIM)
         style.configure("MutedPanelHint.TLabel", background=BG_PANEL, foreground=FG_DIM,
                         font=("Segoe UI", 9))
@@ -264,9 +261,7 @@ class LayoutMixin:
         for button, delta in (("<Button-4>", -3), ("<Button-5>", 3)):
             self.bind_all(button, lambda e, d=delta: self._on_wheel_button(e, d))
 
-        # 1.0.51 follows the causal build
-        # model: package/workload intent determines the repository topology that
-        # must be satisfied, not the other way around.
+        # Content selection determines which repository topology must be satisfied.
         self.stage_order = ["target", "packages", "repositories", "keyrings", "transfer", "review"]
         labels = {"target": "Linux Distribution", "packages": "Content",
                   "repositories": "Repositories", "keyrings": "Provenance & Keying",
@@ -695,6 +690,7 @@ class LayoutMixin:
 
     def show_pane(self, key: str):
         """Reveal one wizard stage or sidecar utility and restyle the rail."""
+        self._dismiss_tooltips()
         if key in self.stage_order:
             self.last_wizard_pane = key
         for name, parts in self.step_rows.items():
@@ -807,11 +803,8 @@ class LayoutMixin:
                 if not self.arch_var.get().strip():
                     raise RuntimeError("Choose a target architecture before continuing.")
             elif pane == "packages":
-                from kubernetes_workflow import VKS_KEY, INVENTORY_MESSAGE
                 context = self._selected_workload_context()
                 context.validate()
-                if context.workload == VKS_KEY and not self.inventory_var.get().strip():
-                    raise RuntimeError(INVENTORY_MESSAGE)
                 # Workload mode creates semantic roots on this step. Exact
                 # package and mirror modes intentionally choose concrete roots
                 # on Repositories, so they remain valid intents here.
@@ -962,7 +955,8 @@ class LayoutMixin:
         if not ok:
             if self._recover_wizard_transition(self.active_pane, message):
                 return False
-            self._focus_validation(self.active_pane, target, message)
+            if not self._route_validation_error(message):
+                self._focus_validation(self.active_pane, target, message)
             messagebox.showerror(APP_TITLE, message)
             return False
         next_index = index + 1
@@ -1127,11 +1121,23 @@ class LayoutMixin:
         except tk.TclError:
             pass
 
-    def _route_validation_error(self, message: str) -> None:
+    def _signing_requested(self) -> None:
+        """An operator enabling sealing should see any missing setup immediately."""
+        if not self.sign_index_var.get():
+            return
+        try:
+            self._validate_signing()
+        except (RuntimeError, ValueError) as exc:
+            self._route_validation_error(str(exc))
+
+    def _route_validation_error(self, message: str) -> bool:
         """Map common missing-input failures back to the exact stage/control."""
         text = (message or "").lower()
         if "signing key" in text or "sealing is enabled" in text:
-            self._focus_validation("keyrings", getattr(self, "signing_key_entry", None), message)
+            target = getattr(self, "signing_key_entry", None)
+            if target is not None and target.instate(["disabled"]):
+                target = getattr(self, "openpgp_status_card", target)
+            self._focus_validation("keyrings", target, message)
         elif "entitlement" in text or "private key" in text and "red hat" in text:
             self._focus_validation("keyrings", getattr(self, "entitlement_tree", None), message)
         elif "target inventory" in text:
@@ -1150,16 +1156,28 @@ class LayoutMixin:
                                               "local media", "media folder")):
             self._focus_validation("repositories", getattr(self, "base_sources_card", None), message)
         else:
-            # Unknown validation failures keep their existing dialog behavior.
-            return
+            # Unknown validation failures keep their existing stage/control.
+            return False
+        return True
+
+    def _dismiss_tooltips(self) -> None:
+        windows = list(self.__dict__.get("_tooltip_windows", ()))
+        self.__dict__["_tooltip_windows"] = set()
+        for win in windows:
+            try:
+                if win.winfo_exists():
+                    win.destroy()
+            except tk.TclError:
+                pass
 
     def _attach_tooltip(self, widget, text: str) -> None:
-        """Attach a compact hover tooltip without adding another UI dependency."""
+        """Attach a compact hover tooltip that cannot outlive its source widget."""
         state = {"window": None}
 
         def hide(_event=None):
             win = state.get("window")
             if win is not None:
+                self.__dict__.setdefault("_tooltip_windows", set()).discard(win)
                 try:
                     win.destroy()
                 except tk.TclError:
@@ -1169,6 +1187,8 @@ class LayoutMixin:
         def show(_event=None):
             hide()
             try:
+                if not widget.winfo_ismapped():
+                    return
                 win = tk.Toplevel(self)
                 win.wm_overrideredirect(True)
                 win.attributes("-topmost", True)
@@ -1182,12 +1202,15 @@ class LayoutMixin:
                     font=("Segoe UI", 9))
                 label.pack()
                 state["window"] = win
+                self.__dict__.setdefault("_tooltip_windows", set()).add(win)
             except tk.TclError:
                 hide()
 
         widget.bind("<Enter>", show, add="+")
         widget.bind("<Leave>", hide, add="+")
         widget.bind("<Button-1>", hide, add="+")
+        widget.bind("<Unmap>", hide, add="+")
+        widget.bind("<Destroy>", hide, add="+")
 
     def _image_checkbutton(self, parent, variable, text, command=None):
         """A checkbox drawn from the same images as the package picker.

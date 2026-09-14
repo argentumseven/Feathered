@@ -1,0 +1,9 @@
+baseline 0 4.468905858000085 {'output_bytes': 2147483648, 'output_reads': 32, 'verification_bytes': 536870912, 'verification_reads': 8}
+updated 0 0.5432656680000036 {'output_bytes': 0, 'output_reads': 0, 'verification_bytes': 536870912, 'verification_reads': 8}
+updated 1 2.4363640509999414 {'output_bytes': 0, 'output_reads': 0, 'verification_bytes': 536870912, 'verification_reads': 8}
+baseline 1 2.1240375930000255 {'output_bytes': 2147483648, 'output_reads': 32, 'verification_bytes': 536870912, 'verification_reads': 8}
+baseline 2 1.9918621780000194 {'output_bytes': 2147483648, 'output_reads': 32, 'verification_bytes': 536870912, 'verification_reads': 8}
+updated 2 0.5498710580000079 {'output_bytes': 0, 'output_reads': 0, 'verification_bytes': 536870912, 'verification_reads': 8}
+baseline median seconds 2.1240375930000255
+updated median seconds 0.5498710580000079
+All six complete bundle listings and normalized file hashes match.

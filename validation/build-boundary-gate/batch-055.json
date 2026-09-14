@@ -1,0 +1,522 @@
+{
+  "schema": 1,
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_repository_universe.py::test_rebinding_repo_rows_cannot_desynchronise_the_active_slot",
+    "tests/test_repository_universe.py::test_in_place_mutation_still_reaches_the_stored_list",
+    "tests/test_repository_universe.py::test_assigning_one_universe_from_the_other_does_not_alias_them",
+    "tests/test_repository_universe.py::test_activate_reports_whether_the_mode_actually_changed",
+    "tests/test_repository_universe.py::test_transaction_universe_scope_restores_the_caller_mode",
+    "tests/test_repository_universe.py::test_transaction_universe_scope_restores_the_mode_after_an_exception",
+    "tests/test_repository_universe.py::test_unknown_mode_is_rejected_rather_than_silently_defaulting",
+    "tests/test_repository_universe.py::test_reads_on_a_partially_constructed_instance_do_not_invent_storage",
+    "tests/test_repository_universe.py::test_delete_clears_only_the_addressed_universe",
+    "tests/test_repository_universe.py::test_grouped_state_view_still_reaches_the_universe",
+    "tests/test_repository_universe.py::test_real_app_composes_the_universe_mixin",
+    "tests/test_repository_universe.py::test_no_module_reintroduces_manual_universe_synchronisation",
+    "tests/test_repository_universe.py::test_no_module_reaches_around_the_descriptor_via_dunder_dict",
+    "tests/test_review_dialog_lock.py::test_closing_the_review_dialog_cancels_rather_than_hanging",
+    "tests/test_review_dialog_lock.py::test_escape_answers_the_waiting_worker",
+    "tests/test_review_dialog_lock.py::test_destroying_the_dialog_by_any_other_means_still_answers",
+    "tests/test_review_dialog_lock.py::test_the_decision_is_answered_exactly_once",
+    "tests/test_review_dialog_lock.py::test_confirm_warnings_returns_once_the_dialog_is_closed",
+    "tests/test_review_dialog_lock.py::test_confirm_warnings_returns_even_if_the_dialog_cannot_open",
+    "tests/test_review_dialog_lock.py::test_a_dialog_that_fails_after_grabbing_does_not_lock_the_window"
+  ],
+  "batch_excluded": [
+    "tests/test_repository_universe.py::test_each_mode_owns_its_own_list",
+    "tests/test_review_dialog_lock.py::test_an_interface_error_is_recorded_where_it_can_be_retrieved",
+    "tests/test_review_dialog_lock.py::test_the_interface_error_reaches_the_host_side_log_file",
+    "tests/test_review_dialog_lock.py::test_the_handler_is_installed_on_the_real_application"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_repository_universe.py::test_rebinding_repo_rows_cannot_desynchronise_the_active_slot",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_rebinding_repo_rows_cannot_desynchronise_the_active_slot",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_rebinding_repo_rows_cannot_desynchronise_the_active_slot",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_in_place_mutation_still_reaches_the_stored_list",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_in_place_mutation_still_reaches_the_stored_list",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_in_place_mutation_still_reaches_the_stored_list",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_assigning_one_universe_from_the_other_does_not_alias_them",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_assigning_one_universe_from_the_other_does_not_alias_them",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_assigning_one_universe_from_the_other_does_not_alias_them",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_activate_reports_whether_the_mode_actually_changed",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_activate_reports_whether_the_mode_actually_changed",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_activate_reports_whether_the_mode_actually_changed",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_transaction_universe_scope_restores_the_caller_mode",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_transaction_universe_scope_restores_the_caller_mode",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_transaction_universe_scope_restores_the_caller_mode",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_transaction_universe_scope_restores_the_mode_after_an_exception",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_transaction_universe_scope_restores_the_mode_after_an_exception",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_transaction_universe_scope_restores_the_mode_after_an_exception",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_unknown_mode_is_rejected_rather_than_silently_defaulting",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_unknown_mode_is_rejected_rather_than_silently_defaulting",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_unknown_mode_is_rejected_rather_than_silently_defaulting",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_reads_on_a_partially_constructed_instance_do_not_invent_storage",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_reads_on_a_partially_constructed_instance_do_not_invent_storage",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_reads_on_a_partially_constructed_instance_do_not_invent_storage",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_delete_clears_only_the_addressed_universe",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_delete_clears_only_the_addressed_universe",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_delete_clears_only_the_addressed_universe",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_grouped_state_view_still_reaches_the_universe",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_grouped_state_view_still_reaches_the_universe",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_grouped_state_view_still_reaches_the_universe",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_real_app_composes_the_universe_mixin",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_real_app_composes_the_universe_mixin",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_real_app_composes_the_universe_mixin",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_no_module_reintroduces_manual_universe_synchronisation",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_no_module_reintroduces_manual_universe_synchronisation",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_no_module_reintroduces_manual_universe_synchronisation",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_no_module_reaches_around_the_descriptor_via_dunder_dict",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_no_module_reaches_around_the_descriptor_via_dunder_dict",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_repository_universe.py::test_no_module_reaches_around_the_descriptor_via_dunder_dict",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_closing_the_review_dialog_cancels_rather_than_hanging",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_closing_the_review_dialog_cancels_rather_than_hanging",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_closing_the_review_dialog_cancels_rather_than_hanging",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_escape_answers_the_waiting_worker",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_escape_answers_the_waiting_worker",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_escape_answers_the_waiting_worker",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_destroying_the_dialog_by_any_other_means_still_answers",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_destroying_the_dialog_by_any_other_means_still_answers",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_destroying_the_dialog_by_any_other_means_still_answers",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_the_decision_is_answered_exactly_once",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_the_decision_is_answered_exactly_once",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_the_decision_is_answered_exactly_once",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_confirm_warnings_returns_once_the_dialog_is_closed",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_confirm_warnings_returns_once_the_dialog_is_closed",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_confirm_warnings_returns_once_the_dialog_is_closed",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_confirm_warnings_returns_even_if_the_dialog_cannot_open",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_confirm_warnings_returns_even_if_the_dialog_cannot_open",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_confirm_warnings_returns_even_if_the_dialog_cannot_open",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_a_dialog_that_fails_after_grabbing_does_not_lock_the_window",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_a_dialog_that_fails_after_grabbing_does_not_lock_the_window",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_review_dialog_lock.py::test_a_dialog_that_fails_after_grabbing_does_not_lock_the_window",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

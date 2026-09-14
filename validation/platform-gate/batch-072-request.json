@@ -1,0 +1,13 @@
+{
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "nodes": [
+    "tests/test_version_ui_fixes.py::test_clearing_the_baseline_refreshes_what_depended_on_it",
+    "tests/test_version_ui_fixes.py::test_clearing_an_empty_baseline_does_nothing",
+    "tests/test_workload_version_ui.py::test_minor_discovery_publishes_before_slowest_probe_finishes",
+    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-node-rpm]",
+    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-node-deb]",
+    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-client-rpm]",
+    "tests/test_workload_version_ui.py::test_patch_scan_snapshots_tk_state_and_retains_full_builds[kubernetes-client-deb]",
+    "tests/test_workload_version_ui.py::test_generic_package_scan_result_cannot_replace_another_workload"
+  ]
+}

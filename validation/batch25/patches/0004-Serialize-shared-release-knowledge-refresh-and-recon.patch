@@ -1,5 +1,5 @@
 From f542ea23894c09688f026c76b0bc937b59ef758e Mon Sep 17 00:00:00 2001
-From: Codex <codex@openai.com>
+From: Feathered Maintenance <maintenance@localhost>
 Date: Sat, 12 Sep 2026 18:53:32 -0400
 Subject: [PATCH 4/5] Serialize shared release knowledge refresh and reconcile
  newer cache evidence

@@ -105,12 +105,21 @@ def test_bundle_provenance_embeds_the_legend_for_its_own_modes():
     assert provenance.VERIFIED_METADATA not in modes
 
 
-def test_both_provenance_writers_emit_the_plain_text_legend():
-    """apt_core keeps a forked _write_provenance; it must not drift from core's."""
-    apt = (ROOT / "apt_core.py").read_text(encoding="utf-8")
-    core_src = (ROOT / "core.py").read_text(encoding="utf-8")
-    assert "_write_assurance_legend" in core_src
-    assert "_write_assurance_legend" in apt, (
-        "APT bundles would ship without ASSURANCE.txt because apt_core does not "
-        "reuse core._write_provenance"
-    )
+def test_both_provenance_writers_emit_the_plain_text_legend(tmp_path):
+    """Both public entry points must emit the real legend, even when delegated."""
+    import core
+    import apt_core
+    legends = []
+    for name, backend in (("rpm", core), ("deb", apt_core)):
+        directory = tmp_path / name
+        directory.mkdir()
+        from provenance import PackageProvenance, VERIFIED_DIGEST
+        entries = [PackageProvenance(package_id="fixture", filename="fixture.pkg",
+                   sha256="a" * 64, size=1, source_url="https://example.test/repo/fixture.pkg",
+                   repository="fixture", assurance=VERIFIED_DIGEST, digest_checked=True)]
+        backend._write_provenance(tmp_path, directory, entries, [], core.BuildOptions(),
+                                  core.Reporter(), {})
+        legend = (directory / "ASSURANCE.txt").read_text(encoding="utf-8")
+        assert len(legend) > 100
+        legends.append(legend)
+    assert legends[0] == legends[1]

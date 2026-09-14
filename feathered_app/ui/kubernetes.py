@@ -23,7 +23,7 @@ class KubernetesWorkloadMixin:
         self.k8s_minor_var = tk.StringVar(value='')
         self.apiserver_oldest_minor_var = tk.StringVar(value='')
         self.apiserver_newest_minor_var = tk.StringVar(value='')
-        self.pin_to_inventory_baseline_var = tk.BooleanVar(value=True)
+        self.pin_to_inventory_baseline_var = tk.BooleanVar(value=False)
         self.advisories_acknowledged_var = tk.BooleanVar(value=False)
         self.image_baker_name_var = tk.StringVar(value='feathered-node-additions')
         self.k8s_observation_var = tk.StringVar(value='')
@@ -58,7 +58,7 @@ class KubernetesWorkloadMixin:
         ttk.Label(self.vks_options, text='Image Baker draft name', style='Panel.TLabel').pack(anchor='w')
         entry = ttk.Entry(self.vks_options, textvariable=self.image_baker_name_var)
         entry.pack(fill='x'); self._register_operation_control(entry)
-        ttk.Label(self.vks_options, text='Choose additions in the package chooser on Repositories. Load a captured node inventory on Target.',
+        ttk.Label(self.vks_options, text='Choose additions in the package chooser on Repositories. A captured node inventory on Target is optional and is used only when baseline pinning is enabled.',
                   style='PanelHint.TLabel', wraplength=660).pack(anchor='w')
         self.vks_options.grid_remove()
         self.k8s_minor_var.trace_add('write', self._k8s_minor_changed)

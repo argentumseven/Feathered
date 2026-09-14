@@ -5,7 +5,7 @@ import tempfile
 import time
 import urllib.parse
 import urllib.request
-from typing import Callable, ContextManager, Dict, Optional, Protocol, Set, TypeVar
+from typing import Callable, ContextManager, Dict, Optional, Protocol, TypeVar
 
 
 class TransportReporter(Protocol):
@@ -222,7 +222,6 @@ def open_url(url: str, timeout: int, repo: Optional[object] = None, *, user_agen
     opener = urllib.request.build_opener(*handlers)
     response = opener.open(_request(url, user_agent), timeout=timeout)
 
-    note_successful_fetch(url)
     try:
         final_url = response.geturl()
     except AttributeError as exc:
@@ -262,79 +261,30 @@ def open_url(url: str, timeout: int, repo: Optional[object] = None, *, user_agen
     return response
 
 
-# Hosts that have already failed certificate validation this session. Two
-# unrelated origins failing the same way is near-proof the fault is local
-# (clock or trust store), not a coincidence of two broken mirrors.
-_CERT_FAILED_HOSTS: Set[str] = set()
-_TLS_SUCCESS_HOSTS: Set[str] = set()
-
-
-def note_successful_fetch(url: str) -> None:
-    """Record an HTTPS origin that validated normally this session.
-
-    One success proves the local clock and trust store are fine, which rules
-    out the whole class of "your computer is wrong" explanations for another
-    host's certificate failure."""
-    parts = urllib.parse.urlsplit(str(url or ""))
-    if (parts.scheme or "").lower() == "https":
-        host = effective_hostname(url)
-        if host:
-            _TLS_SUCCESS_HOSTS.add(host)
-
-
-def note_certificate_failure(url: str) -> int:
-    host = effective_hostname(url)
-    if host:
-        _CERT_FAILED_HOSTS.add(host)
-    return len(_CERT_FAILED_HOSTS)
-
-
-def certificate_failure_advice(exc: BaseException, url: str = "") -> str:
-    """Actionable text for a TLS certificate verification failure, or "".
-
-    Certificate validation failures are not transient: retrying in seconds
-    cannot fix an expired or untrusted certificate, and the operator needs to
-    know the concrete remedies rather than a bare OpenSSL error."""
+def _certificate_verification_error(exc: BaseException) -> Optional[ssl.SSLCertVerificationError]:
     seen = set()
     node: Optional[BaseException] = exc
-    cert_error: Optional[ssl.SSLCertVerificationError] = None
     while node is not None and id(node) not in seen:
         seen.add(id(node))
         if isinstance(node, ssl.SSLCertVerificationError):
-            cert_error = node
-            break
+            return node
         reason = getattr(node, "reason", None)
         node = reason if isinstance(reason, BaseException) else (node.__cause__ or node.__context__)
+    return None
+
+
+def certificate_failure_advice(exc: BaseException, url: str = "") -> str:
+    cert_error = _certificate_verification_error(exc)
     if cert_error is None:
         return ""
-    detail = str(getattr(cert_error, "verify_message", "") or cert_error)
-    expired = "expired" in detail.lower()
-    distinct_hosts = note_certificate_failure(url) if url else 0
-    advice = ("The server's TLS certificate failed validation"
-              + (f" ({detail})" if detail else "") + ". ")
-    if _TLS_SUCCESS_HOSTS:
-        example = sorted(_TLS_SUCCESS_HOSTS)[0]
-        advice += ("This computer's clock and certificate store are demonstrably fine: %s "
-                   "validated normally in this same session. The fault is this mirror. Edit "
-                   "the repository and point it at another mirror of the same archive. "
-                   % example)
-    elif distinct_hosts >= 2:
-        advice += ("NOTE: %d different hosts have now failed certificate validation the same "
-                   "way in this session. If other HTTPS sites work in a browser, these mirrors "
-                   "are simply misconfigured; otherwise check this computer's date/time and "
-                   "root-certificate updates. " % distinct_hosts)
-    elif expired:
-        advice += ("Either this mirror is serving an expired certificate or this computer's "
-                   "date/time is wrong. Check the system clock first. ")
-    else:
-        advice += ("Either this mirror's certificate/chain is broken or this computer's "
-                   "trust store or clock is wrong. Check the system date first. ")
-    advice += ("If the clock is correct, the mirror itself is at fault: edit this repository "
-               "and point it at a different mirror of the same archive (geo-routed hostnames "
-               "such as geo.mirror.pkgbuild.com pick a nearby mirror for you, and that specific "
-               "mirror may be misconfigured even when others are healthy). For a private "
-               "repository with an internal CA, configure its CA certificate on the repository row.")
-    return advice
+    detail = str(getattr(cert_error, "verify_message", "") or cert_error).strip()
+    message = "TLS certificate verification failed"
+    if detail:
+        message += f" ({detail})"
+    message += ". Check the system clock/date/time and CA certificate store. "
+    message += "If those are correct, use a different HTTPS mirror for this repository. "
+    message += "For a private repository, configure its CA certificate on the repository row."
+    return message
 
 
 def fetch_bytes(

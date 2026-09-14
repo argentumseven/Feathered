@@ -1,0 +1,3 @@
+tests/test_transaction_inventory.py
+tests/test_transaction_resolution.py
+tests/test_ui_event_budget.py

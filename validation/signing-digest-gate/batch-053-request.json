@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[False-expected0]",
+    "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[True-expected1]",
+    "tests/test_metadata_loading.py::test_scoped_load_cannot_replace_or_reuse_populated_global_cache",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows0]",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows1]",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows2]",
+    "tests/test_metadata_loading.py::test_failed_sources_warn_or_log_and_validate_only_successful_providers",
+    "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[False]",
+    "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[True]",
+    "tests/test_metadata_loading.py::test_cancellation_after_backend_failure_is_not_reported_as_source_failure",
+    "tests/test_metadata_loading.py::test_preexisting_cancellation_stops_before_backend",
+    "tests/test_metadata_loading.py::test_failed_scope_validation_preserves_previous_cache",
+    "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible mirrors (recommended fallback)]",
+    "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible + EPEL (broad fallback)]",
+    "tests/test_metadata_loading.py::test_coverage_can_bypass_distribution_policy_without_accessing_it",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[rpm-rpm]",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[deb-deb]",
+    "tests/test_mirror_unification.py::test_identical_artifact_in_two_repositories_is_kept_once[arch-arch]",
+    "tests/test_mirror_unification.py::test_selection_order_decides_which_repository_supplies_the_bytes",
+    "tests/test_mirror_unification.py::test_stronger_shared_algorithm_is_preferred_for_the_proof"
+  ]
+}

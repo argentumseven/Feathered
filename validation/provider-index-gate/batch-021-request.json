@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "test_feather.py::test_1071_mirror_selection_is_authoritative_without_mutating_transaction_state",
+    "test_feather.py::test_1071_mirror_probe_and_loader_consume_checked_set_not_hidden_enabled_flags",
+    "test_feather.py::test_1072_repository_workflow_is_rebuilt_from_content_intent",
+    "test_feather.py::test_1072_mirror_and_transaction_repository_universes_are_isolated",
+    "test_feather.py::test_1072_mirror_uses_its_own_source_method_variable",
+    "test_feather.py::test_1072_mirror_preset_rows_do_not_require_transaction_widgets",
+    "test_feather.py::test_1073_transaction_source_default_is_derived_from_linux_target",
+    "test_feather.py::test_1073_profile_managed_workload_repo_does_not_leak_into_exact_package_scope",
+    "test_feather.py::test_1073_exact_root_from_profile_managed_repo_reactivates_only_that_repo",
+    "test_feather.py::test_1073_clearing_exact_roots_disables_profile_managed_sidechannels",
+    "test_feather.py::test_1073_repository_views_defensively_seed_automatic_base_sources",
+    "test_feather.py::test_1073_provenance_keyring_and_vendor_views_use_current_participating_scope",
+    "test_feather.py::test_1073_test_all_sources_and_validation_ignore_stale_profile_managed_sidechannels",
+    "test_feather.py::test_1073_operator_added_repository_is_target_scoped_without_being_deleted",
+    "test_feather.py::test_1073_package_browser_excludes_repository_scoped_to_another_target",
+    "test_feather.py::test_1074_dynamic_source_plan_combobox_is_built_with_current_choices",
+    "test_feather.py::test_1074_source_plan_sync_rehydrates_dynamic_widget_state",
+    "test_feather.py::test_1074_source_plan_sync_repairs_invalid_inherited_plan",
+    "test_feather.py::test_1075_rpm_exact_root_cannot_substitute_same_name_repository",
+    "test_feather.py::test_1075_deb_exact_root_cannot_substitute_same_name_repository"
+  ]
+}

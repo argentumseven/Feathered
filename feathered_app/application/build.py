@@ -89,9 +89,7 @@ class BuildMixin(BuildRequestMixin, BuildSourcesMixin, BuildPreparationMixin):
     def start_build(self, do_download: bool):
         if self._busy():
             return
-        # 1.0.41 never starts an
-        # analysis/download with an empty Review contract. The buttons mirror
-        # this rule, and this guard keeps programmatic/direct calls honest too.
+        # Do not start analysis or download with an empty review selection.
         if not self._has_review_contract():
             intent = self._acquisition_intent()
             if intent is AcquisitionIntent.PACKAGES:

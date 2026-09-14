@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "test_feather.py::test_package_stream_rejects_bytes_beyond_advertised_size",
+    "test_feather.py::test_1059_materialized_replacement_name_is_the_resolver_root_and_keeps_version_pin",
+    "test_feather.py::test_1059_component_repository_role_does_not_require_duplicate_repository_roles_field",
+    "test_feather.py::test_1060_artifact_only_evidence_can_corroborate_exact_file",
+    "test_feather.py::test_1060_independent_artifact_mismatch_is_fatal",
+    "test_feather.py::test_1060_evidence_candidates_never_scrape_or_guess_names",
+    "test_feather.py::test_1060_step4_checksum_precedes_evidence_validation",
+    "test_feather.py::test_1060_footer_reserves_navigation_column_and_wraps_status",
+    "test_feather.py::test_1060_evidence_ui_exposes_test_and_artifact_only_state",
+    "test_feather.py::test_1060_preflight_warns_but_accepts_artifact_only_evidence",
+    "test_feather.py::test_1061_test_evidence_button_precedes_manual_selector_rows",
+    "test_feather.py::test_1062_test_evidence_button_shares_status_row_like_checksum_inspection",
+    "test_feather.py::test_1061_manual_evidence_prompt_is_feather_styled_and_documents_contract",
+    "test_feather.py::test_1061_manual_evidence_url_never_becomes_reusable_dropdown_choice",
+    "test_feather.py::test_1061_clear_manual_evidence_discards_active_url_and_preflight_cache",
+    "test_feather.py::test_1061_manual_source_row_exposes_stable_clear_slot_and_typed_url",
+    "test_feather.py::test_1063_evidence_selection_marks_untested_without_network_side_effects",
+    "test_feather.py::test_1063_step4_requires_explicit_successful_test_after_selection",
+    "test_feather.py::test_1063_spot_compare_hashes_full_artifacts_with_selected_policy",
+    "test_feather.py::test_1063_manual_dialog_no_longer_claims_file_urls_are_valid_independent_evidence"
+  ]
+}

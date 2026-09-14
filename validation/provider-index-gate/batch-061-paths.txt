@@ -1,0 +1,3 @@
+tests/test_reported_defects.py
+tests/test_repository_universe.py
+tests/test_review_dialog_lock.py

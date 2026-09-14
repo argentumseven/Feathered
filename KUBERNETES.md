@@ -11,7 +11,7 @@
      versions; they are not pinned to the Kubernetes minor.
    - **Kubernetes client tools (kubectl)** acquires the client.
    - **VKS node OS package additions** uses the ordinary exact-package chooser
-     for additions such as cryptsetup. It requires a captured installed inventory.
+     for additions such as cryptsetup. A captured installed inventory is optional and can be used to pin the existing node baseline.
 3. For Kubernetes workloads, choose **Kubernetes minor repository**, then
    **Package patch / build**. The minor selects the community RPM or flat DEB
    repository. Full package versions, including packaging revisions, load
@@ -61,7 +61,7 @@ Retries wait while a build is active and while another workload is selected.
 No refresh changes a selected minor, exact package pin or operator-owned source.
 Previously observed repositories remain available when a whole probe run fails.
 
-API server input is validated syntactically, without a hardcoded 20–60 range.
+API server input is validated syntactically, without a hardcoded 20-60 range.
 Unknown and end-of-life versions receive notices; they are still usable. Upstream
 end of life does not establish a vendor's support status. Review/manifest metadata
 records the release knowledge used for the evaluation. Headless builds make no
@@ -104,16 +104,15 @@ This workload is offered for Photon 5.0, Ubuntu 22.04/24.04 and RHEL 9 targets.
 That product availability rule is not a declaration that every corresponding
 VKS image or added package is vendor-supported.
 
-Load inventory captured from the intended node, including package detail records
-from target_inventory.sh with target_inventory_details.py. An empty or mismatched
-inventory cannot establish its baseline. Photon updates and Ubuntu updates/security
-are rolling sources, while the deployed node image was built from an earlier
-package set. **Pin to inventory baseline** defaults on: those update rows are
-excluded, installed capabilities participate in resolution, and publication fails
-if the result would replace an installed package with a different version. If
-an addition needs a newer library, choose a compatible package/source snapshot or
-deliberately uncheck the pin. The resolver does not hide installed-package upgrades
-from the catalogue. Pinning does not reconstruct unavailable historical archives.
+Installed inventory is optional. When inventory from the intended node is loaded,
+including package detail records from target_inventory.sh with
+target_inventory_details.py, **Pin to inventory baseline** can keep the build aligned
+with that captured package set. With a usable inventory and pinning enabled, rolling
+update rows are excluded, installed capabilities participate in resolution, and
+publication refuses replacements of captured installed versions. Without inventory,
+pinning has no baseline to apply and does not block the build; Feathered resolves a
+complete repository-derived closure instead. Pinning does not reconstruct unavailable
+historical archives.
 
 Managed node binaries, runtimes, kernels and cluster add-ons receive advisories.
 They remain selectable. Development packages such as kernel-headers, kernel-devel

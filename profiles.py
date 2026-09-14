@@ -593,13 +593,13 @@ def _artix_repos(version: str, arch: str) -> List[RepoTemplate]:
 
 def _arch_repos(version: str, arch: str) -> List[RepoTemplate]:
     """Official Arch Linux rolling repositories for the supported x86_64 target."""
-    base = "https://geo.mirror.pkgbuild.com"
+    base = "https://fastly.mirror.pkgbuild.com"
     return [
         RepoTemplate("Arch Linux core", f"{base}/core/os/{arch}/", "dependency", 40, True,
-                     "Official Arch Linux core repository via geo.mirror.pkgbuild.com (geo-routed: resolves to a nearby mirror; if that one mirror misbehaves, e.g. an expired TLS certificate, point this row at a specific mirror from archlinux.org/mirrorlist).",
+                     "Official Arch Linux core repository on Arch's Fastly mirror.",
                      "rolling", "pacman", "core"),
         RepoTemplate("Arch Linux extra", f"{base}/extra/os/{arch}/", "dependency", 45, True,
-                     "Official Arch Linux extra repository via geo.mirror.pkgbuild.com.",
+                     "Official Arch Linux extra repository on Arch's Fastly mirror.",
                      "rolling", "pacman", "extra"),
         RepoTemplate("Arch Linux multilib", f"{base}/multilib/os/{arch}/", "dependency", 80, False,
                      "Official optional multilib repository; disabled by default.",

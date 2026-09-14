@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "tests/test_footer_status.py::test_deliberate_space_runs_survive",
+    "tests/test_footer_status.py::test_truncation_prefers_a_word_boundary_but_survives_one_long_token",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[None]",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[]",
+    "tests/test_footer_status.py::test_blank_input_produces_blank_output[   ]",
+    "tests/test_footer_status.py::test_first_line_skips_leading_blank_lines",
+    "tests/test_footer_status.py::test_every_status_write_goes_through_the_condenser",
+    "tests/test_footer_status.py::test_set_footer_status_condenses_and_returns_what_is_shown",
+    "tests/test_footer_status.py::test_set_footer_status_is_safe_with_no_widget",
+    "tests/test_footer_status.py::test_status_label_height_is_pinned_in_the_layout",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[workload]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[exact]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[separate]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[unified]",
+    "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[devuan]",
+    "tests/test_headless_execution.py::test_services_forward_progress_events_cancellation_and_conflict_details",
+    "tests/test_headless_execution.py::test_frozen_signing_and_baseline_options_never_fall_back_to_controls",
+    "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[arch]",
+    "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[deb]",
+    "tests/test_installer_paths.py::test_bundle_path_reaches_the_package_manager_as_a_url[rpm]"
+  ]
+}

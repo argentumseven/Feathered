@@ -1,0 +1,520 @@
+{
+  "schema": 1,
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_release_integrity.py::test_frozen_release_rejects_missing_embedded_policy",
+    "tests/test_release_integrity.py::test_bundled_verifier_exact_hash_set_is_enforced",
+    "tests/test_release_integrity.py::test_bundled_verifier_rejects_unexpected_file",
+    "tests/test_release_integrity.py::test_build_requires_signing_iso_and_embedded_verifier_policy",
+    "tests/test_release_integrity.py::test_production_build_lock_authenticates_every_pinned_requirement",
+    "tests/test_release_integrity.py::test_windows_ci_contains_real_signed_production_release_gate",
+    "tests/test_release_integrity.py::test_project_is_mit_licensed_and_distribution_notice_is_present",
+    "tests/test_release_integrity.py::test_gpg_acquisition_is_pinned_to_expected_installer_hash",
+    "tests/test_release_integrity.py::test_verifier_cache_still_catches_a_later_tamper",
+    "tests/test_release_integrity.py::test_verifier_integrity_error_is_not_a_waivable_signature_failure",
+    "tests/test_release_integrity.py::test_source_checkout_keeps_path_fallback",
+    "tests/test_release_integrity.py::test_backend_modules_can_resolve_every_module_qualified_reference",
+    "tests/test_release_integrity.py::test_windows_release_smoke_executes_actual_mount_path",
+    "tests/test_release_integrity.py::test_release_checksum_verifier_accepts_exact_distribution_and_rejects_tamper",
+    "tests/test_release_integrity.py::test_release_checksum_verifier_requires_exact_file_set",
+    "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_unsafe_or_duplicate_paths",
+    "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_manifest_checksum_disagreement",
+    "tests/test_release_integrity.py::test_production_build_executes_release_checksum_verifier_before_success",
+    "tests/test_release_integrity.py::test_windows_ci_rechecks_release_checksum_set_and_exe_independently",
+    "tests/test_release_integrity.py::test_receiver_verifier_refuses_a_malformed_index_without_a_traceback"
+  ],
+  "batch_excluded": [
+    "tests/test_release_integrity.py::test_frozen_release_rejects_missing_bundled_verifier",
+    "tests/test_release_integrity.py::test_source_tree_carries_no_superseded_working_copies"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_release_integrity.py::test_frozen_release_rejects_missing_embedded_policy",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_frozen_release_rejects_missing_embedded_policy",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_frozen_release_rejects_missing_embedded_policy",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_exact_hash_set_is_enforced",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_exact_hash_set_is_enforced",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_exact_hash_set_is_enforced",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_rejects_unexpected_file",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_rejects_unexpected_file",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_bundled_verifier_rejects_unexpected_file",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_build_requires_signing_iso_and_embedded_verifier_policy",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_build_requires_signing_iso_and_embedded_verifier_policy",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_build_requires_signing_iso_and_embedded_verifier_policy",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_production_build_lock_authenticates_every_pinned_requirement",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_production_build_lock_authenticates_every_pinned_requirement",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_production_build_lock_authenticates_every_pinned_requirement",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_windows_ci_contains_real_signed_production_release_gate",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_windows_ci_contains_real_signed_production_release_gate",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_windows_ci_contains_real_signed_production_release_gate",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_project_is_mit_licensed_and_distribution_notice_is_present",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_project_is_mit_licensed_and_distribution_notice_is_present",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_project_is_mit_licensed_and_distribution_notice_is_present",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_gpg_acquisition_is_pinned_to_expected_installer_hash",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_gpg_acquisition_is_pinned_to_expected_installer_hash",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_gpg_acquisition_is_pinned_to_expected_installer_hash",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_verifier_cache_still_catches_a_later_tamper",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_verifier_cache_still_catches_a_later_tamper",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_verifier_cache_still_catches_a_later_tamper",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_verifier_integrity_error_is_not_a_waivable_signature_failure",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_verifier_integrity_error_is_not_a_waivable_signature_failure",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_verifier_integrity_error_is_not_a_waivable_signature_failure",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_source_checkout_keeps_path_fallback",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_source_checkout_keeps_path_fallback",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_source_checkout_keeps_path_fallback",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_backend_modules_can_resolve_every_module_qualified_reference",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_backend_modules_can_resolve_every_module_qualified_reference",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_backend_modules_can_resolve_every_module_qualified_reference",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_windows_release_smoke_executes_actual_mount_path",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_windows_release_smoke_executes_actual_mount_path",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_windows_release_smoke_executes_actual_mount_path",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_accepts_exact_distribution_and_rejects_tamper",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_accepts_exact_distribution_and_rejects_tamper",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_accepts_exact_distribution_and_rejects_tamper",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_requires_exact_file_set",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_requires_exact_file_set",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_requires_exact_file_set",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_unsafe_or_duplicate_paths",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_unsafe_or_duplicate_paths",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_unsafe_or_duplicate_paths",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_manifest_checksum_disagreement",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_manifest_checksum_disagreement",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_release_checksum_verifier_rejects_manifest_checksum_disagreement",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_production_build_executes_release_checksum_verifier_before_success",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_production_build_executes_release_checksum_verifier_before_success",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_production_build_executes_release_checksum_verifier_before_success",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_windows_ci_rechecks_release_checksum_set_and_exe_independently",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_windows_ci_rechecks_release_checksum_set_and_exe_independently",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_windows_ci_rechecks_release_checksum_set_and_exe_independently",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_receiver_verifier_refuses_a_malformed_index_without_a_traceback",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_receiver_verifier_refuses_a_malformed_index_without_a_traceback",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_release_integrity.py::test_receiver_verifier_refuses_a_malformed_index_without_a_traceback",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "tests/test_installer_paths.py::test_apt_installer_refuses_an_unindexed_bundle_repository",
+    "tests/test_installer_paths.py::test_awkward_bundle_directory_still_produces_a_valid_script",
+    "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments0-0]",
+    "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\ndef test_case(): pytest.skip('no tool')\\n-arguments1-1]",
+    "tests/test_integration_gate.py::test_required_tests_must_execute[import pytest\\npytest.skip('no module', allow_module_level=True)\\n-arguments2-1]",
+    "tests/test_integration_gate.py::test_required_tests_must_execute[def test_case(): pass\\n-arguments3-1]",
+    "tests/test_integration_gate.py::test_native_workflow_shell_steps_parse_individually",
+    "tests/test_k8s_knowledge.py::test_upstream_releases_extend_beyond_former_ceiling_and_skip_future_dates",
+    "tests/test_k8s_knowledge.py::test_known_repository_candidates_survive_missing_older_repositories",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.19-19]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[19-19]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.61-61]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[133-133]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.0-0]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[abc]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[-1]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33 garbage]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[2.0]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33-rc.1]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[html-error]"
+  ]
+}

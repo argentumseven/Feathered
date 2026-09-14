@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "tests/test_build_worker_isolation.py::test_the_download_plan_does_not_deadlock_without_a_consumer",
+    "tests/test_build_worker_isolation.py::test_an_injected_sink_replaces_the_queue_handshake",
+    "tests/test_build_worker_isolation.py::test_a_host_with_no_sink_and_no_ui_continues",
+    "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
+    "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-True]",
+    "tests/test_checksum_release_fixes.py::test_cancelled_pinned_fetch_does_not_fall_back",
+    "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[False]",
+    "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[True]",
+    "tests/test_checksum_release_fixes.py::test_coverage_counts_distinguish_exact_fields_from_minimum_strength",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-False]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-True]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-False]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-True]",
+    "tests/test_checksum_release_fixes.py::test_cold_start_supplies_numbered_releases_and_matching_codenames",
+    "tests/test_checksum_release_fixes.py::test_saved_release_observation_wins_over_bundled_seed",
+    "tests/test_checksum_release_fixes.py::test_slow_previous_discovery_does_not_block_new_distribution"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "test_feather.py::test_117_unsealed_additive_publication_drops_inherited_whole_bundle_seal",
+    "test_feather.py::test_117_open_staging_recovers_interrupted_directory_swap",
+    "test_feather.py::test_117_existing_folder_defaults_to_addendum_and_repo_regeneration",
+    "test_feather.py::test_117_existing_repo_metadata_can_be_left_unchanged",
+    "test_feather.py::test_117_repository_rebuild_never_deletes_old_metadata_artifacts",
+    "test_feather.py::test_117_additive_repo_regeneration_indexes_all_existing_and_new_debs",
+    "test_feather.py::test_123_mirror_inventory_preserves_every_repository_record_without_deduplication",
+    "test_feather.py::test_123_mirror_folder_naming_forks_shared_custom_label_and_timestamp_per_repo",
+    "test_feather.py::test_123_output_preview_lists_each_selected_mirror_repository_and_destination",
+    "test_feather.py::test_123_mirror_checkbox_repaint_invalidates_output_preview",
+    "test_feather.py::test_123_independent_rpm_mirror_destinations_receive_only_their_own_metadata",
+    "test_feather.py::test_123_enhanced_explicit_evidence_preflight_includes_optional_bonds",
+    "test_feather.py::test_123_enhanced_unknown_checksum_coverage_is_pending_not_fallback_required",
+    "test_feather.py::test_123_enhanced_testing_before_inspection_still_requires_a_selection",
+    "test_feather.py::test_123_enhanced_next_requires_checksum_inspection_before_evidence_contract",
+    "test_feather.py::test_123_rhel_compatible_labels_do_not_override_alma_or_rocky_vendor_identity",
+    "test_feather.py::test_123_rhel_public_fallback_evidence_candidates_keep_exact_and_semantic_roles_separate",
+    "test_feather.py::test_123_rhel_public_fallback_exact_catalog_follows_repository_vendor_not_target_profile",
+    "test_feather.py::test_117_build_script_defaults_local_and_release_is_explicit",
+    "test_feather.py::test_117_build_script_supports_current_python_locally_but_pins_release_python"
+  ]
+}

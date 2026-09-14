@@ -1,0 +1,529 @@
+{
+  "schema": 1,
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-arch]",
+    "tests/test_bundle_records.py::test_arch_checksums_include_signature_sidecars",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-rpm]",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-deb]",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-arch]",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-rpm]",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-deb]",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-arch]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-rpm]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-deb]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-arch]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-rpm]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-deb]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-arch]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-rpm]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-deb]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-arch]"
+  ],
+  "batch_excluded": [
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[fresh-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[reuse-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[corrupt-arch]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-deb]"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[differential-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_records.py::test_arch_checksums_include_signature_sidecars",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_records.py::test_arch_checksums_include_signature_sidecars",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_records.py::test_arch_checksums_include_signature_sidecars",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-deb]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-deb]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-deb]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

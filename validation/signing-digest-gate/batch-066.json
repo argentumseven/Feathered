@@ -1,0 +1,541 @@
+{
+  "schema": 1,
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_source_scope.py::test_package_only_uses_root_coverage_and_preserves_original_objects[False]",
+    "tests/test_source_scope.py::test_package_only_uses_root_coverage_and_preserves_original_objects[True]",
+    "tests/test_source_scope.py::test_normal_transaction_keeps_all_eligible_dependency_sources_in_order",
+    "tests/test_source_scope.py::test_mirror_checkboxes_are_authoritative_even_for_disabled_or_foreign_sources",
+    "tests/test_source_scope.py::test_init_incompatible_transaction_repository_is_logged_and_excluded",
+    "tests/test_source_scope.py::test_disabled_repository_does_not_read_url_or_host_state",
+    "tests/test_source_scope.py::test_ordinary_source_does_not_need_exact_package_identity",
+    "tests/test_source_scope.py::test_unknown_target_and_blank_release_keep_existing_compatibility_semantics",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-user:PRIVATE_PASSWORD@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-PRIVATE_BEARER@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
+    "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
+    "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
+    "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]"
+  ],
+  "batch_excluded": [
+    "tests/test_source_scope.py::test_transaction_excludes_foreign_target_without_removing_source[fields0]",
+    "tests/test_source_scope.py::test_transaction_excludes_foreign_target_without_removing_source[fields1]",
+    "tests/test_source_scope.py::test_transaction_excludes_foreign_target_without_removing_source[fields2]",
+    "tests/test_source_scope.py::test_transaction_excludes_foreign_target_without_removing_source[fields3]",
+    "tests/test_source_scope.py::test_managed_workload_sources_participate_only_for_the_current_roots[workload-False-True]",
+    "tests/test_source_scope.py::test_managed_workload_sources_participate_only_for_the_current_roots[exact-False-False]",
+    "tests/test_source_scope.py::test_managed_workload_sources_participate_only_for_the_current_roots[exact-True-True]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\\\[0\\\\]]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload8-evidence_relationship_hints]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload9-target.api_server_versions]",
+    "tests/test_spec_decoding.py::test_valid_draft_optional_fields_and_unknown_keys_remain_compatible",
+    "tests/test_spec_decoding.py::test_direct_api_rejects_wrong_dataclass_fields_before_any_work",
+    "tests/test_spec_decoding.py::test_direct_runtime_configuration_has_same_validation_as_json",
+    "tests/test_spec_decoding.py::test_cli_malformed_shape_is_invalid_request_without_traceback"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_source_scope.py::test_package_only_uses_root_coverage_and_preserves_original_objects[False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_package_only_uses_root_coverage_and_preserves_original_objects[False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_package_only_uses_root_coverage_and_preserves_original_objects[False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_package_only_uses_root_coverage_and_preserves_original_objects[True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_package_only_uses_root_coverage_and_preserves_original_objects[True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_package_only_uses_root_coverage_and_preserves_original_objects[True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_normal_transaction_keeps_all_eligible_dependency_sources_in_order",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_normal_transaction_keeps_all_eligible_dependency_sources_in_order",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_normal_transaction_keeps_all_eligible_dependency_sources_in_order",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_mirror_checkboxes_are_authoritative_even_for_disabled_or_foreign_sources",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_mirror_checkboxes_are_authoritative_even_for_disabled_or_foreign_sources",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_mirror_checkboxes_are_authoritative_even_for_disabled_or_foreign_sources",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_init_incompatible_transaction_repository_is_logged_and_excluded",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_init_incompatible_transaction_repository_is_logged_and_excluded",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_init_incompatible_transaction_repository_is_logged_and_excluded",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_disabled_repository_does_not_read_url_or_host_state",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_disabled_repository_does_not_read_url_or_host_state",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_disabled_repository_does_not_read_url_or_host_state",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_ordinary_source_does_not_need_exact_package_identity",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_ordinary_source_does_not_need_exact_package_identity",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_ordinary_source_does_not_need_exact_package_identity",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_unknown_target_and_blank_release_keep_existing_compatibility_semantics",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_unknown_target_and_blank_release_keep_existing_compatibility_semantics",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_scope.py::test_unknown_target_and_blank_release_keep_existing_compatibility_semantics",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-user:PRIVATE_PASSWORD@]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-user:PRIVATE_PASSWORD@]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-user:PRIVATE_PASSWORD@]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-PRIVATE_BEARER@]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-PRIVATE_BEARER@]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-PRIVATE_BEARER@]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[show-]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-user:PRIVATE_PASSWORD@]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-PRIVATE_BEARER@]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_summary_keeps_repository_location_and_public_query[dry-run-]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_display_does_not_change_transport_url_or_source_identity",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_source_visibility.py::test_terminal_failure_scrubs_credentials",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

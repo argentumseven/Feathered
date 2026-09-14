@@ -1,0 +1,545 @@
+{
+  "schema": 1,
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
+    "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
+    "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
+    "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
+    "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+    "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
+    "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
+    "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds",
+    "tests/test_chooser_stale_activation.py::test_inline_chooser_accumulates_several_packages",
+    "tests/test_chooser_stale_activation.py::test_inline_add_keeps_its_tree_reference",
+    "tests/test_chooser_stale_activation.py::test_re_adding_the_same_package_inline_reports_instead_of_re_rendering",
+    "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[rpm]",
+    "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[arch]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[workload]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[exact]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[separate]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[unified]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[devuan]",
+    "tests/test_cli_replay.py::test_stable_source_identity_survives_display_label_change",
+    "tests/test_cli_replay.py::test_missing_pin_is_rejected_before_publication"
+  ],
+  "batch_excluded": [
+    "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update",
+    "tests/test_checksum_release_fixes.py::test_missing_by_hash_falls_back_to_verified_canonical_index",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-False]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-True]",
+    "tests/test_checksum_release_fixes.py::test_cancelled_pinned_fetch_does_not_fall_back",
+    "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[False]",
+    "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[True]",
+    "tests/test_checksum_release_fixes.py::test_coverage_counts_distinguish_exact_fields_from_minimum_strength",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-False]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-True]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-False]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-True]",
+    "tests/test_checksum_release_fixes.py::test_cold_start_supplies_numbered_releases_and_matching_codenames",
+    "tests/test_checksum_release_fixes.py::test_saved_release_observation_wins_over_bundled_seed",
+    "tests/test_checksum_release_fixes.py::test_slow_previous_discovery_does_not_block_new_distribution",
+    "tests/test_cli_replay.py::test_unsigned_metadata_requires_trust_consent",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[exact]",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[workload]",
+    "tests/test_cli_replay.py::test_existing_output_requires_separate_consent",
+    "tests/test_cli_replay.py::test_additive_metadata_requires_its_own_choice",
+    "tests/test_cli_replay.py::test_invalid_request_has_diagnostic_and_nonzero_exit",
+    "tests/test_cli_replay.py::test_dry_run_describes_settings_without_preparing",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[False]",
+    "tests/test_cli_replay.py::test_real_conflict_requires_explicit_consent[True]",
+    "tests/test_cli_replay.py::test_captured_draft_is_invalid_until_release_is_selected"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_chooser_accumulates_several_packages",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_chooser_accumulates_several_packages",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_chooser_accumulates_several_packages",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_add_keeps_its_tree_reference",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_add_keeps_its_tree_reference",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_inline_add_keeps_its_tree_reference",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_re_adding_the_same_package_inline_reports_instead_of_re_rendering",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_re_adding_the_same_package_inline_reports_instead_of_re_rendering",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_chooser_stale_activation.py::test_re_adding_the_same_package_inline_reports_instead_of_re_rendering",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[rpm]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[rpm]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[rpm]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[arch]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[arch]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[arch]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[workload]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[workload]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[workload]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[exact]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[exact]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[exact]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[separate]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[separate]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[separate]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[unified]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[unified]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[unified]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[devuan]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[devuan]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[devuan]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_stable_source_identity_survives_display_label_change",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_stable_source_identity_survives_display_label_change",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_stable_source_identity_survives_display_label_change",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_missing_pin_is_rejected_before_publication",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_missing_pin_is_rejected_before_publication",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_cli_replay.py::test_missing_pin_is_rejected_before_publication",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

@@ -1,3 +1,28 @@
+# 1.3.0 - 2026-09-14
+
+## Added
+
+- Linux GUI and CLI source installation with per-user launchers, desktop integration, and offline wheel-directory support.
+- SHA-512 and SHA-384 APT Release manifest support alongside SHA-256, including matching by-hash index URLs.
+
+## Changed
+
+- Arch Linux built-in repositories use the official Fastly mirror instead of the geo-routed hostname.
+- Installed inventory is optional for Arch, Artix, and VKS workflows. When no inventory is loaded, dependency planning falls back to repository-derived closure instead of blocking the build.
+- Receiver preflight only requires a target inventory for plans that explicitly declare an inventory-backed baseline.
+- Independent-evidence tooltips are dismissed when their source widgets or wizard panes are hidden or destroyed.
+
+## Fixed
+
+- Corrected Ubuntu APT index verification when Release metadata publishes package indexes under SHA-512 rather than SHA-256.
+- Allowed valid empty APT pockets to remain selected in repository mirror builds instead of treating zero package records as a failed source.
+- Empty Ubuntu update and security pockets now explain that the indexes are valid and that no packages have been published to the selected pocket yet.
+- Missing APT suites are reported from the repository's advertised `dists/` entries, including an explicit Docker CE message when the selected Ubuntu suite is not published.
+- Corrected checksum inspection for empty APT repositories so the provenance view can call the APT explanation helper without a runtime NameError.
+- Corrected stale TLS-certificate diagnostics that could count hosts from earlier repository checks.
+- Corrected the independent-evidence "Testing..." tooltip so it cannot remain above unrelated wizard pages after navigation.
+- Corrected bundle-characterization tests so runtime Python and zstandard versions do not make golden output platform-specific.
+
 # 1.2.12 - 2026-09-11
 
 ## Added

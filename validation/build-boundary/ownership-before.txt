@@ -1,0 +1,73 @@
+FFFF.                                                                    [100%]
+=================================== FAILURES ===================================
+_______________ test_plan_detaches_every_caller_owned_collection _______________
+
+    def test_plan_detaches_every_caller_owned_collection():
+        parts=plan_parts();plan=BuildPlan(*parts)
+        parts[1].optional_roots.add('changed')
+        parts[2][0][0]='changed'
+        parts[3][0]['package']='changed'
+        parts[4][0].evidence_urls.append('https://changed.invalid/')
+        parts[6].clear();parts[9].clear()
+>       assert plan.opts.optional_roots=={'optional'}
+E       AssertionError: assert {'changed', 'optional'} == {'optional'}
+E         
+E         Extra items in the left set:
+E         'changed'
+E         Use -v to get more diff
+
+tests/test_prepared_plan_ownership.py:28: AssertionError
+_ test_two_plans_do_not_share_execution_state_or_erase_inventory_family[TargetInventory] _
+
+inventory_type = <class 'core.TargetInventory'>
+
+    @pytest.mark.parametrize('inventory_type',[core.TargetInventory,apt_core.AptTargetInventory,arch_core.ArchTargetInventory])
+    def test_two_plans_do_not_share_execution_state_or_erase_inventory_family(inventory_type):
+        parts=plan_parts(inventory_type());one=BuildPlan(*parts);two=BuildPlan(*parts)
+        assert type(one.opts.target_inventory) is inventory_type
+>       assert one.opts.target_inventory is not two.opts.target_inventory
+E       AssertionError: assert TargetInventory(nevras=set(), capabilities=defaultdict(<class 'list'>, {}), package_capabilities=defaultdict(<class 'list'>, {}), metadata={}, unparsed=[]) is not TargetInventory(nevras=set(), capabilities=defaultdict(<class 'list'>, {}), package_capabilities=defaultdict(<class 'list'>, {}), metadata={}, unparsed=[])
+E        +  where TargetInventory(nevras=set(), capabilities=defaultdict(<class 'list'>, {}), package_capabilities=defaultdict(<class 'list'>, {}), metadata={}, unparsed=[]) = BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None).target_inventory
+E        +    where BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None) = BuildPlan(state=AcquisitionState(intent=<AcquisitionIntent.REPOSITORY_MIRROR: 'repository-mirror'>, capability=<Acquis..._note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None))]).opts
+E        +  and   TargetInventory(nevras=set(), capabilities=defaultdict(<class 'list'>, {}), package_capabilities=defaultdict(<class 'list'>, {}), metadata={}, unparsed=[]) = BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None).target_inventory
+E        +    where BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None) = BuildPlan(state=AcquisitionState(intent=<AcquisitionIntent.REPOSITORY_MIRROR: 'repository-mirror'>, capability=<Acquis..._note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None))]).opts
+
+tests/test_prepared_plan_ownership.py:40: AssertionError
+_ test_two_plans_do_not_share_execution_state_or_erase_inventory_family[AptTargetInventory] _
+
+inventory_type = <class 'apt_core.AptTargetInventory'>
+
+    @pytest.mark.parametrize('inventory_type',[core.TargetInventory,apt_core.AptTargetInventory,arch_core.ArchTargetInventory])
+    def test_two_plans_do_not_share_execution_state_or_erase_inventory_family(inventory_type):
+        parts=plan_parts(inventory_type());one=BuildPlan(*parts);two=BuildPlan(*parts)
+        assert type(one.opts.target_inventory) is inventory_type
+>       assert one.opts.target_inventory is not two.opts.target_inventory
+E       AssertionError: assert AptTargetInventory(packages={}, provides=defaultdict(<class 'list'>, {}), metadata={}, multi_arch={}) is not AptTargetInventory(packages={}, provides=defaultdict(<class 'list'>, {}), metadata={}, multi_arch={})
+E        +  where AptTargetInventory(packages={}, provides=defaultdict(<class 'list'>, {}), metadata={}, multi_arch={}) = BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None).target_inventory
+E        +    where BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None) = BuildPlan(state=AcquisitionState(intent=<AcquisitionIntent.REPOSITORY_MIRROR: 'repository-mirror'>, capability=<Acquis..._note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None))]).opts
+E        +  and   AptTargetInventory(packages={}, provides=defaultdict(<class 'list'>, {}), metadata={}, multi_arch={}) = BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None).target_inventory
+E        +    where BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None) = BuildPlan(state=AcquisitionState(intent=<AcquisitionIntent.REPOSITORY_MIRROR: 'repository-mirror'>, capability=<Acquis..._note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None))]).opts
+
+tests/test_prepared_plan_ownership.py:40: AssertionError
+_ test_two_plans_do_not_share_execution_state_or_erase_inventory_family[ArchTargetInventory] _
+
+inventory_type = <class 'arch_core.ArchTargetInventory'>
+
+    @pytest.mark.parametrize('inventory_type',[core.TargetInventory,apt_core.AptTargetInventory,arch_core.ArchTargetInventory])
+    def test_two_plans_do_not_share_execution_state_or_erase_inventory_family(inventory_type):
+        parts=plan_parts(inventory_type());one=BuildPlan(*parts);two=BuildPlan(*parts)
+        assert type(one.opts.target_inventory) is inventory_type
+>       assert one.opts.target_inventory is not two.opts.target_inventory
+E       AssertionError: assert ArchTargetInventory(packages={}, metadata={}, unparsed=[]) is not ArchTargetInventory(packages={}, metadata={}, unparsed=[])
+E        +  where ArchTargetInventory(packages={}, metadata={}, unparsed=[]) = BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None).target_inventory
+E        +    where BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None) = BuildPlan(state=AcquisitionState(intent=<AcquisitionIntent.REPOSITORY_MIRROR: 'repository-mirror'>, capability=<Acquis..._note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None))]).opts
+E        +  and   ArchTargetInventory(packages={}, metadata={}, unparsed=[]) = BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None).target_inventory
+E        +    where BuildOptions(include_dependencies=True, include_recommends=False, include_rootless=False, verify_checksums=True, retri...ror_note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None) = BuildPlan(state=AcquisitionState(intent=<AcquisitionIntent.REPOSITORY_MIRROR: 'repository-mirror'>, capability=<Acquis..._note='', unified_mirror_records=None, additive_publish=False, require_package_digests=False, workload_context=None))]).opts
+
+tests/test_prepared_plan_ownership.py:40: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_prepared_plan_ownership.py::test_plan_detaches_every_caller_owned_collection
+FAILED tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[TargetInventory]
+FAILED tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[AptTargetInventory]
+FAILED tests/test_prepared_plan_ownership.py::test_two_plans_do_not_share_execution_state_or_erase_inventory_family[ArchTargetInventory]
+4 failed, 1 passed in 0.08s

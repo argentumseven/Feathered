@@ -1,0 +1,20 @@
+.............F......                                                     [100%]
+=================================== FAILURES ===================================
+___________ test_both_provenance_writers_emit_the_plain_text_legend ____________
+
+    def test_both_provenance_writers_emit_the_plain_text_legend():
+        """apt_core keeps a forked _write_provenance; it must not drift from core's."""
+        apt = (ROOT / "apt_core.py").read_text(encoding="utf-8")
+        core_src = (ROOT / "core.py").read_text(encoding="utf-8")
+        assert "_write_assurance_legend" in core_src
+>       assert "_write_assurance_legend" in apt, (
+            "APT bundles would ship without ASSURANCE.txt because apt_core does not "
+            "reuse core._write_provenance"
+        )
+E       AssertionError: APT bundles would ship without ASSURANCE.txt because apt_core does not reuse core._write_provenance
+E       assert '_write_assurance_legend' in 'from __future__ import annotations\n\nimport bz2\nimport gzip\nimport hashlib\nimport io\nimport json\nimport lzma\ni...ch}", version, atom.version))\n    from inventory_relationships import attach\n    return attach(inv, text, \'deb\')\n'
+
+tests/test_assurance_semantics.py:113: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_assurance_semantics.py::test_both_provenance_writers_emit_the_plain_text_legend
+1 failed, 19 passed in 1.48s

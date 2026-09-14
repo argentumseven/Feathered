@@ -94,11 +94,9 @@ class ResultsMixin(BuildPreparationMixin):
         if p: self.out_var.set(p)
 
     def show_details(self, focus_trust: bool = False, warnings=None, decision_callback=None):
-        """Show the complete activity log with a dedicated trust-review section.
+        """Show the activity log with a dedicated trust-review section.
 
-        1.0.42 replaces terse trust
-        message-boxes and package-table pseudo-errors with one scrollable review
-        surface. When a build needs an explicit trust decision, the same window
+        When a build needs an explicit trust decision, the same window
         gains Continue/Cancel controls; closing it is equivalent to cancelling
         that build, while ordinary log viewing remains non-modal.
         """
@@ -330,7 +328,7 @@ class ResultsMixin(BuildPreparationMixin):
             return
         end = start + visible_count
         self.result_page_var.set(
-            f"Packages {start + 1:,}–{end:,} of {total:,}   ·   Page {page + 1:,} of {page_count:,}")
+            f"Packages {start + 1:,}-{end:,} of {total:,}   ·   Page {page + 1:,} of {page_count:,}")
         self.result_first_btn.configure(state="disabled" if page <= 0 else "normal")
         self.result_prev_btn.configure(state="disabled" if page <= 0 else "normal")
         last = page >= page_count - 1

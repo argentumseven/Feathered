@@ -1,0 +1,25 @@
+{
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "nodes": [
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-rpm]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-deb]",
+    "tests/test_bundle_characterization.py::test_bundle_output_and_event_order[additive-arch]",
+    "tests/test_bundle_records.py::test_arch_checksums_include_signature_sidecars",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-rpm]",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-deb]",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[False-arch]",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-rpm]",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-deb]",
+    "tests/test_bundle_writer_failures.py::test_transfer_failure_does_not_publish[True-arch]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-rpm]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-deb]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[verifying-arch]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-rpm]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-deb]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[reused-arch]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-rpm]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-deb]",
+    "tests/test_cached_reporter_failures.py::test_cached_reporting_failure_propagates[progress-arch]",
+    "tests/test_checksum_release_fixes.py::test_ubuntu_inspection_uses_release_pinned_index_during_mirror_update"
+  ]
+}

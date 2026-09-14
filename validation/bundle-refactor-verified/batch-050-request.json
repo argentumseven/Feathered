@@ -1,0 +1,25 @@
+{
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "nodes": [
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[url-https://example.test/new]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[keyring-keys.gpg]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[allow_unverified_index-True]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[evidence_urls-value5]",
+    "tests/test_metadata_loading.py::test_source_edit_invalidates_metadata_cache[redirect_allow_origins-value6]",
+    "tests/test_metadata_loading.py::test_architecture_change_invalidates_cache",
+    "tests/test_metadata_loading.py::test_successful_empty_metadata_is_retried",
+    "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[False-expected0]",
+    "tests/test_metadata_loading.py::test_scoped_load_uses_explicit_rows_and_never_touches_shared_cache[True-expected1]",
+    "tests/test_metadata_loading.py::test_scoped_load_cannot_replace_or_reuse_populated_global_cache",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows0]",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows1]",
+    "tests/test_metadata_loading.py::test_no_enabled_source_fails_before_backend[rows2]",
+    "tests/test_metadata_loading.py::test_failed_sources_warn_or_log_and_validate_only_successful_providers",
+    "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[False]",
+    "tests/test_metadata_loading.py::test_backend_cancellation_propagates_without_caching_partial_packages[True]",
+    "tests/test_metadata_loading.py::test_cancellation_after_backend_failure_is_not_reported_as_source_failure",
+    "tests/test_metadata_loading.py::test_preexisting_cancellation_stops_before_backend",
+    "tests/test_metadata_loading.py::test_failed_scope_validation_preserves_previous_cache",
+    "tests/test_metadata_loading.py::test_fallback_requires_reachable_base_before_caching[Public EL-compatible mirrors (recommended fallback)]"
+  ]
+}

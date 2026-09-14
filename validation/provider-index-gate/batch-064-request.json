@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "tests/test_root_requests.py::test_legacy_records_preserve_every_field_and_pad_only_missing_fields[list-7]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc0]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[package]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[abc1]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value3]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value4]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[None]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[7]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[True]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value8]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value9]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value10]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value11]",
+    "tests/test_root_requests.py::test_nonrecords_and_wrong_arities_fail_with_a_request_error[value12]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[1]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[2]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[3]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[4]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[5]",
+    "tests/test_root_requests.py::test_optional_fields_reject_nontext_without_coercion[6]"
+  ]
+}

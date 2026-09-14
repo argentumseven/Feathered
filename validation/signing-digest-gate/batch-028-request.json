@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "test_feather.py::test_124_secret_registry_is_thread_safe_and_bounded",
+    "test_feather.py::test_124_secure_json_write_uses_private_unique_temp_and_atomic_replace",
+    "test_feather.py::test_125_epel_uses_distinct_exact_mirror_catalog",
+    "test_feather.py::test_125_bundled_epel_catalog_supplies_maximum_evidence_choices",
+    "test_feather.py::test_125_curated_failover_never_crosses_relationship_or_authority_boundary",
+    "test_feather.py::test_125_curated_failover_recovers_availability_failure_but_not_mismatch",
+    "test_feather.py::test_125_applied_curated_failover_updates_selection_and_cache_identity",
+    "test_feather.py::test_125_failed_evidence_status_exposes_detail_tooltip",
+    "tests/test_activity_log.py::test_lines_reach_the_file",
+    "tests/test_activity_log.py::test_a_session_banner_separates_runs",
+    "tests/test_activity_log.py::test_rotation_bounds_the_file",
+    "tests/test_activity_log.py::test_a_write_failure_disables_the_sink_instead_of_raising",
+    "tests/test_activity_log.py::test_open_returns_none_rather_than_a_dead_sink",
+    "tests/test_activity_log.py::test_the_log_path_redacts_before_it_reaches_the_file",
+    "tests/test_activity_log.py::test_a_host_without_a_state_directory_still_logs_in_memory",
+    "tests/test_activity_log.py::test_sink_failure_is_surfaced_rather_than_swallowed",
+    "tests/test_application_startup.py::test_the_application_starts",
+    "tests/test_application_startup.py::test_the_footer_status_label_is_built_and_height_capped",
+    "tests/test_application_startup.py::test_a_long_status_cannot_grow_the_footer",
+    "tests/test_application_startup.py::test_every_wizard_pane_can_be_shown"
+  ]
+}

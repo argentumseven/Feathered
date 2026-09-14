@@ -1,0 +1,3 @@
+tests/test_architecture.py
+tests/test_assurance_semantics.py
+tests/test_backend_dispatch.py

@@ -1,0 +1,25 @@
+{
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "nodes": [
+    "test_feather.py::test_deb_version_conflict_is_resolved_not_ignored",
+    "test_feather.py::test_dependencies_cascade_to_arbitrary_depth",
+    "test_feather.py::test_cascade_continues_through_virtual_providers",
+    "test_feather.py::test_deb_unsatisfiable_pin_blocks_the_build",
+    "test_feather.py::test_rpm_version_conflict_is_resolved",
+    "test_feather.py::test_rpm_unsatisfiable_pin_blocks_the_build",
+    "test_feather.py::test_rpmvercmp_orders_numeric_segments_numerically",
+    "test_feather.py::test_deb_version_ordering_matches_dpkg",
+    "test_feather.py::test_weak_digests_are_rejected",
+    "test_feather.py::test_expired_release_metadata_is_rejected",
+    "test_feather.py::test_wrong_suite_is_rejected",
+    "test_feather.py::test_openpgp_verification_round_trip",
+    "test_feather.py::test_ascii_armored_keyring_dearmors_without_gpg_executable",
+    "test_feather.py::test_ascii_armored_keyring_verifies_with_gpgv_only",
+    "test_feather.py::test_missing_keyring_is_an_error_not_a_warning",
+    "test_feather.py::test_rpm_header_parsing_reads_full_payload_digest",
+    "test_feather.py::test_rpm_vendor_signature_verification",
+    "test_feather.py::test_wrong_vendor_keyring_is_rejected",
+    "test_feather.py::test_provenance_record_serialises",
+    "test_feather.py::test_baseline_split_omits_known_packages"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "12012c1724544f0cb7e60f346ae72dd2",
+  "nodes": [
+    "tests/test_build_host_contracts.py::test_trust_and_conflict_decisions_use_separate_policies",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers0-bundle-True-False]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers1-bundle-True-True]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers2-bundle-next-False-True]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers3-bundle-next-False-True]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[True-answers4-None-False-True]",
+    "tests/test_build_host_contracts.py::test_publication_choices_preserve_existing_content[False-answers5-None-False-True]",
+    "tests/test_build_host_contracts.py::test_legacy_publication_adapter_needs_no_unused_callbacks_for_new_folder",
+    "tests/test_build_preparation.py::test_preparation_is_owned_and_does_not_publish",
+    "tests/test_build_preparation.py::test_optional_catalogue_members_and_dependency_mode_reach_plan",
+    "tests/test_build_preparation.py::test_package_only_requires_its_own_policy_and_never_parses_inventory",
+    "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|deb\\nDEB|already|1.0|amd64\\n-True]",
+    "tests/test_build_preparation.py::test_inventory_is_parsed_by_the_target_backend[META|package_family|rpm\\nPKG|already|0|1|1|x86_64\\n-False]",
+    "tests/test_build_preparation.py::test_mirrors_ignore_stale_inventory_and_baseline",
+    "tests/test_build_preparation.py::test_explicit_sealing_without_key_is_rejected",
+    "tests/test_build_preparation.py::test_credentials_are_attached_by_identity_without_mutating_spec",
+    "tests/test_build_preparation.py::test_cancellation_and_timeout_are_distinct_from_invalid_request",
+    "tests/test_build_preparation.py::test_cancel_during_metadata_prevents_publication",
+    "tests/test_build_preparation.py::test_runner_returns_the_same_terminal_outcome_it_emits",
+    "tests/test_build_preparation.py::test_portable_source_scope_and_evidence_hints_survive_roundtrip"
+  ]
+}

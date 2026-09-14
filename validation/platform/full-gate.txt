@@ -1,0 +1,146 @@
+Feathered release gate: 1428 collected; batches of 20.
+Batch 1: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-001.log
+  {'passed': 20}
+Batch 2: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-002.log
+  {'passed': 20}
+Batch 3: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-003.log
+  {'passed': 20}
+Batch 4: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-004.log
+  {'passed': 20}
+Batch 5: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-005.log
+  {'passed': 20}
+Batch 6: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-006.log
+  {'passed': 20}
+Batch 7: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-007.log
+  {'passed': 20}
+Batch 8: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-008.log
+  {'passed': 20}
+Batch 9: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-009.log
+  {'passed': 20}
+Batch 10: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-010.log
+  {'passed': 20}
+Batch 11: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-011.log
+  {'passed': 20}
+Batch 12: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-012.log
+  {'passed': 20}
+Batch 13: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-013.log
+  {'passed': 20}
+Batch 14: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-014.log
+  {'passed': 20}
+Batch 15: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-015.log
+  {'passed': 20}
+Batch 16: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-016.log
+  {'passed': 20}
+Batch 17: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-017.log
+  {'passed': 20}
+Batch 18: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-018.log
+  {'passed': 20}
+Batch 19: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-019.log
+  {'passed': 20}
+Batch 20: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-020.log
+  {'passed': 20}
+Batch 21: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-021.log
+  {'passed': 20}
+Batch 22: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-022.log
+  {'passed': 20}
+Batch 23: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-023.log
+  {'passed': 20}
+Batch 24: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-024.log
+  {'passed': 20}
+Batch 25: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-025.log
+  {'passed': 20}
+Batch 26: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-026.log
+  {'passed': 20}
+Batch 27: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-027.log
+  {'passed': 20}
+Batch 28: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-028.log
+  {'passed': 20}
+Batch 29: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-029.log
+  {'passed': 20}
+Batch 30: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-030.log
+  {'passed': 20}
+Batch 31: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-031.log
+  {'passed': 20}
+Batch 32: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-032.log
+  {'passed': 20}
+Batch 33: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-033.log
+  {'passed': 20}
+Batch 34: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-034.log
+  {'passed': 20}
+Batch 35: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-035.log
+  {'passed': 20}
+Batch 36: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-036.log
+  {'passed': 20}
+Batch 37: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-037.log
+  {'passed': 20}
+Batch 38: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-038.log
+  {'passed': 20}
+Batch 39: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-039.log
+  {'passed': 20}
+Batch 40: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-040.log
+  {'passed': 20}
+Batch 41: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-041.log
+  {'passed': 20}
+Batch 42: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-042.log
+  {'passed': 20}
+Batch 43: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-043.log
+  {'passed': 20}
+Batch 44: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-044.log
+  {'passed': 20}
+Batch 45: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-045.log
+  {'passed': 20}
+Batch 46: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-046.log
+  {'passed': 20}
+Batch 47: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-047.log
+  {'passed': 20}
+Batch 48: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-048.log
+  {'passed': 20}
+Batch 49: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-049.log
+  {'passed': 20}
+Batch 50: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-050.log
+  {'passed': 20}
+Batch 51: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-051.log
+  {'passed': 20}
+Batch 52: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-052.log
+  {'passed': 20}
+Batch 53: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-053.log
+  {'passed': 20}
+Batch 54: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-054.log
+  {'passed': 20}
+Batch 55: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-055.log
+  {'passed': 20}
+Batch 56: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-056.log
+  {'passed': 20}
+Batch 57: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-057.log
+  {'passed': 20}
+Batch 58: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-058.log
+  {'passed': 20}
+Batch 59: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-059.log
+  {'passed': 20}
+Batch 60: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-060.log
+  {'passed': 20}
+Batch 61: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-061.log
+  {'passed': 20}
+Batch 62: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-062.log
+  {'passed': 20}
+Batch 63: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-063.log
+  {'passed': 20}
+Batch 64: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-064.log
+  {'passed': 20}
+Batch 65: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-065.log
+  {'passed': 20}
+Batch 66: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-066.log
+  {'passed': 20}
+Batch 67: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-067.log
+  {'passed': 20}
+Batch 68: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-068.log
+  {'passed': 20}
+Batch 69: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-069.log
+  {'passed': 20}
+Batch 70: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-070.log
+  {'passed': 20}
+Batch 71: 20 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-071.log
+  {'passed': 20}
+Batch 72: 8 requested; log /workspace/scratch/f2c614fac6a1/current-build-boundary/validation/platform-gate/batch-072.log
+  {'passed': 8}
+Feathered release test gate PASSED: 1428 passed, 0 platform skips; 1428 collected.

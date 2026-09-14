@@ -1,0 +1,25 @@
+{
+  "run_id": "896915deec6e408988db22784ee6263e",
+  "nodes": [
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_output]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_mirror]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.headless_host]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.spec_replay]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_preparation]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_api]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.build_outcome]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_cli]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[build_spec]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[mirror_unification]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[acquisition_model]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[source_model]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.repository_universe]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.status_text]",
+    "tests/test_build_request_module.py::test_a_core_module_imports_without_tk[feathered_app.activity_log]",
+    "tests/test_build_request_module.py::test_the_guard_would_catch_a_real_dependency",
+    "tests/test_build_request_module.py::test_build_request_declares_no_tk_names_in_its_source",
+    "tests/test_build_request_module.py::test_the_accessors_still_serve_the_frozen_request",
+    "tests/test_build_request_module.py::test_an_empty_frozen_value_is_not_treated_as_absent",
+    "tests/test_build_request_module.py::test_oracle_scenarios_are_reproducible_from_the_seed_alone"
+  ]
+}

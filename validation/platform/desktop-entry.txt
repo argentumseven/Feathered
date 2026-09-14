@@ -1,0 +1,1 @@
+GIO parsed and launched the actual desktop entry; spaces, quote, dollar and percent survived as literal path characters.

@@ -989,8 +989,7 @@ class DiscoveryMixin:
     def open_repositories(self, tier="additional"):
         """Open the supplemental repository editor or the all-repository view.
 
-        1.0.46 gives the source-plan/base
-        repositories their own inline editor. The ordinary manager therefore
+        Base repositories have their own inline editor. The ordinary manager
         defaults to supplemental repositories, while provenance can still open
         the complete set when it needs an advanced per-repository override.
         """

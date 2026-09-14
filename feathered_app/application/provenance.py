@@ -2,6 +2,8 @@
 
 """
 
+import apt_core
+
 from checksum_inspection import inspect_checksums
 from feathered_app.build_sources import BuildSourcesMixin, _SnapshotSelection  # noqa: F401
 from feathered_app.context import (
@@ -1612,9 +1614,17 @@ class ProvenanceMixin(BuildSourcesMixin):
                     coverage = inspect_checksums(repo, arches, reporter, loader)
                     results[key] = list(coverage.algorithms)
                     coverage_results[key] = dict(coverage.counts)
-                    detected = ", ".join(a.upper().replace("SHA", "SHA-") for a in results[key]) or "no strong SHA fields"
-                    self._log(
-                        f"{repo.name}: checksum inspection read {coverage.package_count:,} package records; detected {detected}.")
+                    if coverage.package_count:
+                        detected = ", ".join(a.upper().replace("SHA", "SHA-") for a in results[key]) or "no strong SHA fields"
+                        self._log(
+                            f"{repo.name}: checksum inspection read {coverage.package_count:,} package records; detected {detected}.")
+                    else:
+                        reason = (apt_core.empty_repository_explanation(repo)
+                                  if repo.repo_format == "apt" or self._is_deb()
+                                  else "the repository currently publishes no package records for the selected target.")
+                        self._log(
+                            f"{repo.name}: checksum inspection read a valid empty package index; "
+                            f"there are no package-level digests to inspect. {reason}")
                 except Exception as exc:
                     error_text = redact_text(str(exc))
                     errors[key] = error_text

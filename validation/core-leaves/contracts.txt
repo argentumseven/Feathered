@@ -1,0 +1,3 @@
+valid_host: checked service, source, metadata, transport, backend and transaction interfaces accepted
+invalid_host: rejected all 50 malformed capabilities
+Host contract gate passed.

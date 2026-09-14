@@ -1,0 +1,519 @@
+{
+  "schema": 1,
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_transaction_resolution.py::test_package_order_does_not_prevent_stability",
+    "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[False]",
+    "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[True]",
+    "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[0-4]",
+    "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[2-4]",
+    "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[5-7]",
+    "tests/test_transaction_resolution.py::test_cancel_before_inventory_preparation_or_resolver",
+    "tests/test_transaction_resolution.py::test_cancel_after_one_pass_cannot_publish_partial_result",
+    "tests/test_transaction_resolution.py::test_backend_exception_propagates_without_reverse_validation",
+    "tests/test_transaction_resolution.py::test_repair_extends_owned_roots_and_restarts_with_empty_prior",
+    "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[False]",
+    "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[True]",
+    "tests/test_transaction_resolution.py::test_pending_repair_defers_other_failures_until_the_retry",
+    "tests/test_transaction_resolution.py::test_dependencies_disabled_bypasses_reverse_validation",
+    "tests/test_ui_event_budget.py::test_progress_burst_yields_before_consuming_all_events",
+    "tests/test_ui_event_budget.py::test_progress_coalescing_preserves_decision_and_completion_barriers",
+    "tests/test_ui_event_budget.py::test_failed_handler_acknowledges_and_does_not_strand_done",
+    "tests/test_ui_event_budget.py::test_real_gui_heartbeat_runs_before_a_progress_burst_finishes",
+    "tests/test_ui_event_budget.py::test_typed_obsolete_results_do_not_reach_handlers",
+    "tests/test_ui_event_budget.py::test_destroying_window_cancels_discovery_ownership"
+  ],
+  "batch_excluded": [
+    "tests/test_transaction_resolution.py::test_stability_returns_original_result_and_preserves_caller_options"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_package_order_does_not_prevent_stability",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_package_order_does_not_prevent_stability",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_package_order_does_not_prevent_stability",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cycle_in_package_or_source_identity_fails_without_finalizing[True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[0-4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[0-4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[0-4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[2-4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[2-4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[2-4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[5-7]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[5-7]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_nonrepeating_unstable_state_exhausts_the_existing_budget[5-7]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cancel_before_inventory_preparation_or_resolver",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cancel_before_inventory_preparation_or_resolver",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cancel_before_inventory_preparation_or_resolver",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cancel_after_one_pass_cannot_publish_partial_result",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cancel_after_one_pass_cannot_publish_partial_result",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_cancel_after_one_pass_cannot_publish_partial_result",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_backend_exception_propagates_without_reverse_validation",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_backend_exception_propagates_without_reverse_validation",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_backend_exception_propagates_without_reverse_validation",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_repair_extends_owned_roots_and_restarts_with_empty_prior",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_repair_extends_owned_roots_and_restarts_with_empty_prior",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_repair_extends_owned_roots_and_restarts_with_empty_prior",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[False]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[False]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[False]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[True]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[True]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_unrepairable_or_explicit_root_failure_is_retained[True]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_pending_repair_defers_other_failures_until_the_retry",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_pending_repair_defers_other_failures_until_the_retry",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_pending_repair_defers_other_failures_until_the_retry",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_dependencies_disabled_bypasses_reverse_validation",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_dependencies_disabled_bypasses_reverse_validation",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_transaction_resolution.py::test_dependencies_disabled_bypasses_reverse_validation",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_progress_burst_yields_before_consuming_all_events",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_progress_burst_yields_before_consuming_all_events",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_progress_burst_yields_before_consuming_all_events",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_progress_coalescing_preserves_decision_and_completion_barriers",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_progress_coalescing_preserves_decision_and_completion_barriers",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_progress_coalescing_preserves_decision_and_completion_barriers",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_failed_handler_acknowledges_and_does_not_strand_done",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_failed_handler_acknowledges_and_does_not_strand_done",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_failed_handler_acknowledges_and_does_not_strand_done",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_real_gui_heartbeat_runs_before_a_progress_burst_finishes",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_real_gui_heartbeat_runs_before_a_progress_burst_finishes",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_real_gui_heartbeat_runs_before_a_progress_burst_finishes",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_typed_obsolete_results_do_not_reach_handlers",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_typed_obsolete_results_do_not_reach_handlers",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_typed_obsolete_results_do_not_reach_handlers",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_destroying_window_cancels_discovery_ownership",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_destroying_window_cancels_discovery_ownership",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_ui_event_budget.py::test_destroying_window_cancels_discovery_ownership",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

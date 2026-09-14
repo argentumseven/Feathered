@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\\\[0\\\\]]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload8-evidence_relationship_hints]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload9-target.api_server_versions]",
+    "tests/test_spec_decoding.py::test_valid_draft_optional_fields_and_unknown_keys_remain_compatible",
+    "tests/test_spec_decoding.py::test_direct_api_rejects_wrong_dataclass_fields_before_any_work",
+    "tests/test_spec_decoding.py::test_direct_runtime_configuration_has_same_validation_as_json",
+    "tests/test_spec_decoding.py::test_cli_malformed_shape_is_invalid_request_without_traceback",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rhel]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[rocky]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[ubuntu]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[debian]",
+    "tests/test_target_release_transition.py::test_switch_to_uncached_distribution_clears_previous_release[devuan]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[ubuntu-releases0]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[debian-releases1]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[arch-releases2]",
+    "tests/test_target_release_transition.py::test_switch_uses_only_new_profiles_known_releases[custom-rpm-releases3]",
+    "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[transaction]",
+    "tests/test_target_release_transition.py::test_blank_target_clears_generated_sources_and_old_package_state[mirror]",
+    "tests/test_target_release_transition.py::test_release_discovery_populates_the_cleared_target"
+  ]
+}

@@ -1,0 +1,578 @@
+{
+  "schema": 1,
+  "run_id": "cdba484d465e479785a8b1a125914de5",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha384-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha384-full-corroboration]"
+  ],
+  "batch_excluded": [
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha384-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha512-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha512-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha512-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-auto-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-auto-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-auto-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha256-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha256-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha256-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha384-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha384-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha384-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha512-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha512-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage2-sha512-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-auto-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-auto-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-auto-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha256-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha256-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha256-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha384-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha384-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha384-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha512-evidence-fallback]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha512-full-corroboration]",
+    "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage3-sha512-checksum-required]",
+    "test_evidence_workflow.py::test_refresh_and_mixed_policies_never_normalize_without_user_choice",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-None-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-None-full-corroboration]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-coverage1-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-coverage1-full-corroboration]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-coverage2-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[exact-mirror-coverage2-full-corroboration]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-None-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-None-full-corroboration]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-coverage1-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-coverage1-full-corroboration]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-coverage2-evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_test_runs_for_unknown_required_and_optional_sources[independent-peer-coverage2-full-corroboration]",
+    "test_evidence_workflow.py::test_optional_failure_does_not_block_but_becomes_required_when_minimum_changes",
+    "test_evidence_workflow.py::test_peer_pass_cannot_fill_an_enhanced_gap",
+    "test_evidence_workflow.py::test_test_outcomes_stay_visible_independently_of_requirement[repository-Byte match passed-True-False-required]",
+    "test_evidence_workflow.py::test_test_outcomes_stay_visible_independently_of_requirement[repository-Byte match passed-False-False-optional]",
+    "test_evidence_workflow.py::test_test_outcomes_stay_visible_independently_of_requirement[repository-Byte match passed-False-True-requirement unknown]",
+    "test_evidence_workflow.py::test_test_outcomes_stay_visible_independently_of_requirement[unusable-Test failed-True-False-required]",
+    "test_evidence_workflow.py::test_test_outcomes_stay_visible_independently_of_requirement[unusable-Test failed-False-False-optional]",
+    "test_evidence_workflow.py::test_test_outcomes_stay_visible_independently_of_requirement[unusable-Test failed-False-True-requirement unknown]",
+    "test_evidence_workflow.py::test_test_outcomes_stay_visible_independently_of_requirement[testing-Testing-True-False-required]",
+    "test_evidence_workflow.py::test_test_outcomes_stay_visible_independently_of_requirement[testing-Testing-False-False-optional]",
+    "test_evidence_workflow.py::test_test_outcomes_stay_visible_independently_of_requirement[testing-Testing-False-True-requirement unknown]",
+    "test_evidence_workflow.py::test_peer_outcome_explains_fallback_ineligibility",
+    "test_evidence_workflow.py::test_loaded_mixed_package_coverage_does_not_hide_a_gap",
+    "test_evidence_workflow.py::test_explicit_policy_change_never_lowers_minimum[evidence-fallback]",
+    "test_evidence_workflow.py::test_explicit_policy_change_never_lowers_minimum[checksum-required]",
+    "test_evidence_workflow.py::test_explicit_policy_change_never_lowers_minimum[full-corroboration]",
+    "test_evidence_workflow.py::test_changing_one_mixed_axis_preserves_the_other",
+    "test_evidence_workflow.py::test_sha512_fallback_checks_distinct_artifact_bytes[True]",
+    "test_evidence_workflow.py::test_sha512_fallback_checks_distinct_artifact_bytes[False]"
+  ],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-evidence-fallback]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-evidence-fallback]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-evidence-fallback]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-full-corroboration]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-full-corroboration]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-full-corroboration]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-checksum-required]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-checksum-required]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-auto-checksum-required]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-evidence-fallback]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-evidence-fallback]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-evidence-fallback]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-full-corroboration]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-full-corroboration]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-full-corroboration]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-checksum-required]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-checksum-required]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha256-checksum-required]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-evidence-fallback]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-evidence-fallback]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-evidence-fallback]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-full-corroboration]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-full-corroboration]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-full-corroboration]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-checksum-required]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-checksum-required]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha384-checksum-required]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-evidence-fallback]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-evidence-fallback]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-evidence-fallback]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-full-corroboration]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-full-corroboration]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-full-corroboration]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-checksum-required]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-checksum-required]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[None-sha512-checksum-required]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-evidence-fallback]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-evidence-fallback]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-evidence-fallback]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-full-corroboration]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-full-corroboration]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-full-corroboration]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-checksum-required]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-checksum-required]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-auto-checksum-required]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-evidence-fallback]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-evidence-fallback]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-evidence-fallback]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-full-corroboration]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-full-corroboration]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-full-corroboration]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-checksum-required]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-checksum-required]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha256-checksum-required]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha384-evidence-fallback]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha384-evidence-fallback]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha384-evidence-fallback]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha384-full-corroboration]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha384-full-corroboration]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "test_evidence_workflow.py::test_refresh_preserves_policy_and_all_choices[coverage1-sha384-full-corroboration]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

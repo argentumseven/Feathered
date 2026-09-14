@@ -1,0 +1,198 @@
+{
+  "filename:Packages/demo.rpm": [
+    "demo.rpm"
+  ],
+  "filename:https://repo.invalid/Packages/DEMO.RPM?token=fixture": [
+    "DEMO.RPM"
+  ],
+  "filename:C:demo.rpm": [
+    "demo.rpm"
+  ],
+  "filename:C:\\Windows\\demo.rpm": [
+    "RuntimeError",
+    "Bundle filename is not Windows-safe: '\\\\Windows\\\\demo.rpm' contains a path separator or drive marker; refusing to write a payload outside the bundle directory."
+  ],
+  "filename:..\\demo.rpm": [
+    "RuntimeError",
+    "Bundle filename is not Windows-safe: '..\\\\demo.rpm' contains a path separator or drive marker; refusing to write a payload outside the bundle directory."
+  ],
+  "filename:": [
+    "RuntimeError",
+    "demo-1.x86_64: repository location has no usable .rpm filename"
+  ],
+  "filename:demo.deb": [
+    "RuntimeError",
+    "demo-1.x86_64: repository location has no usable .rpm filename"
+  ],
+  "filename:CON.rpm": [
+    "RuntimeError",
+    "Bundle filename is not Windows-safe: 'CON.rpm' uses a reserved device name."
+  ],
+  "filename:COM1.rpm": [
+    "RuntimeError",
+    "Bundle filename is not Windows-safe: 'COM1.rpm' uses a reserved device name."
+  ],
+  "filename:nul.txt.rpm": [
+    "RuntimeError",
+    "Bundle filename is not Windows-safe: 'nul.txt.rpm' uses a reserved device name."
+  ],
+  "filename:demo.rpm.": [
+    "RuntimeError",
+    "demo-1.x86_64: repository location has no usable .rpm filename"
+  ],
+  "filename:demo.rpm ": [
+    "RuntimeError",
+    "demo-1.x86_64: repository location has no usable .rpm filename"
+  ],
+  "filename:nested/café.rpm": [
+    "café.rpm"
+  ],
+  "filename:nested/café.rpm": [
+    "café.rpm"
+  ],
+  "filename:space name.rpm": [
+    "space name.rpm"
+  ],
+  "capability:": [
+    "",
+    [
+      ""
+    ]
+  ],
+  "capability:  libfoo.so.1()(64bit) ": [
+    "libfoo.so.1()(64bit)",
+    [
+      "libfoo.so.1()(64bit)"
+    ]
+  ],
+  "capability:Python3Dist(Foo_Bar.Baz)": [
+    "python3dist(foo-bar-baz)",
+    [
+      "Python3Dist(Foo_Bar.Baz)",
+      "python3dist(foo-bar-baz)"
+    ]
+  ],
+  "capability:python3.11dist(Foo.Bar[Extra_One, ,Extra.Two])": [
+    "python3.11dist(foo-bar[extra-one,extra-two])",
+    [
+      "python3.11dist(Foo.Bar[Extra_One, ,Extra.Two])",
+      "python3.11dist(foo-bar[extra-one,extra-two])"
+    ]
+  ],
+  "capability:python3dist(foo[])": [
+    "python3dist(foo[])",
+    [
+      "python3dist(foo[])"
+    ]
+  ],
+  "capability:python3dist(Foo[Bad)": [
+    "python3dist(foo[bad)",
+    [
+      "python3dist(Foo[Bad)",
+      "python3dist(foo[bad)"
+    ]
+  ],
+  "capability:python3dist(Foo[Bad])": [
+    "python3dist(foo[bad])",
+    [
+      "python3dist(Foo[Bad])",
+      "python3dist(foo[bad])"
+    ]
+  ],
+  "capability:PythonDist(A..__B)": [
+    "pythondist(a-b)",
+    [
+      "PythonDist(A..__B)",
+      "pythondist(a-b)"
+    ]
+  ],
+  "capability:python3dist(Foo) trailing": [
+    "python3dist(Foo) trailing",
+    [
+      "python3dist(Foo) trailing"
+    ]
+  ],
+  "capability:python3dist()": [
+    "python3dist()",
+    [
+      "python3dist()"
+    ]
+  ],
+  "capability:/usr/bin/Python": [
+    "/usr/bin/Python",
+    [
+      "/usr/bin/Python"
+    ]
+  ],
+  "baseline:same": [
+    [],
+    [
+      "demo-1.x86_64"
+    ],
+    [
+      "Differential build: 1 package(s) byte-identical to the baseline, 0 to transfer"
+    ]
+  ],
+  "baseline:republished": [
+    [
+      "demo-1.x86_64"
+    ],
+    [],
+    []
+  ],
+  "baseline:empty": [
+    [
+      "demo-1.x86_64"
+    ],
+    [],
+    []
+  ],
+  "baseline:missing-digest": [
+    [
+      "demo-1.x86_64"
+    ],
+    [],
+    [
+      "WARNING: 1 baseline entry/entries record no digest, so their contents could not be compared; those packages are included rather than assumed unchanged. Rebuild the baseline with this version of Feathered."
+    ]
+  ],
+  "baseline:weak": [
+    [
+      "demo-1.x86_64"
+    ],
+    [],
+    []
+  ],
+  "baseline:legacy-bare": [
+    [],
+    [
+      "demo-1.x86_64"
+    ],
+    [
+      "Differential build: 1 package(s) byte-identical to the baseline, 0 to transfer"
+    ]
+  ],
+  "baseline:bad-legacy": [
+    [
+      "demo-1.x86_64"
+    ],
+    [],
+    []
+  ],
+  "baseline:evidence": [
+    [],
+    [
+      "demo-1.x86_64"
+    ],
+    [
+      "Differential build: 1 package(s) byte-identical to the baseline, 0 to transfer"
+    ]
+  ],
+  "baseline:primary-before-evidence": [
+    [
+      "demo-1.x86_64"
+    ],
+    [],
+    []
+  ]
+}

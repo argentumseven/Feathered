@@ -1,0 +1,25 @@
+{
+  "run_id": "424dafd86caf418b874420779f9f27a7",
+  "nodes": [
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[size-True]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-False]",
+    "tests/test_checksum_release_fixes.py::test_damaged_pinned_or_fallback_index_is_rejected[sha256-True]",
+    "tests/test_checksum_release_fixes.py::test_cancelled_pinned_fetch_does_not_fall_back",
+    "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[False]",
+    "tests/test_checksum_release_fixes.py::test_checksum_worker_never_reads_widgets_or_mutates_repository[True]",
+    "tests/test_checksum_release_fixes.py::test_coverage_counts_distinguish_exact_fields_from_minimum_strength",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-False]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[False-True]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-False]",
+    "tests/test_checksum_release_fixes.py::test_main_panel_inspection_queues_all_ui_work_and_releases_operation[True-True]",
+    "tests/test_checksum_release_fixes.py::test_cold_start_supplies_numbered_releases_and_matching_codenames",
+    "tests/test_checksum_release_fixes.py::test_saved_release_observation_wins_over_bundled_seed",
+    "tests/test_checksum_release_fixes.py::test_slow_previous_discovery_does_not_block_new_distribution",
+    "tests/test_checksum_release_fixes.py::test_switching_back_restores_valid_selection_without_blank_intermediate_state",
+    "tests/test_checksum_release_fixes.py::test_event_pump_ignores_previous_distribution_and_finishes_inspection_on_ui_thread",
+    "tests/test_chooser_stale_activation.py::test_chooser_add_after_close_is_silent",
+    "tests/test_chooser_stale_activation.py::test_a_destroyed_chooser_window_counts_as_closed",
+    "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+    "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "run_id": "4cd542df32ab4a6caa778998b2417d6b",
+  "nodes": [
+    "tests/test_k8s_knowledge.py::test_known_repository_candidates_survive_missing_older_repositories",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.19-19]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[19-19]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.61-61]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[133-133]",
+    "tests/test_k8s_knowledge.py::test_api_input_is_not_a_support_window[1.0-0]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[abc]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[-1]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33 garbage]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[2.0]",
+    "tests/test_k8s_knowledge.py::test_invalid_api_syntax_still_rejected[1.33-rc.1]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[html-error]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[empty-list]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[wrong-shape]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[yaml-alias]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[invalid-date]",
+    "tests/test_k8s_knowledge.py::test_bad_feed_preserves_last_release_facts_and_timestamps[oversized]",
+    "tests/test_k8s_knowledge.py::test_outage_keeps_good_cache_byte_for_byte_then_recovers",
+    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{]",
+    "tests/test_k8s_knowledge.py::test_corrupt_cache_is_replaced_only_after_valid_refresh[{\"schema\":99}]"
+  ]
+}

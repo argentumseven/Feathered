@@ -1,0 +1,517 @@
+{
+  "schema": 1,
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "mode": "batch",
+  "pytest_version": "9.1.1",
+  "nodes": [
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
+    "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\\\[0\\\\]]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload8-evidence_relationship_hints]",
+    "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload9-target.api_server_versions]",
+    "tests/test_spec_decoding.py::test_valid_draft_optional_fields_and_unknown_keys_remain_compatible",
+    "tests/test_spec_decoding.py::test_direct_api_rejects_wrong_dataclass_fields_before_any_work",
+    "tests/test_spec_decoding.py::test_direct_runtime_configuration_has_same_validation_as_json",
+    "tests/test_spec_decoding.py::test_cli_malformed_shape_is_invalid_request_without_traceback"
+  ],
+  "batch_excluded": [],
+  "collection_issues": [],
+  "deselected": [],
+  "phases": [
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[false]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[0]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[1]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[None]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value4]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_repository_boolean_types_are_rejected[value5]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload0-spec]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload1-spec_version]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload2-spec_version]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload3-spec_version]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload4-target]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload5-target.release]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload6-sources.repositories]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\\\[0\\\\]]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\\\[0\\\\]]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload7-content.exact_packages\\\\[0\\\\]]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload8-evidence_relationship_hints]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload8-evidence_relationship_hints]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload8-evidence_relationship_hints]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload9-target.api_server_versions]",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload9-target.api_server_versions]",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_bad_shapes_have_field_diagnostics[payload9-target.api_server_versions]",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_valid_draft_optional_fields_and_unknown_keys_remain_compatible",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_valid_draft_optional_fields_and_unknown_keys_remain_compatible",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_valid_draft_optional_fields_and_unknown_keys_remain_compatible",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_direct_api_rejects_wrong_dataclass_fields_before_any_work",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_direct_api_rejects_wrong_dataclass_fields_before_any_work",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_direct_api_rejects_wrong_dataclass_fields_before_any_work",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_direct_runtime_configuration_has_same_validation_as_json",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_direct_runtime_configuration_has_same_validation_as_json",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_direct_runtime_configuration_has_same_validation_as_json",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_cli_malformed_shape_is_invalid_request_without_traceback",
+      "when": "setup",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_cli_malformed_shape_is_invalid_request_without_traceback",
+      "when": "call",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    },
+    {
+      "nodeid": "tests/test_spec_decoding.py::test_cli_malformed_shape_is_invalid_request_without_traceback",
+      "when": "teardown",
+      "outcome": "passed",
+      "wasxfail": null,
+      "reason": "",
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "complete": true,
+  "exit_code": 0,
+  "testscollected": 20
+}

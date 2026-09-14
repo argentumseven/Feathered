@@ -1,0 +1,25 @@
+{
+  "run_id": "fb835e2b0cec46dd989179e6f7a248e7",
+  "nodes": [
+    "tests/test_review_dialog_lock.py::test_an_interface_error_is_recorded_where_it_can_be_retrieved",
+    "tests/test_review_dialog_lock.py::test_the_interface_error_reaches_the_host_side_log_file",
+    "tests/test_review_dialog_lock.py::test_the_handler_is_installed_on_the_real_application",
+    "tests/test_review_findings.py::test_dispatch_input_never_reaches_the_shell_as_syntax",
+    "tests/test_review_findings.py::test_dispatch_input_arrives_as_an_environment_variable",
+    "tests/test_review_findings.py::test_profiles_are_passed_as_a_single_argv_element",
+    "tests/test_review_findings.py::test_resource_bound_signatures_are_not_inherited[sig]",
+    "tests/test_review_findings.py::test_resource_bound_signatures_are_not_inherited[signature]",
+    "tests/test_review_findings.py::test_signatures_remain_sensitive_for_redaction[sig]",
+    "tests/test_review_findings.py::test_signatures_remain_sensitive_for_redaction[signature]",
+    "tests/test_review_findings.py::test_repository_token_is_still_inherited_same_origin",
+    "tests/test_review_findings.py::test_a_childs_own_signature_is_no_longer_overwritten",
+    "tests/test_review_findings.py::test_credentials_are_not_inherited_cross_origin",
+    "tests/test_review_findings.py::test_cloud_provider_signatures_stay_excluded",
+    "tests/test_review_findings.py::test_valid_until_still_authoritative_when_present",
+    "tests/test_review_findings.py::test_expired_valid_until_still_fails",
+    "tests/test_review_findings.py::test_absent_valid_until_is_unenforced_by_default_but_reported",
+    "tests/test_review_findings.py::test_recent_date_passes_under_a_configured_maximum",
+    "tests/test_review_findings.py::test_stale_date_fails_under_a_configured_maximum",
+    "tests/test_review_findings.py::test_absent_date_fails_closed_under_a_configured_maximum"
+  ]
+}

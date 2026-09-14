@@ -8,6 +8,7 @@ analysis usable on Windows while emitting a repository that native pacman can
 consume on the disconnected target.
 """
 
+import artifact_digests
 import base64
 import gzip
 import hashlib
@@ -780,6 +781,9 @@ def _copy_or_download(pkg: ArchPackage, dest: Path, options: BuildOptions, repor
 
 
 def _safe_payload_names(packages: Sequence[ArchPackage]) -> Dict[int, str]:
+    # Object identity distinguishes equal package names/versions from different
+    # repositories. Callers retain the original package objects through writing;
+    # copying, streaming or releasing them would invalidate these id() keys.
     seen: Dict[str, str] = {}
     result: Dict[int, str] = {}
     for pkg in packages:
@@ -803,7 +807,8 @@ def write_bundle(result: ArchResolutionResult, output_dir: Path, options: BuildO
     if not options.sign_bundle_index:
         core.invalidate_bundle_seal(staging, reporter)
     try:
-        return _write_bundle_body(result, staging, final_dir, options, reporter, metadata)
+        with artifact_digests.digest_scope():
+            return _write_bundle_body(result, staging, final_dir, options, reporter, metadata)
     except BaseException:
         abandon_staging(staging, reporter)
         raise
@@ -820,30 +825,13 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
     filename_map = _safe_payload_names(to_ship)
     # Additive publication retains unrelated pacman payloads already present
     # in the destination. Same-name files may be verified/overwritten below.
-    total = max(1, len(to_ship))
-    for i, pkg in enumerate(to_ship, 1):
-        reporter.check_cancel(); filename = filename_map[id(pkg)]; dest = pkg_dir / filename
-        import artifact_cache
-        artifact_cache.restore(pkg, dest, final_dir.parent, options, reporter)
-        if dest.exists() and dest.stat().st_size > 0:
-            try:
-                reporter.item(pkg.nevra, "verifying", size=dest.stat().st_size)
-                core.verify_package_artifact(pkg, dest, options, reporter)
-                reporter.item(pkg.nevra, "reused", size=dest.stat().st_size)
-                reporter.progress(f"ALPM {i}/{total}", i / total)
-                continue
-            except RuntimeError:
-                reporter.item(pkg.nevra, "stale", size=dest.stat().st_size); dest.unlink()
-        reporter.item(pkg.nevra, "active", size=pkg.size)
-        try:
-            _copy_or_download(pkg, dest, options, reporter)
-            artifact_cache.remember(pkg, dest, final_dir.parent, reporter)
-        except Cancelled:
-            reporter.item(pkg.nevra, "pending"); raise
-        except Exception as exc:
-            reporter.item(pkg.nevra, "failed", detail=str(exc)); raise
-        reporter.item(pkg.nevra, "done", size=dest.stat().st_size if dest.exists() else pkg.size)
-        reporter.progress(f"ALPM {i}/{total}", i / total)
+    from bundle_writer import acquire_payloads, write_records
+    from package_family import ARCH
+    acquire_payloads(
+        to_ship, filename_map, pkg_dir, final_dir.parent, options, reporter, ARCH,
+        verify=lambda pkg, dest: core.verify_package_artifact(pkg, dest, options, reporter),
+        download=lambda pkg, dest: _copy_or_download(pkg, dest, options, reporter),
+    )
 
     shipped_ids = {id(p) for p in to_ship}
     manifest = []
@@ -854,7 +842,7 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
         manifest.append({
             "package_id": pkg.nevra, "name": pkg.name, "arch": pkg.arch, "version": pkg.version,
             "filename": filename,
-            "sha256": sha256_file(dest) if id(pkg) in shipped_ids and dest.exists() else "",
+            "sha256": artifact_digests.payload_sha256(dest, sha256_file) if id(pkg) in shipped_ids and dest.exists() else "",
             "source_digest_type": pkg.checksum_type or "", "source_digest": pkg.checksum or "",
             "repo": pkg.repo.name, "repo_url": redact_url(pkg.repo.normalized_url), "suite": pkg.repo.suite,
             "source": redact_url(url_join(pkg.repo.normalized_url, pkg.location)), "size": pkg.size,
@@ -885,29 +873,19 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
                     "dependency_completeness": metadata.get("dependency_completeness", "analyzed")},
         "packages": manifest,
     }
-    (metadata_dir / "manifest.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    (metadata_dir / "manifest.txt").write_text(
-        "\n".join(f"{x['package_id']}\t{x['repo']}\t{x['reason']}\t{x['source']}" for x in manifest) + "\n",
-        encoding="utf-8")
-    (metadata_dir / "unresolved.txt").write_text(
-        "\n".join(format_requirement(x) for x in result.unresolved) + ("\n" if result.unresolved else ""), encoding="utf-8")
-    if result.ignored_unresolved:
-        (metadata_dir / "ignored-unresolved.txt").write_text(
-            "\n".join(result.ignored_unresolved) + "\n", encoding="utf-8")
-    (metadata_dir / "conflicts.txt").write_text("\n".join(result.conflicts) + ("\n" if result.conflicts else ""), encoding="utf-8")
-    if result.skipped_installed:
-        (metadata_dir / "skipped-installed.txt").write_text("\n".join(result.skipped_installed) + "\n", encoding="utf-8")
-    if result.installed_satisfied:
-        (metadata_dir / "satisfied-by-target.txt").write_text("\n".join(result.installed_satisfied) + "\n", encoding="utf-8")
-    with (metadata_dir / "SHA256SUMS.txt").open("w", encoding="utf-8") as fh:
-        for path in sorted(pkg_dir.glob("*.pkg.tar.*")):
-            fh.write(f"{sha256_file(path)}  {path.name}\n")
+    write_records(
+        metadata_dir, pkg_dir, ARCH, payload, manifest,
+        unresolved=(format_requirement(req) for req in result.unresolved),
+        ignored_unresolved=result.ignored_unresolved,
+        conflicts=result.conflicts, skipped_installed=result.skipped_installed,
+        installed_satisfied=result.installed_satisfied, hash_file=sha256_file,
+    )
 
     prov_entries = []
     for pkg in to_ship:
         filename = filename_map[id(pkg)]; dest = pkg_dir / filename; record = pkg.verification
         entry = provenance.PackageProvenance(
-            package_id=pkg.nevra, filename=filename, sha256=sha256_file(dest),
+            package_id=pkg.nevra, filename=filename, sha256=artifact_digests.payload_sha256(dest, sha256_file),
             size=dest.stat().st_size, source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location)),
             repository=pkg.repo.name, assurance=provenance.UNVERIFIED,
             digest_checked=bool(record and record.package_digest_checked),

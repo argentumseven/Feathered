@@ -11,17 +11,18 @@ import copy
 import re
 import threading
 import traceback
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import workload_resolution
 from acquisition_model import AcquisitionCapability
-from core import (BuildOptions, Cancelled, Reporter, evidence_authority_relationship,
+from core import (BuildOptions, Cancelled, evidence_authority_relationship,
                   repository_verification_strategy,
                   evidence_relationship, redact_text, redact_url)
+from feathered_app.prepared_plan import BuildPlan as BuildPlan
+from feathered_app.prepared_plan import PreparedPlan
 from feathered_app.build_request import BuildRequestMixin
-from feathered_app.build_outcome import BuildOutcome, BuildStatus
+from feathered_app.build_outcome import BuildOutcome
+from feathered_app.execution_feedback import bind_execution_feedback, complete, mirror_reporter
 from feathered_app.build_services import BuildServices
 from mirror_unification import mirror_sources_record, unified_mirror_note
 
@@ -37,39 +38,15 @@ def _indexed_evidence_records(repo, resolver, value_field: str) -> dict:
     }
 
 
-@dataclass(frozen=True)
-class BuildPlan:
-    """Prepared inputs for one execution.
-
-    Field bindings are frozen. Nested options and repository objects remain
-    mutable and belong to this run; callers must not share them concurrently.
-    """
-
-    state: object
-    opts: BuildOptions
-    requests: object
-    requested_source_plan: object
-    build_repositories: object
-    package_only: bool
-    picked_at_start: object
-    #  start_build's own parameter, captured the same way as its locals.
-    do_download: bool = True
-    locked_output_folder_name: Optional[str] = None
-    locked_mirror_publications: Optional[object] = None
-
 
 def _complete(app, ok, message, output_path=None):
-    status = BuildStatus.SUCCESS if ok is True else (
-        BuildStatus.CANCELLED if ok == "cancelled" else BuildStatus.FAILED)
-    event = ("done", ok, message) + ((output_path,) if output_path is not None else ())
-    app.events.put(event)
-    return BuildOutcome(status, message, output_path)
+    return complete(app.events, ok, message, output_path)
 
 
-def run(app, job) -> BuildOutcome:
+def run(app, job: PreparedPlan) -> BuildOutcome:
     try:
-        rep = Reporter(app._log, app._progress, app.cancel_event,
-                       item=app._on_item_event)
+        feedback = bind_execution_feedback(app)
+        rep = feedback.reporter
         rep.check_cancel()
         if job.state.capability is AcquisitionCapability.REPOSITORY_MIRROR:
             for repo in job.build_repositories:
@@ -143,7 +120,7 @@ def run(app, job) -> BuildOutcome:
                 "Retry them, choose another source/provider where available, or explicitly ignore the "
                 "requirements you accept as incomplete.")
         if job.do_download and result.ignored_unresolved:
-            accepted = app._ask_on_ui_thread(
+            accepted = feedback.decide(
                 "Build with ignored dependencies?",
                 f"{len(result.ignored_unresolved)} unresolved requirement(s) were explicitly ignored. "
                 "The bundle may not install successfully on the target. Feathered will record the waivers "
@@ -151,9 +128,9 @@ def run(app, job) -> BuildOutcome:
                 wait_status="Build paused for the dependency-waiver decision")
             if not accepted:
                 raise Cancelled("Build cancelled at the unresolved-dependency waiver prompt")
-        if job.do_download and result.conflicts and not app._confirm_conflicts(result.conflicts):
+        if job.do_download and result.conflicts and not feedback.confirm_conflicts(result.conflicts):
             raise Cancelled("Build cancelled at the conflict review prompt")
-        if job.do_download and rep.warnings and not app._confirm_warnings(rep.warnings):
+        if job.do_download and rep.warnings and not feedback.confirm_warnings(rep.warnings):
             raise Cancelled("Build cancelled at the trust review prompt")
         if job.do_download and app._pick_mode() and job.picked_at_start is not None:
             # Captured before the worker started: _show_result runs on
@@ -172,7 +149,7 @@ def run(app, job) -> BuildOutcome:
             # Surface the exact aggregate package payload before any
             # package bytes are fetched. The worker waits only until
             # the UI has rendered this plan; there is no extra prompt.
-            app._publish_download_plan(len(result.selected), result.total_size)
+            feedback.publish_download_plan(len(result.selected), result.total_size)
             app.events.put(("transfer_begin", len(result.selected), result.total_size))
             release = BuildRequestMixin._selected_release(app)
             if app._unified_mirror_mode():
@@ -258,17 +235,7 @@ def run(app, job) -> BuildOutcome:
                     # sibling repositories update the correct Review row.
                     fork_base = (fork_index - 1) / total_forks
                     fork_span = 1.0 / total_forks
-                    fork_reporter = Reporter(
-                        app._log,
-                        lambda label, value, base=fork_base, span=fork_span:
-                            app._progress(label, base + max(0.0, min(1.0, value)) * span),
-                        app.cancel_event,
-                        item=lambda identity, item_state, info, sid=source_id:
-                            app._on_item_event(f"{sid}|{identity}", item_state, info),
-                    )
-                    # Preserve the build-wide warning collection even
-                    # though each mirror fork has a local progress window.
-                    fork_reporter.warnings = rep.warnings
+                    fork_reporter = mirror_reporter(app, rep, source_id, fork_base, fork_span)
                     app._write_bundle_backend(
                         mirror_result, dest, repo_opts, fork_reporter, meta)
                 return _complete(app, True, f'Mirror complete: {total_forks} repositories published as independent folders under {base_output}', str(base_output))

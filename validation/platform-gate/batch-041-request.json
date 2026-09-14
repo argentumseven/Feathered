@@ -1,0 +1,25 @@
+{
+  "run_id": "ecc72054976546029e6da2fd261f96cd",
+  "nodes": [
+    "tests/test_chooser_stale_activation.py::test_open_chooser_with_no_row_still_prompts",
+    "tests/test_chooser_stale_activation.py::test_open_chooser_recovers_a_stale_tree",
+    "tests/test_chooser_stale_activation.py::test_closed_chooser_never_triggers_a_rerender",
+    "tests/test_chooser_stale_activation.py::test_inline_chooser_without_a_popup_still_adds",
+    "tests/test_chooser_stale_activation.py::test_inline_chooser_accumulates_several_packages",
+    "tests/test_chooser_stale_activation.py::test_inline_add_keeps_its_tree_reference",
+    "tests/test_chooser_stale_activation.py::test_re_adding_the_same_package_inline_reports_instead_of_re_rendering",
+    "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[rpm]",
+    "tests/test_cli_native_families.py::test_other_families_prepare_and_execute_without_tk[arch]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[workload]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[exact]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[separate]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[unified]",
+    "tests/test_cli_replay.py::test_public_cli_prepares_and_publishes_without_tk[devuan]",
+    "tests/test_cli_replay.py::test_stable_source_identity_survives_display_label_change",
+    "tests/test_cli_replay.py::test_missing_pin_is_rejected_before_publication",
+    "tests/test_cli_replay.py::test_unsigned_metadata_requires_trust_consent",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[exact]",
+    "tests/test_cli_replay.py::test_expired_request_does_not_start_preparation[workload]",
+    "tests/test_cli_replay.py::test_existing_output_requires_separate_consent"
+  ]
+}
