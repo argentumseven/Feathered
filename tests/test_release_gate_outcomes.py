@@ -212,8 +212,14 @@ def test_platform_skip_policy_is_scoped_and_has_required_linux_coverage():
     assert permitted_skip(parity, "requires dpkg fixture tools", "win32")
     assert not permitted_skip(parity, "requires dpkg fixture tools", "linux")
     assert not permitted_skip(parity, "no display", "win32")
+    crypto = "test_feather.py::test_openpgp_verification_round_trip"
+    crypto_reason = "GnuPG signing and verification tools are unavailable on this host"
+    assert permitted_skip(crypto, crypto_reason, "win32")
+    assert not permitted_skip(crypto, crypto_reason, "linux")
     native = yaml.safe_load((ROOT / ".github/workflows/native-conformance.yml").read_text())
     steps = native["jobs"]["apt"]["steps"]
+    install_commands = "\n".join(step.get("run", "") for step in steps)
+    assert "gnupg" in install_commands and "gpgv" in install_commands
     assert any("xvfb-run -a python3 release_test_runner.py" in step.get("run", "") for step in steps)
     windows = yaml.safe_load((ROOT / ".github/workflows/windows-release.yml").read_text())
     assert "native-conformance" in windows["jobs"]["production-release"]["needs"]

@@ -5,6 +5,7 @@ import tempfile
 import time
 import urllib.parse
 import urllib.request
+import threading
 from typing import Callable, ContextManager, Dict, Optional, Protocol, TypeVar
 
 
@@ -40,6 +41,69 @@ INHERITABLE_QUERY_CREDENTIAL_KEYS = {
     "token", "access_token", "api_key", "apikey", "key", "password",
     "secret", "auth",
 }
+NON_INHERITABLE_QUERY_CREDENTIAL_KEYS = (
+    SENSITIVE_QUERY_KEYS - INHERITABLE_QUERY_CREDENTIAL_KEYS)
+
+# Custom repositories sometimes use vendor-specific query parameter names for
+# bearer credentials. RepoSpec can declare those names explicitly. Keep a
+# process-wide registry as a redaction backstop: once an operator marks a query
+# field sensitive, logs and bundle metadata should redact that spelling even
+# when the call site only has a URL string rather than the originating RepoSpec.
+_REGISTERED_SENSITIVE_QUERY_KEYS: set[str] = set()
+_REGISTERED_SENSITIVE_QUERY_KEYS_LOCK = threading.RLock()
+
+
+def normalize_query_key_names(values) -> set[str]:
+    """Normalize configured query-field names without accepting delimiters."""
+    if isinstance(values, str):
+        values = values.replace(",", " ").split()
+    out: set[str] = set()
+    for value in values or ():
+        key = str(value or "").strip().lower()
+        if not key:
+            continue
+        if any(ch in key for ch in "&=?#") or any(ch.isspace() for ch in key):
+            continue
+        out.add(key)
+    return out
+
+
+def register_sensitive_query_keys(values) -> None:
+    keys = normalize_query_key_names(values)
+    if not keys:
+        return
+    with _REGISTERED_SENSITIVE_QUERY_KEYS_LOCK:
+        _REGISTERED_SENSITIVE_QUERY_KEYS.update(keys)
+
+
+def registered_sensitive_query_keys() -> set[str]:
+    with _REGISTERED_SENSITIVE_QUERY_KEYS_LOCK:
+        return set(SENSITIVE_QUERY_KEYS) | set(_REGISTERED_SENSITIVE_QUERY_KEYS)
+
+
+def sensitive_query_keys_for_repo(repo: Optional[object]) -> set[str]:
+    keys = registered_sensitive_query_keys()
+    if repo is None:
+        return keys
+    custom = normalize_query_key_names(getattr(repo, "sensitive_query_keys", ()) or ())
+    inheritable = normalize_query_key_names(
+        getattr(repo, "inheritable_query_credential_keys", ()) or ())
+    # Anything explicitly declared inheritable is necessarily credential
+    # material and therefore sensitive as well.
+    keys.update(custom)
+    keys.update(inheritable)
+    return keys
+
+
+def inheritable_query_keys_for_repo(repo: Optional[object]) -> set[str]:
+    keys = set(INHERITABLE_QUERY_CREDENTIAL_KEYS)
+    if repo is not None:
+        custom = normalize_query_key_names(
+            getattr(repo, "inheritable_query_credential_keys", ()) or ())
+        # Resource-bound signatures stay non-inheritable even if an operator
+        # accidentally lists one in the custom inheritance field.
+        keys.update(custom - NON_INHERITABLE_QUERY_CREDENTIAL_KEYS)
+    return keys
 
 
 def effective_origin(url: str) -> str:
@@ -57,29 +121,30 @@ def effective_hostname(url: str) -> str:
     return (parts.hostname or "").lower().rstrip(".")
 
 
-def sensitive_query_parts(url: str) -> Dict[str, str]:
+def sensitive_query_parts(url: str, repo: Optional[object] = None) -> Dict[str, str]:
     """Return configured credential query fragments keyed by decoded name."""
     try:
         query = urllib.parse.urlsplit(str(url or "")).query
     except ValueError:
         return {}
     out: Dict[str, str] = {}
+    sensitive = sensitive_query_keys_for_repo(repo)
     for fragment in query.split("&"):
         if not fragment:
             continue
         raw_key = fragment.split("=", 1)[0]
         key = urllib.parse.unquote_plus(raw_key).strip().lower()
-        if key in SENSITIVE_QUERY_KEYS:
+        if key in sensitive:
             out[key] = fragment
     return out
 
 
-def url_has_endpoint_credentials(url: str) -> bool:
+def url_has_endpoint_credentials(url: str, repo: Optional[object] = None) -> bool:
     try:
         parts = urllib.parse.urlsplit(str(url or ""))
     except ValueError:
         return False
-    return bool(parts.username or parts.password or sensitive_query_parts(url))
+    return bool(parts.username or parts.password or sensitive_query_parts(url, repo))
 
 
 def repo_has_endpoint_credentials(repo: Optional[object]) -> bool:
@@ -88,7 +153,7 @@ def repo_has_endpoint_credentials(repo: Optional[object]) -> bool:
     return bool(
         getattr(repo, "client_cert", "")
         or getattr(repo, "client_key", "")
-        or url_has_endpoint_credentials(getattr(repo, "url", ""))
+        or url_has_endpoint_credentials(getattr(repo, "url", ""), repo)
     )
 
 
@@ -103,11 +168,13 @@ def credential_redirect_allow_origins(repo: Optional[object]) -> set[str]:
     return allowed
 
 
-def inherit_sensitive_query_credentials(base: str, child: str) -> str:
+def inherit_sensitive_query_credentials(base: str, child: str,
+                                        repo: Optional[object] = None) -> str:
     """Carry recognized repository query credentials to same-origin children."""
+    inheritable_keys = inheritable_query_keys_for_repo(repo)
     inherited = {
-        key: fragment for key, fragment in sensitive_query_parts(base).items()
-        if key in INHERITABLE_QUERY_CREDENTIAL_KEYS
+        key: fragment for key, fragment in sensitive_query_parts(base, repo).items()
+        if key in inheritable_keys
     }
     if not inherited:
         return child
@@ -133,8 +200,9 @@ def inherit_sensitive_query_credentials(base: str, child: str) -> str:
         (parts.scheme, parts.netloc, parts.path, query, parts.fragment))
 
 
-def url_join(base: str, href: str) -> str:
-    return inherit_sensitive_query_credentials(base, urllib.parse.urljoin(base, href))
+def url_join(base: str, href: str, repo: Optional[object] = None) -> str:
+    return inherit_sensitive_query_credentials(
+        base, urllib.parse.urljoin(base, href), repo)
 
 
 def ssl_context(repo: Optional[object] = None):
@@ -182,7 +250,7 @@ class RepositoryRedirectHandler(urllib.request.HTTPRedirectHandler):
                     f"Credentialed repository redirect from {current_origin} to {target_origin} "
                     "is not allowed. Keep redirects same-origin or explicitly allow the vendor CDN origin.")
             if target_origin == current_origin:
-                target = inherit_sensitive_query_credentials(req.full_url, target)
+                target = inherit_sensitive_query_credentials(req.full_url, target, self.repo)
         return super().redirect_request(req, fp, code, msg, headers, target)
 
 

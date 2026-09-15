@@ -15,6 +15,8 @@ A useful report includes:
 
 Do not include private keys, entitlement certificates, repository passwords, bearer tokens, or signed-URL secrets in a report.
 
+Custom repository URLs may use vendor-specific query parameters for bearer credentials. Configure those field names in the repository's Endpoint query credentials settings so Feathered applies credential detection and redaction to them. Same-origin inheritance is a separate opt-in and should be enabled only for bearer fields that the repository expects to be copied to child metadata and package URLs.
+
 ## Receiver and repository boundaries
 
 `trusted_receiver.py --install` copies a transferred bundle into root-owned read-only staging before verification and installation. Package-manager inputs are consumed only from that staged tree. Repository-maintenance scans reject symbolic links inside the selected repository root.

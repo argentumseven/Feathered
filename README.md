@@ -130,6 +130,8 @@ These claims are intentionally distinct. For example, a second mirror can show t
 
 Every recorded assurance mode has explicit **proves** and **does not prove** semantics. Bundle provenance includes the definitions required to interpret the evidence without access to the connected build system.
 
+Bundle metadata records repository OpenPGP coverage as `none`, `partial`, or `all` from signatures that were actually verified. The compatibility `signature_verification` field reports `openpgp` only when every participating repository was verified. A configured keyring does not count as verification when the selected repository policy did not perform the signature check.
+
 ## Network and credential handling
 
 <img width="1533" height="959" alt="47244727245782458" src="https://github.com/user-attachments/assets/62cf1129-07d2-435f-b877-11e8cbce059a" />
@@ -140,6 +142,7 @@ Repository acquisition is designed around source boundaries:
 - credential-bearing requests do not freely follow cross-origin redirects;
 - HTTPS-to-HTTP redirect downgrade is rejected;
 - signed URL/query credentials are treated as sensitive;
+- custom repositories can declare additional sensitive query-field names, and can separately opt specific bearer fields into same-origin child-URL inheritance;
 - effective origins after redirects are recorded for evidence decisions;
 - repository-relative paths are confined to the selected repository;
 - metadata and decompression operations use explicit resource limits.

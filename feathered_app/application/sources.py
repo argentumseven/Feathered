@@ -52,6 +52,7 @@ from feathered_app.context import (
     profile_by_label,
     re,
     redact_text,
+    redact_url,
     rpm_compare_evr,
     rpm_format_requirement,
     rpm_load_repository,
@@ -128,6 +129,9 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         repo = RepoSpec(
             x.name, x.url, x.role, x.priority, x.enabled, x.note, x.target_release,
             redirect_allow_origins=list(getattr(x, "redirect_allow_origins", []) or []),
+            sensitive_query_keys=list(getattr(x, "sensitive_query_keys", []) or []),
+            inheritable_query_credential_keys=list(
+                getattr(x, "inheritable_query_credential_keys", []) or []),
             optional=getattr(x, "optional", False),
             repo_format=getattr(x, "repo_format", self._profile().package_family),
             flat_repo=getattr(x, "flat_repo", False),
@@ -153,7 +157,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             tags = () if repo.enabled else ("disabled",)
             tree.insert("", "end", iid=str(i), tags=tags, values=(
                 "Yes" if repo.enabled else "No", repo.name, repo.priority,
-                repo.url or "<not configured>"))
+                redact_url(repo.url) if repo.url else "<not configured>"))
 
     def _selected_base_repo_index(self):
         tree = getattr(self, "base_repo_tree", None)
@@ -457,7 +461,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             self._mirror_iid_to_repo_index[iid] = repo_index
             self.mirror_tree.insert(
                 "", "end", iid=iid,
-                values=(repo.name, origin, repo.role, repo.priority, repo.url))
+                values=(repo.name, origin, repo.role, repo.priority, redact_url(repo.url)))
             listed += 1
 
         # Keep explicit choices for repositories that still exist. New rows use
@@ -1493,13 +1497,14 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         if self._mirror_mode():
             for repo in self.repo_rows:
                 if repo.url.strip() and self._mirror_repo_selected(repo):
-                    rows.append((f"mirror:{repo.name}", "Ready", repo.name, repo.url, "ready"))
+                    rows.append((f"mirror:{repo.name}", "Ready", repo.name,
+                                 redact_url(repo.url), "ready"))
             return rows
         if self._single_mode():
             for pkg in self.selected_packages:
                 enabled = any(r.enabled and r.name == pkg.repo.name and r.url.strip() for r in self.repo_rows)
                 rows.append((f"exact:{pkg.repo.name}", "Ready" if enabled else "Disabled",
-                             pkg.repo.name, pkg.repo.url or "<not configured>",
+                             pkg.repo.name, redact_url(pkg.repo.url) if pkg.repo.url else "<not configured>",
                              "ready" if enabled else "disabled"))
             return rows
         plan = self._workload_root_source_plan()
@@ -1761,6 +1766,8 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         return (
             tuple((r.name, r.url, r.role, r.priority, r.client_cert, r.client_key, r.ca_cert,
                    tuple(getattr(r, "redirect_allow_origins", []) or []),
+                   tuple(getattr(r, "sensitive_query_keys", []) or []),
+                   tuple(getattr(r, "inheritable_query_credential_keys", []) or []),
                    r.optional, r.repo_format, r.suite, r.components, tuple(r.evidence_urls),
                    tuple(sorted(getattr(r, "evidence_relationship_hints", {}).items())),
                    tuple(sorted(getattr(r, "evidence_authority_hints", {}).items())),

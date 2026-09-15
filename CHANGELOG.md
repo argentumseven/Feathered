@@ -28,6 +28,9 @@
 - Exact package roots and prior analysis are cleared when the Content choice changes, preventing packages selected in another mode from carrying into VKS analysis.
 - VKS-specific state is cleared when its Content context or target compatibility is lost, while navigation and downstream dependency choices preserve the active VKS context.
 - RHEL CDN repositories selected for Docker or other vendor workloads remain dependency providers even before entitlement is configured; missing entitlement now blocks authenticated analysis/build access instead of silently forcing package-only mode.
+- Bundle provenance now derives OpenPGP assurance from completed repository signature checks instead of configured keyrings. The compatibility `signature_verification` field claims `openpgp` only when every participating repository was verified, while `repository_signature_verification` records `none`, `partial`, or `all` with verified and total repository counts.
+- OpenPGP integration tests now report missing tooling as an explicit skip and fail on key-generation, export, signing, or verification setup errors. The required Linux release gate installs both `gpg` and `gpgv` so those checks execute there.
+- Custom repositories can declare vendor-specific sensitive query fields and separately opt selected bearer fields into same-origin child-URL inheritance. Declared fields participate in credential detection, redirect confinement, redaction, and portable build-spec replay.
 - Exact-package validation failures return to the package chooser on Repositories instead of an unrelated Content control.
 - Package downloads now report bytes transferred while each artifact is streaming, including aggregate progress, transfer rate, and estimated time remaining.
 - RPM receiver preflight preserves coinstalled versions with the same package name and architecture, including install-only kernel packages.

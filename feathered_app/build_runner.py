@@ -38,6 +38,31 @@ def _indexed_evidence_records(repo, resolver, value_field: str) -> dict:
     }
 
 
+def signature_verification_summary(verified_values) -> dict:
+    """Summarize repository OpenPGP verification from observed trust facts.
+
+    Configuration is intentionally irrelevant here. A configured keyring does
+    not mean a signature was checked, for example when the operator selected
+    skip-provenance. Bundle metadata must describe completed verification, not
+    the verification that could have happened.
+    """
+    flags = [bool(value) for value in verified_values]
+    total = len(flags)
+    verified = sum(flags)
+    state = "none" if verified == 0 else "all" if verified == total else "partial"
+    return {
+        # Preserve the historical algorithm-valued field for consumers that
+        # already parse it, but make it conservative: bundle-level OpenPGP is
+        # claimed only when every participating repository was actually
+        # signature-verified.
+        "signature_verification": "openpgp" if total and verified == total else "none",
+        "repository_signature_verification": state,
+        "signature_verification_scheme": "openpgp" if verified else "none",
+        "repository_signature_verified_count": verified,
+        "repository_count": total,
+    }
+
+
 
 def _complete(app, ok, message, output_path=None):
     return complete(app.events, ok, message, output_path)
@@ -220,7 +245,6 @@ def run(app, job: PreparedPlan) -> BuildOutcome:
                         "mirror_fork_index": fork_index,
                         "mirror_fork_count": total_forks,
                         "mirrored_repository": repo_record,
-                        "signature_verification": "openpgp" if mirror_repo.keyring else "none",
                         "verification_commands": [
                             "# This directory is one independently published repository mirror.",
                             "# See USE-AS-REPOSITORY.txt for local repository configuration.",
@@ -333,12 +357,18 @@ def run(app, job: PreparedPlan) -> BuildOutcome:
                 "os_dependency_source": app._active_source_method(),
                 # Record what was actually trusted, so a bundle can be
                 # audited later without re-running the build.
-                "signature_verification": "openpgp" if any(r.keyring for r in job.build_repositories) else "none",
+                **signature_verification_summary(
+                    bool(getattr(r, "trust", None)
+                         and r.trust.archive_signature_verified)
+                    for r in job.build_repositories),
                 "trust_warnings": list(rep.warnings),
                 "repositories": [{"name": r.name, "url": redact_url(r.url), "role": r.role, "priority": r.priority,
                                   "build_purposes": app._repository_build_purposes(r),
                                   "format": r.repo_format, "suite": r.suite, "components": r.components,
                                   "credential_redirect_allow_origins": [redact_url(u) for u in getattr(r, "redirect_allow_origins", [])],
+                                  "sensitive_query_keys": list(getattr(r, "sensitive_query_keys", []) or []),
+                                  "inheritable_query_credential_keys": list(
+                                      getattr(r, "inheritable_query_credential_keys", []) or []),
                                   # What was verified, not what was configured.
                                   "keyring_configured": bool(r.keyring),
                                   "signature_verified": bool(

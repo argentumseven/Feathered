@@ -608,7 +608,7 @@ def verify_release_signature(repo: RepoSpec, leaf: str, raw: bytes, reporter: Re
         return
     # A detached Release.gpg alongside a plain Release file.
     try:
-        signature = fetch_bytes(url_join(repo.normalized_url, leaf + ".gpg"), reporter, retries=1, repo=repo)
+        signature = fetch_bytes(url_join(repo.normalized_url, leaf + ".gpg", repo), reporter, retries=1, repo=repo)
     except Exception as exc:
         raise RuntimeError(f"{repo.name}: a keyring is configured but no signature was found "
                            f"(neither a clearsigned InRelease nor {leaf}.gpg): {exc}") from exc
@@ -620,7 +620,7 @@ def _published_apt_suites(repo: RepoSpec, reporter: Reporter) -> List[str]:
     """Return suite directories advertised below an APT repository's dists/ root."""
     if repo.flat_repo:
         return []
-    dists_url = url_join(repo.normalized_url, "dists/")
+    dists_url = url_join(repo.normalized_url, "dists/", repo)
     try:
         raw = fetch_bytes(dists_url, reporter, retries=1, repo=repo).decode("utf-8", "replace")
     except Exception:
@@ -647,7 +647,7 @@ def _missing_apt_suite_message(repo: RepoSpec, reporter: Reporter, errors: Seque
     suites = _published_apt_suites(repo, reporter)
     if not suites or suite in suites:
         return None
-    checked = redact_url(url_join(repo.normalized_url, "dists/"))
+    checked = redact_url(url_join(repo.normalized_url, "dists/", repo))
     message = (
         f"{repo.name}: APT suite '{suite}' is not published by this repository. "
         f"Checked {checked}. Published suites: {', '.join(suites)}."
@@ -673,7 +673,7 @@ def _fetch_release(repo: RepoSpec, reporter: Reporter) -> Tuple[Dict[str, str], 
         try:
             # InRelease is optional. If it is unavailable, try Release/Release.gpg promptly.
             probe_retries = 1 if leaf.endswith("InRelease") else 3
-            raw = fetch_bytes(url_join(base, leaf), reporter, retries=probe_retries, repo=repo)
+            raw = fetch_bytes(url_join(base, leaf, repo), reporter, retries=probe_retries, repo=repo)
         except Exception as exc:
             errors.append(f"{leaf}: {exc}")
             if leaf.endswith("InRelease"):
@@ -763,7 +763,7 @@ def _component_index_candidates(component: str, semantic: str, arch: str) -> Lis
 
 
 def _index_url(repo: RepoSpec, path: str) -> str:
-    return url_join(repo.normalized_url, path if repo.flat_repo else f"dists/{repo.suite}/{path}")
+    return url_join(repo.normalized_url, path if repo.flat_repo else f"dists/{repo.suite}/{path}", repo)
 
 
 def _fetch_index_bytes(repo: RepoSpec, fields: Dict[str, str], index_path: str,
@@ -1470,7 +1470,7 @@ def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir:
             "sha256": artifact_digests.payload_sha256(dest, sha256_file) if id(p) in shipped_ids and dest.exists() else "",
             "source_digest_type": p.checksum_type or "", "source_digest": p.checksum or "",
             "repo": p.repo.name, "repo_url": redact_url(p.repo.normalized_url), "suite": p.repo.suite,
-            "source": redact_url(url_join(p.repo.normalized_url, p.location)), "size": p.size,
+            "source": redact_url(url_join(p.repo.normalized_url, p.location, p.repo)), "size": p.size,
             "reason": result.reasons.get(p.nevra, "dependency"),
             "shipped": id(p) in shipped_ids,
             "evidence_status": getattr(record, "evidence_status", "not-configured"),
@@ -1525,7 +1525,7 @@ def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir:
             package_id=pkg.nevra, filename=filename,
             sha256=artifact_digests.payload_sha256(dest, sha256_file) if dest.exists() else "",
             size=dest.stat().st_size if dest.exists() else 0,
-            source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location)),
+            source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location, pkg.repo)),
             repository=pkg.repo.name,
             # Recorded verification, not inferred from configuration: a
             # keyring being set says an operator intended verification, not

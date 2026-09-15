@@ -15,7 +15,8 @@ from acquisition_model import (AcquisitionCapability, AcquisitionIntent,
 from core import (BuildOptions, Cancelled, Reporter, redact_url,
                   repository_verification_strategy)
 from feathered_app.build_request import BuildRequestMixin, _SnapshotMode
-from feathered_app.build_runner import _indexed_evidence_records
+from feathered_app.build_runner import (_indexed_evidence_records,
+                                        signature_verification_summary)
 from source_readiness import missing_reachable_scopes
 from workload_materialization import MaterializedWorkload
 
@@ -48,6 +49,8 @@ class BuildSourcesMixin:
         """
         return (tuple((r.name, r.url, r.role, r.priority, r.enabled, r.client_cert,
                        r.client_key, r.ca_cert, tuple(getattr(r, "redirect_allow_origins", []) or []),
+                       tuple(getattr(r, "sensitive_query_keys", []) or []),
+                       tuple(getattr(r, "inheritable_query_credential_keys", []) or []),
                        r.optional, r.repo_format, r.suite,
                        r.components, getattr(r, "vendor_id", ""), r.keyring, r.allow_unverified_index,
                        tuple(r.evidence_urls),
@@ -219,6 +222,10 @@ class BuildSourcesMixin:
             "components": mirror_repo.components,
             "credential_redirect_allow_origins": [
                 redact_url(u) for u in getattr(mirror_repo, "redirect_allow_origins", [])],
+            "sensitive_query_keys": list(
+                getattr(mirror_repo, "sensitive_query_keys", []) or []),
+            "inheritable_query_credential_keys": list(
+                getattr(mirror_repo, "inheritable_query_credential_keys", []) or []),
             "keyring_configured": bool(mirror_repo.keyring),
             "signature_verified": bool(
                 getattr(mirror_repo, "trust", None)
@@ -259,8 +266,8 @@ class BuildSourcesMixin:
             "dependency_completeness": "not-applicable",
             "package_only_warning": "",
             "os_dependency_source": self._active_source_method(),
-            "signature_verification": "openpgp" if any(
-                row.get("keyring_configured") for row in repo_records) else "none",
+            **signature_verification_summary(
+                row.get("signature_verified", False) for row in repo_records),
             "trust_warnings": list(reporter.warnings),
             "repositories": list(repo_records),
         }

@@ -28,6 +28,8 @@ DEFAULT_TIMEOUT = 300.0
 # required Debian full-corpus job; production publication needs both jobs.
 # Match file AND exact reason so unrelated skips cannot inherit an exemption.
 WINDOWS_SKIPS: dict[str, set[str]] = {
+    "test_feather.py": {
+        "GnuPG signing and verification tools are unavailable on this host"},
     "tests/test_linux_installation.py": {"Linux setup requires a Linux host"},
     "tests/test_end_to_end_build.py": {
         "dpkg-deb and dpkg-scanpackages are needed to build the repository fixture"},

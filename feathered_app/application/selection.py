@@ -19,6 +19,7 @@ from feathered_app.context import (
     LINE,
     WARN_FG,
     infer_vendor_id,
+    redact_url,
     repository_verification_strategy,
     tk,
     ttk,
@@ -485,7 +486,7 @@ class SelectionMixin(BuildIntentMixin):
             rows = []
             for repo in self.repo_rows:
                 if repo.url.strip() and self._mirror_repo_selected(repo):
-                    rows.append((repo.name, "selected", repo.url or "location not configured",
+                    rows.append((repo.name, "selected", redact_url(repo.url) if repo.url else "location not configured",
                                  "repository selected for mirroring"))
             return rows
         if state.intent is AcquisitionIntent.PACKAGES:

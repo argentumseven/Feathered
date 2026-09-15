@@ -202,26 +202,32 @@ def test_wrong_suite_is_rejected():
 def test_openpgp_verification_round_trip():
     """Sign a payload with a throwaway key and check both accept and reject paths.
 
-    Skipped when GnuPG is absent (verification is opt-in and degrades to a
-    warning in that case, which test_unsigned_repo_warns covers).
+    Ordinary developer environments may skip when GnuPG is absent. The Linux
+    release gate installs GnuPG explicitly, so absence there is a gate failure.
     """
     import os
     import subprocess
+    import pytest
     from core import gpg_backend, verify_openpgp
     if gpg_backend() is None or not shutil_which("gpg"):
-        return
+        pytest.skip("GnuPG signing and verification tools are unavailable on this host")
     with tempfile.TemporaryDirectory() as td:
         env = dict(os.environ, GNUPGHOME=td)
         os.chmod(td, 0o700)
         run = lambda *a: subprocess.run(a, env=env, capture_output=True)
-        if run("gpg", "--batch", "--passphrase", "", "--quick-generate-key",
-               "OPB Selftest <selftest@example.invalid>", "default", "default", "never").returncode:
-            return
+        generated = run("gpg", "--batch", "--passphrase", "", "--quick-generate-key",
+                        "OPB Selftest <selftest@example.invalid>", "default", "default", "never")
+        assert generated.returncode == 0, generated.stderr.decode("utf-8", "replace")
         keyring = Path(td) / "key.gpg"
-        keyring.write_bytes(run("gpg", "--batch", "--export").stdout)
+        exported = run("gpg", "--batch", "--export")
+        assert exported.returncode == 0, exported.stderr.decode("utf-8", "replace")
+        assert exported.stdout, "throwaway OpenPGP public-key export was empty"
+        keyring.write_bytes(exported.stdout)
         payload = Path(td) / "data"; payload.write_bytes(b"trusted content\n")
         sig = Path(td) / "data.sig"
-        run("gpg", "--batch", "--yes", "--detach-sign", "-o", str(sig), str(payload))
+        signed = run("gpg", "--batch", "--yes", "--detach-sign", "-o", str(sig), str(payload))
+        assert signed.returncode == 0, signed.stderr.decode("utf-8", "replace")
+        assert sig.is_file() and sig.stat().st_size > 0
 
         # Correct signature verifies.
         verify_openpgp(payload.read_bytes(), sig.read_bytes(), str(keyring), "selftest", Reporter())
@@ -236,9 +242,10 @@ def test_openpgp_verification_round_trip():
         # Clearsigned documents are verified inline (signature=None), which is
         # how APT InRelease files are handled.
         clear = Path(td) / "inline.asc"
-        run("gpg", "--batch", "--yes", "--clearsign", "-o", str(clear), str(payload))
-        if clear.is_file():
-            verify_openpgp(clear.read_bytes(), None, str(keyring), "selftest-inline", Reporter())
+        clearsigned = run("gpg", "--batch", "--yes", "--clearsign", "-o", str(clear), str(payload))
+        assert clearsigned.returncode == 0, clearsigned.stderr.decode("utf-8", "replace")
+        assert clear.is_file() and clear.stat().st_size > 0
+        verify_openpgp(clear.read_bytes(), None, str(keyring), "selftest-inline", Reporter())
 
 
 
@@ -268,26 +275,28 @@ def test_ascii_armored_keyring_verifies_with_gpgv_only(monkeypatch):
     """Integration regression for the Windows release's verifier-only layout."""
     import os
     import subprocess
+    import pytest
     import core
 
     gpg = shutil_which("gpg")
     gpgv = shutil_which("gpgv")
     if not gpg or not gpgv:
-        return
+        pytest.skip("GnuPG signing and verification tools are unavailable on this host")
     with tempfile.TemporaryDirectory() as td:
         home = Path(td) / "gnupg"
         home.mkdir()
         os.chmod(home, 0o700)
         env = dict(os.environ, GNUPGHOME=str(home))
         run = lambda *a: subprocess.run(a, env=env, capture_output=True)
-        if run(gpg, "--batch", "--passphrase", "", "--quick-generate-key",
-               "Armored Selftest <asc@example.invalid>", "default", "default", "never").returncode:
-            return
+        generated = run(gpg, "--batch", "--passphrase", "", "--quick-generate-key",
+                        "Armored Selftest <asc@example.invalid>", "default", "default", "never")
+        assert generated.returncode == 0, generated.stderr.decode("utf-8", "replace")
 
         armored = Path(td) / "archive-key.asc"
-        exported = run(gpg, "--batch", "--armor", "--export").stdout
-        assert exported.startswith(b"-----BEGIN PGP PUBLIC KEY BLOCK-----")
-        armored.write_bytes(exported)
+        exported = run(gpg, "--batch", "--armor", "--export")
+        assert exported.returncode == 0, exported.stderr.decode("utf-8", "replace")
+        assert exported.stdout.startswith(b"-----BEGIN PGP PUBLIC KEY BLOCK-----")
+        armored.write_bytes(exported.stdout)
 
         payload = Path(td) / "data"
         payload.write_bytes(b"trusted armored-keyring content\n")

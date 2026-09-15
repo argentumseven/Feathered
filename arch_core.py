@@ -320,7 +320,7 @@ def _repository_db_url(repo: RepoSpec) -> str:
     # A direct .db URL is accepted for operator-added repositories.
     if urllib.parse.urlsplit(base.rstrip("/")).path.lower().endswith((".db", ".db.tar.gz", ".db.tar.zst", ".db.tar.xz")):
         return base.rstrip("/")
-    return url_join(base, f"{suite}.db")
+    return url_join(base, f"{suite}.db", repo)
 
 
 def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) -> List[ArchPackage]:
@@ -851,7 +851,7 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
             "sha256": artifact_digests.payload_sha256(dest, sha256_file) if id(pkg) in shipped_ids and dest.exists() else "",
             "source_digest_type": pkg.checksum_type or "", "source_digest": pkg.checksum or "",
             "repo": pkg.repo.name, "repo_url": redact_url(pkg.repo.normalized_url), "suite": pkg.repo.suite,
-            "source": redact_url(url_join(pkg.repo.normalized_url, pkg.location)), "size": pkg.size,
+            "source": redact_url(url_join(pkg.repo.normalized_url, pkg.location, pkg.repo)), "size": pkg.size,
             "reason": result.reasons.get(pkg.nevra, "dependency"),
             "shipped": id(pkg) in shipped_ids,
             "package_signature_published": bool(pkg.pgpsig),
@@ -892,7 +892,7 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
         filename = filename_map[id(pkg)]; dest = pkg_dir / filename; record = pkg.verification
         entry = provenance.PackageProvenance(
             package_id=pkg.nevra, filename=filename, sha256=artifact_digests.payload_sha256(dest, sha256_file),
-            size=dest.stat().st_size, source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location)),
+            size=dest.stat().st_size, source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location, pkg.repo)),
             repository=pkg.repo.name, assurance=provenance.UNVERIFIED,
             digest_checked=bool(record and record.package_digest_checked),
             index_digest_verified=False, archive_signature_verified=False,

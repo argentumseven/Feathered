@@ -192,9 +192,23 @@ class RepoSpec:
     # checksum-required | checksum-available | evidence-fallback | full-corroboration | skip-provenance
     verification_strategy: str = ""
 
+    # Vendor-specific query fields that carry credential material. Built-in
+    # names such as token/access_token are always recognized; these lists let a
+    # custom repository declare spellings such as license_token without relying
+    # on a global hard-coded allowlist. These fields are appended to the
+    # dataclass so the established positional RepoSpec constructor remains
+    # compatible with older callers.
+    sensitive_query_keys: List[str] = field(default_factory=list)
+    # Only fields explicitly declared inheritable are copied from a repository
+    # root URL to same-origin child metadata/package URLs. A declared inheritable
+    # field is automatically treated as sensitive too.
+    inheritable_query_credential_keys: List[str] = field(default_factory=list)
+
     def __post_init__(self) -> None:
         if not self.vendor_id:
             object.__setattr__(self, "vendor_id", infer_vendor_id(self.name, self.url))
+        _transport.register_sensitive_query_keys(self.sensitive_query_keys)
+        _transport.register_sensitive_query_keys(self.inheritable_query_credential_keys)
         register_url_secrets(self.url)
         # evidence URLs can carry the same credentials as acquisition
         # URLs, so register them with the central log redactor as well.
@@ -204,9 +218,20 @@ class RepoSpec:
     def __setattr__(self, name, value):
         # URLs are also assigned after construction (media selection, custom
         # repositories), so secrets are registered on every assignment.
+        if name == "sensitive_query_keys":
+            value = sorted(_transport.normalize_query_key_names(value))
+        elif name == "inheritable_query_credential_keys":
+            value = sorted(
+                _transport.normalize_query_key_names(value)
+                - _transport.NON_INHERITABLE_QUERY_CREDENTIAL_KEYS)
         object.__setattr__(self, name, value)
         if name == "url":
             register_url_secrets(value)
+        elif name in {"sensitive_query_keys", "inheritable_query_credential_keys"}:
+            _transport.register_sensitive_query_keys(value)
+            existing_url = getattr(self, "url", "")
+            if existing_url:
+                register_url_secrets(existing_url)
         elif name == "evidence_urls" and value:
             # assignments happen after construction from the GUI.
             for evidence_url in value:
@@ -611,8 +636,8 @@ def fetch_text(url: str, reporter: Optional[Reporter] = None, retries: int = 3, 
     return fetch_bytes(url, reporter or Reporter(), retries=retries, timeout=timeout).decode("utf-8", "replace")
 
 
-def url_join(base: str, href: str) -> str:
-    return _transport.url_join(base, href)
+def url_join(base: str, href: str, repo: Optional[RepoSpec] = None) -> str:
+    return _transport.url_join(base, href, repo)
 
 
 def _repo_trust(repo: RepoSpec) -> RepoTrust:
@@ -627,7 +652,7 @@ def _repo_trust(repo: RepoSpec) -> RepoTrust:
 def get_repo_data(repo: RepoSpec, reporter: Reporter, retries: int = 3) -> Dict[str, RepoDataRef]:
     if not repo.normalized_url:
         raise RuntimeError(f"{repo.name}: no repository URL/path configured")
-    repomd_url = url_join(repo.normalized_url, "repodata/repomd.xml")
+    repomd_url = url_join(repo.normalized_url, "repodata/repomd.xml", repo)
     raw = fetch_bytes(repomd_url, reporter, retries=retries, repo=repo)
     # repomd.xml is the trust root for an RPM repository: every other digest in
     # the repository is chained from it. Verify its detached signature when a
@@ -667,7 +692,7 @@ def get_repo_data(repo: RepoSpec, reporter: Reporter, retries: int = 3) -> Dict[
             # package payload locations; an absolute file:/ URL, another host,
             # or ../ traversal must never be followed merely because repomd
             # advertised it.
-            url=repo_relative_url(repo.normalized_url, loc.attrib["href"]),
+            url=repo_relative_url(repo.normalized_url, loc.attrib["href"], repo),
             checksum_type=checksum.attrib.get("type", "") if checksum is not None else "",
             checksum=(checksum.text or "").strip() if checksum is not None else "",
             open_checksum_type=open_checksum.attrib.get("type", "") if open_checksum is not None else "",
@@ -826,7 +851,12 @@ def diagnose_missing_repository(repo_url: str, reporter: Reporter, retries: int 
 SENSITIVE_QUERY_KEYS = _transport.SENSITIVE_QUERY_KEYS
 
 
-def repo_relative_url(base: str, location: str) -> str:
+def _active_sensitive_query_keys() -> Set[str]:
+    """Built-in plus operator-declared query credential field names."""
+    return _transport.registered_sensitive_query_keys()
+
+
+def repo_relative_url(base: str, location: str, repo: Optional[RepoSpec] = None) -> str:
     """Resolve a package location against its repository, refusing to escape it.
 
     Package locations come from repository metadata, which is exactly the thing
@@ -892,7 +922,7 @@ def repo_relative_url(base: str, location: str) -> str:
         raise RuntimeError(
             f"Repository metadata supplies a package location that escapes the repository "
             f"({redact_url(text)}). Refusing to fetch outside {redact_url(root)}.")
-    return _inherit_sensitive_query_credentials(base, joined)
+    return _inherit_sensitive_query_credentials(base, joined, repo)
 
 
 # Secret values seen in configured repository URLs. Pattern matching alone is
@@ -935,8 +965,9 @@ def register_url_secrets(url: str) -> None:
         return
     if parsed.password:
         _remember_secret(parsed.password)
+    sensitive = _active_sensitive_query_keys()
     for key, value in urllib.parse.parse_qsl(parsed.query, keep_blank_values=True):
-        if key.lower() in SENSITIVE_QUERY_KEYS and value:
+        if key.lower() in sensitive and value:
             _remember_secret(value)
 
 
@@ -952,8 +983,10 @@ def redact_text(text: str) -> str:
                   lambda m: f"{m.group(1)}{m.group(2)}:REDACTED@", body)
     body = re.sub(r"(?i)\b([a-z][a-z0-9+.-]*://)([^/\s:@]+)@",
                   lambda m: f"{m.group(1)}REDACTED@", body)
-    body = re.sub(r"(?i)\b(" + "|".join(sorted(SENSITIVE_QUERY_KEYS)) + r")=([^&\s\"\']+)",
-                  lambda m: f"{m.group(1)}=REDACTED", body)
+    sensitive = _active_sensitive_query_keys()
+    if sensitive:
+        body = re.sub(r"(?i)\b(" + "|".join(re.escape(k) for k in sorted(sensitive)) + r")=([^&\s\"\']+)",
+                      lambda m: f"{m.group(1)}=REDACTED", body)
     with _KNOWN_SECRETS_LOCK:
         secrets = tuple(_KNOWN_SECRETS)
     for secret in secrets:
@@ -988,6 +1021,7 @@ def redact_url(url: str) -> str:
         # those decoded delimiters/spaces raw, producing an audit URL that was
         # never contacted.  Decode only the key for sensitivity classification.
         fields = []
+        sensitive = _active_sensitive_query_keys()
         # Named `raw_field` rather than `field`: the module-level dataclasses
         # `field` import is shadowed by the shorter name.
         for raw_field in query.split("&"):
@@ -996,7 +1030,7 @@ def redact_url(url: str) -> str:
                 key = urllib.parse.unquote_plus(raw_key).lower()
             except (UnicodeDecodeError, ValueError):
                 key = raw_key.lower()
-            if key in SENSITIVE_QUERY_KEYS:
+            if key in sensitive:
                 fields.append(f"{raw_key}=REDACTED")
             else:
                 fields.append(raw_field)
@@ -4096,7 +4130,7 @@ def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, r
     opener = _urlopen if opener is None else opener
     verifier = verify_package_artifact if verifier is None else verifier
     # Confined join: a hostile index cannot redirect this off-origin.
-    src = repo_relative_url(pkg.repo.normalized_url, pkg.location)
+    src = repo_relative_url(pkg.repo.normalized_url, pkg.location, pkg.repo)
     tmp = dest.with_suffix(dest.suffix + ".partial")
     for attempt in range(1, options.retries + 1):
         reporter.check_cancel()
@@ -4476,7 +4510,7 @@ def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Pa
             "sha256": artifact_digests.payload_sha256(dest, sha256_file) if id(p) in shipped_ids and dest.exists() else "",
             "source_digest_type": p.checksum_type or "", "source_digest": p.checksum or "",
             "repo": p.repo.name, "repo_url": redact_url(p.repo.normalized_url),
-            "source": redact_url(url_join(p.repo.normalized_url, p.location)), "size": p.size,
+            "source": redact_url(url_join(p.repo.normalized_url, p.location, p.repo)), "size": p.size,
             "reason": result.reasons.get(p.nevra, "dependency"),
             "shipped": id(p) in shipped_ids,
             "evidence_status": getattr(record, "evidence_status", "not-configured"),
@@ -4532,7 +4566,7 @@ def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Pa
             package_id=pkg.nevra, filename=filename,
             sha256=artifact_digests.payload_sha256(dest, sha256_file) if dest.exists() else "",
             size=dest.stat().st_size if dest.exists() else 0,
-            source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location)),
+            source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location, pkg.repo)),
             repository=pkg.repo.name,
             # Recorded verification, not inferred from configuration: a
             # keyring being set says an operator intended verification, not

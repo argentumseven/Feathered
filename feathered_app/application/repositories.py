@@ -6,6 +6,7 @@ import apt_core
 import arch_core
 import core
 from checksum_inspection import inspect_checksums
+from repository_transport import normalize_query_key_names
 
 from feathered_app.context import (
     APP_TITLE,
@@ -93,7 +94,7 @@ class RepositoriesMixin:
         for i, r in enumerate(self.repo_rows):
             if tier != "all" and self._repo_tier(r) != tier:
                 continue
-            location = r.url or "<not configured>"
+            location = redact_url(r.url) if r.url else "<not configured>"
             if r.repo_format == "apt" and r.suite:
                 location += f"  [suite={r.suite}; components={r.components or 'main'}]"
             if r.keyring:
@@ -474,6 +475,36 @@ class RepositoriesMixin:
         self._panel_hint(advanced,
             "Optional but weakens archive provenance. Use only for a trusted internal mirror that publishes incomplete metadata.",
             pady=(2, 0))
+
+        query_card = self._card(frame, "Endpoint query credentials", pady=(14, 0))
+        self._panel_hint(
+            query_card,
+            "Built-in names such as token, access_token, api_key, password, and signed-URL fields are always protected. "
+            "Add vendor-specific query parameter names here so they are treated as credentials and redacted from logs and bundle metadata.",
+            pady=(0, 8))
+        sensitive_query_var = tk.StringVar(value=", ".join(
+            getattr(repo, "sensitive_query_keys", []) or []))
+        ttk.Label(query_card, text="Additional sensitive query fields", style="Panel.TLabel").pack(anchor="w")
+        sensitive_query_entry = ttk.Entry(query_card, textvariable=sensitive_query_var)
+        sensitive_query_entry.pack(fill="x", pady=(4, 8))
+        self._panel_hint(
+            query_card,
+            "Comma- or space-separated names, for example license_token or subscription_key. Values are never written to audit metadata.",
+            pady=(0, 8))
+
+        inheritable_query_var = tk.StringVar(value=", ".join(
+            getattr(repo, "inheritable_query_credential_keys", []) or []))
+        ttk.Label(query_card, text="Same-origin fields safe to inherit", style="Panel.TLabel").pack(anchor="w")
+        inheritable_query_entry = ttk.Entry(query_card, textvariable=inheritable_query_var)
+        inheritable_query_entry.pack(fill="x", pady=(4, 4))
+        self._panel_hint(
+            query_card,
+            "Leave blank unless the repository expects a bearer field to be copied from its root URL to child metadata and package URLs. "
+            "Signed or resource-bound query fields should not be inherited.",
+            pady=(0, 0))
+
+        def query_names(text):
+            return sorted(normalize_query_key_names(text.replace(",", " ").split()))
         # Never let a verifier-integrity failure abort dialog construction and
         # leave a half-built Toplevel on screen.
         try:
@@ -506,7 +537,9 @@ class RepositoriesMixin:
             old = (
                 repo.digest_preference, repo.digest_requirement, repo.evidence_policy,
                 getattr(repo, "verification_strategy", ""), tuple(repo.evidence_urls),
-                repo.keyring, repo.allow_unverified_index)
+                repo.keyring, repo.allow_unverified_index,
+                tuple(getattr(repo, "sensitive_query_keys", []) or []),
+                tuple(getattr(repo, "inheritable_query_credential_keys", []) or []))
             repo.digest_preference = reverse_digest.get(digest_var.get(), "auto")
             strategy = reverse_strategy.get(strategy_var.get(), "checksum-available")
             repo.verification_strategy = strategy
@@ -519,6 +552,8 @@ class RepositoriesMixin:
             }[strategy]
             repo.keyring = keyring_var.get().strip()
             repo.allow_unverified_index = unverified_var.get().startswith("Permit")
+            repo.sensitive_query_keys = query_names(sensitive_query_var.get())
+            repo.inheritable_query_credential_keys = query_names(inheritable_query_var.get())
 
             choice = source_var.get()
             urls = list(repo.evidence_urls or [])
@@ -551,7 +586,9 @@ class RepositoriesMixin:
             new = (
                 repo.digest_preference, repo.digest_requirement, repo.evidence_policy,
                 repo.verification_strategy, tuple(repo.evidence_urls), repo.keyring,
-                repo.allow_unverified_index)
+                repo.allow_unverified_index,
+                tuple(repo.sensitive_query_keys),
+                tuple(repo.inheritable_query_credential_keys))
             if new != old:
                 self._invalidate_provenance_analysis()
                 self._refresh_repo_tree_if_open()
@@ -569,6 +606,10 @@ class RepositoriesMixin:
         manual_url_entry.bind("<Return>", sync_settings)
         keyring_entry.bind("<FocusOut>", sync_settings)
         unverified_combo.bind("<<ComboboxSelected>>", sync_settings)
+        sensitive_query_entry.bind("<FocusOut>", sync_settings)
+        sensitive_query_entry.bind("<Return>", sync_settings)
+        inheritable_query_entry.bind("<FocusOut>", sync_settings)
+        inheritable_query_entry.bind("<Return>", sync_settings)
         update_advanced_state()
 
         # The Browse callback sets keyring_var; apply that selection immediately.

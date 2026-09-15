@@ -26,6 +26,7 @@ REPOSITORY_FIELDS: Tuple[str, ...] = (
     "expected_release_version", "vendor_id", "allow_unverified_index",
     "evidence_urls", "evidence_policy", "digest_preference",
     "digest_requirement", "verification_strategy", "redirect_allow_origins",
+    "sensitive_query_keys", "inheritable_query_credential_keys",
 )
 
 
@@ -96,6 +97,8 @@ class RepositoryRecord:
     digest_requirement: str = ""
     verification_strategy: str = ""
     redirect_allow_origins: Tuple[str, ...] = ()
+    sensitive_query_keys: Tuple[str, ...] = ()
+    inheritable_query_credential_keys: Tuple[str, ...] = ()
 
     @classmethod
     def capture(cls, repo) -> "RepositoryRecord":
@@ -104,7 +107,8 @@ class RepositoryRecord:
             value = getattr(repo, name, None)
             if name in ("evidence_relationship_hints", "evidence_authority_hints"):
                 values[name] = tuple(sorted((str(k), str(v)) for k, v in (value or {}).items()))
-            elif name in ("evidence_urls", "redirect_allow_origins"):
+            elif name in ("evidence_urls", "redirect_allow_origins", "sensitive_query_keys",
+                           "inheritable_query_credential_keys"):
                 values[name] = tuple(str(item) for item in (value or ()))
             elif name == "priority":
                 values[name] = int(value or 0)
@@ -488,13 +492,15 @@ def repositories_from(spec: BuildSpec, repo_factory):
                           # Captured since 1.2.9 but previously not restored, so a
                           # replayed build silently lost its evidence sources and
                           # ran with an empty credential redirect allow-list.
-                          "evidence_urls", "redirect_allow_origins"):
+                          "evidence_urls", "redirect_allow_origins", "sensitive_query_keys",
+                          "inheritable_query_credential_keys"):
             value = getattr(row, attribute, None)
             if value in (None, "") or value == ():
                 continue
             if attribute in ("evidence_relationship_hints", "evidence_authority_hints"):
                 value = dict(value)
-            elif attribute in ("evidence_urls", "redirect_allow_origins"):
+            elif attribute in ("evidence_urls", "redirect_allow_origins", "sensitive_query_keys",
+                                "inheritable_query_credential_keys"):
                 value = list(value)
             try:
                 setattr(repo, attribute, value)
