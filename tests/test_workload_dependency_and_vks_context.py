@@ -286,3 +286,116 @@ def test_vks_parameter_signature_includes_exact_version_and_source_identity():
 
     assert first != second
     assert first != third
+
+
+def test_rhel_entitlement_readiness_accepts_credentials_attached_to_cdn_rows():
+    from feathered_app.build_preparation import BuildPreparationMixin
+
+    cdn = repo("rhel-baseos", "dependency", "base")
+    cdn.url = "https://cdn.redhat.com/content/dist/rhel9/9/x86_64/baseos/os/"
+    cdn.client_cert = "entitlement.pem"
+    cdn.client_key = "entitlement-key.pem"
+    cdn.ca_cert = "redhat-uep.pem"
+    host = SimpleNamespace(
+        repo_rows=[cdn],
+        rhsm_cert="",
+        rhsm_key="",
+        rhsm_ca="",
+    )
+
+    assert BuildPreparationMixin._entitlement_ready(host)
+    assert BuildPreparationMixin._entitlement_credentials(host) == (
+        "entitlement.pem", "entitlement-key.pem", "redhat-uep.pem")
+
+
+def test_rhel_cdn_is_source_intent_even_before_entitlement_is_configured():
+    import app as feather_app
+
+    docker = repo("docker", "docker", "workload")
+    docker.url = "https://download.docker.com/linux/rhel/9/x86_64/stable/"
+    baseos = repo("rhel-baseos", "dependency", "base")
+    baseos.url = "https://cdn.redhat.com/content/dist/rhel9/9/x86_64/baseos/os/"
+    appstream = repo("rhel-appstream", "dependency", "base")
+    appstream.url = "https://cdn.redhat.com/content/dist/rhel9/9/x86_64/appstream/os/"
+    plan = SourcePlan([RootSourcePolicy("docker-ce", "workload", "docker")])
+
+    host = feather_app.App.__new__(feather_app.App)
+    host.repo_rows = [docker, baseos, appstream]
+    host.selection_mode_var = Var("Workload preset")
+    host.source_method_var = Var("Red Hat CDN entitlement (official)")
+    host.mode_var = Var("Complete bundle (recommended)")
+    host.rhsm_cert = host.rhsm_key = host.rhsm_ca = ""
+    host._profile = lambda: SimpleNamespace(key="rhel", package_family="rpm")
+    host._source_plan = lambda: plan
+    host._repo_tier = feather_app.App._repo_tier.__get__(host, feather_app.App)
+
+    readiness_rows = feather_app.App._repositories_for_source_readiness(host, plan)
+    state = feather_app.App._acquisition_state(host)
+
+    assert readiness_rows == [docker, baseos, appstream]
+    assert state.capability is AcquisitionCapability.FULL_TRANSACTION
+    assert not feather_app.App._entitlement_ready(host)
+
+
+def test_rhel_cdn_full_analysis_blocks_on_missing_entitlement_without_becoming_package_only():
+    import app as feather_app
+
+    docker = repo("docker", "docker", "workload")
+    docker.url = "https://download.docker.com/linux/rhel/9/x86_64/stable/"
+    baseos = repo("rhel-baseos", "dependency", "base")
+    baseos.url = "https://cdn.redhat.com/content/dist/rhel9/9/x86_64/baseos/os/"
+
+    host = feather_app.App.__new__(feather_app.App)
+    host.repo_rows = [docker, baseos]
+    host.selection_mode_var = Var("Workload preset")
+    host.source_method_var = Var("Red Hat CDN entitlement (official)")
+    host.mode_var = Var("Complete bundle (recommended)")
+    host.rhsm_cert = host.rhsm_key = host.rhsm_ca = ""
+    host._profile = lambda: SimpleNamespace(key="rhel", package_family="rpm")
+    host._workload = lambda: SimpleNamespace(label="Docker Engine", contextual_packages=False)
+    host._source_plan = lambda: SourcePlan([RootSourcePolicy("docker-ce", "workload", "docker")])
+    host._workload_uses_distribution_sources = lambda: False
+    host._workload_required_repository_roles = lambda: ["docker"]
+    host._needs_dependency_repos = lambda: True
+    host._repo_tier = feather_app.App._repo_tier.__get__(host, feather_app.App)
+    host._single_mode = lambda: False
+    host._mirror_mode = lambda: False
+
+    assert feather_app.App._acquisition_state(host).capability is AcquisitionCapability.FULL_TRANSACTION
+    with pytest.raises(RuntimeError, match="entitlement certificate"):
+        feather_app.App._validate_source_plan(host)
+
+
+def test_rhel_source_status_separates_selected_dependency_provider_from_missing_entitlement():
+    import app as feather_app
+
+    class Status:
+        def __init__(self):
+            self.kw = {}
+
+        def configure(self, **kwargs):
+            self.kw.update(kwargs)
+
+    docker = repo("docker", "docker", "workload")
+    docker.url = "https://download.docker.com/linux/rhel/9/x86_64/stable/"
+    baseos = repo("rhel-baseos", "dependency", "base")
+    baseos.url = "https://cdn.redhat.com/content/dist/rhel9/9/x86_64/baseos/os/"
+
+    host = feather_app.App.__new__(feather_app.App)
+    host.repo_rows = [docker, baseos]
+    host.source_method_var = Var("Red Hat CDN entitlement (official)")
+    host.source_status = Status()
+    host.rhsm_cert = host.rhsm_key = host.rhsm_ca = ""
+    host._profile = lambda: SimpleNamespace(key="rhel", package_family="rpm")
+    host._repo_tier = feather_app.App._repo_tier.__get__(host, feather_app.App)
+    host._participating_transaction_repositories = lambda: [docker, baseos]
+    host._workload_uses_distribution_sources = lambda: False
+    host._package_only_acquisition_mode = lambda: False
+    host._local_media_pending = lambda: False
+
+    feather_app.App._update_source_status(host)
+    text = host.source_status.kw["text"].lower()
+    assert "remain selected as dependency providers" in text
+    assert "entitlement is not configured" in text
+    assert "no other enabled repository remains" not in text
+    assert "package-only" not in text

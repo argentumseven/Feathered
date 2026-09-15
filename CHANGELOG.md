@@ -27,6 +27,7 @@
 - VKS node OS package additions now use the shared exact-package chooser with clear empty-state guidance instead of presenting an unpopulated selection plan.
 - Exact package roots and prior analysis are cleared when the Content choice changes, preventing packages selected in another mode from carrying into VKS analysis.
 - VKS-specific state is cleared when its Content context or target compatibility is lost, while navigation and downstream dependency choices preserve the active VKS context.
+- RHEL CDN repositories selected for Docker or other vendor workloads remain dependency providers even before entitlement is configured; missing entitlement now blocks authenticated analysis/build access instead of silently forcing package-only mode.
 - Exact-package validation failures return to the package chooser on Repositories instead of an unrelated Content control.
 - Package downloads now report bytes transferred while each artifact is streaming, including aggregate progress, transfer rate, and estimated time remaining.
 - RPM receiver preflight preserves coinstalled versions with the same package name and architecture, including install-only kernel packages.

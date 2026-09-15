@@ -313,42 +313,16 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
 
 
     def _repositories_for_source_readiness(self, plan=None):
-        """Return repositories that are actually usable for capability derivation.
+        """Return configured repositories for topology/capability derivation.
 
-        An enabled URL is configuration, not proof that the source can be used.
-        The important case is an unsubscribed RHEL target: the CDN rows are
-        concrete URLs, but without the entitlement certificate/private key/CA
-        they cannot supply dependencies. Counting them as a usable dependency
-        provider would advertise full dependency analysis and then fail at the
-        entitlement gate.
-
-        For a workload whose roots are all supplied by dedicated upstreams, hide
-        only those unusable CDN base rows from readiness. Mixed or
-        distribution-native plans still retain them so the normal entitlement
-        recovery gate remains mandatory.
+        Source readiness answers whether an operator selected a repository that
+        can serve a required scope. Authentication readiness is a separate
+        precondition. In particular, selected RHEL CDN BaseOS/AppStream rows
+        remain dependency providers even before entitlement files are loaded;
+        analysis/build preparation reports the missing entitlement instead of
+        pretending those repositories were never selected.
         """
-        rows = list(self.repository_rows() or [])
-        if plan is None:
-            plan = self._source_plan()
-        try:
-            rhel = self._profile().key == "rhel"
-        except Exception:
-            rhel = False
-        method_var = self.__dict__.get("source_method_var")
-        try:
-            method = method_var.get() if method_var is not None else ""
-        except Exception:
-            method = ""
-        entitlement_ready = bool(
-            self.__dict__.get("rhsm_cert") and
-            self.__dict__.get("rhsm_key") and
-            self.__dict__.get("rhsm_ca"))
-        workload_only_roots = bool(plan.roots) and not plan.distribution_required
-        if not (rhel and workload_only_roots and
-                method == "Red Hat CDN entitlement (official)" and
-                not entitlement_ready):
-            return rows
-        return [repo for repo in rows if self._repo_tier(repo) != "base"]
+        return list(self.repository_rows() or [])
 
     def _ui_acquisition_state(self):
         """State helper tolerant of lightweight non-App GUI test doubles."""
@@ -1946,8 +1920,13 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         if len(query) < 2:
             self.single_browser_status_var.set("Enter at least 2 characters to search package names.")
             return
-        if self._profile().key == "rhel" and self.source_method_var.get() == "Red Hat CDN entitlement (official)" and not (self.rhsm_cert and self.rhsm_key and self.rhsm_ca):
-            messagebox.showerror(APP_TITLE, "Configure the RHSM entitlement certificate/key/CA before searching Red Hat CDN metadata.")
+        if (self._profile().key == "rhel"
+                and self.source_method_var.get() == "Red Hat CDN entitlement (official)"
+                and not self._entitlement_ready()):
+            messagebox.showerror(
+                APP_TITLE,
+                "Configure the Red Hat entitlement certificate, private key, and repository CA "
+                "before searching Red Hat CDN metadata.")
             return
         sig = self._browser_signature()
         if sig == self.single_catalog_signature and self.single_catalog_packages:

@@ -51,27 +51,37 @@ Choose the archive root: the directory directly above dists/.
 """
 
     def _update_source_status(self):
-        """Summarize broad repository health without overriding the root plan.
+        """Summarize source topology separately from authentication readiness.
 
-        The selected package/workload plan decides whether a pending base source
-        is actually required. A dedicated workload may legitimately have only
-        its side-channel upstream configured; in that state the banner describes
-        the package-only capability downgrade instead of reporting an unrelated
-        base-source error.
+        Selecting a repository establishes source intent. Credentials determine
+        whether a selected authenticated source can be contacted, but missing
+        credentials must not erase that repository from dependency capability
+        derivation.
         """
-        # Mirror mode owns its own status surface and has no transaction-source
-        # banner. Dynamic repository workflow rendering deliberately destroys
-        # that widget instead of leaving a hidden universal page behind.
         source_status = getattr(self, "source_status", None)
         if source_status is None:
             if self._mirror_mode():
                 self._refresh_mirror_repos()
             return
+
         enabled = self._participating_transaction_repositories()
         method = self.source_method_var.get()
-        distribution_required = bool(getattr(self, "_workload_uses_distribution_sources", lambda: False)())
-        package_only = bool(getattr(self, "_package_only_acquisition_mode", lambda: False)())
+        distribution_required = bool(
+            getattr(self, "_workload_uses_distribution_sources", lambda: False)())
+        package_only = bool(
+            getattr(self, "_package_only_acquisition_mode", lambda: False)())
         local_pending = bool(getattr(self, "_local_media_pending", lambda: False)())
+        entitlement_ready = True
+        if method == "Red Hat CDN entitlement (official)":
+            ready = getattr(self, "_entitlement_ready", None)
+            if callable(ready):
+                entitlement_ready = bool(ready())
+            else:
+                entitlement_ready = bool(
+                    getattr(self, "rhsm_cert", "")
+                    and getattr(self, "rhsm_key", "")
+                    and getattr(self, "rhsm_ca", ""))
+
         if local_pending and distribution_required:
             self.source_status.configure(
                 text="The selected roots require distribution repositories, but local media is selected and no repository folder has been loaded yet.",
@@ -80,43 +90,44 @@ Choose the archive root: the directory directly above dists/.
             self.source_status.configure(
                 text="No repository URLs are enabled for the selected build.",
                 fg=ERR_FG)
-        elif method == "Red Hat CDN entitlement (official)" and distribution_required and not (self.rhsm_cert and self.rhsm_key and self.rhsm_ca):
-            self.source_status.configure(
-                text="The selected roots require the Red Hat CDN base set, but its entitlement certificate, private key and CA are not configured.",
-                fg=ERR_FG)
         else:
             base_count = sum(1 for r in enabled if self._repo_tier(r) == "base")
             workload_count = sum(1 for r in enabled if self._repo_tier(r) == "workload")
             additional_count = sum(1 for r in enabled if self._repo_tier(r) == "additional")
-            if package_only:
-                effective_enabled = list(enabled)
-                if (method == "Red Hat CDN entitlement (official)" and
-                        not (self.rhsm_cert and self.rhsm_key and self.rhsm_ca)):
-                    try:
-                        effective = self._repositories_for_source_readiness(self._source_plan())
-                    except Exception:
-                        effective = list(enabled)
-                    effective_enabled = [r for r in effective if r in enabled]
-                base_count = sum(1 for r in effective_enabled if self._repo_tier(r) == "base")
-                workload_count = sum(1 for r in effective_enabled if self._repo_tier(r) == "workload")
-                additional_count = sum(1 for r in effective_enabled if self._repo_tier(r) == "additional")
-                if (method == "Red Hat CDN entitlement (official)" and
-                        not (self.rhsm_cert and self.rhsm_key and self.rhsm_ca)):
-                    text = (f"Workload root source ready: {workload_count} workload source(s). "
-                            "The configured Red Hat CDN repositories are not usable without vendor entitlement, "
-                            "so no separate dependency provider remains. Feathered will use package-only acquisition "
-                            "until entitlement is configured, a target-compatible fallback/custom repository is enabled, "
-                            "or RHEL media is loaded.")
+
+            if (method == "Red Hat CDN entitlement (official)"
+                    and not entitlement_ready
+                    and not package_only):
+                if distribution_required:
+                    text = (
+                        "RHEL CDN repositories are selected for the required distribution roots, but the Red Hat "
+                        "entitlement certificate, private key, and repository CA are not configured. Configure "
+                        "entitlement before analysis or build; the selected CDN repositories remain part of the "
+                        "source plan.")
                 else:
-                    text = (f"Configured: {len(effective_enabled)} usable source(s) ({base_count} base, "
-                            f"{workload_count} workload, {additional_count} additional). "
-                            "The workload roots are available, but no other enabled repository remains to provide "
-                            "dependencies. Enable a target-compatible OS or supplemental repository for dependency analysis.")
+                    text = (
+                        f"Configured: {len(enabled)} enabled source(s) ({base_count} base, {workload_count} workload, "
+                        f"{additional_count} additional). RHEL CDN BaseOS/AppStream remain selected as dependency "
+                        "providers, but Red Hat entitlement is not configured. Dependency analysis will require the "
+                        "entitlement certificate, private key, and repository CA before those sources can be read.")
+                colour = WARN_FG
+            elif package_only:
+                if method == "Red Hat CDN entitlement (official)" and not entitlement_ready and base_count:
+                    text = (
+                        f"Configured: {len(enabled)} enabled source(s) ({base_count} base, {workload_count} workload, "
+                        f"{additional_count} additional). Package-only acquisition is selected, so the RHEL CDN "
+                        "dependency providers will not be contacted and entitlement is not required for this operation.")
+                else:
+                    text = (
+                        f"Configured: {len(enabled)} enabled source(s) ({base_count} base, {workload_count} workload, "
+                        f"{additional_count} additional). Package-only acquisition collects the requested workload "
+                        "roots without dependency resolution.")
                 colour = WARN_FG
             else:
-                text = (f"Configured: {len(enabled)} enabled source(s) ({base_count} base, "
-                        f"{workload_count} workload, {additional_count} additional). "
-                        "Test all sources for broad reachability; use Check selected packages for root availability.")
+                text = (
+                    f"Configured: {len(enabled)} enabled source(s) ({base_count} base, "
+                    f"{workload_count} workload, {additional_count} additional). "
+                    "Test all sources for broad reachability; use Check selected packages for root availability.")
                 colour = OK_FG
             self.source_status.configure(text=text, fg=colour)
         if self.__dict__.get("package_source_tree") is not None:

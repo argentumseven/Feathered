@@ -365,12 +365,48 @@ class BuildPreparationMixin:
         return optional
 
 
+    def _entitlement_credentials(self):
+        """Return a configured Red Hat entitlement tuple, if one is available.
+
+        The GUI keeps vendor-scoped aliases, while saved/prepared repository
+        rows may already carry the same client-auth material. Both forms are
+        accepted so capability and build validation cannot disagree merely
+        because credentials entered through one path were not mirrored into the
+        other representation yet.
+        """
+        direct = tuple(str(self.__dict__.get(k) or "")
+                       for k in ('rhsm_cert', 'rhsm_key', 'rhsm_ca'))
+        if all(direct):
+            return direct
+        cdn = [r for r in getattr(self, 'repo_rows', ())
+               if getattr(r, 'enabled', False)
+               and str(getattr(r, 'url', '') or '').startswith('https://cdn.redhat.com/')]
+        if not cdn:
+            return ('', '', '')
+        candidates = [
+            (str(getattr(repo, 'client_cert', '') or ''),
+             str(getattr(repo, 'client_key', '') or ''),
+             str(getattr(repo, 'ca_cert', '') or ''))
+            for repo in cdn
+        ]
+        if not all(all(candidate) for candidate in candidates):
+            return ('', '', '')
+        return candidates[0]
+
     def _entitlement_ready(self):
-        # GUI credentials are also accepted while its repository UI is staged.
-        if all(self.__dict__.get(k) for k in ('rhsm_cert', 'rhsm_key', 'rhsm_ca')):
+        # Readiness means every enabled Red Hat CDN endpoint has client-auth
+        # material available. It does not claim that the CDN has accepted that
+        # material; the repository probe/load path establishes that separately.
+        direct = tuple(str(self.__dict__.get(k) or "")
+                       for k in ('rhsm_cert', 'rhsm_key', 'rhsm_ca'))
+        if all(direct):
             return True
-        base = [r for r in self.repo_rows if r.enabled and self._repo_tier(r) == 'base']
-        return bool(base) and all(r.client_cert and r.client_key and r.ca_cert for r in base)
+        cdn = [r for r in getattr(self, 'repo_rows', ())
+               if getattr(r, 'enabled', False)
+               and str(getattr(r, 'url', '') or '').startswith('https://cdn.redhat.com/')]
+        return bool(cdn) and all(
+            getattr(r, 'client_cert', '') and getattr(r, 'client_key', '') and getattr(r, 'ca_cert', '')
+            for r in cdn)
 
     def _needs_dependency_repos(self):
         return not self._mirror_mode()
@@ -393,10 +429,6 @@ class BuildPreparationMixin:
                 exact_root_sources_ready=bool(self.selected_packages) and
                 all(p.repo.source_identity in enabled for p in self.selected_packages))
         plan = self._source_plan()
-        if (self._profile().key == 'rhel' and plan.roots and not plan.distribution_required
-                and self._active_source_method() == 'Red Hat CDN entitlement (official)'
-                and not self._entitlement_ready()):
-            rows = [r for r in rows if self._repo_tier(r) != 'base']
         package_only_requested = (
             BuildRequestMixin._selected_content(self, "dependency_mode", "mode_var")
             == WORKLOAD_PACKAGE_ONLY_MODE)

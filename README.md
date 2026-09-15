@@ -69,7 +69,7 @@ Built-in distribution profiles cover:
 
 Architecture choices are profile-specific. Feathered also supports target inventory capture so repository planning can account for installed packages, package relationships, architecture, and relevant package-manager state.
 
-RHEL CDN access uses operator-supplied entitlement material. Private entitlement keys are runtime inputs and are not intended to become part of the portable build specification or published bundle.
+RHEL CDN access uses operator-supplied entitlement material. Selecting RHEL CDN BaseOS/AppStream establishes them as dependency providers even before credentials are configured; missing entitlement blocks authenticated repository access rather than changing the workload to package-only mode. Private entitlement keys are runtime inputs and are not intended to become part of the portable build specification or published bundle.
 
 ## Repository semantics
 

@@ -4984,7 +4984,7 @@ def test_source_status_does_not_error_on_pending_base_media_for_package_only_wor
     ui.rhsm_cert = ui.rhsm_key = ui.rhsm_ca = ""
 
     App._update_source_status(ui)
-    assert "no other enabled repository remains" in ui.source_status.kw["text"].lower()
+    assert "package-only acquisition" in ui.source_status.kw["text"].lower()
     assert "no repository folder has been loaded" not in ui.source_status.kw["text"].lower()
 
 # ---------------------------------------------------------------------------
@@ -7312,7 +7312,7 @@ def test_1079_exact_package_readiness_rejects_same_name_wrong_source():
     assert state.capability is AcquisitionCapability.BLOCKED
 
 
-def test_1080_rhel_docker_upstream_is_package_only_when_cdn_is_unentitled():
+def test_1080_rhel_docker_cdn_selection_remains_dependency_capable_when_unentitled():
     from types import SimpleNamespace
     import app as feather_app
     from acquisition_model import AcquisitionCapability
@@ -7348,9 +7348,9 @@ def test_1080_rhel_docker_upstream_is_package_only_when_cdn_is_unentitled():
     ui.repo_rows = [docker, baseos, appstream]
 
     state = feather_app.App._acquisition_state(ui)
-    assert state.capability is AcquisitionCapability.PACKAGE_ONLY
+    assert state.capability is AcquisitionCapability.FULL_TRANSACTION
     usable = feather_app.App._repositories_for_source_readiness(ui, ui._source_plan())
-    assert usable == [docker]
+    assert usable == [docker, baseos, appstream]
 
 
 def test_1080_rhel_distribution_roots_still_require_entitled_or_alternate_base():
@@ -7415,6 +7415,7 @@ def test_1080_rhel_docker_package_only_does_not_trigger_entitlement_recovery_gat
                       "dependency", 40, True)
     baseos.source_tier = "base"
     ui.repo_rows = [docker, baseos]
+    ui._package_only_acquisition_mode = lambda: True
 
     feather_app.App._validate_source_plan(ui)
 

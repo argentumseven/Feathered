@@ -512,14 +512,15 @@ class DiscoveryMixin:
         """
         if profile.key != "rhel":
             return None
-        if not (self.rhsm_cert and self.rhsm_key and self.rhsm_ca):
+        credentials = self._entitlement_credentials()
+        if not all(credentials):
             return None
         major_m = re.match(r"(\d+)", version)
         major = major_m.group(1) if major_m else version
         url = f"https://cdn.redhat.com/content/dist/rhel{major}/{version}/{arch}/baseos/os/"
         return RepoSpec("RHEL BaseOS (entitled probe)", url, "dependency", 40, True,
                         "Entitlement-authenticated availability check.", version,
-                        self.rhsm_cert, self.rhsm_key, self.rhsm_ca)
+                        credentials[0], credentials[1], credentials[2])
 
     def _verify_release_candidates(self, profile, candidates, arch, rep, limit: int = 14):
         """Probe each candidate's base repository and report what answered."""
