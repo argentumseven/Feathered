@@ -142,3 +142,45 @@ def test_repository_scan_rejects_package_symlink_outside_root(tmp_path):
 
     with pytest.raises(RuntimeError, match='refuses symbolic links'):
         repository_tools.scan_repository_folder(root)
+
+
+def _nested_quote(value: str, passes: int) -> str:
+    import urllib.parse
+    for _ in range(passes):
+        value = urllib.parse.quote(value, safe='')
+    return value
+
+
+def test_repository_location_rejects_deeply_encoded_traversal():
+    hostile = _nested_quote('../../secret.rpm', 8)
+    with pytest.raises(RuntimeError, match='escapes the repository'):
+        core.repo_relative_url('https://repo.example/rpm/release/', hostile)
+
+
+def test_repository_location_fails_closed_on_excessive_encoding_depth():
+    encoded = _nested_quote('Packages/tool.rpm', 20)
+    with pytest.raises(RuntimeError, match='nested too deeply'):
+        core.repo_relative_url('https://repo.example/rpm/release/', encoded)
+
+
+def test_repository_location_rejects_nested_encoded_nul():
+    hostile = _nested_quote('Packages/tool\x00.rpm', 5)
+    with pytest.raises(RuntimeError, match='NUL byte'):
+        core.repo_relative_url('https://repo.example/rpm/release/', hostile)
+
+
+def test_source_runtime_installers_require_hashed_binary_lock():
+    root = Path(__file__).resolve().parents[1]
+    lock = (root / 'requirements-runtime.lock').read_text(encoding='utf-8')
+    requirements = [line for line in lock.splitlines()
+                    if line and not line.startswith('#') and '==' in line]
+    assert requirements == ['zstandard==0.25.0 \\', 'PyYAML==6.0.3 \\']
+    assert lock.count('--hash=sha256:') == 20
+
+    run_gui = (root / 'run_gui.bat').read_text(encoding='utf-8')
+    deps = (root / 'install_python_deps.bat').read_text(encoding='utf-8')
+    linux = (root / 'linux_setup.py').read_text(encoding='utf-8')
+    for text in (run_gui, deps, linux):
+        assert '--require-hashes' in text
+        assert '--only-binary=:all:' in text
+        assert 'requirements-runtime.lock' in text

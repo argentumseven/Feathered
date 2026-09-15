@@ -860,14 +860,28 @@ def repo_relative_url(base: str, location: str) -> str:
     # checking only the encoded string would let %2e%2e escape the repository
     # even though literal ../ is refused. Decode repeatedly for validation only
     # (the original URL is still returned/fetched).
-    decoded_root = root_parts.path
-    decoded_joined = joined_parts.path
-    for _ in range(3):
-        next_root = urllib.parse.unquote(decoded_root)
-        next_joined = urllib.parse.unquote(decoded_joined)
-        if next_root == decoded_root and next_joined == decoded_joined:
-            break
-        decoded_root, decoded_joined = next_root, next_joined
+    def fully_decode_path(path: str) -> str:
+        decoded = path
+        for _ in range(16):
+            try:
+                next_value = urllib.parse.unquote(decoded, errors="strict")
+            except UnicodeDecodeError as exc:
+                raise RuntimeError(
+                    "Repository metadata contains invalid percent-encoded path bytes; "
+                    "refusing ambiguous repository traversal semantics.") from exc
+            if next_value == decoded:
+                return decoded
+            decoded = next_value
+        raise RuntimeError(
+            "Repository metadata path encoding is nested too deeply to canonicalize safely; "
+            "refusing ambiguous repository traversal semantics.")
+
+    decoded_root = fully_decode_path(root_parts.path)
+    decoded_joined = fully_decode_path(joined_parts.path)
+    if "\x00" in decoded_root or "\x00" in decoded_joined:
+        raise RuntimeError(
+            "Repository metadata contains a NUL byte in a decoded path; refusing ambiguous "
+            "repository traversal semantics.")
     if "\\" in decoded_joined:
         raise RuntimeError(
             f"Repository metadata supplies a location with backslash path separators "

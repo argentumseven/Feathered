@@ -66,7 +66,7 @@ On a connected Linux machine matching the destination's CPU architecture and
 Python minor version, prepare the wheels:
 
 ```bash
-python3 -m pip download --only-binary=:all: -r requirements.txt -d wheels
+python3 -m pip download --require-hashes --only-binary=:all: -r requirements-runtime.lock -d wheels
 ```
 
 Transfer the complete source archive and that wheel directory to the workstation:
@@ -78,8 +78,7 @@ bash install_linux.sh --wheelhouse /path/to/wheels
 
 This mode disables package-index access. OS prerequisites must already be
 installed or supplied separately through the organization's OS package process.
-A missing compatible wheel fails installation rather than silently selecting
-another version or contacting an index.
+The runtime lock authenticates the accepted dependency wheels. A missing compatible wheel or hash fails installation rather than silently selecting another version or contacting an index. The shipped lock covers CPython 3.10 through 3.14 on Windows x86-64 and glibc Linux x86-64.
 
 ## Updates, rollback and removal
 

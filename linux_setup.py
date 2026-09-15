@@ -91,7 +91,7 @@ def installation_lock(root: Path) -> Iterator[None]:
 
 def install(root: Path, *, cli_only: bool, wheelhouse: Path | None,
             files: dict[Path, tuple[str, int]]) -> Path:
-    for name in ('requirements.txt', 'app.py', 'feathered_cli.py', 'linux_launch.py', 'feathered_app/__init__.py'):
+    for name in ('requirements.txt', 'requirements-runtime.lock', 'app.py', 'feathered_cli.py', 'linux_launch.py', 'feathered_app/__init__.py'):
         if not (root / name).is_file():
             raise ValueError(f'Incomplete source folder: missing {name}. Extract the complete archive.')
     if wheelhouse is not None and not wheelhouse.is_dir():
@@ -113,7 +113,7 @@ def install(root: Path, *, cli_only: bool, wheelhouse: Path | None,
             if not cli_only:
                 subprocess.run([str(python), '-I', '-c', 'import tkinter'], check=True)
             command = [str(python), '-I', '-m', 'pip', 'install', '--disable-pip-version-check',
-                       '--only-binary=:all:', '-r', str(root / 'requirements.txt')]
+                       '--require-hashes', '--only-binary=:all:', '-r', str(root / 'requirements-runtime.lock')]
             if wheelhouse is not None:
                 command.extend(['--no-index', '--find-links', str(wheelhouse)])
             subprocess.run(command, check=True)

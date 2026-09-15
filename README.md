@@ -180,7 +180,7 @@ For Kubernetes-specific behavior, see [KUBERNETES.md](KUBERNETES.md).
 2. Install Python 3 with Tk support.
 3. Double-click `run_gui.bat` from the extracted `Feathered_1.3.0` directory.
 
-The launcher installs the Python dependencies listed in `requirements.txt` when required. The complete `feathered_app` package must remain beside the launcher and top-level source files.
+When dependencies are missing, the launcher installs them from `requirements-runtime.lock` with hash verification and binary wheels only. `requirements.txt` remains the direct dependency specification. The complete `feathered_app` package must remain beside the launcher and top-level source files.
 
 ## Running on Ubuntu or Debian
 

@@ -6,6 +6,7 @@ if not exist "%~dp0app.py" goto incomplete
 if not exist "%~dp0feathered_app\__init__.py" goto incomplete
 if not exist "%~dp0feathered_app\context.py" goto incomplete
 if not exist "%~dp0requirements.txt" goto incomplete
+if not exist "%~dp0requirements-runtime.lock" goto incomplete
 
 pushd "%~dp0"
 if errorlevel 1 (
@@ -31,7 +32,7 @@ if errorlevel 1 (
 %PY% -c "import zstandard, yaml" >nul 2>nul
 if errorlevel 1 (
   echo Installing required Python dependencies...
-  %PY% -m pip install --disable-pip-version-check -r "%~dp0requirements.txt"
+  %PY% -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r "%~dp0requirements-runtime.lock"
   if errorlevel 1 (
     echo ERROR: Could not install Python dependencies.
     popd
@@ -49,6 +50,6 @@ exit /b %FEATHERED_EXIT%
 :incomplete
 echo ERROR: The Feathered source folder is incomplete.
 echo Use Extract All on the ZIP, then open the extracted Feathered_1.3.0 folder.
-echo Keep app.py, run_gui.bat, requirements.txt and the entire feathered_app folder together.
+echo Keep app.py, run_gui.bat, requirements-runtime.lock and the entire feathered_app folder together.
 pause
 exit /b 1

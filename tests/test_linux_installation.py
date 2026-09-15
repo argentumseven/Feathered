@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def source(tmp_path):
     root = tmp_path / "Feathered source ' $ % with spaces"
     root.mkdir()
-    for name in ('app.py', 'feathered_cli.py', 'linux_launch.py', 'requirements.txt', 'feathered_app/__init__.py'):
+    for name in ('app.py', 'feathered_cli.py', 'linux_launch.py', 'requirements.txt', 'requirements-runtime.lock', 'feathered_app/__init__.py'):
         path = root / name
         path.parent.mkdir(exist_ok=True)
         path.write_text('')
@@ -44,7 +44,8 @@ def test_cli_only_installs_without_tk_or_package_index(source, fake_runtime, tmp
     assert (source / '.venv/current/bin/python').resolve() == runtime
     assert all('tkinter' not in ' '.join(command) for command in fake_runtime)
     pip = next(command for command in fake_runtime if 'pip' in command)
-    assert '--no-index' in pip and '--only-binary=:all:' in pip
+    assert '--no-index' in pip and '--only-binary=:all:' in pip and '--require-hashes' in pip
+    assert 'requirements-runtime.lock' in ' '.join(pip)
     assert pip[-2:] == ['--find-links', str(wheelhouse)]
     assert list((tmp_path / 'bin').iterdir()) == [tmp_path / 'bin/feathered']
     assert not (tmp_path / 'desktop').exists()

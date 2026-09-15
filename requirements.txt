@@ -1,5 +1,5 @@
-# release builds must not float to a
-# different compression implementation under the same Feathered source version.
+# Direct source-runtime dependency specification. Source installers authenticate
+# binary artifacts with requirements-runtime.lock.
 zstandard==0.25.0
 
 PyYAML==6.0.3
