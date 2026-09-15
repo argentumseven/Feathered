@@ -9,7 +9,8 @@ import copy
 from datetime import datetime
 from pathlib import Path
 
-from acquisition_model import AcquisitionCapability, AcquisitionIntent, derive_acquisition_state
+from acquisition_model import (AcquisitionCapability, AcquisitionIntent, WORKLOAD_PACKAGE_ONLY_MODE,
+                               derive_acquisition_state)
 from core import BuildOptions, Cancelled, infer_vendor_id
 from feathered_app.build_output import FOLDER_SCHEMES
 from feathered_app.build_request import BuildRequestMixin
@@ -102,7 +103,13 @@ class BuildPreparationMixin:
         enabled = self._participating_transaction_repositories()
         if self._mirror_mode():
             return [r for r in self.repo_rows if r.url.strip() and self._mirror_repo_selected(r)]
-        if self._single_mode():
+        try:
+            contextual_packages = bool(
+                not self._mirror_mode()
+                and getattr(self._workload(), "contextual_packages", False))
+        except (AttributeError, TypeError, StopIteration, KeyError):
+            contextual_packages = False
+        if self._single_mode() or contextual_packages:
             source_ids = {p.repo.source_identity for p in getattr(self, "selected_packages", [])}
             return [r for r in enabled if r.source_identity in source_ids]
         readiness = evaluate_source_readiness(
@@ -125,9 +132,14 @@ class BuildPreparationMixin:
                     "every enabled repository.")
             return
         workload = self._workload()
-        if self._single_mode():
+        contextual_packages = bool(getattr(workload, "contextual_packages", False))
+        if self._single_mode() or contextual_packages:
             if not self.selected_packages:
-                raise RuntimeError("Choose at least one exact package + version first")
+                message = (
+                    "Choose at least one VKS node OS package addition on Repositories"
+                    if contextual_packages else
+                    "Choose at least one exact package + version first")
+                raise RuntimeError(message)
             enabled_ids = {r.source_identity for r in self.repo_rows if r.enabled and r.url}
             missing_sources = sorted({p.repo.name for p in self.selected_packages
                                       if p.repo.source_identity not in enabled_ids})
@@ -385,8 +397,15 @@ class BuildPreparationMixin:
                 and self._active_source_method() == 'Red Hat CDN entitlement (official)'
                 and not self._entitlement_ready()):
             rows = [r for r in rows if self._repo_tier(r) != 'base']
-        return derive_acquisition_state(intent, workload_readiness=evaluate_source_readiness(
-            plan, rows, tier_getter=self._repo_tier))
+        package_only_requested = (
+            BuildRequestMixin._selected_content(self, "dependency_mode", "mode_var")
+            == WORKLOAD_PACKAGE_ONLY_MODE)
+        return derive_acquisition_state(
+            intent,
+            workload_readiness=evaluate_source_readiness(
+                plan, rows, tier_getter=self._repo_tier),
+            workload_root_count=len(plan.roots),
+            workload_package_only_requested=package_only_requested)
 
     def _package_only_acquisition_mode(self):
         return self._acquisition_state().capability is AcquisitionCapability.PACKAGE_ONLY
@@ -410,7 +429,7 @@ def prepare_job(host, *, do_download=True, state=None, picked_at_start=None,
         if not do_download:
             raise PreparationRejected(message)
         confirm = confirm_package_only or host._ask_on_ui_thread
-        if not confirm('Feathered', message + '\n\nDownload only the requested workload package artifacts?'):
+        if not confirm('Feathered', message + '\n\nDownload only the requested root package artifacts?'):
             raise DecisionDeclined('Package-only acquisition was declined.')
     host._validate_source_plan()
     requests = host._package_requests()
@@ -435,7 +454,8 @@ def prepare_job(host, *, do_download=True, state=None, picked_at_start=None,
                 log("Pin to inventory baseline was ignored because no usable installed inventory is loaded.")
         if context.pin_baseline:
             repositories = [r for r in repositories if not rolling_source(r)]
-        opts.include_dependencies = True
+        if not package_only:
+            opts.include_dependencies = True
         opts.emit_repository = True
     opts.workload_context = context
     host._validate_signing()

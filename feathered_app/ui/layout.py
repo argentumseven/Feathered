@@ -1144,14 +1144,15 @@ class LayoutMixin:
             self._focus_validation("target", getattr(self, "inventory_btn", None), message)
         elif "custom label" in text or "output folder scheme" in text:
             self._focus_validation("transfer", getattr(self, "folder_label_entry", None), message)
-        elif ("exact package" in text or
+        elif ("exact package" in text or "vks node os package addition" in text or
               any(token in text for token in ("no repositories are ticked", "at least one package",
                                                "enter at least one package", "nothing is selected"))):
             try:
                 exact_mode = self._acquisition_intent() is AcquisitionIntent.PACKAGES
             except Exception:
                 exact_mode = False
-            if exact_mode:
+            vks_package_chooser = "vks node os package addition" in text
+            if exact_mode or vks_package_chooser:
                 self.show_pane("repositories")
                 self._focus_validation(
                     "repositories", getattr(self, "exact_package_selection_card", None), message)

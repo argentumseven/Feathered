@@ -270,6 +270,9 @@ class WorkloadProfile:
             return list(self.deb_packages)
         return list(self.packages)
     custom: bool = False
+    # Contextual package workloads use the exact-package chooser but retain
+    # workload policy, dependency-mode choices and workload-specific output.
+    contextual_packages: bool = False
     version_axis: str = 'package'
     supported_releases: Dict[str, List[str]] = field(default_factory=dict)
 
@@ -596,8 +599,8 @@ def _builtins() -> List[WorkloadProfile]:
             repository_roles=['kubernetes'], package_repository_roles={'kubectl':'kubernetes'},
             supported_distros=['rhel','rocky','alma','centos-stream','fedora','ubuntu','debian','photon']),
         WorkloadProfile('vks-node-additions', 'VKS node OS package additions', [],
-            'Choose OS packages to add to a captured VKS node baseline. Direct installs may be replaced by a node rollout. The bundle includes an unvalidated Image Baker draft.',
-            custom=True, supported_distros=['photon','ubuntu','rhel'],
+            'Customize a VKS node image with target OS packages. Feathered applies VKS-specific policy and Image Baker output while keeping the normal package chooser and dependency resolver available.',
+            custom=True, contextual_packages=True, supported_distros=['photon','ubuntu','rhel'],
             supported_releases={'photon':['5.0'], 'ubuntu':['22.04','24.04'], 'rhel':['9']}),
 
 
@@ -727,6 +730,7 @@ def _parse_external(path: Path) -> List[WorkloadProfile]:
             supported_distros=[str(x) for x in row.get("supported_distros", [])] or None,
             deb_packages=[str(x).strip() for x in row.get("deb_packages", []) if str(x).strip()] or None,
             optional_packages=[str(x).strip() for x in row.get("optional_packages", []) if str(x).strip()],
+            contextual_packages=bool(row.get("contextual_packages", False)),
             components=components,
             catalog_revision=int(row.get("catalog_revision", data.get("catalog_revision", 1)) or 1),
             catalog_sha256=catalog_sha256,

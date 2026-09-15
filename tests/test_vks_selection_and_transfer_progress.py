@@ -108,7 +108,7 @@ def test_vks_content_plan_explains_that_additions_are_selected_on_repositories()
         "No VKS node OS additions selected",
         "Choose exact target OS packages on Repositories",
     )]
-    assert "does not add OS packages by itself" in host.package_source_plan_status_var.get()
+    assert "does not silently add a package set" in host.package_source_plan_status_var.get()
 
 
 def test_package_validation_error_routes_to_exact_package_chooser():
@@ -123,6 +123,23 @@ def test_package_validation_error_routes_to_exact_package_chooser():
 
     assert LayoutMixin._route_validation_error(
         host, "Choose at least one exact package on Repositories")
+    assert calls[0] == ("show", "repositories")
+    assert calls[1][0:2] == ("focus", "repositories")
+    assert calls[1][2] is host.exact_package_selection_card
+
+
+def test_vks_missing_addition_routes_to_vks_package_chooser():
+    calls = []
+    host = SimpleNamespace(
+        exact_package_selection_card=object(),
+        package_selection_card=object(),
+        _acquisition_intent=lambda: AcquisitionIntent.WORKLOAD,
+        show_pane=lambda pane: calls.append(("show", pane)),
+        _focus_validation=lambda pane, widget, message: calls.append(("focus", pane, widget, message)),
+    )
+
+    assert LayoutMixin._route_validation_error(
+        host, "Choose at least one VKS node OS package addition on Repositories")
     assert calls[0] == ("show", "repositories")
     assert calls[1][0:2] == ("focus", "repositories")
     assert calls[1][2] is host.exact_package_selection_card

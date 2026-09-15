@@ -11,6 +11,7 @@ from kubernetes_workflow import KUBERNETES_KEYS, VKS_KEY, rolling_source, report
 from k8s_version import parse
 import k8s_discovery
 import k8s_knowledge
+from k8s_policy import managed_kind
 
 
 class KubernetesWorkloadMixin:
@@ -51,6 +52,13 @@ class KubernetesWorkloadMixin:
         self.k8s_observation_label.grid(row=3, column=0, columnspan=3, sticky='ew', pady=(4, 0))
         self.vks_options = ttk.Frame(parent, style='Panel.TFrame')
         self.vks_options.grid(row=14, column=0, columnspan=3, sticky='ew', pady=(8, 0))
+        ttk.Label(self.vks_options, text='VKS customization policy', style='Panel.TLabel').pack(anchor='w')
+        ttk.Label(
+            self.vks_options,
+            text=('VKS mode layers managed-node checks and Image Baker draft output over the normal '
+                  'target OS package workflow. No package set is added automatically; use the package '
+                  'chooser on Repositories for both ordinary and advanced additions.'),
+            style='PanelHint.TLabel', wraplength=660).pack(anchor='w', pady=(0, 8))
         check = self._image_checkbutton(self.vks_options, self.pin_to_inventory_baseline_var,
                                         'Pin to inventory baseline',
                                         command=self._apply_vks_baseline_sources)
@@ -58,12 +66,80 @@ class KubernetesWorkloadMixin:
         ttk.Label(self.vks_options, text='Image Baker draft name', style='Panel.TLabel').pack(anchor='w')
         entry = ttk.Entry(self.vks_options, textvariable=self.image_baker_name_var)
         entry.pack(fill='x'); self._register_operation_control(entry)
-        ttk.Label(self.vks_options, text='Choose additions in the package chooser on Repositories. A captured node inventory on Target is optional and is used only when baseline pinning is enabled.',
+        ttk.Label(self.vks_options, text='A captured node inventory on Target is optional. It affects VKS baseline pinning only when that checkbox is enabled.',
                   style='PanelHint.TLabel', wraplength=660).pack(anchor='w')
         self.vks_options.grid_remove()
         self.k8s_minor_var.trace_add('write', self._k8s_minor_changed)
         for var in (self.apiserver_oldest_minor_var, self.apiserver_newest_minor_var):
             var.trace_add('write', self._k8s_advice_changed)
+
+    def _reset_vks_context(self, *, target_changed=False):
+        """Discard VKS-only state that no longer belongs to the current context."""
+        if 'pin_to_inventory_baseline_var' in self.__dict__:
+            self.pin_to_inventory_baseline_var.set(False)
+        if 'advisories_acknowledged_var' in self.__dict__:
+            self.advisories_acknowledged_var.set(False)
+        self.__dict__.pop('_k8s_advice_scope', None)
+        if not target_changed and 'image_baker_name_var' in self.__dict__:
+            self.image_baker_name_var.set('feathered-node-additions')
+
+    def _build_vks_repository_context_card(self, parent):
+        """Explain the guided VKS layer beside the normal exact-package chooser."""
+        self.vks_repository_context_card = self._card(
+            parent, 'VKS customization context', pady=(18, 0))
+        self._panel_hint(
+            self.vks_repository_context_card,
+            'The package chooser remains unrestricted to the enabled target OS repositories. '
+            'Feathered classifies selected packages for VKS-sensitive components, applies optional '
+            'inventory baseline policy, and emits the Image Baker draft from the same selection.',
+            pady=(0, 8))
+        self.vks_repository_context_var = tk.StringVar(value='')
+        ttk.Label(
+            self.vks_repository_context_card, textvariable=self.vks_repository_context_var,
+            style='PanelHint.TLabel', wraplength=700).pack(fill='x')
+        self._refresh_vks_repository_context()
+
+    def _refresh_vks_repository_context(self):
+        var = self.__dict__.get('vks_repository_context_var')
+        if var is None:
+            return
+        try:
+            active = self._workload().key == VKS_KEY
+        except Exception:
+            active = False
+        if not active:
+            var.set('VKS customization is not active.')
+            return
+        packages = list(self.__dict__.get('selected_packages', []) or [])
+        mode_var = self.__dict__.get('mode_var')
+        mode = mode_var.get() if mode_var is not None else 'Complete bundle (recommended)'
+        pin_var = self.__dict__.get('pin_to_inventory_baseline_var')
+        pin = bool(pin_var.get()) if pin_var is not None else False
+        if not packages:
+            var.set(
+                'No OS additions selected. Guided VKS checks are active, but Feathered does not '
+                'invent a node package set. Add packages with the chooser above. Dependency mode: ' + mode + '.')
+            return
+        sensitive = []
+        ordinary = []
+        for package in packages:
+            name = str(getattr(package, 'name', '') or '')
+            kind = managed_kind(name)
+            if kind:
+                sensitive.append(f'{name}: {kind} component')
+            else:
+                ordinary.append(name)
+        details = []
+        if sensitive:
+            details.append('Review-sensitive: ' + '; '.join(sensitive[:6]))
+        if ordinary:
+            shown = ', '.join(ordinary[:8])
+            if len(ordinary) > 8:
+                shown += f' and {len(ordinary) - 8} more'
+            details.append('Ordinary OS additions: ' + shown)
+        details.append('Inventory baseline pinning: ' + ('on' if pin else 'off'))
+        details.append('Dependency mode: ' + mode)
+        var.set(' | '.join(details))
 
     def _build_kubernetes_repository_controls(self, parent):
         self.k8s_api_card = self._card(parent, 'Cluster API server minor (optional)', pady=(12, 0))
@@ -325,6 +401,7 @@ class KubernetesWorkloadMixin:
         if changed:
             self.loaded_signature = None; self.loaded_packages = []; self.last_result = None
             self._refresh_repo_tree_if_open(); self._update_source_status()
+        self._refresh_vks_repository_context()
 
     def _build_kubernetes_review(self, parent):
         self.k8s_review = self._card(parent, 'Workload advisories', pady=(12, 0))

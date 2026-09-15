@@ -11,6 +11,8 @@
 - Installed inventory is optional for Arch, Artix, and VKS workflows. When no inventory is loaded, dependency planning falls back to repository-derived closure instead of blocking the build.
 - Receiver preflight only requires a target inventory for plans that explicitly declare an inventory-backed baseline.
 - Independent-evidence tooltips are dismissed when their source widgets or wizard panes are hidden or destroyed.
+- Vendor-backed workloads keep their requested roots tied to the workload repository while every other enabled compatible repository can participate in dependency resolution. Package-only acquisition remains an explicit workload option and becomes the fallback when no separate dependency provider remains enabled.
+- VKS node OS package additions is a contextual package workflow over the normal package chooser and resolver. VKS policy, optional baseline pinning, advisories, and Image Baker output are derived from that shared selection instead of using a separate package engine.
 
 ## Fixed
 
@@ -24,6 +26,7 @@
 - Corrected bundle-characterization tests so runtime Python and zstandard versions do not make golden output platform-specific.
 - VKS node OS package additions now use the shared exact-package chooser with clear empty-state guidance instead of presenting an unpopulated selection plan.
 - Exact package roots and prior analysis are cleared when the Content choice changes, preventing packages selected in another mode from carrying into VKS analysis.
+- VKS-specific state is cleared when its Content context or target compatibility is lost, while navigation and downstream dependency choices preserve the active VKS context.
 - Exact-package validation failures return to the package chooser on Repositories instead of an unrelated Content control.
 - Package downloads now report bytes transferred while each artifact is streaming, including aggregate progress, transfer rate, and estimated time remaining.
 - RPM receiver preflight preserves coinstalled versions with the same package name and architecture, including install-only kernel packages.

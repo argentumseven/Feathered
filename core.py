@@ -4625,8 +4625,8 @@ def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Pa
         (metadata_dir / "PACKAGE-ONLY-WARNING.txt").write_text(
             "PACKAGE-ONLY ACQUISITION - NOT A COMPLETE OFFLINE INSTALLATION BUNDLE\n\n"
             + warning +
-            "\n\nThe rpms/ directory contains only the requested workload root artifacts. "
-            "Configure the target distribution/base repositories and rebuild before treating "
+            "\n\nThe rpms/ directory contains only the requested root artifacts. "
+            "Enable appropriate dependency-provider repositories and rebuild before treating "
             "this package set as install-complete.\n",
             encoding="utf-8")
     elif repository_mirror:

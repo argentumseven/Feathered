@@ -102,14 +102,16 @@ Choose the archive root: the directory directly above dists/.
                 additional_count = sum(1 for r in effective_enabled if self._repo_tier(r) == "additional")
                 if (method == "Red Hat CDN entitlement (official)" and
                         not (self.rhsm_cert and self.rhsm_key and self.rhsm_ca)):
-                    text = (f"Docker/workload source ready: {workload_count} workload source(s). "
-                            "The configured Red Hat CDN base repositories are not usable without vendor entitlement, "
-                            "so Feathered will treat this as package-only acquisition. Configure entitlement, choose "
-                            "fallback/custom base repositories, or load RHEL media to build a complete dependency closure.")
+                    text = (f"Workload root source ready: {workload_count} workload source(s). "
+                            "The configured Red Hat CDN repositories are not usable without vendor entitlement, "
+                            "so no separate dependency provider remains. Feathered will use package-only acquisition "
+                            "until entitlement is configured, a target-compatible fallback/custom repository is enabled, "
+                            "or RHEL media is loaded.")
                 else:
                     text = (f"Configured: {len(effective_enabled)} usable source(s) ({base_count} base, "
                             f"{workload_count} workload, {additional_count} additional). "
-                            "Workload roots can be checked/downloaded, but dependency completeness cannot be derived without a usable distribution/base set.")
+                            "The workload roots are available, but no other enabled repository remains to provide "
+                            "dependencies. Enable a target-compatible OS or supplemental repository for dependency analysis.")
                 colour = WARN_FG
             else:
                 text = (f"Configured: {len(enabled)} enabled source(s) ({base_count} base, "

@@ -26,7 +26,7 @@ A build can produce:
 - provenance, manifests, checksums, and receiver-side verification material;
 - an offline installer for direct target consumption when the selected workflow supports it.
 
-If Feathered can acquire requested root packages but cannot establish a dependency-complete content set, it can explicitly downgrade to **package-only** acquisition when the operator permits it. Package-only output is not represented as a complete offline transaction and does not receive the normal offline installer.
+Workload mode offers dependency-complete acquisition and an explicit **Workload packages only** alternative. Workload/vendor repositories constrain where requested roots come from; every other enabled target-compatible repository may satisfy transitive dependencies. If the operator disables every separate dependency provider, Feathered falls back to package-only acquisition instead of pretending the workload is install-complete. Package-only output is not represented as a complete offline transaction and does not receive the normal offline installer.
 
 ## Typical deployment model
 
@@ -169,6 +169,10 @@ Feathered includes 29 built-in workload definitions, including:
 - Kubernetes node and client packages;
 - VKS node OS package additions;
 - custom package sets.
+
+Vendor-backed workloads such as Docker and Kubernetes keep their root packages tied to the appropriate vendor repository while normal enabled OS and supplemental repositories remain available for dependency analysis. **Workload packages only** is a deliberate root-artifact option, not an automatic consequence of using a vendor repository.
+
+**VKS node OS package additions** is a contextual package workflow rather than a fixed package list. Selecting it keeps the ordinary target-OS package chooser and dependency resolver, then layers VKS-sensitive package classification, optional installed-inventory baseline pinning, advisories, and Image Baker draft output over the selected additions. Changing to another Content choice clears VKS-owned package roots and policy state. Changing to an incompatible target removes the VKS workflow and returns the wizard to the normal workload layout. Downstream choices such as dependency mode do not exit VKS context.
 
 An optional `workloads.json` can replace or extend built-in workload definitions. Signed organization catalogs are supported through the companion workload-catalog signature/keyring convention described in the source.
 

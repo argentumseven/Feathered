@@ -10,8 +10,11 @@
      kubectl, cri-tools and kubernetes-cni. The last two have independent package
      versions; they are not pinned to the Kubernetes minor.
    - **Kubernetes client tools (kubectl)** acquires the client.
-   - **VKS node OS package additions** uses the ordinary exact-package chooser
-     for additions such as cryptsetup. A captured installed inventory is optional and can be used to pin the existing node baseline.
+   - **VKS node OS package additions** is a contextual package workflow. It uses
+     the ordinary exact-package chooser and dependency resolver for additions such
+     as cryptsetup, then layers VKS policy checks and Image Baker draft output over
+     that selection. A captured installed inventory is optional and can be used to
+     pin the existing node baseline.
 3. For Kubernetes workloads, choose **Kubernetes minor repository**, then
    **Package patch / build**. The minor selects the community RPM or flat DEB
    repository. Full package versions, including packaging revisions, load
@@ -103,6 +106,15 @@ These checks describe package relationships and do not approve an upgrade plan.
 This workload is offered for Photon 5.0, Ubuntu 22.04/24.04 and RHEL 9 targets.
 That product availability rule is not a declaration that every corresponding
 VKS image or added package is vendor-supported.
+
+No package set is implied by selecting the VKS workflow. Repositories shows the
+normal target OS package chooser, and the operator selects the additions. Complete
+dependency modes use all enabled target-compatible repositories. **Workload packages
+only** remains available when only the selected root artifacts are wanted. Changing
+Content clears VKS-owned package roots and VKS policy state. Changing to a target
+that does not support this workflow removes the VKS selection and restores the
+normal workload layout. Navigation and downstream dependency choices do not reset
+the VKS context.
 
 Installed inventory is optional. When inventory from the intended node is loaded,
 including package detail records from target_inventory.sh with

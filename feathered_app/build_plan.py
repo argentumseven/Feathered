@@ -30,6 +30,13 @@ class BuildPlanMixin:
         if self._mirror_mode() or self._single_mode():
             return SourcePlan([])
         workload = self._workload()
+        if getattr(workload, "contextual_packages", False):
+            return SourcePlan([
+                RootSourcePolicy(
+                    package.name, "enabled", component=package.name,
+                    candidates=(package.name,))
+                for package in (self.__dict__.get("selected_packages") or ())
+            ])
         if workload.custom:
             custom = BuildRequestMixin._selected_content(self, "custom_packages", "custom_var")
             roots = [x for x in re.split(r"[\s,]+", custom) if x]
@@ -47,7 +54,7 @@ class BuildPlanMixin:
         if self._mirror_mode() or self._single_mode():
             return None
         workload = self._workload()
-        if workload.custom:
+        if workload.custom or getattr(workload, "contextual_packages", False):
             return None
         family = getattr(self._profile(), "package_family", "rpm")
         return materialize_source_plan(

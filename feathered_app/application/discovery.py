@@ -5,6 +5,7 @@
 import math
 from release_seed import RELEASE_SEEDS
 
+from acquisition_model import AcquisitionCapability
 from feathered_app.context import (
     ACCENT_DIM,
     APP_TITLE,
@@ -766,10 +767,18 @@ class DiscoveryMixin:
 
     def _probe_source_context(self):
         """Snapshot source-plan semantics for an asynchronous broad probe."""
+        try:
+            acquisition = self._acquisition_state()
+            package_only = acquisition.capability is AcquisitionCapability.PACKAGE_ONLY
+            package_only_reason = acquisition.reason
+        except Exception:
+            package_only = self._package_only_acquisition_mode()
+            package_only_reason = ""
         context = {
             "mirror_mode": self._mirror_mode(),
             "single_mode": self._single_mode(),
-            "package_only": self._package_only_acquisition_mode(),
+            "package_only": package_only,
+            "package_only_reason": package_only_reason,
             "distribution_required": False,
             "required_roles": [],
             "local_media_pending": self._local_media_pending(),
@@ -804,9 +813,9 @@ class DiscoveryMixin:
         """Probe every enabled URL, then assess it against the selected source plan.
 
         Broad reachability and root coverage are intentionally separate. An
-        unconfigured base plan no longer prevents a dedicated workload upstream
-        from being tested; the report explains whether that leaves the build in
-        package-only mode or leaves a required root scope unsatisfied.
+        missing dependency-provider plan no longer prevents a dedicated workload
+        upstream from being tested; the report explains whether package-only mode
+        is active or a required root scope is unsatisfied.
         """
         if self._busy(): return
         if self._mirror_mode():
@@ -874,7 +883,10 @@ class DiscoveryMixin:
         if root_gaps:
             verdict.append("Selected root source scope needs attention: " + "; ".join(root_gaps) + ".")
         elif context.get("package_only"):
-            verdict.append("Selected workload root source(s) are reachable. No distribution/base set is configured, so dependency completeness cannot be derived; package-only acquisition remains available.")
+            reason = str(context.get("package_only_reason") or "").strip()
+            verdict.append(
+                "Selected root source(s) are reachable. Package-only acquisition is active."
+                + ((" " + reason) if reason else ""))
         else:
             verdict.append("The source scopes required by the selected roots have reachable repositories. Package coverage still determines whether the requested package names/versions are actually present.")
         supplemental_failed = [r for r in failed if r.get("purpose") == "dependency/supplement"]

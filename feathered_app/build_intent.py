@@ -73,7 +73,8 @@ class BuildIntentMixin:
                 # workflow (repositories first, then the exact-package chooser
                 # on Repositories) rather than a diverging custom layout.
                 try:
-                    if self._workload().custom:
+                    workload = self._workload()
+                    if workload.custom and not getattr(workload, "contextual_packages", False):
                         return AcquisitionIntent.PACKAGES
                 except Exception:
                     pass

@@ -21,6 +21,7 @@ from feathered_app.context import (
     FOLDER_SCHEMES,
     LINE,
     MODES,
+    WORKLOAD_MODES,
     OK_FG,
     PROFILES,
     Path,
@@ -341,8 +342,12 @@ class PaneMixin(KubernetesWorkloadMixin):
             init = self._selected_init_system()
         except Exception:
             init = ""
+        try:
+            workload_key = self._workload().key if mode != "mirror" else ""
+        except Exception:
+            workload_key = ""
         return "|".join((
-            mode, profile,
+            mode, workload_key, profile,
             release.get().strip() if release is not None else "",
             arch.get().strip() if arch is not None else "",
             init))
@@ -353,6 +358,11 @@ class PaneMixin(KubernetesWorkloadMixin):
             return "mirror"
         if intent is AcquisitionIntent.PACKAGES:
             return "packages"
+        try:
+            if getattr(self._workload(), "contextual_packages", False):
+                return "contextual-packages"
+        except Exception:
+            pass
         return "workload"
 
     def _clear_repository_workflow_widgets(self):
@@ -411,6 +421,24 @@ class PaneMixin(KubernetesWorkloadMixin):
             self._sync_mirror_source_controls()
             self._ensure_mirror_repository_seeded()
             self._refresh_mirror_repos()
+            return
+
+        if mode == "contextual-packages":
+            self._ensure_transaction_base_sources()
+            workload = self._workload()
+            self.repositories_title_var.set(f"Repositories for {workload.label}")
+            self.repositories_hint_var.set(
+                "VKS customization uses the normal target OS package universe and resolver. Choose exact "
+                "OS additions below; VKS policy checks and Image Baker output are layered over that normal workflow.")
+            self._build_sources_pane(host, heading=False, include_status=True, include_workload=False)
+            self._build_exact_package_selection_card(host)
+            self._build_vks_repository_context_card(host)
+            self._build_package_source_coverage_card(host)
+            self._refresh_base_repo_tree()
+            self._refresh_selected_packages()
+            self._refresh_vks_repository_context()
+            self._refresh_package_source_coverage()
+            self._update_source_status()
             return
 
         if mode == "packages":
@@ -855,7 +883,7 @@ class PaneMixin(KubernetesWorkloadMixin):
 
         self.mode_var = tk.StringVar(value=MODES[0])
         ttk.Label(pr, text="Dependencies", style="Panel.TLabel").grid(row=4, column=0, sticky="w", pady=(12, 0))
-        self.mode_combo = ttk.Combobox(pr, textvariable=self.mode_var, values=MODES, state="readonly")
+        self.mode_combo = ttk.Combobox(pr, textvariable=self.mode_var, values=WORKLOAD_MODES, state="readonly")
         self.mode_combo.grid(row=5, column=0, columnspan=2, sticky="ew", pady=(3, 0))
         self.mode_combo.bind("<<ComboboxSelected>>", lambda _e: self._mode_changed())
         # Reviewing the closure before building is always available: it costs
@@ -956,29 +984,29 @@ class PaneMixin(KubernetesWorkloadMixin):
                 "Mirror mode selected. Continue to Repositories: source-plan changes and mirror "
                 "include/exclude choices now happen together on that page, so no double-back is required.")
             return
+        try:
+            vks_additions = (self.selection_mode_var.get() == "Workload preset"
+                             and self._workload().key == "vks-node-additions")
+        except Exception:
+            vks_additions = False
+        if vks_additions:
+            if self.selected_packages:
+                for pkg in self.selected_packages:
+                    tree.insert("", "end", values=(pkg.name, f"Exact package from {pkg.repo.name}"))
+                root_bytes = sum(int(getattr(p, "size", 0) or 0) for p in self.selected_packages)
+                status.set(
+                    f"{len(self.selected_packages)} VKS node OS addition(s) selected "
+                    f"({human_size(root_bytes)} root payload). VKS policy checks wrap the normal package "
+                    "selection; dependency handling follows the selected Dependencies mode.")
+            else:
+                tree.insert("", "end", values=(
+                    "No VKS node OS additions selected",
+                    "Choose exact target OS packages on Repositories"))
+                status.set(
+                    "VKS customization does not silently add a package set. Choose target OS additions on "
+                    "Repositories; Feathered will apply VKS-specific checks and output to that selection.")
+            return
         if self._single_mode():
-            try:
-                vks_additions = (self.selection_mode_var.get() == "Workload preset"
-                                 and self._workload().key == "vks-node-additions")
-            except Exception:
-                vks_additions = False
-            if vks_additions:
-                if self.selected_packages:
-                    for pkg in self.selected_packages:
-                        tree.insert("", "end", values=(pkg.name, f"Exact package from {pkg.repo.name}"))
-                    root_bytes = sum(int(getattr(p, "size", 0) or 0) for p in self.selected_packages)
-                    status.set(
-                        f"{len(self.selected_packages)} VKS node OS addition(s) selected "
-                        f"({human_size(root_bytes)} root payload). Edit the additions on Repositories; "
-                        "dependency closure is calculated during analysis.")
-                else:
-                    tree.insert("", "end", values=(
-                        "No VKS node OS additions selected",
-                        "Choose exact target OS packages on Repositories"))
-                    status.set(
-                        "The VKS preset does not add OS packages by itself. Choose the packages you want "
-                        "added to the node image on Repositories.")
-                return
             tree.insert("", "end", values=(
                 "Specific packages",
                 "Configure repositories first; choose exact roots on the next step"))
@@ -1376,10 +1404,13 @@ class PaneMixin(KubernetesWorkloadMixin):
             self.package_source_status.configure(foreground=WARN_FG)
         else:
             if bool(getattr(self, "_package_only_acquisition_mode", lambda: False)()):
+                try:
+                    reason = self._ui_acquisition_state().reason
+                except Exception:
+                    reason = "Dependency closure is not being derived for this request."
                 self.package_source_status_var.set(
-                    f"Root coverage ready: all {available} selected item(s) are offered by the "
-                    "workload upstream. No distribution/base repository set is configured, so "
-                    "dependency closure cannot be derived; Review will offer package-only download.")
+                    f"Root coverage ready: all {available} selected item(s) are offered by the enabled "
+                    f"root sources. {reason} Review will offer package-only download.")
                 self.package_source_status.configure(foreground=WARN_FG)
             else:
                 self.package_source_status_var.set(
@@ -1396,7 +1427,7 @@ class PaneMixin(KubernetesWorkloadMixin):
         """
         self._pane_heading(
             pane, "Provenance and Keying",
-            "Feathered inherits the repositories that can participate in the current build. In normal dependency analysis that is the enabled set; package-only acquisition is restricted to the selected workload-root sources. Inspect their checksum support, choose a minimum strength, then choose one verification strategy. Independent evidence is configured only for strategies that use it.")
+            "Feathered inherits the repositories that can participate in the current build. In normal dependency analysis that is the enabled set; package-only acquisition is restricted to the selected root sources. Inspect their checksum support, choose a minimum strength, then choose one verification strategy. Independent evidence is configured only for strategies that use it.")
 
         checksum = self._card(pane, "Package verification")
         self.prov_checksum_card = checksum

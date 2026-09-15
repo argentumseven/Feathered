@@ -4573,11 +4573,12 @@ def test_dedicated_workload_without_base_enters_package_only_acquisition_mode():
     ui.repo_rows.append(base)
     assert not App._package_only_acquisition_mode(ui)
 
-    # Manual/internal workload-role repositories may be self-contained. Do not
-    # assume they are root-only merely because no base tier is configured.
+    # Repository provenance does not change dependency-provider topology. With
+    # only the workload-root repository enabled, package-only remains the honest
+    # default even for an operator-owned source.
     ui.repo_rows = [vendor]
     vendor.workload_profile_managed = False
-    assert not App._package_only_acquisition_mode(ui)
+    assert App._package_only_acquisition_mode(ui)
 
 
 def test_mixed_workload_without_base_does_not_masquerade_as_package_only_complete_selection():
@@ -4623,7 +4624,7 @@ def test_review_exposes_only_download_action_in_package_only_mode():
     assert ui.analyze_btn.state == "disabled"
     assert ui.analyze_btn.text == "Dependency analysis unavailable"
     assert ui.build_btn.state == "normal"
-    assert ui.build_btn.text == "Download workload packages"
+    assert ui.build_btn.text == "Download requested packages"
     assert ui.build_btn.style == "Primary.TButton"
 
 
@@ -4830,7 +4831,7 @@ def test_probe_verdict_treats_workload_only_source_as_package_only_not_missing_d
     }
     lines = App._probe_verdict_lines(results, context)
     text = " ".join(lines).lower()
-    assert "package-only acquisition remains available" in text
+    assert "package-only acquisition is active" in text
     assert "root source scope needs attention" not in text
     assert "role 'dependency'" not in text
 
@@ -4983,7 +4984,7 @@ def test_source_status_does_not_error_on_pending_base_media_for_package_only_wor
     ui.rhsm_cert = ui.rhsm_key = ui.rhsm_ca = ""
 
     App._update_source_status(ui)
-    assert "dependency completeness cannot be derived" in ui.source_status.kw["text"].lower()
+    assert "no other enabled repository remains" in ui.source_status.kw["text"].lower()
     assert "no repository folder has been loaded" not in ui.source_status.kw["text"].lower()
 
 # ---------------------------------------------------------------------------
@@ -5019,9 +5020,14 @@ def test_source_readiness_selects_root_scope_and_package_only_capability():
     plan = SourcePlan([RootSourcePolicy("vendor-agent", "workload", "vendor")])
 
     readiness = evaluate_source_readiness(plan, [vendor, extra])
-    assert readiness.capability == "package-only"
+    assert readiness.capability == "full-analysis"
     assert readiness.root_repositories == (vendor,)
+    assert readiness.dependency_provider_repositories == (extra,)
     assert readiness.missing_scopes == ()
+
+    root_only = evaluate_source_readiness(plan, [vendor])
+    assert root_only.capability == "package-only"
+    assert root_only.dependency_provider_repositories == ()
 
 
 def test_source_readiness_mixed_plan_requires_distribution_and_workload_role():
@@ -5093,7 +5099,7 @@ def test_1058_build_script_embeds_verifier_and_stages_required_sidecars():
     assert Path("workloads.example.json").is_file()
 
 
-def test_1058_manual_repo_prevents_profile_managed_package_only_downgrade():
+def test_1058_dependency_provider_topology_does_not_depend_on_repo_ownership():
     from source_model import RootSourcePolicy, SourcePlan
     from source_readiness import evaluate_source_readiness
     manual = RepoSpec("Internal", "https://internal.example/repo/", "vendor", enabled=True)
@@ -5103,9 +5109,14 @@ def test_1058_manual_repo_prevents_profile_managed_package_only_downgrade():
     managed.source_tier = "workload"
     managed.workload_profile_managed = True
     plan = SourcePlan([RootSourcePolicy("agent", "workload", "vendor")])
-    assert evaluate_source_readiness(plan, [manual]).capability == "full-analysis"
+    assert evaluate_source_readiness(plan, [manual]).capability == "package-only"
     assert evaluate_source_readiness(plan, [managed]).capability == "package-only"
-    assert evaluate_source_readiness(plan, [manual, managed]).capability == "full-analysis"
+    # Both repositories satisfy the same workload-root role, so neither is a
+    # separate dependency provider merely because ownership differs.
+    assert evaluate_source_readiness(plan, [manual, managed]).capability == "package-only"
+    extra = RepoSpec("Supplement", "https://internal.example/deps/", "dependency", enabled=True)
+    extra.source_tier = "additional"
+    assert evaluate_source_readiness(plan, [manual, extra]).capability == "full-analysis"
 
 
 def test_1058_external_workload_preserves_optional_packages(tmp_path):
@@ -6438,7 +6449,7 @@ def test_1071_mirror_mode_has_one_repository_editor_not_stacked_source_cards():
     render = inspect.getsource(app.App._render_repository_workflow)
     assert "repository_workflow_host" in build
     assert 'mode == "mirror"' in render
-    mirror_branch = render.split('if mode == "mirror":', 1)[1].split('if mode == "packages":', 1)[0]
+    mirror_branch = render.split('if mode == "mirror":', 1)[1].split('if mode == "contextual-packages":', 1)[0]
     assert "_build_mirror_repository_selection_card" in mirror_branch
     assert "_build_sources_pane" not in mirror_branch
     assert "_build_package_source_coverage_card" not in mirror_branch
@@ -6493,11 +6504,15 @@ def test_1072_repository_workflow_is_rebuilt_from_content_intent():
     source = inspect.getsource(app.App._render_repository_workflow)
     assert 'mode == "mirror"' in source
     assert 'mode == "packages"' in source
-    mirror = source.split('if mode == "mirror":', 1)[1].split('if mode == "packages":', 1)[0]
+    mirror = source.split('if mode == "mirror":', 1)[1].split('if mode == "contextual-packages":', 1)[0]
+    contextual = source.split('if mode == "contextual-packages":', 1)[1].split('if mode == "packages":', 1)[0]
     packages = source.split('if mode == "packages":', 1)[1].split('workload = self._workload()', 1)[0]
-    workload = source.split('workload = self._workload()', 1)[1]
+    workload = source.rsplit('workload = self._workload()', 1)[1]
     assert '_build_mirror_repository_selection_card' in mirror
     assert '_build_sources_pane' not in mirror
+    assert 'include_workload=False' in contextual
+    assert '_build_exact_package_selection_card' in contextual
+    assert '_build_vks_repository_context_card' in contextual
     assert 'include_workload=False' in packages
     assert '_build_exact_package_selection_card' in packages
     assert 'include_workload=True' in workload

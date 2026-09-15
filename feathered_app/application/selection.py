@@ -233,15 +233,19 @@ class SelectionMixin(BuildIntentMixin):
         elif self._single_mode():
             selection = tuple(sorted(f"{p.nevra}@{p.repo.source_identity}" for p in self.selected_packages))
         else:
+            workload = self._workload()
             plan_identity = tuple(
                 (root.component, root.package, tuple(root.candidates or (root.package,)),
                  root.source_kind, root.role, root.optional)
                 for root in self._source_plan().roots)
-            selection = (self._workload().key, _pinned(self, "package_version", "package_version_var"),
+            contextual_roots = (
+                tuple(sorted(f"{p.nevra}@{p.repo.source_identity}" for p in self.selected_packages))
+                if getattr(workload, "contextual_packages", False) else ())
+            selection = (workload.key, _pinned(self, "package_version", "package_version_var"),
                          self.custom_var.get().strip(),
-                         getattr(self._workload(), "catalog_revision", 1),
-                         getattr(self._workload(), "catalog_sha256", "builtin"),
-                         plan_identity)
+                         getattr(workload, "catalog_revision", 1),
+                         getattr(workload, "catalog_sha256", "builtin"),
+                         plan_identity, contextual_roots)
         return (
             self.distro_var.get(), self.release_var.get().strip(), self.arch_var.get(),
             self._active_source_method(), _pinned(self, "dependency_mode", "mode_var"),
@@ -328,8 +332,8 @@ class SelectionMixin(BuildIntentMixin):
             verification += " · bundle signed"
         if state.capability is AcquisitionCapability.PACKAGE_ONLY:
             transfer = "Package-only artifacts; dependency completeness not derived"
-            sources_text = (f"{len(enabled)} participating · workload upstream ready · "
-                            "distribution/base set absent")
+            sources_text = (f"{len(enabled)} root source(s) participating · "
+                            + (state.reason or "dependency closure not requested"))
             selection_text = f"{selection} · package-only acquisition"
         elif state.capability is AcquisitionCapability.REPOSITORY_MIRROR:
             transfer = "Repository mirror; package-root dependency closure does not apply"
@@ -497,9 +501,12 @@ class SelectionMixin(BuildIntentMixin):
             name = str(request[0])
             version = request[1] if len(request) > 1 else None
             package = f"{name} {version}" if version else name
-            rows.append((package, "requested", "enabled repositories",
-                         "custom package request" if workload.custom
-                         else f"requested by {workload.label}"))
+            reason = (
+                "VKS node OS package addition"
+                if getattr(workload, "contextual_packages", False) else
+                "custom package request" if workload.custom else
+                f"requested by {workload.label}")
+            rows.append((package, "requested", "enabled repositories", reason))
         return rows
 
     def _has_review_contract(self) -> bool:
@@ -537,11 +544,11 @@ class SelectionMixin(BuildIntentMixin):
                 "publish every repository as its own mirror folder.")
         elif self._ui_acquisition_state().capability is AcquisitionCapability.PACKAGE_ONLY:
             noun = "package" if count == 1 else "packages"
+            reason = self._ui_acquisition_state().reason or "Dependency analysis is disabled for this request."
             self.summary_var.set(
-                f"{count} requested workload {noun} can be acquired from the dedicated upstream. "
-                "Dependency analysis is unavailable because no distribution/base repository set is "
-                "configured. Downloading will collect only these root artifacts; this is not a "
-                "complete offline installation bundle.")
+                f"{count} requested {noun} are ready for package-only acquisition. {reason} "
+                "Downloading will collect only the requested root artifacts; this is not a complete "
+                "offline installation bundle.")
         else:
             noun = "package" if count == 1 else "packages"
             self.summary_var.set(
@@ -572,7 +579,7 @@ class SelectionMixin(BuildIntentMixin):
             self.build_btn.configure(text=f"Mirror {repo_count} {noun}")
         elif package_only:
             self.analyze_btn.configure(text="Dependency analysis unavailable")
-            self.build_btn.configure(text="Download workload packages")
+            self.build_btn.configure(text="Download requested packages")
         elif state.capability is AcquisitionCapability.BLOCKED:
             self.analyze_btn.configure(text="Analysis unavailable")
             self.build_btn.configure(text="Build unavailable")

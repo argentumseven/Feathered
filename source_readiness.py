@@ -33,6 +33,7 @@ class SourceReadiness:
     workload_repositories_by_role: Dict[str, Tuple[object, ...]]
     missing_scopes: Tuple[str, ...]
     package_only: bool
+    dependency_provider_repositories: Tuple[object, ...] = ()
 
     @property
     def capability(self) -> str:
@@ -67,15 +68,15 @@ def evaluate_source_readiness(
     repositories: Iterable[object],
     *,
     tier_getter: TierGetter = _default_tier,
-    allow_profile_managed_package_only: bool = True,
+    allow_package_only: bool = True,
 ) -> SourceReadiness:
     """Evaluate source topology for a plan without performing repository I/O.
 
-    ``package-only`` is intentionally narrow: it applies only when every root
-    is workload-role scoped, the distribution set is absent, and every required
-    role is backed by a profile-managed side-channel repository. A manually
-    supplied/internal workload repository is allowed to attempt a complete
-    closure instead of being downgraded pre-emptively.
+    ``package-only`` is derived only when every requested root is constrained
+    to workload-specific repositories and no other enabled repository remains
+    to act as a dependency provider. Root-source roles constrain where requested
+    packages come from; every other enabled compatible source may participate in
+    dependency resolution.
     """
 
     enabled = tuple(repo for repo in repositories if _usable(repo))
@@ -93,16 +94,22 @@ def evaluate_source_readiness(
         if not by_role.get(role):
             missing.append(f"role:{role}")
 
-    package_only = False
-    if (allow_profile_managed_package_only and plan.roots and not plan.distribution_required
-            and plan.required_roles and not distribution and not missing):
-        package_only = all(
-            by_role.get(role) and all(
-                bool(getattr(repo, "workload_profile_managed", False))
-                for repo in by_role.get(role, ())
-            )
-            for role in plan.required_roles
-        )
+    root_workload_ids = {
+        id(repo)
+        for role in plan.required_roles
+        for repo in by_role.get(role, ())
+    }
+    dependency_providers = tuple(
+        repo for repo in enabled if id(repo) not in root_workload_ids)
+
+    package_only = bool(
+        allow_package_only
+        and plan.roots
+        and all(root.source_kind == "workload" for root in plan.roots)
+        and plan.required_roles
+        and not missing
+        and not dependency_providers
+    )
 
     return SourceReadiness(
         plan=plan,
@@ -111,6 +118,7 @@ def evaluate_source_readiness(
         workload_repositories_by_role=by_role,
         missing_scopes=tuple(missing),
         package_only=package_only,
+        dependency_provider_repositories=dependency_providers,
     )
 
 
@@ -140,6 +148,6 @@ def missing_reachable_scopes(
         plan,
         successful_repositories,
         tier_getter=tier_getter,
-        allow_profile_managed_package_only=False,
+        allow_package_only=False,
     )
     return readiness.missing_scopes

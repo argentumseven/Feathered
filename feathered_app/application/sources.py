@@ -7,6 +7,7 @@ from feathered_app.build_backend import BuildBackendMixin
 from feathered_app.build_intent import BuildIntentMixin
 from feathered_app.build_mirror import BuildMirrorMixin
 from feathered_app.build_plan import BuildPlanMixin
+from feathered_app.build_request import BuildRequestMixin
 from feathered_app.context import (
     APP_TITLE,
     AcquisitionCapability,
@@ -31,6 +32,9 @@ from feathered_app.context import (
     SourcePlan,
     VerificationScope,
     WARN_FG,
+    MODES,
+    WORKLOAD_MODES,
+    WORKLOAD_PACKAGE_ONLY_MODE,
     apt_core,
     arch_core,
     compare_evr,
@@ -314,12 +318,12 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         An enabled URL is configuration, not proof that the source can be used.
         The important case is an unsubscribed RHEL target: the CDN rows are
         concrete URLs, but without the entitlement certificate/private key/CA
-        they cannot supply dependencies.  Counting them as a live base universe
-        incorrectly upgrades a workload-only Docker request from package-only to
-        full transaction analysis and then throws an entitlement/fallback error.
+        they cannot supply dependencies. Counting them as a usable dependency
+        provider would advertise full dependency analysis and then fail at the
+        entitlement gate.
 
-        For a workload whose *roots* are all supplied by dedicated upstreams,
-        hide only those unusable CDN base rows from readiness.  Mixed or
+        For a workload whose roots are all supplied by dedicated upstreams, hide
+        only those unusable CDN base rows from readiness. Mixed or
         distribution-native plans still retain them so the normal entitlement
         recovery gate remains mandatory.
         """
@@ -848,11 +852,20 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             repo.evidence_suggestions = list(getattr(template, "evidence_suggestions", []) or [])
 
     def _release_changed(self):
+        workload_replaced = False
+        try:
+            if self._workload().key == "vks-node-additions":
+                self._reset_vks_context(target_changed=True)
+        except Exception:
+            pass
         if 'workload_combo' in self.__dict__:
             labels = self._workload_labels_for_profile()
             self.workload_combo['values'] = labels
-            if self.workload_var.get() not in labels:
-                self.workload_var.set(self._default_workload_label() if self._default_workload_label() in labels else labels[0])
+            if labels and self.workload_var.get() not in labels:
+                replacement = (self._default_workload_label()
+                               if self._default_workload_label() in labels else labels[0])
+                self.workload_var.set(replacement)
+                workload_replaced = True
         # Inspection caches use repository names/URLs, which can remain the
         # same across suites and architectures. They describe the old target.
         self._provenance_detected_cache = {}
@@ -912,7 +925,13 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             self.target_note.configure(text=f"Target: Arch Linux rolling, {self.arch_var.get()}. Pacman dependencies use core/extra plus any explicitly enabled Arch repositories; 'any' packages are accepted for x86_64.")
         else:
             self.target_note.configure(text=p.note)
-        self._render_repository_workflow(force=True)
+        if workload_replaced:
+            self._workload_changed()
+        else:
+            sync_kubernetes = getattr(self, "_sync_kubernetes_controls", None)
+            if callable(sync_kubernetes):
+                sync_kubernetes(discover=False)
+            self._render_repository_workflow(force=True)
         self._update_source_status()
         self._refresh_repo_tree_if_open()
 
@@ -1693,10 +1712,16 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
                 self.k8s_minor_var.set(minor)
             finally:
                 self._restoring_workload_controls = False
-        if workload.key == "vks-node-additions" and self.__dict__.get("_last_workload_key") != workload.key:
+        previous_workload_key = self.__dict__.get("_last_workload_key")
+        if previous_workload_key != workload.key and (
+                previous_workload_key == "vks-node-additions"
+                or workload.key == "vks-node-additions"):
+            self._reset_vks_context()
+        if workload.key == "vks-node-additions" and previous_workload_key != workload.key:
             self.custom_var.set("")
         self._last_workload_key = workload.key
         custom = workload.custom
+        self._sync_dependency_mode_choices()
         # Custom packages IS exact-package acquisition: the identities are
         # chosen in the one shared chooser on Repositories. The old freehand
         # entry + Search/Check/Clear row on this page was the second, diverging
@@ -1718,7 +1743,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         self._sync_kubernetes_controls(discover=False)
         # Custom presets use the shared package chooser, but remain presets on
         # Content. Rebuild the downstream view before touching its controls.
-        self._render_repository_workflow()
+        self._render_repository_workflow(force=True)
         if custom and workload.key != "vks-node-additions" and not self.custom_var.get():
             self.custom_var.set("docker" if self._profile().key == "photon" else "")
         if custom:
@@ -1779,6 +1804,20 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         if not getattr(self, "custom_status", None):
             return
         configured = [r for r in self.repo_rows if r.enabled and r.url.strip()]
+        contextual = bool(getattr(self._workload(), "contextual_packages", False))
+        if contextual:
+            count = len(self.__dict__.get("selected_packages", []) or [])
+            if count:
+                self.custom_status.configure(
+                    text=f"{count} VKS OS addition(s) selected. Use Repositories to add, change, or remove "
+                         "exact packages. VKS policy and Image Baker output remain active around that selection.",
+                    foreground=FG_MUTED)
+            else:
+                self.custom_status.configure(
+                    text="Continue to Repositories and choose target OS additions. VKS policy checks and "
+                         "Image Baker output use the same package selection; no default package set is inserted.",
+                    foreground=FG_MUTED)
+            return
         if not configured:
             self.custom_status.configure(
                 text="Continue to Repositories: configure your sources there, then pick exact "
@@ -2155,6 +2194,21 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         # repositories supplement the distribution base; they do not replace it.
         return not self._mirror_mode()
 
+    def _sync_dependency_mode_choices(self):
+        """Keep dependency choices aligned with the current Content workflow."""
+        combo = self.__dict__.get("mode_combo")
+        var = self.__dict__.get("mode_var")
+        if combo is None or var is None:
+            return
+        workload = self._workload()
+        exact_custom = bool(
+            workload.custom and not getattr(workload, "contextual_packages", False))
+        choices = MODES if exact_custom else WORKLOAD_MODES
+        combo["values"] = choices
+        if var.get() not in choices:
+            var.set(choices[0])
+        combo.configure(state="disabled" if exact_custom else "readonly")
+
     def _mode_changed(self):
         """React to a dependency-policy change.
 
@@ -2162,13 +2216,26 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         so this only has to point the operator at it when target-aware mode is
         chosen without an inventory loaded.
         """
-        target_aware = BuildMixin._selected_content(
-            self, "dependency_mode", "mode_var") == "Target-aware complete"
-        if target_aware and not self.inventory_var.get().strip():
+        selected = BuildMixin._selected_content(
+            self, "dependency_mode", "mode_var")
+        if selected == "Target-aware complete" and not self.inventory_var.get().strip():
             self.workload_note.configure(
                 text="Target-aware mode uses an installed inventory when one is loaded. "
                      "Without one, Feathered resolves the complete repository dependency closure.")
+        elif selected == WORKLOAD_PACKAGE_ONLY_MODE:
+            self.workload_note.configure(
+                text="Package-only mode collects only the requested workload roots. Enabled OS and "
+                     "supplemental repositories remain configured but are not used for dependency resolution.")
+        else:
+            self.workload_note.configure(text=self._workload().description)
+        self.loaded_signature = None
+        self.loaded_packages = []
+        self.last_result = None
+        self.analysis_signature = None
         self._update_source_status()
+        self._refresh_review_contract()
+        self._sync_review_action_states()
+        self._refresh_vks_repository_context()
 
     def _acquisition_state(self):
         """Derive the one valid downstream operation from current wizard state."""
@@ -2211,7 +2278,13 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         readiness_repositories = self._repositories_for_source_readiness(plan)
         readiness = evaluate_source_readiness(
             plan, readiness_repositories, tier_getter=self._repo_tier)
-        return derive_acquisition_state(intent, workload_readiness=readiness)
+        package_only_requested = (
+            BuildRequestMixin._selected_content(self, "dependency_mode", "mode_var")
+            == WORKLOAD_PACKAGE_ONLY_MODE)
+        return derive_acquisition_state(
+            intent, workload_readiness=readiness,
+            workload_root_count=len(plan.roots),
+            workload_package_only_requested=package_only_requested)
 
     def _package_only_acquisition_mode(self) -> bool:
         """Whether the derived acquisition capability is root-artifact-only."""

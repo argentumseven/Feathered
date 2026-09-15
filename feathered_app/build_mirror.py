@@ -171,10 +171,9 @@ class BuildMirrorMixin:
     @staticmethod
     def _package_only_warning_text() -> str:
         return (
-            "Only the workload-specific upstream is available. Feathered can download and verify "
-            "the requested workload package artifacts, but it cannot derive or prove their "
-            "dependency closure without the target distribution/base repositories. This output "
-            "is package-only acquisition, not a complete offline installation bundle.")
+            "Package-only acquisition collects and verifies only the requested root package artifacts. "
+            "Feathered does not derive or prove their dependency closure, and enabled dependency "
+            "providers are not used for resolution. This output is not a complete offline installation bundle.")
 
     @staticmethod
     def _request_source_plan_metadata(requests):

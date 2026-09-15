@@ -368,6 +368,9 @@ class PersistenceMixin:
         """Redraw the chosen-package list and keep dependent state in sync."""
         tree = getattr(self, "selected_tree", None)
         if not tree:
+            refresh_vks = getattr(self, "_refresh_vks_repository_context", None)
+            if callable(refresh_vks):
+                refresh_vks()
             return
         try:
             if not tree.winfo_exists():
@@ -398,6 +401,9 @@ class PersistenceMixin:
         self._refresh_review_contract()
         self._sync_review_action_states()
         self._refresh_package_source_plan()
+        refresh_vks = getattr(self, "_refresh_vks_repository_context", None)
+        if callable(refresh_vks):
+            refresh_vks()
 
     def _live_selected_tree(self):
         """Resolve the bundle list that is actually on screen.

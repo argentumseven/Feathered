@@ -114,6 +114,15 @@ class BuildSourcesMixin:
                 raise RuntimeError("Choose at least one exact package on Repositories")
             return self._augment_requests_for_init(requests)
         workload = self._workload()
+        if getattr(workload, "contextual_packages", False):
+            requests = [
+                (p.name, p.evr_text, p.repo.role, p.repo.name, p.arch, None, p.repo.source_identity)
+                for p in self.selected_packages
+            ]
+            if not requests:
+                raise RuntimeError(
+                    "Choose at least one VKS node OS package addition on Repositories")
+            return self._augment_requests_for_init(requests)
 
         version = BuildRequestMixin._selected_content(self, "package_version", "package_version_var")
         pinned = set(workload.versioned_packages)

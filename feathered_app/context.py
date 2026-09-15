@@ -57,7 +57,7 @@ from mirror_unification import (MERGE_POLICY_LABELS, MergePolicy, conflict_repor
                                  unified_mirror_note, unify_mirror_packages)
 from source_model import RootSourcePolicy, SourcePlan
 from acquisition_model import (
-    MIRROR_LAYOUT_LABELS,
+    MIRROR_LAYOUT_LABELS, WORKLOAD_PACKAGE_ONLY_MODE,
     AcquisitionIntent, AcquisitionCapability, AcquisitionState, AnalysisType, MirrorLayout,
     PublicationType, VerificationScope, derive_acquisition_state, intent_from_selection_mode,
     mirror_layout_from_label,
@@ -110,3 +110,4 @@ from feathered_app.build_output import FOLDER_SCHEMES  # noqa: F401
 
 MODES = ["Complete bundle (recommended)", "Target-aware complete",
          "Complete + weak dependencies"]
+WORKLOAD_MODES = [*MODES, WORKLOAD_PACKAGE_ONLY_MODE]

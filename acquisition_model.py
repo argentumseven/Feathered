@@ -7,6 +7,9 @@ from typing import Optional
 from source_readiness import SourceReadiness
 
 
+WORKLOAD_PACKAGE_ONLY_MODE = "Workload packages only"
+
+
 class AcquisitionIntent(str, Enum):
     """What the operator is asking Feathered to acquire."""
 
@@ -147,6 +150,8 @@ def derive_acquisition_state(
     exact_root_count: int = 0,
     exact_root_sources_ready: bool = False,
     mirror_repository_count: int = 0,
+    workload_root_count: Optional[int] = None,
+    workload_package_only_requested: bool = False,
 ) -> AcquisitionState:
     """Derive the only valid downstream state for an acquisition intent."""
 
@@ -171,12 +176,19 @@ def derive_acquisition_state(
     if workload_readiness is None:
         return _state(intent, AcquisitionCapability.BLOCKED,
                       "Workload repository readiness has not been evaluated.")
+    if workload_root_count is not None and workload_root_count <= 0:
+        return _state(intent, AcquisitionCapability.BLOCKED,
+                      "Choose at least one workload package on Repositories before analyzing or building.")
     if workload_readiness.missing_scopes:
         missing = ", ".join(workload_readiness.missing_scopes)
         return _state(intent, AcquisitionCapability.BLOCKED,
                       f"Required workload source scope is unavailable: {missing}.")
+    if workload_package_only_requested:
+        return _state(
+            intent, AcquisitionCapability.PACKAGE_ONLY,
+            "Package-only acquisition was selected. Enabled dependency providers will not be used.")
     if workload_readiness.package_only:
         return _state(
             intent, AcquisitionCapability.PACKAGE_ONLY,
-            "Workload roots are available from dedicated upstream sources, but the distribution dependency universe is absent.")
+            "Workload roots are available, but no other enabled repository remains to provide dependencies. Enable a target-compatible OS or supplemental repository to analyze the dependency closure.")
     return _state(intent, AcquisitionCapability.FULL_TRANSACTION)
