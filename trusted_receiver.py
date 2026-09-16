@@ -167,6 +167,9 @@ def verify(directory, keyring, install=False):
     keyring = Path(keyring).resolve(strict=True)
     if not source.is_dir() or source.is_symlink():
         raise RuntimeError('Bundle directory must be a real directory, not a symbolic link')
+    source_real = source.resolve(strict=True)
+    if keyring == source_real or source_real in keyring.parents:
+        raise RuntimeError('Operator keyring must be supplied outside the untrusted bundle')
 
     base = _secure_temp_base() if install else None
     staging_root = Path(tempfile.mkdtemp(prefix='feathered-receiver-', dir=base))

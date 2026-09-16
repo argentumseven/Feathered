@@ -8034,6 +8034,36 @@ def test_110_rail_navigation_is_free_in_every_direction():
     assert dummy.shown == ["s6", "s2", "s5"]
 
 
+def test_110_review_build_blocks_navigation_until_worker_releases_snapshot():
+    import app as feather_app
+
+    ui = object.__new__(feather_app.App)
+    ui.active_operation = "worker"
+    ui.active_pane = "review"
+    ui.__dict__["_build_snapshot"] = object()
+    statuses = []
+    ui._operation_status = statuses.append
+
+    assert feather_app.App.show_pane(ui, "packages") is False
+    assert ui.active_pane == "review"
+    assert statuses[-1] == "Cancel the running analysis or build before leaving Review."
+
+    class CancelEvent:
+        def __init__(self):
+            self.set_called = False
+
+        def set(self):
+            self.set_called = True
+
+    ui.cancel_event = CancelEvent()
+    feather_app.App.cancel(ui)
+    assert ui.cancel_event.set_called
+    assert feather_app.App.show_pane(ui, "repositories") is False
+
+    ui.__dict__.pop("_build_snapshot")
+    assert feather_app.App._review_build_in_progress(ui) is False
+
+
 def test_110_custom_packages_preset_uses_the_choose_packages_workflow():
     """The Custom packages preset is exact-package acquisition by another name.
     It must derive AcquisitionIntent.PACKAGES so Step 3 renders the one shared

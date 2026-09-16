@@ -688,8 +688,16 @@ class LayoutMixin:
         for name in ("row", "num", "text"):
             parts[name].configure(background=bg)
 
+    def _review_build_in_progress(self) -> bool:
+        return (getattr(self, "active_operation", None) is not None
+                and "_build_snapshot" in self.__dict__)
+
     def show_pane(self, key: str):
         """Reveal one wizard stage or sidecar utility and restyle the rail."""
+        if key != "review" and self._review_build_in_progress():
+            self._operation_status(
+                "Cancel the running analysis or build before leaving Review.")
+            return False
         self._dismiss_tooltips()
         if key in self.stage_order:
             self.last_wizard_pane = key

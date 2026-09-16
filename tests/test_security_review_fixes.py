@@ -53,6 +53,16 @@ def test_trusted_receiver_rejects_symlinks_while_staging(tmp_path):
         trusted_receiver._copy_bundle_tree(source, destination)
 
 
+def test_trusted_receiver_rejects_keyring_inside_untrusted_bundle(tmp_path):
+    source = tmp_path / 'bundle'
+    source.mkdir()
+    keyring = source / 'operator.gpg'
+    keyring.write_bytes(b'keyring')
+
+    with pytest.raises(RuntimeError, match='outside the untrusted bundle'):
+        trusted_receiver.verify(source, keyring)
+
+
 def test_trusted_receiver_installs_only_from_staged_tree(tmp_path, monkeypatch):
     source = tmp_path / 'bundle'
     source.mkdir()
