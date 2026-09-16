@@ -446,7 +446,7 @@ def run_dnf_conformance() -> str:
     return ("PASS DNF: native dnf accepted and transaction-tested "
             f"{len(scenarios)} generated Feathered bundles over canonical file URLs, "
             "plus loopback HTTP transfer validation "
-            f"({', '.join(label for label, _, _, _ in scenarios)})")
+            f"({', '.join(label for label, _, _ in scenarios)})")
 
 
 # --------------------------------------------------------------------------
