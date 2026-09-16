@@ -21,7 +21,7 @@ import re
 import shutil
 import tarfile
 import urllib.parse
-from collections import defaultdict, deque
+from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import cmp_to_key
 from pathlib import Path
@@ -33,6 +33,8 @@ if TYPE_CHECKING:
 import core
 MAX_ARCH_METADATA_MEMBERS = core._positive_env_int(
     "FEATHERED_MAX_ARCH_METADATA_MEMBERS", 500_000)
+MAX_ARCH_RESOLUTION_STATES = core._positive_env_int(
+    "FEATHERED_MAX_ARCH_RESOLUTION_STATES", 512)
 
 import provenance
 from core import (
@@ -585,17 +587,45 @@ def resolve(root_requests: Sequence[RootInput], packages: Sequence[ArchPackage],
                                options, reporter, 'arch')
 
 
+def _package_identity(pkg: ArchPackage) -> Tuple[str, str, str, str, str]:
+    return (pkg.repo.source_identity, pkg.name, pkg.version, pkg.arch, pkg.location)
+
+
+def _provider_choice_label(pkg: ArchPackage) -> str:
+    return f"{pkg.nevra}@{pkg.repo.source_identity}"
+
+
+def _conflict_messages(packages: Sequence[ArchPackage]) -> List[str]:
+    rows: List[str] = []
+    seen: Set[str] = set()
+    for pkg in packages:
+        for relation in pkg.conflicts:
+            offender = next((other for other in packages
+                             if other is not pkg and _relation_matches_package(other, relation)), None)
+            if offender is None:
+                continue
+            text = f"{pkg.nevra} conflicts with {offender.nevra} ({format_requirement(relation)})"
+            if text not in seen:
+                seen.add(text)
+                rows.append(text)
+    return rows
+
+
 def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[ArchPackage], preferred_arch: str,
             options: BuildOptions[ArchTargetInventory], reporter: Reporter) -> ArchResolutionResult:
     index = build_provider_index(packages)
-    selected: Dict[str, ArchPackage] = {}
+    identity_cache = {id(pkg): _package_identity(pkg) for pkg in packages}
+
+    def identity(pkg: ArchPackage) -> Tuple[str, str, str, str, str]:
+        cached = identity_cache.get(id(pkg))
+        return cached if cached is not None else _package_identity(pkg)
+
     roots: List[ArchPackage] = []
     unresolved: List[ArchRelation] = []
     unresolved_notes: Dict[str, str] = {}
-    reasons: Dict[str, str] = {}
     skipped: List[str] = []
-    satisfied_by_target: List[str] = []
-    queue: deque[ArchPackage] = deque()
+    selected: Dict[str, ArchPackage] = {}
+    reasons: Dict[str, str] = {}
 
     for request in root_requests:
         name = str(request[0])
@@ -606,77 +636,223 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[ArchPackage
                 skipped.append(format_requirement(req))
                 continue
             unresolved.append(req)
-            unresolved_notes[format_requirement(req)] = "No matching package root in enabled pacman repositories"
+            unresolved_notes[format_requirement(req)] = (
+                "No matching package root in enabled pacman repositories")
+            continue
+        current = selected.get(root.name)
+        if current is not None and identity(current) != identity(root):
+            req = ArchRelation(root.name, "=", root.version, "root")
+            unresolved.append(req)
+            unresolved_notes[format_requirement(req)] = (
+                f"Explicit roots select incompatible versions of {root.name}: "
+                f"{current.nevra} and {root.nevra}")
             continue
         roots.append(root)
         selected[root.name] = root
         reasons[root.nevra] = "requested root"
-        queue.append(root)
 
-    def choose(req: ArchRelation) -> Optional[ArchPackage]:
-        matches = [p for p in index.get(req.name, [])
-                   if p.arch in {preferred_arch, "any"} and _relation_matches_package(p, req)]
-        if not matches:
-            return None
-        matches.sort(key=cmp_to_key(lambda a, b: _candidate_sort(a, b, req.name, preferred_arch)))
-        return matches[0]
-
-    while queue:
-        pkg = queue.popleft()
-        reqs = list(pkg.depends) if options.include_dependencies else []
-        if options.include_dependencies and options.include_recommends:
+    def requirements_for(pkg: ArchPackage) -> List[ArchRelation]:
+        if not options.include_dependencies:
+            return []
+        reqs = list(pkg.depends)
+        if options.include_recommends:
             reqs.extend(pkg.optdepends)
-        for req in reqs:
-            if any(_relation_matches_package(candidate, req) for candidate in selected.values()):
-                continue
-            if _inventory_satisfies(options.target_inventory, req):
-                satisfied_by_target.append(format_requirement(req)); continue
-            candidate = choose(req)
-            if candidate is None:
-                if format_requirement(req) not in {format_requirement(x) for x in unresolved}:
-                    unresolved.append(req)
-                    unresolved_notes[format_requirement(req)] = f"Required by {pkg.nevra}; no matching provider in enabled pacman repositories"
-                continue
-            current = selected.get(candidate.name)
-            if current is not None and current is not candidate:
-                if not _relation_matches_package(current, req):
-                    unresolved.append(req)
-                    unresolved_notes[format_requirement(req)] = (
-                        f"Required by {pkg.nevra}; selected {current.nevra} does not satisfy this additional constraint")
-                continue
-            if current is None:
-                selected[candidate.name] = candidate
-                reasons[candidate.nevra] = f"dependency of {pkg.nevra}: {format_requirement(req)}"
-                queue.append(candidate)
+        return reqs
 
-    # Final closure validation is mandatory: a later constraint may invalidate a
-    # package selected for an earlier unversioned relation. This catches the
-    # contradictory-constraint class that a one-pass greedy resolver can miss.
-    selected_values = list(selected.values())
-    for pkg in selected_values:
-        for req in (pkg.depends if options.include_dependencies else []):
-            if _inventory_satisfies(options.target_inventory, req):
+    def candidates_for(req: ArchRelation) -> List[ArchPackage]:
+        matches: List[ArchPackage] = []
+        seen: Set[Tuple[str, str, str, str, str]] = set()
+        for pkg in index.get(req.name, []):
+            if pkg.arch not in {preferred_arch, "any"} or not _relation_matches_package(pkg, req):
                 continue
-            if not any(_relation_matches_package(candidate, req) for candidate in selected_values):
-                key = format_requirement(req)
-                if key not in {format_requirement(x) for x in unresolved}:
-                    unresolved.append(req)
-                    unresolved_notes[key] = f"Closure validation: requirement of {pkg.nevra} is not satisfied by the selected transaction"
+            pkg_identity = identity(pkg)
+            if pkg_identity in seen:
+                continue
+            seen.add(pkg_identity)
+            matches.append(pkg)
+        matches.sort(key=cmp_to_key(
+            lambda a, b: _candidate_sort(a, b, req.name, preferred_arch)))
+        return matches
 
-    conflicts: List[str] = []
-    for pkg in selected_values:
+    def build_selected_indexes(chosen: Dict[str, ArchPackage]):
+        providers: Dict[str, List[ArchPackage]] = defaultdict(list)
+        conflicts: Dict[str, List[Tuple[ArchPackage, ArchRelation]]] = defaultdict(list)
+        for pkg in chosen.values():
+            names = {pkg.name, *(relation.name for relation in pkg.provides)}
+            for name in names:
+                providers[name].append(pkg)
+            for relation in pkg.conflicts:
+                conflicts[relation.name].append((pkg, relation))
+        return providers, conflicts
+
+    def add_selected_indexes(pkg: ArchPackage, providers, conflicts) -> None:
+        names = {pkg.name, *(relation.name for relation in pkg.provides)}
+        for name in names:
+            providers[name].append(pkg)
         for relation in pkg.conflicts:
-            offender = next((other for other in selected_values
-                             if other is not pkg and _relation_matches_package(other, relation)), None)
-            if offender:
-                conflicts.append(f"{pkg.nevra} conflicts with {offender.nevra} ({format_requirement(relation)})")
+            conflicts[relation.name].append((pkg, relation))
 
+    def blocker(candidate: ArchPackage, chosen: Dict[str, ArchPackage],
+                providers, conflict_index) -> Optional[str]:
+        current = chosen.get(candidate.name)
+        if current is not None and identity(current) != identity(candidate):
+            return f"{candidate.nevra} cannot replace already selected {current.nevra}"
+        for relation in candidate.conflicts:
+            for other in providers.get(relation.name, ()):
+                if identity(other) != identity(candidate) and _relation_matches_package(other, relation):
+                    return f"{candidate.nevra} conflicts with {other.nevra}"
+        candidate_names = {candidate.name, *(relation.name for relation in candidate.provides)}
+        for name in candidate_names:
+            for other, relation in conflict_index.get(name, ()):
+                if identity(other) != identity(candidate) and _relation_matches_package(candidate, relation):
+                    return f"{candidate.nevra} conflicts with {other.nevra}"
+        return None
+
+    pending = [(root, req) for root in roots for req in requirements_for(root)]
+    search_attempts = 0
+    best_failure = None
+
+    def remember_failure(chosen, why_req, note, why_reasons, satisfied, choices):
+        nonlocal best_failure
+        failure = (dict(chosen), why_req, note, dict(why_reasons),
+                   set(satisfied), list(choices))
+        if best_failure is None or len(chosen) > len(best_failure[0]):
+            best_failure = failure
+
+    def solve(chosen: Dict[str, ArchPackage], outstanding: List[Tuple[ArchPackage, ArchRelation]],
+              why_reasons: Dict[str, str], satisfied: Set[str],
+              choices: List[Tuple[str, str, List[str]]]):
+        nonlocal search_attempts
+        chosen = dict(chosen)
+        outstanding = list(outstanding)
+        why_reasons = dict(why_reasons)
+        satisfied = set(satisfied)
+        choices = list(choices)
+        selected_index, conflict_index = build_selected_indexes(chosen)
+
+        while True:
+            reporter.check_cancel()
+            remaining = []
+            dead = False
+            for position, (owner, req) in enumerate(outstanding):
+                if any(_relation_matches_package(pkg, req)
+                       for pkg in selected_index.get(req.name, ())):
+                    continue
+                if _inventory_satisfies(options.target_inventory, req):
+                    satisfied.add(format_requirement(req))
+                    continue
+                ranked = candidates_for(req)
+                viable = []
+                blocked = []
+                for candidate in ranked:
+                    reason = blocker(candidate, chosen, selected_index, conflict_index)
+                    if reason is None:
+                        viable.append(candidate)
+                    else:
+                        blocked.append(reason)
+                if not viable:
+                    if ranked:
+                        detail = "; ".join(dict.fromkeys(blocked))
+                        note = (f"Required by {owner.nevra}; matching providers cannot coexist "
+                                f"with the selected transaction: {detail}")
+                    else:
+                        note = (f"Required by {owner.nevra}; no matching provider in enabled "
+                                "pacman repositories")
+                    remember_failure(chosen, req, note, why_reasons, satisfied, choices)
+                    dead = True
+                    break
+                remaining.append((len(viable), position, owner, req, viable, ranked))
+            if dead:
+                return None
+            if not remaining:
+                return chosen, why_reasons, satisfied, choices
+
+            _, position, owner, req, viable, ranked = min(
+                remaining, key=lambda row: (row[0], row[1]))
+            next_outstanding = [item for idx, item in enumerate(outstanding) if idx != position]
+            ranked_labels = [_provider_choice_label(pkg) for pkg in ranked]
+            if len(viable) == 1:
+                candidate = viable[0]
+                if len(ranked_labels) > 1:
+                    chosen_label = _provider_choice_label(candidate)
+                    choices.append((req.name, chosen_label,
+                                    [label for label in ranked_labels if label != chosen_label]))
+                if candidate.name not in chosen:
+                    chosen[candidate.name] = candidate
+                    add_selected_indexes(candidate, selected_index, conflict_index)
+                    why_reasons[candidate.nevra] = (
+                        f"dependency of {owner.nevra}: {format_requirement(req)}")
+                    next_outstanding.extend((candidate, child)
+                                            for child in requirements_for(candidate))
+                outstanding = next_outstanding
+                continue
+
+            labels = ranked_labels
+            for candidate in viable:
+                search_attempts += 1
+                if search_attempts > MAX_ARCH_RESOLUTION_STATES:
+                    raise RuntimeError(
+                        "pacman dependency resolution exhausted its provider-search safety budget; "
+                        "no complete transaction has been proven")
+                branch_selected = dict(chosen)
+                branch_reasons = dict(why_reasons)
+                branch_pending = list(next_outstanding)
+                branch_choices = list(choices)
+                branch_selected[candidate.name] = candidate
+                branch_reasons[candidate.nevra] = (
+                    f"dependency of {owner.nevra}: {format_requirement(req)}")
+                branch_pending.extend((candidate, child) for child in requirements_for(candidate))
+                branch_choices.append((req.name, _provider_choice_label(candidate),
+                                       [label for label in labels
+                                        if label != _provider_choice_label(candidate)]))
+                solved = solve(branch_selected, branch_pending, branch_reasons,
+                               satisfied, branch_choices)
+                if solved is not None:
+                    return solved
+            return None
+
+    solved = solve(selected, pending, reasons, set(), [])
+    provider_choices: List[Tuple[str, str, List[str]]] = []
+    satisfied_by_target: List[str] = []
+    if solved is not None:
+        selected, reasons, satisfied, provider_choices = solved
+        satisfied_by_target = sorted(satisfied)
+    elif best_failure is not None:
+        selected, req, note, reasons, satisfied, provider_choices = best_failure
+        key = format_requirement(req)
+        if key not in {format_requirement(item) for item in unresolved}:
+            unresolved.append(req)
+            unresolved_notes[key] = note
+        satisfied_by_target = sorted(satisfied)
+
+    selected_values = list(selected.values())
+    final_index, _ = build_selected_indexes(selected)
+
+    # Final closure validation stays independent of the search. It protects
+    # callers that disable dependencies and catches future changes that admit a
+    # branch without satisfying every selected package requirement.
+    for pkg in selected_values:
+        for req in requirements_for(pkg):
+            if _inventory_satisfies(options.target_inventory, req):
+                continue
+            if not any(_relation_matches_package(candidate, req)
+                       for candidate in final_index.get(req.name, ())):
+                key = format_requirement(req)
+                if key not in {format_requirement(item) for item in unresolved}:
+                    unresolved.append(req)
+                    unresolved_notes[key] = (
+                        f"Closure validation: requirement of {pkg.nevra} is not satisfied "
+                        "by the selected transaction")
+
+    conflicts = _conflict_messages(selected_values)
     selected_values.sort(key=lambda p: (p.name, p.arch, p.version))
     reporter.log(f"pacman closure: {len(selected_values):,} package(s), {len(unresolved):,} unresolved, "
                  f"{sum(p.size for p in selected_values):,} compressed bytes")
-    return ArchResolutionResult(selected_values, unresolved, roots, skipped, conflicts,
-                                reasons, satisfied_by_target, unresolved_notes)
-
+    return ArchResolutionResult(
+        selected=selected_values, unresolved=unresolved, roots=roots,
+        skipped_installed=skipped, conflicts=conflicts, reasons=reasons,
+        installed_satisfied=satisfied_by_target, unresolved_notes=unresolved_notes,
+        provider_choices=provider_choices)
 
 def package_versions(packages: Sequence[ArchPackage], name: str, role: Optional[str], arch: str) -> List[str]:
     rows = [p for p in packages if p.name == name and p.arch in {arch, "any"}

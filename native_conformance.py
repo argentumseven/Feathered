@@ -155,7 +155,8 @@ printf '%s\\n' '{name}' > %{{buildroot}}/usr/share/feathered-native/{name}.txt
 
 
 def _make_arch_package(upstream: Path, name: str, depends: str = "",
-                       version: str = "1.0-1", provides: str = "") -> None:
+                       version: str = "1.0-1", provides: str = "",
+                       conflicts: str = "") -> None:
     """Build a tiny uncompressed-semantics Arch package using portable tar.gz."""
     filename = upstream / f"{name}-{version}-x86_64.pkg.tar.gz"
     lines = [
@@ -164,7 +165,8 @@ def _make_arch_package(upstream: Path, name: str, depends: str = "",
         "builddate = 1", "packager = Feathered Test", "size = 32",
         "arch = x86_64", "license = MIT",
     ]
-    for field_name, value in (("depend", depends), ("provides", provides)):
+    for field_name, value in (("depend", depends), ("provides", provides),
+                              ("conflict", conflicts)):
         for atom in str(value or "").split(","):
             atom = atom.strip()
             if atom:
@@ -444,7 +446,7 @@ def run_dnf_conformance() -> str:
     return ("PASS DNF: native dnf accepted and transaction-tested "
             f"{len(scenarios)} generated Feathered bundles over canonical file URLs, "
             "plus loopback HTTP transfer validation "
-            f"({', '.join(label for label, _, _ in scenarios)})")
+            f"({', '.join(label for label, _, _, _ in scenarios)})")
 
 
 # --------------------------------------------------------------------------
@@ -465,10 +467,34 @@ def run_pacman_conformance() -> str:
         _make_arch_package(upstream, "fnc-deep", "fnc-mid>=1.0")
         _make_arch_package(upstream, "fnc-provider", provides="fnc-virtual=1.0")
         _make_arch_package(upstream, "fnc-needs-virtual", "fnc-virtual")
+        _make_arch_package(upstream, "fnc-database")
+        _make_arch_package(
+            upstream, "fnc-renderer-a", provides="fnc-renderer=1.0",
+            conflicts="fnc-database")
+        _make_arch_package(upstream, "fnc-renderer-b", provides="fnc-renderer=1.0")
+        _make_arch_package(
+            upstream, "fnc-needs-renderer", "fnc-renderer,fnc-database")
+        _make_arch_package(upstream, "fnc-render-helper", conflicts="fnc-database")
+        _make_arch_package(
+            upstream, "fnc-transitive-a", "fnc-render-helper",
+            provides="fnc-renderer-transitive=1.0")
+        _make_arch_package(
+            upstream, "fnc-transitive-b", provides="fnc-renderer-transitive=1.0")
+        _make_arch_package(
+            upstream, "fnc-needs-transitive",
+            "fnc-renderer-transitive,fnc-database")
 
         scenarios = [
-            ("transitive depth", "fnc-deep", ("fnc-deep", "fnc-mid", "fnc-leaf")),
-            ("virtual provides", "fnc-needs-virtual", ("fnc-needs-virtual", "fnc-provider")),
+            ("transitive depth", "fnc-deep",
+             ("fnc-deep", "fnc-mid", "fnc-leaf"), ()),
+            ("virtual provides", "fnc-needs-virtual",
+             ("fnc-needs-virtual", "fnc-provider"), ()),
+            ("provider conflict backtracking", "fnc-needs-renderer",
+             ("fnc-needs-renderer", "fnc-renderer-b", "fnc-database"),
+             ("fnc-renderer-a",)),
+            ("transitive provider conflict backtracking", "fnc-needs-transitive",
+             ("fnc-needs-transitive", "fnc-transitive-b", "fnc-database"),
+             ("fnc-transitive-a", "fnc-render-helper")),
         ]
 
         repository_tools.rebuild_repository_metadata(upstream)
@@ -480,10 +506,15 @@ def run_pacman_conformance() -> str:
         options = core.BuildOptions(include_dependencies=True, verify_checksums=True,
                                     emit_repository=True)
 
-        for index, (label, root_name, expected) in enumerate(scenarios):
+        for index, (label, root_name, expected, forbidden) in enumerate(scenarios):
             result = arch_core.resolve([(root_name, None, None)], packages, "x86_64",
                                        options, reporter)
-            _check_closure(label, result, expected)
+            selected = _check_closure(label, result, expected)
+            unexpected = sorted(set(forbidden) & selected)
+            if unexpected:
+                raise RuntimeError(
+                    f"[{label}] Feathered selected conflicting provider(s) {unexpected}; "
+                    f"selected {sorted(selected)}")
 
             bundle = root / f"bundle-{index}"
             arch_core.write_bundle(result, bundle, options, reporter, {
@@ -520,7 +551,7 @@ def run_pacman_conformance() -> str:
 
     return ("PASS pacman: native pacman accepted and solved "
             f"{len(scenarios)} generated Feathered bundles offline "
-            f"({', '.join(label for label, _, _ in scenarios)})")
+            f"({', '.join(label for label, _, _, _ in scenarios)})")
 
 
 RUNNERS = {
