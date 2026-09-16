@@ -453,10 +453,48 @@ def run_dnf_conformance() -> str:
 # pacman
 # --------------------------------------------------------------------------
 
+def _check_native_vercmp() -> None:
+    vercmp = shutil.which("vercmp")
+    if not vercmp:
+        raise RuntimeError("pacman conformance requires the native vercmp utility")
+
+    cases = [
+        ("alpha1", "alpha.0", -1),
+        ("1...0", "1.2", 1),
+        ("1...0", "1.0", 1),
+        ("1.0rc", "1.0", -1),
+        ("1.0", "1.0.a", -1),
+        ("2.0", "2.0-13", 0),
+        ("1:1.0", "2.0", 1),
+    ]
+    for left, right, expected in cases:
+        native = subprocess.run(
+            [vercmp, left, right], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True)
+        if native.returncode != 0:
+            raise RuntimeError(
+                f"native vercmp failed for {left!r} and {right!r}: "
+                + native.stdout + native.stderr)
+        try:
+            native_sign = (int(native.stdout.strip()) > 0) - (int(native.stdout.strip()) < 0)
+        except ValueError as exc:
+            raise RuntimeError(
+                f"native vercmp returned a non-integer for {left!r} and {right!r}: "
+                f"{native.stdout!r}") from exc
+        feathered = arch_core.compare_versions(left, right)
+        feathered_sign = (feathered > 0) - (feathered < 0)
+        if feathered_sign != native_sign or feathered_sign != expected:
+            raise RuntimeError(
+                f"vercmp disagreement for {left!r} vs {right!r}: "
+                f"native={native_sign}, Feathered={feathered_sign}, expected={expected}")
+
+
 def run_pacman_conformance() -> str:
     """Validate Feathered COMPLETE Arch bundles with native pacman offline."""
     if not shutil.which("pacman"):
         return "SKIP pacman: pacman is not available"
+
+    _check_native_vercmp()
 
     with tempfile.TemporaryDirectory(prefix="feathered-native-pacman-") as td:
         root = Path(td)
@@ -483,6 +521,9 @@ def run_pacman_conformance() -> str:
         _make_arch_package(
             upstream, "fnc-needs-transitive",
             "fnc-renderer-transitive,fnc-database")
+        _make_arch_package(upstream, "fnc-delimiter-version", version="1...0-1")
+        _make_arch_package(
+            upstream, "fnc-needs-delimiter-version", "fnc-delimiter-version>=1.2")
 
         scenarios = [
             ("transitive depth", "fnc-deep",
@@ -495,6 +536,8 @@ def run_pacman_conformance() -> str:
             ("transitive provider conflict backtracking", "fnc-needs-transitive",
              ("fnc-needs-transitive", "fnc-transitive-b", "fnc-database"),
              ("fnc-transitive-a", "fnc-render-helper")),
+            ("ALPM delimiter version ordering", "fnc-needs-delimiter-version",
+             ("fnc-needs-delimiter-version", "fnc-delimiter-version"), ()),
         ]
 
         repository_tools.rebuild_repository_metadata(upstream)

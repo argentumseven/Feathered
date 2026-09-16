@@ -146,78 +146,127 @@ def _split_version(value: str) -> Tuple[str, str, Optional[str]]:
     return epoch or "0", version, rel
 
 
-def _segments(value: str):
-    """Yield libalpm-like alphanumeric segments, preserving segment type.
+def _is_alpm_alnum(char: str) -> bool:
+    return char.isascii() and char.isalnum()
 
-    Separators are ignored. Numeric segments compare numerically (leading zeroes
-    ignored); alpha segments lexically. A trailing alpha segment is a prerelease
-    marker and sorts before exhaustion, while a trailing numeric segment sorts
-    after exhaustion. This is the behavior documented by vercmp(8).
-    """
-    i = 0
-    value = str(value or "")
-    while i < len(value):
-        while i < len(value) and not value[i].isalnum():
-            i += 1
-        if i >= len(value):
+
+def _segments(value: str) -> List[Tuple[int, Tuple[Tuple[str, str], ...]]]:
+    text = str(value or "")
+    segments: List[Tuple[int, Tuple[Tuple[str, str], ...]]] = []
+    index = 0
+    while index < len(text):
+        delimiters = 0
+        while index < len(text) and not _is_alpm_alnum(text[index]):
+            delimiters += 1
+            index += 1
+        if index >= len(text):
+            if delimiters:
+                segments.append((delimiters, ()))
             break
-        numeric = value[i].isdigit()
-        j = i + 1
-        while j < len(value) and value[j].isalnum() and value[j].isdigit() == numeric:
-            j += 1
-        yield ("num" if numeric else "alpha", value[i:j])
-        i = j
+
+        start = index
+        while index < len(text) and _is_alpm_alnum(text[index]):
+            index += 1
+        segment = text[start:index]
+        parts: List[Tuple[str, str]] = []
+        part_start = 0
+        while part_start < len(segment):
+            numeric = segment[part_start].isdigit()
+            part_end = part_start + 1
+            while (part_end < len(segment)
+                   and segment[part_end].isdigit() == numeric):
+                part_end += 1
+            parts.append(("num" if numeric else "alpha",
+                          segment[part_start:part_end]))
+            part_start = part_end
+        segments.append((delimiters, tuple(parts)))
+    return segments
 
 
-def _rpmvercmp(a: str, b: str) -> int:
-    sa = list(_segments(a)); sb = list(_segments(b))
-    i = 0
-    while i < len(sa) and i < len(sb):
-        ta, va = sa[i]; tb, vb = sb[i]
-        if ta != tb:
-            # Numeric segments sort after alphabetic segments.
-            return 1 if ta == "num" else -1
-        if ta == "num":
-            aa = va.lstrip("0") or "0"; bb = vb.lstrip("0") or "0"
-            if len(aa) != len(bb):
-                return 1 if len(aa) > len(bb) else -1
-            if aa != bb:
-                return 1 if aa > bb else -1
-        else:
-            if va != vb:
-                return 1 if va > vb else -1
-        i += 1
-    if len(sa) == len(sb):
+def _compare_segment_part(a: Tuple[str, str], b: Tuple[str, str]) -> int:
+    type_a, value_a = a
+    type_b, value_b = b
+    if type_a != type_b:
+        return 1 if type_a == "num" else -1
+    if type_a == "num":
+        value_a = value_a.lstrip("0") or "0"
+        value_b = value_b.lstrip("0") or "0"
+        if len(value_a) != len(value_b):
+            return 1 if len(value_a) > len(value_b) else -1
+    if value_a == value_b:
         return 0
-    # Pacman's documented prerelease/postrelease behavior:
-    #   1.0rc < 1.0 < 1.0.a < 1.0.1
-    remainder = sa[i:] if len(sa) > i else sb[i:]
-    sign = 1 if len(sa) > i else -1
-    first_type = remainder[0][0]
-    if first_type == "alpha":
-        # A directly-attached alphabetic suffix (rc/beta/pre) is prerelease;
-        # one introduced after a separator is postrelease. Inspect the original
-        # side around the common consumed prefix conservatively via a suffix
-        # heuristic that matches libalpm's separator handling.
-        longer = a if sign > 0 else b
-        shorter = b if sign > 0 else a
-        prefix = shorter.rstrip("._+-")
-        suffix = longer[len(prefix):] if longer.startswith(prefix) else ""
-        post = bool(suffix and suffix[0] in ". _+-")
-        return sign if post else -sign
-    return sign
+    return 1 if value_a > value_b else -1
+
+
+def _empty_vs_part(part: Tuple[str, str]) -> int:
+    return -1 if part[0] == "num" else 1
+
+
+def _alpmvercmp(a: str, b: str) -> int:
+    segments_a = _segments(a)
+    segments_b = _segments(b)
+    index_a = index_b = 0
+
+    while index_a < len(segments_a) and index_b < len(segments_b):
+        delimiters_a, parts_a = segments_a[index_a]
+        delimiters_b, parts_b = segments_b[index_b]
+
+        if not parts_a and not parts_b:
+            return 0
+        if not parts_a:
+            return _empty_vs_part(parts_b[0])
+        if not parts_b:
+            return -_empty_vs_part(parts_a[0])
+
+        if delimiters_a != delimiters_b:
+            return 1 if delimiters_a > delimiters_b else -1
+
+        part_a = part_b = 0
+        while part_a < len(parts_a) and part_b < len(parts_b):
+            compared = _compare_segment_part(parts_a[part_a], parts_b[part_b])
+            if compared:
+                return compared
+            part_a += 1
+            part_b += 1
+
+        if part_a == len(parts_a) and part_b == len(parts_b):
+            index_a += 1
+            index_b += 1
+            continue
+
+        if part_a < len(parts_a):
+            if index_b + 1 < len(segments_b):
+                next_parts = segments_b[index_b + 1][1]
+                if next_parts:
+                    return -1
+            return -_empty_vs_part(parts_a[part_a])
+
+        if index_a + 1 < len(segments_a):
+            next_parts = segments_a[index_a + 1][1]
+            if next_parts:
+                return 1
+        return _empty_vs_part(parts_b[part_b])
+
+    while index_a < len(segments_a) and not segments_a[index_a][1]:
+        index_a += 1
+    while index_b < len(segments_b) and not segments_b[index_b][1]:
+        index_b += 1
+    if index_a == len(segments_a) and index_b == len(segments_b):
+        return 0
+    return 1 if index_a < len(segments_a) else -1
 
 
 def compare_versions(a: str, b: str) -> int:
-    ae, av, ar = _split_version(a); be, bv, br = _split_version(b)
-    cmp_epoch = _rpmvercmp(ae, be)
+    ae, av, ar = _split_version(a)
+    be, bv, br = _split_version(b)
+    cmp_epoch = _alpmvercmp(ae, be)
     if cmp_epoch:
         return cmp_epoch
-    cmp_ver = _rpmvercmp(av, bv)
+    cmp_ver = _alpmvercmp(av, bv)
     if cmp_ver:
         return cmp_ver
     if ar is not None and br is not None:
-        return _rpmvercmp(ar, br)
+        return _alpmvercmp(ar, br)
     return 0
 
 
