@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 
 $Version = '3.13.14'
 $ExpectedSha256 = 'c54d9b9bbb8a36e6489363ddd01139707fd781d72f1f9e90c7ec65d0061368e0'
@@ -20,7 +21,22 @@ $Installer = Join-Path $env:RUNNER_TEMP "python-$Version-amd64.exe"
 $Target = Join-Path $env:RUNNER_TEMP "feathered-python-$Version"
 
 Write-Host "Downloading authenticated CPython $Version from python.org..."
-Invoke-WebRequest -Uri $InstallerUrl -OutFile $Installer
+$DownloadError = $null
+for ($Attempt = 1; $Attempt -le 3; $Attempt++) {
+    try {
+        Remove-Item -LiteralPath $Installer -Force -ErrorAction SilentlyContinue
+        Invoke-WebRequest -Uri $InstallerUrl -OutFile $Installer
+        $DownloadError = $null
+        break
+    } catch {
+        $DownloadError = $_
+        Write-Warning "python.org download attempt $Attempt failed: $($_.Exception.Message)"
+        if ($Attempt -lt 3) { Start-Sleep -Seconds (2 * $Attempt) }
+    }
+}
+if ($null -ne $DownloadError) {
+    throw "Could not download CPython $Version from python.org after 3 attempts: $($DownloadError.Exception.Message)"
+}
 
 $ActualSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $Installer).Hash.ToLowerInvariant()
 if ($ActualSha256 -ne $ExpectedSha256) {
@@ -42,18 +58,38 @@ $Arguments = @(
     'Include_test=0',
     'Include_tcltk=1',
     'Include_pip=1',
+    'Include_dev=1',
+    'Include_exe=1',
+    'Include_lib=1',
+    'Include_tools=1',
+    'Include_doc=0',
+    'Include_debug=0',
+    'Include_symbols=0',
+    'Include_freethreaded=0',
     'AssociateFiles=0',
     'PrependPath=0',
+    'AppendPath=0',
+    'CompileAll=0',
     'Shortcuts=0'
 )
 
 $Process = Start-Process -FilePath $Installer -ArgumentList $Arguments -Wait -PassThru
 if ($Process.ExitCode -ne 0) {
+    if (Test-Path -LiteralPath $InstallerLog) {
+        Write-Host '--- python.org installer log tail ---'
+        Get-Content -LiteralPath $InstallerLog -Tail 120 | Write-Host
+        Write-Host '--- end installer log tail ---'
+    }
     throw "python.org installer failed with exit code $($Process.ExitCode)"
 }
 
 $Python = Join-Path $Target 'python.exe'
 if (-not (Test-Path -LiteralPath $Python)) {
+    if (Test-Path -LiteralPath $InstallerLog) {
+        Write-Host '--- python.org installer log tail ---'
+        Get-Content -LiteralPath $InstallerLog -Tail 120 | Write-Host
+        Write-Host '--- end installer log tail ---'
+    }
     throw "Installed python.exe was not found at $Python"
 }
 
@@ -85,7 +121,7 @@ if (-not $TkTcl) {
 }
 
 # GITHUB_ENV affects later steps only. The validation below must use this
-# installation's Tcl/Tk now, not settings inherited from actions/setup-python.
+# installation's Tcl/Tk now, not settings inherited from the runner.
 $env:TCL_LIBRARY = $InitTcl.Directory.FullName
 $env:TK_LIBRARY = $TkTcl.Directory.FullName
 Write-Host "TCL_LIBRARY=$env:TCL_LIBRARY"

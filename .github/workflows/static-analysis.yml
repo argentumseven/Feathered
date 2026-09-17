@@ -9,8 +9,9 @@ name: static analysis
 # would widen the trusted dependency set of a signing pipeline to buy nothing.
 
 on:
-  push:
-  pull_request:
+  # windows-release.yml calls this workflow for every push and pull request.
+  # Keep one authoritative static-analysis result per commit instead of also
+  # launching a duplicate top-level workflow for the same SHA.
   workflow_call:
   workflow_dispatch:
 

@@ -127,10 +127,11 @@ def test_windows_ci_contains_real_signed_production_release_gate():
     assert "signtool.exe verify /pa dist\\feathered.exe" in lower
     assert "sha256sums.txt" in lower
     assert "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803" in lower
-    assert "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405" in lower
+    assert "install authenticated python.org cpython with tcl/tk" in lower
+    assert "install_windows_python.ps1" in lower
+    assert "actions/setup-python@" not in lower
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in lower
     assert "actions/checkout@v" not in lower
-    assert "actions/setup-python@v" not in lower
     assert "actions/upload-artifact@v" not in lower
 
     # Signed publication must be mechanically coupled to the real package-
@@ -173,6 +174,23 @@ def test_windows_ci_contains_real_signed_production_release_gate():
     cleanup_pos = production.index("- name: remove signing material before third-party upload")
     upload_pos = production.index("- name: upload authenticated release evidence")
     assert cleanup_pos < upload_pos
+
+
+def test_static_analysis_has_one_authoritative_push_pr_path():
+    workflow = (ROOT / ".github" / "workflows" / "static-analysis.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "workflow_call:" in workflow
+    assert "workflow_dispatch:" in workflow
+    assert "\n  push:" not in workflow
+    assert "\n  pull_request:" not in workflow
+
+    windows = (ROOT / ".github" / "workflows" / "windows-release.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "push:" in windows
+    assert "pull_request:" in windows
+    assert "uses: ./.github/workflows/static-analysis.yml" in windows
 
 
 def test_project_is_mit_licensed_and_distribution_notice_is_present():
