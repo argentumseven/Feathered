@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import stat
 import tempfile
 
 
@@ -18,9 +19,22 @@ def _key(pkg):
 
 def _root(parent):
     root = Path(parent) / ".feathered-cache"
-    if root.is_symlink():
+    try:
+        info = root.lstat()
+    except FileNotFoundError:
+        root.mkdir(mode=0o700)
+        info = root.lstat()
+    if stat.S_ISLNK(info.st_mode):
         raise RuntimeError("Payload cache must not be a symlink")
-    root.mkdir(mode=0o700, exist_ok=True)
+    if not stat.S_ISDIR(info.st_mode):
+        raise RuntimeError("Payload cache must be a directory")
+    if os.name != "nt" and hasattr(os, "geteuid"):
+        if info.st_uid != os.geteuid():
+            raise RuntimeError("Payload cache must be owned by the current user")
+        if info.st_mode & 0o022:
+            raise RuntimeError("Payload cache must not be group- or world-writable")
+        if info.st_mode & 0o077:
+            root.chmod(0o700)
     return root
 
 

@@ -3,13 +3,26 @@
 Obtain this bootstrap and the operator public keyring through a trusted channel.
 Usage: python3 trusted_receiver.py BUNDLE_DIRECTORY OPERATOR_KEYRING [--install]
 """
+import hashlib
+import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
+import re
 import shutil
 import stat
 import subprocess
 import sys
 import tempfile
+
+
+_BOOTSTRAP_LIMITS = {
+    "bundle-index.json": 64 * 1024 * 1024,
+    "bundle-index.json.asc": 1024 * 1024,
+    "verify-bundle.py": 4 * 1024 * 1024,
+    "verify-bundle.py.asc": 1024 * 1024,
+}
+_MAX_INDEX_PATH_DEPTH = 64
+_SHA256_RE = re.compile(r"[0-9a-f]{64}")
 
 
 def _secure_temp_base():
@@ -26,65 +39,224 @@ def _secure_temp_base():
         'No root-owned sticky temporary directory is available for protected receiver staging')
 
 
-def _copy_bundle_tree(source, destination):
+def _copy_open_file(input_fd, target, *, max_bytes=None, expected_size=None, expected_sha256=None):
+    opened = os.fstat(input_fd)
+    if not stat.S_ISREG(opened.st_mode):
+        raise RuntimeError(f'Bundle entry is not a regular file: {target.name}')
+    if max_bytes is not None and opened.st_size > max_bytes:
+        raise RuntimeError(
+            f'Bundle bootstrap file exceeds the pre-authentication size limit: {target.name}')
+    if expected_size is not None and opened.st_size != expected_size:
+        raise RuntimeError(
+            f'Bundle file size does not match the signed index: {target.name}')
+
+    target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    digest = hashlib.sha256()
+    copied = 0
+    try:
+        with os.fdopen(input_fd, 'rb', closefd=False) as input_handle, target.open('xb') as output_handle:
+            while True:
+                block = input_handle.read(4 * 1024 * 1024)
+                if not block:
+                    break
+                copied += len(block)
+                if max_bytes is not None and copied > max_bytes:
+                    raise RuntimeError(
+                        f'Bundle bootstrap file exceeds the pre-authentication size limit: {target.name}')
+                if expected_size is not None and copied > expected_size:
+                    raise RuntimeError(
+                        f'Bundle file grew beyond the size recorded in the signed index: {target.name}')
+                digest.update(block)
+                output_handle.write(block)
+        after = os.fstat(input_fd)
+        if (after.st_dev, after.st_ino) != (opened.st_dev, opened.st_ino) or after.st_size != copied:
+            raise RuntimeError(f'Bundle file changed while staging: {target.name}')
+        if expected_size is not None and copied != expected_size:
+            raise RuntimeError(
+                f'Bundle file size does not match the signed index: {target.name}')
+        actual_sha256 = digest.hexdigest()
+        if expected_sha256 is not None and actual_sha256 != expected_sha256:
+            raise RuntimeError(
+                f'Bundle file digest does not match the signed index: {target.name}')
+        return copied, actual_sha256
+    except Exception:
+        target.unlink(missing_ok=True)
+        raise
+
+
+def _open_regular_at(directory_fd, name, *, before=None):
+    file_flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0)
+    if before is None:
+        try:
+            before = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+        except OSError as exc:
+            raise RuntimeError(f'Cannot stat bundle file while staging: {name}: {exc}') from exc
+    if not stat.S_ISREG(before.st_mode):
+        kind = 'symbolic link' if stat.S_ISLNK(before.st_mode) else 'non-regular filesystem object'
+        raise RuntimeError(f'Bundle contains a {kind} and cannot be staged safely: {name}')
+    try:
+        input_fd = os.open(name, file_flags, dir_fd=directory_fd)
+    except OSError as exc:
+        raise RuntimeError(f'Cannot open bundle file without following links: {name}: {exc}') from exc
+    opened = os.fstat(input_fd)
+    if (not stat.S_ISREG(opened.st_mode)
+            or (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino)):
+        os.close(input_fd)
+        raise RuntimeError(f'Bundle file changed while staging: {name}')
+    return input_fd
+
+
+def _stage_bootstrap(source, destination):
     source = Path(source).absolute()
     destination = Path(destination)
     directory_flags = os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0) | getattr(os, 'O_NOFOLLOW', 0)
-    file_flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0)
     try:
         source_fd = os.open(source, directory_flags)
     except OSError as exc:
         raise RuntimeError(f'Cannot open bundle directory without following links: {source}: {exc}') from exc
     destination.mkdir(mode=0o700)
-
-    def copy_directory(source_directory_fd, target_directory):
-        try:
-            entries = list(os.scandir(source_directory_fd))
-        except OSError as exc:
-            raise RuntimeError(f'Cannot enumerate bundle while staging: {exc}') from exc
-        for entry in entries:
-            target = target_directory / entry.name
+    try:
+        for name, limit in _BOOTSTRAP_LIMITS.items():
+            input_fd = _open_regular_at(source_fd, name)
             try:
-                before = entry.stat(follow_symlinks=False)
-            except OSError as exc:
-                raise RuntimeError(f'Bundle changed while staging: {entry.name}: {exc}') from exc
-            if stat.S_ISLNK(before.st_mode):
-                raise RuntimeError(f'Bundle contains a symbolic link and cannot be staged safely: {entry.name}')
-            if stat.S_ISDIR(before.st_mode):
-                try:
-                    child_fd = os.open(entry.name, directory_flags, dir_fd=source_directory_fd)
-                except OSError as exc:
-                    raise RuntimeError(f'Bundle directory changed while staging: {entry.name}: {exc}') from exc
-                try:
-                    opened = os.fstat(child_fd)
-                    if (not stat.S_ISDIR(opened.st_mode)
-                            or (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino)):
-                        raise RuntimeError(f'Bundle directory changed while staging: {entry.name}')
-                    target.mkdir(mode=0o700)
-                    copy_directory(child_fd, target)
-                finally:
-                    os.close(child_fd)
-                continue
-            if not stat.S_ISREG(before.st_mode):
-                raise RuntimeError(f'Bundle contains a non-regular filesystem object: {entry.name}')
-            try:
-                input_fd = os.open(entry.name, file_flags, dir_fd=source_directory_fd)
-            except OSError as exc:
-                raise RuntimeError(f'Bundle file changed while staging: {entry.name}: {exc}') from exc
-            try:
-                opened = os.fstat(input_fd)
-                if (not stat.S_ISREG(opened.st_mode)
-                        or (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino)):
-                    raise RuntimeError(f'Bundle file changed while staging: {entry.name}')
-                with os.fdopen(input_fd, 'rb', closefd=False) as input_handle, target.open('xb') as output_handle:
-                    shutil.copyfileobj(input_handle, output_handle, length=4 * 1024 * 1024)
+                _copy_open_file(input_fd, destination / name, max_bytes=limit)
             finally:
                 os.close(input_fd)
-
-    try:
-        copy_directory(source_fd, destination)
     finally:
         os.close(source_fd)
+
+
+def _authenticate_bootstrap(directory, keyring):
+    directory = Path(directory)
+    for filename in ['bundle-index.json', 'verify-bundle.py']:
+        subprocess.run(['gpgv', '--keyring', str(keyring), str(directory / (filename + '.asc')),
+                        str(directory / filename)], check=True, cwd=directory)
+
+
+def _indexed_path(text):
+    if not isinstance(text, str) or not text or '\\' in text:
+        raise RuntimeError('Signed bundle index contains an unsafe file path')
+    posix = PurePosixPath(text)
+    windows = PureWindowsPath(text)
+    if (posix.is_absolute() or windows.is_absolute() or windows.drive
+            or any(part in {'', '.', '..'} for part in posix.parts)
+            or posix.as_posix() != text):
+        raise RuntimeError(f'Signed bundle index contains an unsafe file path: {text}')
+    if len(posix.parts) > _MAX_INDEX_PATH_DEPTH:
+        raise RuntimeError(f'Signed bundle index path is nested too deeply: {text}')
+    if text in {'bundle-index.json', 'bundle-index.json.asc'}:
+        raise RuntimeError(f'Signed bundle index must not list its own bootstrap file: {text}')
+    return posix.parts
+
+
+def _load_authenticated_index(directory):
+    path = Path(directory) / 'bundle-index.json'
+    try:
+        index = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        raise RuntimeError(f'Authenticated bundle index is unreadable: {exc}') from exc
+    if not isinstance(index, dict) or index.get('format') != 'feathered-bundle-index/1':
+        raise RuntimeError('Authenticated bundle index has an unsupported format')
+    files = index.get('files')
+    if not isinstance(files, list) or not files:
+        raise RuntimeError('Authenticated bundle index contains no file list')
+    file_count = index.get('file_count')
+    total_bytes = index.get('total_bytes')
+    if isinstance(file_count, bool) or not isinstance(file_count, int) or file_count != len(files):
+        raise RuntimeError('Authenticated bundle index file count is inconsistent')
+    if isinstance(total_bytes, bool) or not isinstance(total_bytes, int) or total_bytes < 0:
+        raise RuntimeError('Authenticated bundle index total byte count is invalid')
+
+    normalized = []
+    seen = set()
+    computed_total = 0
+    for entry in files:
+        if not isinstance(entry, dict):
+            raise RuntimeError('Authenticated bundle index contains a malformed file entry')
+        relative = entry.get('path')
+        parts = _indexed_path(relative)
+        if relative in seen:
+            raise RuntimeError(f'Authenticated bundle index contains a duplicate file entry: {relative}')
+        seen.add(relative)
+        digest = entry.get('sha256')
+        if not isinstance(digest, str) or _SHA256_RE.fullmatch(digest) is None:
+            raise RuntimeError(f'Authenticated bundle index contains an invalid SHA-256: {relative}')
+        raw_size = entry.get('size')
+        if isinstance(raw_size, bool):
+            raise RuntimeError(f'Authenticated bundle index contains an invalid size: {relative}')
+        try:
+            size = int(raw_size)
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError(f'Authenticated bundle index contains an invalid size: {relative}') from exc
+        if size < 0 or str(size) != str(raw_size):
+            raise RuntimeError(f'Authenticated bundle index contains an invalid size: {relative}')
+        computed_total += size
+        if computed_total > total_bytes:
+            raise RuntimeError('Authenticated bundle index total byte count is inconsistent')
+        normalized.append((relative, parts, size, digest))
+    if computed_total != total_bytes:
+        raise RuntimeError('Authenticated bundle index total byte count is inconsistent')
+    return normalized, total_bytes
+
+
+def _digest_file(path):
+    digest = hashlib.sha256()
+    size = 0
+    with Path(path).open('rb') as handle:
+        for block in iter(lambda: handle.read(4 * 1024 * 1024), b''):
+            digest.update(block)
+            size += len(block)
+    return size, digest.hexdigest()
+
+
+def _stage_indexed_files(source, destination, entries, total_bytes):
+    source = Path(source).absolute()
+    destination = Path(destination)
+    directory_flags = os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0) | getattr(os, 'O_NOFOLLOW', 0)
+    try:
+        source_fd = os.open(source, directory_flags)
+    except OSError as exc:
+        raise RuntimeError(f'Cannot open bundle directory without following links: {source}: {exc}') from exc
+
+    copied_total = 0
+    try:
+        for relative, parts, expected_size, expected_sha256 in entries:
+            target = destination.joinpath(*parts)
+            if target.exists():
+                if relative not in {'verify-bundle.py', 'verify-bundle.py.asc'}:
+                    raise RuntimeError(f'Authenticated bundle index collides with a bootstrap file: {relative}')
+                size, digest = _digest_file(target)
+                if size != expected_size or digest != expected_sha256:
+                    raise RuntimeError(f'Authenticated bootstrap file does not match the signed index: {relative}')
+                copied_total += size
+                continue
+
+            current_fd = os.dup(source_fd)
+            try:
+                for part in parts[:-1]:
+                    try:
+                        child_fd = os.open(part, directory_flags, dir_fd=current_fd)
+                    except OSError as exc:
+                        raise RuntimeError(
+                            f'Cannot traverse indexed bundle path without following links: {relative}: {exc}') from exc
+                    os.close(current_fd)
+                    current_fd = child_fd
+                input_fd = _open_regular_at(current_fd, parts[-1])
+                try:
+                    copied, _ = _copy_open_file(
+                        input_fd, target, expected_size=expected_size,
+                        expected_sha256=expected_sha256)
+                finally:
+                    os.close(input_fd)
+            finally:
+                os.close(current_fd)
+            copied_total += copied
+            if copied_total > total_bytes:
+                raise RuntimeError('Staged bundle exceeded the byte count in the authenticated index')
+    finally:
+        os.close(source_fd)
+    if copied_total != total_bytes:
+        raise RuntimeError('Staged bundle byte count does not match the authenticated index')
 
 
 def _normalize_read_only(root):
@@ -128,9 +300,7 @@ def _lock_stage_as_root(staging_root):
 
 def _verify_bundle(directory, keyring):
     directory = Path(directory)
-    for filename in ['bundle-index.json', 'verify-bundle.py']:
-        subprocess.run(['gpgv', '--keyring', str(keyring), str(directory / (filename + '.asc')),
-                        str(directory / filename)], check=True, cwd=directory)
+    _authenticate_bootstrap(directory, keyring)
     subprocess.run([sys.executable, str(directory / 'verify-bundle.py')], check=True, cwd=directory)
 
 
@@ -176,7 +346,10 @@ def verify(directory, keyring, install=False):
     staged_bundle = staging_root / 'bundle'
     locked = False
     try:
-        _copy_bundle_tree(source, staged_bundle)
+        _stage_bootstrap(source, staged_bundle)
+        _authenticate_bootstrap(staged_bundle, keyring)
+        entries, total_bytes = _load_authenticated_index(staged_bundle)
+        _stage_indexed_files(source, staged_bundle, entries, total_bytes)
         if install:
             _lock_stage_as_root(staging_root)
             locked = True
