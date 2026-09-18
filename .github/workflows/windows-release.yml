@@ -35,6 +35,37 @@ jobs:
         shell: powershell
         run: |
           & $env:FEATHERED_RELEASE_PYTHON -m venv .release-venv
+
+          # Keep the Tcl/Tk data used by the test interpreter inside the venv.
+          # This avoids relying on the bootstrap copy under RUNNER_TEMP for a
+          # long multi-process Windows test run.
+          $venvRoot = (Resolve-Path '.release-venv').Path
+          $tclSource = Split-Path -Parent $env:TCL_LIBRARY
+          $tclTarget = Join-Path $venvRoot 'tcl'
+          if (-not (Test-Path -LiteralPath (Join-Path $env:TCL_LIBRARY 'init.tcl'))) {
+            throw "Bootstrap Tcl library is missing before venv staging: $env:TCL_LIBRARY"
+          }
+          if (-not (Test-Path -LiteralPath (Join-Path $env:TK_LIBRARY 'tk.tcl'))) {
+            throw "Bootstrap Tk library is missing before venv staging: $env:TK_LIBRARY"
+          }
+          if (Test-Path -LiteralPath $tclTarget) {
+            Remove-Item -LiteralPath $tclTarget -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path $tclTarget -Force | Out-Null
+          Get-ChildItem -LiteralPath $tclSource -Force |
+            Copy-Item -Destination $tclTarget -Recurse -Force
+          $venvInitTcl = Get-ChildItem -LiteralPath $tclTarget -Filter init.tcl -Recurse -File | Select-Object -First 1
+          $venvTkTcl = Get-ChildItem -LiteralPath $tclTarget -Filter tk.tcl -Recurse -File | Select-Object -First 1
+          if (-not $venvInitTcl -or -not $venvTkTcl) {
+            throw 'The release venv Tcl/Tk runtime copy is incomplete.'
+          }
+          $env:TCL_LIBRARY = $venvInitTcl.Directory.FullName
+          $env:TK_LIBRARY = $venvTkTcl.Directory.FullName
+          "TCL_LIBRARY=$env:TCL_LIBRARY" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "TK_LIBRARY=$env:TK_LIBRARY" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          .\.release-venv\Scripts\python.exe -c "import tkinter as tk; r=tk.Tk(); print('release-venv Tcl',r.tk.call('info','patchlevel')); r.destroy()"
+          if ($LASTEXITCODE -ne 0) { throw 'Release venv Tcl/Tk startup validation failed.' }
           .\.release-venv\Scripts\python.exe -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-build.lock
       - name: Generate and verify source manifest
         shell: powershell

@@ -21,7 +21,16 @@ from typing import Any
 import uuid
 
 BATCH_SIZE = 20
-WINDOWS_ISOLATED_PREFIXES = ("tests/test_application_startup.py::",)
+WINDOWS_ISOLATED_PREFIXES = (
+    "tests/test_application_startup.py::",
+    "tests/test_build_spec.py::",
+    "tests/test_build_worker_isolation.py::",
+    "tests/test_end_to_end_build.py::",
+    "tests/test_reported_defects.py::",
+    "tests/test_review_dialog_lock.py::",
+    "tests/test_version_ui_fixes.py::",
+    "tests/test_workload_dependency_and_vks_context.py::",
+)
 REPORT_PLUGIN = "release_pytest_exit"
 DEFAULT_TIMEOUT = 300.0
 

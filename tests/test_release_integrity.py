@@ -130,6 +130,12 @@ def test_windows_ci_contains_real_signed_production_release_gate():
     assert "install authenticated python.org cpython with tcl/tk" in lower
     assert "install_windows_python.ps1" in lower
     assert "actions/setup-python@" not in lower
+    assert "$tcltarget = join-path $venvroot 'tcl'" in lower
+    assert 'get-childitem -literalpath $tclsource -force' in lower
+    assert 'copy-item -destination $tcltarget -recurse -force' in lower
+    assert 'release venv tcl/tk startup validation failed' in lower
+    assert '"tcl_library=$env:tcl_library" | out-file -filepath $env:github_env' in lower
+    assert '"tk_library=$env:tk_library" | out-file -filepath $env:github_env' in lower
 
     bootstrap = (ROOT / "install_windows_python.ps1").read_text(encoding="utf-8").lower()
     assert "feathered_expected_python3" in bootstrap
