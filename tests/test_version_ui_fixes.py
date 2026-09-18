@@ -101,6 +101,13 @@ def _walk(widget):
         yield from _walk(child)
 
 
+def _generate_click(application, widget):
+    """Generate a mapped button press synchronously on every Tk platform."""
+    application.update()
+    assert widget.winfo_ismapped(), "the synthetic click target must be mapped"
+    widget.event_generate("<Button-1>", when="now", x=1, y=1)
+
+
 @requires_display
 def test_every_live_readonly_entry_resolves_a_panel_background(application):
     """Check the actual widgets, not just the default style.
@@ -230,8 +237,10 @@ def test_a_drawn_checkbutton_survives_the_operation_lock(application):
     assert row in application._operation_controls, "the lock dropped the control"
     assert application._operation_control_state(row) == "disabled"
 
-    row.event_generate("<Button-1>")
-    application.update_idletasks()
+    observed_clicks = []
+    row.bind("<Button-1>", lambda _event: observed_clicks.append(True), add="+")
+    _generate_click(application, row)
+    assert observed_clicks == [True], "the lock test did not deliver its synthetic click"
     assert variable.get() is False, "a locked checkbox still toggled"
 
     application._unlock_operation_controls()
@@ -248,11 +257,11 @@ def test_a_drawn_checkbutton_runs_its_command_on_click_only(application):
         application, variable, "commanded", command=lambda: calls.append(variable.get()))
 
     variable.set(True)
-    application.update_idletasks()
+    application.update()
     assert calls == [], "a programmatic set must not invoke the command"
 
-    row.event_generate("<Button-1>")
-    application.update_idletasks()
+    _generate_click(application, row)
+    assert variable.get() is False, "a click must flip the variable before invoking command"
     assert calls == [False], "a click must invoke the command after the flip"
     row.destroy()
 
