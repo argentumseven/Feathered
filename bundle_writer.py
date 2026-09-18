@@ -19,6 +19,10 @@ P = TypeVar('P', bound=DownloadPackage)
 I = TypeVar('I')
 
 
+def _write_utf8_lf(path: Path, text: str) -> None:
+    path.write_bytes(text.encode('utf-8'))
+
+
 def acquire_payloads(
     packages: Sequence[P], filenames: Mapping[int, str], payload_dir: Path,
     cache_parent: Path, options: BuildOptions[I], reporter: Reporter,
@@ -78,10 +82,12 @@ def write_records(
     The checksum glob is independent of summary counting: pacman signatures
     belong in SHA256SUMS even though they are not counted as package payloads.
     """
-    (metadata_dir / 'manifest.json').write_text(json.dumps(payload, indent=2), encoding='utf-8')
-    (metadata_dir / 'manifest.txt').write_text(
+    _write_utf8_lf(metadata_dir / 'manifest.json', json.dumps(payload, indent=2))
+    _write_utf8_lf(
+        metadata_dir / 'manifest.txt',
         '\n'.join(f"{row[family.manifest_identity]}\t{row['repo']}\t{row['reason']}\t{row['source']}"
-                  for row in rows) + '\n', encoding='utf-8')
+                  for row in rows) + '\n',
+    )
     unresolved_lines = list(unresolved)
     for filename, lines, always in (
         ('unresolved.txt', unresolved_lines, True),
@@ -91,8 +97,12 @@ def write_records(
         ('satisfied-by-target.txt', installed_satisfied, False),
     ):
         if lines or always:
-            (metadata_dir / filename).write_text(
-                '\n'.join(lines) + ('\n' if lines else ''), encoding='utf-8')
-    with (metadata_dir / 'SHA256SUMS.txt').open('w', encoding='utf-8') as output:
-        for path in sorted(payload_dir.glob(family.checksum_glob)):
-            output.write(f'{payload_sha256(path, hash_file)}  {path.name}\n')
+            _write_utf8_lf(
+                metadata_dir / filename,
+                '\n'.join(lines) + ('\n' if lines else ''),
+            )
+    checksum_lines = ''.join(
+        f'{payload_sha256(path, hash_file)}  {path.name}\n'
+        for path in sorted(payload_dir.glob(family.checksum_glob))
+    )
+    _write_utf8_lf(metadata_dir / 'SHA256SUMS.txt', checksum_lines)

@@ -18,9 +18,10 @@ def test_arch_checksums_include_signature_sidecars(tmp_path):
     write_records(tmp_path, tmp_path, ARCH, payload, [], unresolved=iter(()),
                   ignored_unresolved=[], conflicts=[], skipped_installed=[],
                   installed_satisfied=[], hash_file=core.sha256_file)
-    assert (tmp_path / 'SHA256SUMS.txt').read_text() == ''.join(
+    expected_sums = ''.join(
         f'{core.sha256_file(path)}  {path.name}\n' for path in (package, signature))
-    assert (tmp_path / 'manifest.json').read_text() == json.dumps(payload, indent=2)
+    assert (tmp_path / 'SHA256SUMS.txt').read_bytes() == expected_sums.encode('utf-8')
+    assert (tmp_path / 'manifest.json').read_bytes() == json.dumps(payload, indent=2).encode('utf-8')
     assert (tmp_path / 'manifest.txt').read_bytes() == b'\n'
     assert (tmp_path / 'unresolved.txt').read_bytes() == b''
     assert (tmp_path / 'conflicts.txt').read_bytes() == b''
