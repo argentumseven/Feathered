@@ -155,6 +155,51 @@ def test_fresh_build_hashes_each_payload_once_for_records(tmp_path, monkeypatch,
     assert all(algo == 'sha256' for _, algo in reads)
 
 
+
+def test_windows_usn_record_parser():
+    record = bytearray(64)
+    record[0:4] = (64).to_bytes(4, 'little')
+    record[4:6] = (2).to_bytes(2, 'little')
+    record[24:32] = (123456789).to_bytes(8, 'little', signed=True)
+    assert ledger._parse_windows_usn_record(bytes(record)) == 123456789
+    record[4:6] = (3).to_bytes(2, 'little')
+    assert ledger._parse_windows_usn_record(bytes(record)) is None
+
+
+
+def test_windows_change_token_rejects_mutation_during_hash(tmp_path, monkeypatch):
+    path = tmp_path / 'payload'; path.write_bytes(b'original')
+    monkeypatch.setattr(ledger, '_WINDOWS', True)
+    monkeypatch.setattr(
+        ledger, '_windows_change_time',
+        lambda target, info: 1 if target.read_bytes() == b'original' else 2,
+    )
+    reads = []; read = reader(reads)
+    def changing_read(target):
+        digest = read(target)
+        target.write_bytes(b'modified')
+        return digest
+    with ledger.digest_scope():
+        first = ledger.payload_sha256(path, changing_read)
+        assert ledger.payload_sha256(path, read) != first
+    assert len(reads) == 2
+
+def test_windows_change_token_catches_same_metadata_rewrite(tmp_path, monkeypatch):
+    path = tmp_path / 'payload'; path.write_bytes(b'original')
+    before = path.stat()
+    monkeypatch.setattr(ledger, '_WINDOWS', True)
+    monkeypatch.setattr(
+        ledger, '_windows_change_time',
+        lambda target, info: 1 if target.read_bytes() == b'original' else 2,
+    )
+    reads = []; read = reader(reads)
+    with ledger.digest_scope():
+        first = ledger.payload_sha256(path, read)
+        path.write_bytes(b'modified')
+        os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
+        assert ledger.payload_sha256(path, read) != first
+    assert len(reads) == 2
+
 def test_unavailable_windows_change_time_falls_back_to_reading(tmp_path, monkeypatch):
     path = tmp_path / 'payload'; path.write_bytes(b'original')
     monkeypatch.setattr(ledger, '_WINDOWS', True)

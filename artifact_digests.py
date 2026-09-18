@@ -1,9 +1,9 @@
 """Build-local reuse of payload digests, never a substitute for verification.
 
-Only engine-owned staging files are eligible. Identity and nanosecond change
-times guard ordinary writes/replacements; this is not protection against an
-actor controlling the filesystem or its clock. Final bundle seals and external
-cache validation deliberately retain independent reads.
+Only engine-owned staging files are eligible. Identity and filesystem change
+tokens guard ordinary writes/replacements; this is not protection against an
+actor controlling the filesystem. Final bundle seals and external cache
+validation deliberately retain independent reads.
 """
 from __future__ import annotations
 
@@ -68,37 +68,70 @@ def identity(path: Path) -> Identity | None:
 
 
 def _windows_change_time(path: Path, expected: os.stat_result) -> int | None:
-    """Read FILE_BASIC_INFO.ChangeTime from the same file represented by stat.
+    """Return the file USN used as a Windows change token.
 
-    API contract: learn.microsoft.com/en-us/windows/win32/api/winbase/
-    nf-winbase-getfileinformationbyhandleex (FileBasicInfo = 0).
+    FILE_BASIC_INFO timestamps can collide across rapid same-size rewrites.
+    FSCTL_READ_FILE_USN_DATA instead returns the latest update sequence number
+    recorded for the file. If the filesystem has no usable USN, a content token
+    preserves correctness at the cost of losing the read-avoidance optimization.
     """
     if sys.platform != 'win32':
         return None
     import ctypes
     import msvcrt
 
-    class BasicInfo(ctypes.Structure):
-        _fields_ = [('created', ctypes.c_int64), ('accessed', ctypes.c_int64),
-                    ('written', ctypes.c_int64), ('changed', ctypes.c_int64),
-                    ('attributes', ctypes.c_uint32)]
+    class ReadFileUsnData(ctypes.Structure):
+        _fields_ = [('min_major_version', ctypes.c_uint16),
+                    ('max_major_version', ctypes.c_uint16)]
 
     try:
-        query = ctypes.WinDLL('kernel32', use_last_error=True).GetFileInformationByHandleEx
-        query.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p, ctypes.c_uint32]
-        query.restype = ctypes.c_int
+        control = ctypes.WinDLL('kernel32', use_last_error=True).DeviceIoControl
+        control.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p, ctypes.c_uint32,
+                            ctypes.c_void_p, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32),
+                            ctypes.c_void_p]
+        control.restype = ctypes.c_int
         with path.open('rb') as handle:
             actual = os.fstat(handle.fileno())
             if (actual.st_dev, actual.st_ino, actual.st_size, actual.st_mtime_ns) != (
                     expected.st_dev, expected.st_ino, expected.st_size, expected.st_mtime_ns):
                 return None
-            info = BasicInfo()
-            if not query(msvcrt.get_osfhandle(handle.fileno()), 0,
-                         ctypes.byref(info), ctypes.sizeof(info)):
-                return None
-            return int(info.changed) if info.changed > 0 else None
-    except (OSError, AttributeError):
+            request = ReadFileUsnData(2, 2)
+            output = ctypes.create_string_buffer(1024)
+            returned = ctypes.c_uint32()
+            # FSCTL_READ_FILE_USN_DATA from winioctl.h. Requesting v2 keeps the
+            # returned USN at the fixed USN_RECORD_V2 offset parsed below.
+            if control(msvcrt.get_osfhandle(handle.fileno()), 0x000900EB,
+                       ctypes.byref(request), ctypes.sizeof(request), output,
+                       ctypes.sizeof(output), ctypes.byref(returned), None):
+                usn = _parse_windows_usn_record(output.raw[:returned.value])
+                if usn is not None:
+                    return usn
+            handle.seek(0)
+            return _windows_content_token(handle)
+    except (OSError, AttributeError, ValueError):
         return None
+
+
+def _windows_content_token(handle) -> int:
+    """Hash bytes only when a Windows filesystem exposes no usable USN."""
+    import hashlib
+
+    digest = hashlib.sha256()
+    while chunk := handle.read(1024 * 1024):
+        digest.update(chunk)
+    return int.from_bytes(digest.digest(), 'big')
+
+
+def _parse_windows_usn_record(data: bytes) -> int | None:
+    """Extract the USN from a version-2 USN record."""
+    if len(data) < 32:
+        return None
+    record_length = int.from_bytes(data[0:4], 'little')
+    major_version = int.from_bytes(data[4:6], 'little')
+    if major_version != 2 or record_length < 32 or record_length > len(data):
+        return None
+    usn = int.from_bytes(data[24:32], 'little', signed=True)
+    return usn if usn >= 0 else None
 
 
 def begin_verification(path: Path) -> Identity | None:
