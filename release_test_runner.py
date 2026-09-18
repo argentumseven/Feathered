@@ -26,8 +26,12 @@ WINDOWS_ISOLATED_PREFIXES = (
     "tests/test_build_spec.py::",
     "tests/test_build_worker_isolation.py::",
     "tests/test_end_to_end_build.py::",
+    "tests/test_k8s_knowledge.py::",
+    "tests/test_prepared_adapter_parity.py::",
     "tests/test_reported_defects.py::",
     "tests/test_review_dialog_lock.py::",
+    "tests/test_signing_navigation.py::",
+    "tests/test_ui_event_budget.py::",
     "tests/test_version_ui_fixes.py::",
     "tests/test_workload_dependency_and_vks_context.py::",
 )
@@ -51,6 +55,10 @@ WINDOWS_SKIPS: dict[str, set[str]] = {
     "tests/test_installer_paths.py": {"bash is required"},
     "tests/test_integration_gate.py": {"bash is required to parse Linux workflow steps"},
     "tests/test_source_manifest.py": {"this platform does not permit symlink creation"},
+    "tests/test_security_review_fixes.py": {
+        "POSIX ownership and mode checks are not available",
+        "POSIX ownership checks are not available",
+    },
 }
 
 

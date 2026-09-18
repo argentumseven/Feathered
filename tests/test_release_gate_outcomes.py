@@ -223,6 +223,11 @@ def test_platform_skip_policy_is_scoped_and_has_required_linux_coverage():
     assert not permitted_skip(node, "requires dpkg fixture tools", "linux")
     assert not permitted_skip(node, "no display", "win32")
     assert not permitted_skip("tests/test_other.py::test_case", "requires dpkg fixture tools", "win32")
+    cache_node = "tests/test_security_review_fixes.py::test_artifact_cache_rejects_group_or_world_writable_root"
+    cache_reason = "POSIX ownership and mode checks are not available"
+    assert permitted_skip(cache_node, cache_reason, "win32")
+    assert not permitted_skip(cache_node, cache_reason, "linux")
+    assert not permitted_skip(cache_node, "POSIX checks are not available", "win32")
     parity = "tests/test_prepared_adapter_parity.py::test_gui_and_cli_preserve_payloads_sources_provenance_and_installer"
     assert permitted_skip(parity, "requires dpkg fixture tools", "win32")
     assert not permitted_skip(parity, "requires dpkg fixture tools", "linux")
@@ -248,8 +253,12 @@ def test_windows_release_plan_isolates_real_tk_root_modules():
         "tests/test_build_spec.py::",
         "tests/test_build_worker_isolation.py::",
         "tests/test_end_to_end_build.py::",
+        "tests/test_k8s_knowledge.py::",
+        "tests/test_prepared_adapter_parity.py::",
         "tests/test_reported_defects.py::",
         "tests/test_review_dialog_lock.py::",
+        "tests/test_signing_navigation.py::",
+        "tests/test_ui_event_budget.py::",
         "tests/test_version_ui_fixes.py::",
         "tests/test_workload_dependency_and_vks_context.py::",
     }
@@ -266,6 +275,20 @@ def test_windows_release_plan_isolates_real_tk_root_modules():
     isolated = [batch for batch in batches if batch[0] in isolated_nodes]
     assert isolated == [[node] for node in isolated_nodes]
 
+
+
+def test_windows_tk_isolation_inventory_covers_real_application_modules():
+    from release_test_runner import WINDOWS_ISOLATED_PREFIXES
+
+    isolated = set(WINDOWS_ISOLATED_PREFIXES)
+    discovered = set()
+    app_constructor = "app." + "App("
+    shared_fixture = "startup." + "application"
+    for path in sorted((ROOT / "tests").glob("test_*.py")):
+        text = path.read_text(encoding="utf-8")
+        if app_constructor in text or shared_fixture in text:
+            discovered.add(f"tests/{path.name}::")
+    assert discovered <= isolated
 
 
 def test_non_windows_release_plan_keeps_normal_batching():
