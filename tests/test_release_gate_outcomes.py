@@ -101,12 +101,27 @@ def test_gate_rejects_deselection(tmp_path):
 def test_gate_runs_long_node_id_without_command_line_expansion(tmp_path):
     tmp_path = tmp_path / "source and evidence with spaces"
     tmp_path.mkdir()
-    _fixture(tmp_path, "import pytest\n@pytest.mark.parametrize('value', [1], ids=['x' * 150000])\n"
+    # Pytest stores the current node ID in PYTEST_CURRENT_TEST. Windows limits
+    # one environment-variable value to 32767 characters, independently of argv.
+    id_length = 32600 if os.name == "nt" else 150000
+    _fixture(tmp_path,
+             f"import pytest\n@pytest.mark.parametrize('value', [1], ids=['x' * {id_length}])\n"
              "def test_case(value): assert value == 1\n")
     result = _gate(tmp_path)
     assert result.returncode == 0, result.stdout[-3000:] + result.stderr
     summary = json.loads((tmp_path / "validation/release-gate/summary.json").read_text())
-    assert len(next(iter(summary["outcomes"]))) > 150000
+    node = next(iter(summary["outcomes"]))
+    assert len(node) > id_length
+    if os.name == "nt":
+        evidence = tmp_path / "validation/release-gate"
+        direct = subprocess.list2cmdline([
+            sys.executable, "-m", "pytest", "-p", "release_pytest_exit", "-q",
+            "--feathered-report", str(evidence / "batch-001.json"),
+            "--feathered-run-id", "0" * 36,
+            "--feathered-request", str(evidence / "batch-001-request.json"),
+            "@" + str(evidence / "batch-001-paths.txt"), node,
+        ])
+        assert len(direct) > 32767
     assert summary["counts"] == {"passed": 1}
 
 
