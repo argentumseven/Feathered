@@ -55,9 +55,10 @@ def build_repository(root: Path, name: str = "repo",
         (control / "control").write_text(
             f"Package: {package}\nVersion: {version}\nArchitecture: amd64\n"
             "Maintainer: t <t@example.invalid>\nDescription: fixture\n", encoding="utf-8")
+        build_env = dict(os.environ, SOURCE_DATE_EPOCH="1700000000")
         subprocess.run(["dpkg-deb", "--build", str(control.parent),
                         str(repo / f"pool/{package}_{version}_amd64.deb")],
-                       check=True, capture_output=True)
+                       check=True, capture_output=True, env=build_env)
     packages = subprocess.run(["dpkg-scanpackages", "-m", "pool", "/dev/null"],
                               cwd=repo, capture_output=True, text=True).stdout
     (repo / "dists/stable/main/binary-amd64/Packages").write_text(packages, encoding="utf-8")
