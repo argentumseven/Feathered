@@ -106,15 +106,150 @@ def _open_regular_at(directory_fd, name, *, before=None):
     return input_fd
 
 
+def _use_windows_handle_staging():
+    return os.name == 'nt'
+
+
+def _windows_reparse_hint(path, display_name):
+    try:
+        info = os.lstat(path)
+    except OSError:
+        return
+    attributes = getattr(info, 'st_file_attributes', 0)
+    reparse_flag = getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0x400)
+    if stat.S_ISLNK(info.st_mode) or attributes & reparse_flag:
+        raise RuntimeError(
+            f'Bundle contains a symbolic link or reparse point and cannot be staged safely: {display_name}')
+
+
+def _windows_open_checked_handle(path, *, directory, display_name):
+    import ctypes
+    from ctypes import wintypes
+
+    _windows_reparse_hint(path, display_name)
+
+    class FileInformation(ctypes.Structure):
+        _fields_ = [
+            ('dwFileAttributes', wintypes.DWORD),
+            ('ftCreationTime', wintypes.FILETIME),
+            ('ftLastAccessTime', wintypes.FILETIME),
+            ('ftLastWriteTime', wintypes.FILETIME),
+            ('dwVolumeSerialNumber', wintypes.DWORD),
+            ('nFileSizeHigh', wintypes.DWORD),
+            ('nFileSizeLow', wintypes.DWORD),
+            ('nNumberOfLinks', wintypes.DWORD),
+            ('nFileIndexHigh', wintypes.DWORD),
+            ('nFileIndexLow', wintypes.DWORD),
+        ]
+
+    kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+    create_file = kernel32.CreateFileW
+    create_file.argtypes = [
+        wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, wintypes.LPVOID,
+        wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE,
+    ]
+    create_file.restype = wintypes.HANDLE
+    get_info = kernel32.GetFileInformationByHandle
+    get_info.argtypes = [wintypes.HANDLE, ctypes.POINTER(FileInformation)]
+    get_info.restype = wintypes.BOOL
+    close_handle = kernel32.CloseHandle
+    close_handle.argtypes = [wintypes.HANDLE]
+    close_handle.restype = wintypes.BOOL
+
+    generic_read = 0x80000000
+    file_read_attributes = 0x0080
+    share_read = 0x00000001
+    share_write = 0x00000002
+    open_existing = 3
+    backup_semantics = 0x02000000
+    open_reparse_point = 0x00200000
+    sequential_scan = 0x08000000
+    attribute_directory = 0x00000010
+    attribute_reparse = 0x00000400
+    invalid_handle = ctypes.c_void_p(-1).value
+
+    desired_access = file_read_attributes if directory else generic_read
+    flags = open_reparse_point | (backup_semantics if directory else sequential_scan)
+    handle = create_file(
+        str(path), desired_access, share_read | share_write, None, open_existing, flags, None)
+    if handle == invalid_handle:
+        error = ctypes.WinError(ctypes.get_last_error())
+        kind = 'directory' if directory else 'file'
+        raise RuntimeError(
+            f'Cannot open bundle {kind} without following links: {display_name}: {error}') from error
+
+    info = FileInformation()
+    if not get_info(handle, ctypes.byref(info)):
+        error = ctypes.WinError(ctypes.get_last_error())
+        close_handle(handle)
+        raise RuntimeError(f'Cannot inspect bundle filesystem object: {display_name}: {error}') from error
+    if info.dwFileAttributes & attribute_reparse:
+        close_handle(handle)
+        raise RuntimeError(
+            f'Bundle contains a symbolic link or reparse point and cannot be staged safely: {display_name}')
+    is_directory = bool(info.dwFileAttributes & attribute_directory)
+    if is_directory != directory:
+        close_handle(handle)
+        kind = 'directory' if directory else 'regular file'
+        raise RuntimeError(f'Bundle entry is not a {kind}: {display_name}')
+    return handle
+
+
+def _windows_close_handle(handle):
+    import ctypes
+    from ctypes import wintypes
+
+    kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+    close_handle = kernel32.CloseHandle
+    close_handle.argtypes = [wintypes.HANDLE]
+    close_handle.restype = wintypes.BOOL
+    close_handle(handle)
+
+
+def _windows_open_regular_under(source, parts, display_name):
+    import msvcrt
+
+    directory_handles = []
+    try:
+        current = Path(source)
+        directory_handles.append(
+            _windows_open_checked_handle(current, directory=True, display_name=str(current)))
+        for part in parts[:-1]:
+            current = current / part
+            directory_handles.append(
+                _windows_open_checked_handle(current, directory=True, display_name=display_name))
+        file_path = current / parts[-1]
+        handle = _windows_open_checked_handle(
+            file_path, directory=False, display_name=display_name)
+        try:
+            flags = os.O_RDONLY | getattr(os, 'O_BINARY', 0)
+            return msvcrt.open_osfhandle(int(handle), flags)
+        except Exception:
+            _windows_close_handle(handle)
+            raise
+    finally:
+        for handle in reversed(directory_handles):
+            _windows_close_handle(handle)
+
+
 def _stage_bootstrap(source, destination):
     source = Path(source).absolute()
     destination = Path(destination)
+    destination.mkdir(mode=0o700)
+    if _use_windows_handle_staging():
+        for name, limit in _BOOTSTRAP_LIMITS.items():
+            input_fd = _windows_open_regular_under(source, (name,), name)
+            try:
+                _copy_open_file(input_fd, destination / name, max_bytes=limit)
+            finally:
+                os.close(input_fd)
+        return
+
     directory_flags = os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0) | getattr(os, 'O_NOFOLLOW', 0)
     try:
         source_fd = os.open(source, directory_flags)
     except OSError as exc:
         raise RuntimeError(f'Cannot open bundle directory without following links: {source}: {exc}') from exc
-    destination.mkdir(mode=0o700)
     try:
         for name, limit in _BOOTSTRAP_LIMITS.items():
             input_fd = _open_regular_at(source_fd, name)
@@ -212,13 +347,40 @@ def _digest_file(path):
 def _stage_indexed_files(source, destination, entries, total_bytes):
     source = Path(source).absolute()
     destination = Path(destination)
+    copied_total = 0
+
+    if _use_windows_handle_staging():
+        for relative, parts, expected_size, expected_sha256 in entries:
+            target = destination.joinpath(*parts)
+            if target.exists():
+                if relative not in {'verify-bundle.py', 'verify-bundle.py.asc'}:
+                    raise RuntimeError(f'Authenticated bundle index collides with a bootstrap file: {relative}')
+                size, digest = _digest_file(target)
+                if size != expected_size or digest != expected_sha256:
+                    raise RuntimeError(f'Authenticated bootstrap file does not match the signed index: {relative}')
+                copied_total += size
+                continue
+
+            input_fd = _windows_open_regular_under(source, parts, relative)
+            try:
+                copied, _ = _copy_open_file(
+                    input_fd, target, expected_size=expected_size,
+                    expected_sha256=expected_sha256)
+            finally:
+                os.close(input_fd)
+            copied_total += copied
+            if copied_total > total_bytes:
+                raise RuntimeError('Staged bundle exceeded the byte count in the authenticated index')
+        if copied_total != total_bytes:
+            raise RuntimeError('Staged bundle byte count does not match the authenticated index')
+        return
+
     directory_flags = os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0) | getattr(os, 'O_NOFOLLOW', 0)
     try:
         source_fd = os.open(source, directory_flags)
     except OSError as exc:
         raise RuntimeError(f'Cannot open bundle directory without following links: {source}: {exc}') from exc
 
-    copied_total = 0
     try:
         for relative, parts, expected_size, expected_sha256 in entries:
             target = destination.joinpath(*parts)

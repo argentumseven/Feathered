@@ -92,6 +92,63 @@ def test_trusted_receiver_rejects_symlinks_while_staging(tmp_path):
             source, destination, entries, outside.stat().st_size)
 
 
+def test_trusted_receiver_windows_staging_path_does_not_open_directories_as_fds(tmp_path, monkeypatch):
+    source = tmp_path / 'bundle'
+    source.mkdir()
+    for name in trusted_receiver._BOOTSTRAP_LIMITS:
+        (source / name).write_bytes(name.encode('utf-8'))
+
+    opened = []
+
+    def fake_open_regular_under(root, parts, display_name):
+        opened.append((tuple(parts), display_name))
+        return os.open(Path(root).joinpath(*parts), os.O_RDONLY)
+
+    monkeypatch.setattr(trusted_receiver, '_use_windows_handle_staging', lambda: True)
+    monkeypatch.setattr(trusted_receiver, '_windows_open_regular_under', fake_open_regular_under)
+    destination = tmp_path / 'staged'
+    trusted_receiver._stage_bootstrap(source, destination)
+
+    assert [parts for parts, _ in opened] == [(name,) for name in trusted_receiver._BOOTSTRAP_LIMITS]
+    assert {path.name for path in destination.iterdir()} == set(trusted_receiver._BOOTSTRAP_LIMITS)
+
+
+def test_trusted_receiver_windows_indexed_staging_uses_safe_file_opener(tmp_path, monkeypatch):
+    source = tmp_path / 'bundle'
+    payload = source / 'packages' / 'needed.pkg'
+    payload.parent.mkdir(parents=True)
+    payload.write_bytes(b'payload')
+    destination = tmp_path / 'staged'
+    destination.mkdir()
+    digest = hashlib.sha256(payload.read_bytes()).hexdigest()
+    entries = [('packages/needed.pkg', ('packages', 'needed.pkg'), payload.stat().st_size, digest)]
+    opened = []
+
+    def fake_open_regular_under(root, parts, display_name):
+        opened.append((tuple(parts), display_name))
+        return os.open(Path(root).joinpath(*parts), os.O_RDONLY)
+
+    monkeypatch.setattr(trusted_receiver, '_use_windows_handle_staging', lambda: True)
+    monkeypatch.setattr(trusted_receiver, '_windows_open_regular_under', fake_open_regular_under)
+    trusted_receiver._stage_indexed_files(source, destination, entries, payload.stat().st_size)
+
+    assert opened == [(('packages', 'needed.pkg'), 'packages/needed.pkg')]
+    assert (destination / 'packages' / 'needed.pkg').read_bytes() == b'payload'
+
+
+def test_trusted_receiver_windows_reparse_hint_rejects_symlink(tmp_path):
+    target = tmp_path / 'target'
+    target.write_bytes(b'target')
+    link = tmp_path / 'link'
+    try:
+        link.symlink_to(target)
+    except (OSError, NotImplementedError):
+        pytest.skip('symbolic links are unavailable on this platform')
+
+    with pytest.raises(RuntimeError, match='symbolic link'):
+        trusted_receiver._windows_reparse_hint(link, 'payload')
+
+
 def test_trusted_receiver_rejects_keyring_inside_untrusted_bundle(tmp_path):
     source = tmp_path / 'bundle'
     source.mkdir()
