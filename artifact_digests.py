@@ -13,6 +13,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass
 import os
 from pathlib import Path
+from typing import BinaryIO
 import stat
 import sys
 
@@ -112,7 +113,7 @@ def _windows_change_time(path: Path, expected: os.stat_result) -> int | None:
         return None
 
 
-def _windows_content_token(handle) -> int:
+def _windows_content_token(handle: BinaryIO) -> int:
     """Hash bytes only when a Windows filesystem exposes no usable USN."""
     import hashlib
 
