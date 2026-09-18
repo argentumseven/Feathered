@@ -136,7 +136,10 @@ def test_windows_ci_contains_real_signed_production_release_gate():
     assert "cygpath -u" in bootstrap
     assert "python3 --version" in bootstrap
     assert "python3 -c" not in bootstrap
-    assert "$bashprobe | & $bash -s --" in bootstrap
+    assert "system.text.utf8encoding($false)" in bootstrap
+    assert "[system.io.file]::writealltext" in bootstrap
+    assert "./.feathered_bash_probe.sh" in bootstrap
+    assert "$bashprobe | & $bash -s --" not in bootstrap
     assert "& $bash -lc" not in bootstrap
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in lower
     assert "actions/checkout@v" not in lower

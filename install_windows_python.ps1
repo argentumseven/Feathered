@@ -148,10 +148,18 @@ printf '%s\n' "$resolved"
 test "$resolved" = "$expected"
 python3 --version
 '@
-$BashOutput = @(
-    $BashProbe | & $Bash -s -- 2>&1
-)
-$BashExitCode = $LASTEXITCODE
+$BashProbePath = Join-Path (Get-Location) '.feathered_bash_probe.sh'
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+$BashProbeText = ($BashProbe -replace "`r`n", "`n") + "`n"
+[System.IO.File]::WriteAllText($BashProbePath, $BashProbeText, $Utf8NoBom)
+try {
+    $BashOutput = @(
+        & $Bash './.feathered_bash_probe.sh' 2>&1
+    )
+    $BashExitCode = $LASTEXITCODE
+} finally {
+    Remove-Item -LiteralPath $BashProbePath -Force -ErrorAction SilentlyContinue
+}
 $BashOutput | ForEach-Object { Write-Host $_ }
 if ($BashExitCode -ne 0) {
     throw 'Git Bash could not execute the authenticated python3 compatibility alias.'
