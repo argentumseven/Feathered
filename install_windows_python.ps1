@@ -138,8 +138,18 @@ $env:Path = "$Target;$env:Path"
 $env:FEATHERED_EXPECTED_PYTHON3 = $Python3
 $Bash = (Get-Command bash.exe -ErrorAction Stop).Source
 Write-Host "Validating Git Bash python3 resolution through $Bash ..."
+$BashProbe = @'
+set -euo pipefail
+resolved="$(command -v python3)"
+expected="$(cygpath -u "$FEATHERED_EXPECTED_PYTHON3")"
+resolved="${resolved%.exe}"
+expected="${expected%.exe}"
+printf '%s\n' "$resolved"
+test "$resolved" = "$expected"
+python3 --version
+'@
 $BashOutput = @(
-    & $Bash -lc 'set -euo pipefail; resolved="$(command -v python3)"; expected="$(cygpath -u "$FEATHERED_EXPECTED_PYTHON3")"; resolved="${resolved%.exe}"; expected="${expected%.exe}"; printf "%s\n" "$resolved"; test "$resolved" = "$expected"; python3 --version' 2>&1
+    $BashProbe | & $Bash -s -- 2>&1
 )
 $BashExitCode = $LASTEXITCODE
 $BashOutput | ForEach-Object { Write-Host $_ }
