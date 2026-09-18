@@ -21,6 +21,7 @@ from typing import Any
 import uuid
 
 BATCH_SIZE = 20
+WINDOWS_ISOLATED_PREFIXES = ("tests/test_application_startup.py::",)
 REPORT_PLUGIN = "release_pytest_exit"
 DEFAULT_TIMEOUT = 300.0
 
@@ -63,6 +64,31 @@ def _pytest_command(*args: str) -> list[str]:
             raise GateFailure("FEATHERED_USE_XVFB=1 but xvfb-run is unavailable")
         return ["xvfb-run", "-a", *command]
     return command
+
+
+def _batch_plan(nodes: list[str], system: str) -> list[list[str]]:
+    """Build release batches while isolating Windows Tk roots by process."""
+    if system != "win32":
+        return [nodes[start:start + BATCH_SIZE] for start in range(0, len(nodes), BATCH_SIZE)]
+
+    batches: list[list[str]] = []
+    pending: list[str] = []
+
+    def flush() -> None:
+        if pending:
+            batches.append(pending.copy())
+            pending.clear()
+
+    for node in nodes:
+        if node.startswith(WINDOWS_ISOLATED_PREFIXES):
+            flush()
+            batches.append([node])
+            continue
+        pending.append(node)
+        if len(pending) == BATCH_SIZE:
+            flush()
+    flush()
+    return batches
 
 
 def _write(path: Path, data: object) -> None:
@@ -239,10 +265,8 @@ def main(argv: list[str] | None = None) -> int:
         summary["collected"] = len(nodes)
         if code or not nodes or collection["phases"]:
             raise GateFailure(f"Collection failed or produced no tests (subprocess status {code})")
-        print(f"Feathered release gate: {len(nodes)} collected; batches of {BATCH_SIZE}.", flush=True)
-        for start in range(0, len(nodes), BATCH_SIZE):
-            requested = nodes[start:start + BATCH_SIZE]
-            number = start // BATCH_SIZE + 1
+        print(f"Feathered release gate: {len(nodes)} collected; batches of up to {BATCH_SIZE}.", flush=True)
+        for number, requested in enumerate(_batch_plan(nodes, sys.platform), start=1):
             stem = f"batch-{number:03}"
             record_path = directory / (stem + ".json")
             request_path = directory / (stem + "-request.json")

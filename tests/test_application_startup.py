@@ -56,10 +56,7 @@ def isolated_state(tmp_path, monkeypatch):
 def application(isolated_state):
     import app
 
-    try:
-        window = app.App()
-    except tk.TclError as exc:  # pragma: no cover - environment, not code
-        pytest.skip(f"Tk could not open a display: {exc}")
+    window = app.App()
     try:
         yield window
     finally:

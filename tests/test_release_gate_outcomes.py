@@ -223,3 +223,31 @@ def test_platform_skip_policy_is_scoped_and_has_required_linux_coverage():
     assert any("xvfb-run -a python3 release_test_runner.py" in step.get("run", "") for step in steps)
     windows = yaml.safe_load((ROOT / ".github/workflows/windows-release.yml").read_text())
     assert "native-conformance" in windows["jobs"]["production-release"]["needs"]
+
+
+def test_windows_release_plan_isolates_application_startup_tests():
+    from release_test_runner import _batch_plan
+
+    nodes = [
+        *[f"tests/test_before.py::test_{i}" for i in range(3)],
+        "tests/test_application_startup.py::test_the_application_starts",
+        "tests/test_application_startup.py::test_every_wizard_pane_can_be_shown",
+        *[f"tests/test_after.py::test_{i}" for i in range(23)],
+    ]
+    batches = _batch_plan(nodes, "win32")
+    flattened = [node for batch in batches for node in batch]
+    assert flattened == nodes
+    assert all(len(batch) <= 20 for batch in batches)
+    isolated = [batch for batch in batches
+                if batch[0].startswith("tests/test_application_startup.py::")]
+    assert isolated == [
+        ["tests/test_application_startup.py::test_the_application_starts"],
+        ["tests/test_application_startup.py::test_every_wizard_pane_can_be_shown"],
+    ]
+
+
+def test_non_windows_release_plan_keeps_normal_batching():
+    from release_test_runner import _batch_plan
+
+    nodes = [f"tests/test_file.py::test_{i}" for i in range(43)]
+    assert [len(batch) for batch in _batch_plan(nodes, "linux")] == [20, 20, 3]
