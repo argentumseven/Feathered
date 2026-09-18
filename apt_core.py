@@ -679,7 +679,7 @@ def _fetch_release(repo: RepoSpec, reporter: Reporter) -> Tuple[Dict[str, str], 
             if leaf.endswith("InRelease"):
                 missing_suite = _missing_apt_suite_message(repo, reporter, errors)
                 if missing_suite:
-                    raise RuntimeError(missing_suite)
+                    raise RuntimeError(missing_suite) from exc
             continue
         # Once the file is in hand, a parse/verify failure is fatal rather than
         # a reason to silently fall back to the unsigned sibling.

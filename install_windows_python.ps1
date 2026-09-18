@@ -135,12 +135,22 @@ if ($LASTEXITCODE -ne 0) {
 # and prove the exact command used by tests/test_installer_paths.py resolves to
 # this authenticated installation when launched through Git Bash.
 $env:Path = "$Target;$env:Path"
+$env:FEATHERED_EXPECTED_PYTHON3 = $Python3
 $Bash = (Get-Command bash.exe -ErrorAction Stop).Source
 Write-Host "Validating Git Bash python3 resolution through $Bash ..."
-& $Bash -lc 'set -euo pipefail; command -v python3; python3 -c "import sys; assert sys.version_info[:3] == (3,13,14); print(sys.executable)"'
-if ($LASTEXITCODE -ne 0) {
+$BashOutput = @(
+    & $Bash -lc 'set -euo pipefail; resolved="$(command -v python3)"; expected="$(cygpath -u "$FEATHERED_EXPECTED_PYTHON3")"; resolved="${resolved%.exe}"; expected="${expected%.exe}"; printf "%s\n" "$resolved"; test "$resolved" = "$expected"; python3 --version' 2>&1
+)
+$BashExitCode = $LASTEXITCODE
+$BashOutput | ForEach-Object { Write-Host $_ }
+if ($BashExitCode -ne 0) {
     throw 'Git Bash could not execute the authenticated python3 compatibility alias.'
 }
+$BashText = ($BashOutput | ForEach-Object { "$_" }) -join "`n"
+if ($BashText -notmatch '(?m)^Python 3\.13\.14(?:\s|$)') {
+    throw "Git Bash resolved python3, but it did not report Python $Version."
+}
+Remove-Item Env:FEATHERED_EXPECTED_PYTHON3 -ErrorAction SilentlyContinue
 
 
 "FEATHERED_RELEASE_PYTHON=$Python" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append

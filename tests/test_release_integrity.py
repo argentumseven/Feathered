@@ -130,6 +130,12 @@ def test_windows_ci_contains_real_signed_production_release_gate():
     assert "install authenticated python.org cpython with tcl/tk" in lower
     assert "install_windows_python.ps1" in lower
     assert "actions/setup-python@" not in lower
+
+    bootstrap = (ROOT / "install_windows_python.ps1").read_text(encoding="utf-8").lower()
+    assert "feathered_expected_python3" in bootstrap
+    assert "cygpath -u" in bootstrap
+    assert "python3 --version" in bootstrap
+    assert "python3 -c" not in bootstrap
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in lower
     assert "actions/checkout@v" not in lower
     assert "actions/upload-artifact@v" not in lower
@@ -191,6 +197,13 @@ def test_static_analysis_has_one_authoritative_push_pr_path():
     assert "push:" in windows
     assert "pull_request:" in windows
     assert "uses: ./.github/workflows/static-analysis.yml" in windows
+
+    setup_python_v7 = "actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97"
+    assert setup_python_v7 in workflow
+    drift = (ROOT / ".github" / "workflows" / "workload-drift.yml").read_text(encoding="utf-8")
+    assert setup_python_v7 in drift
+    assert "a26af69be951a213d495a4c3e4e4022e16d87065" not in workflow
+    assert "a26af69be951a213d495a4c3e4e4022e16d87065" not in drift
 
 
 def test_project_is_mit_licensed_and_distribution_notice_is_present():
