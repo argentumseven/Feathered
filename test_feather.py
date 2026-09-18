@@ -19,6 +19,25 @@ from workloads import load_workloads
 import apt_core
 
 
+def _as_msys_path(path):
+    text = str(path).replace("\\", "/")
+    if len(text) >= 3 and text[1:3] == ":/":
+        return f"/{text[0].lower()}{text[2:]}"
+    return text
+
+
+def _gpg_test_home(path, gpg_executable):
+    """Return a GNUPGHOME value understood by the selected GnuPG build."""
+    resolved = Path(path).resolve()
+    if sys.platform != "win32":
+        return str(resolved)
+
+    gpg_text = str(gpg_executable).replace("\\", "/").casefold()
+    if "/usr/bin/gpg" not in gpg_text:
+        return str(resolved)
+    return _as_msys_path(resolved)
+
+
 def deb_pkg(name, version, repo, depends="", pre_depends="", provides=(), arch="amd64"):
     p = apt_core.DebPackage(name, arch, version, f"pool/{name}.deb", "sha256", "", repo,
                             provides=list(provides))
@@ -199,6 +218,12 @@ def test_wrong_suite_is_rejected():
     raise AssertionError("a mirror serving the wrong release was accepted")
 
 
+def test_msys_gnupg_home_conversion():
+    assert _as_msys_path(r"C:\Users\RUNNER~1\AppData\Local\Temp\gnupg") == (
+        "/c/Users/RUNNER~1/AppData/Local/Temp/gnupg"
+    )
+
+
 def test_openpgp_verification_round_trip():
     """Sign a payload with a throwaway key and check both accept and reject paths.
 
@@ -209,23 +234,24 @@ def test_openpgp_verification_round_trip():
     import subprocess
     import pytest
     from core import gpg_backend, verify_openpgp
-    if gpg_backend() is None or not shutil_which("gpg"):
+    gpg = shutil_which("gpg")
+    if gpg_backend() is None or not gpg:
         pytest.skip("GnuPG signing and verification tools are unavailable on this host")
     with tempfile.TemporaryDirectory() as td:
-        env = dict(os.environ, GNUPGHOME=td)
+        env = dict(os.environ, GNUPGHOME=_gpg_test_home(td, gpg))
         os.chmod(td, 0o700)
         run = lambda *a: subprocess.run(a, env=env, capture_output=True)
-        generated = run("gpg", "--batch", "--passphrase", "", "--quick-generate-key",
+        generated = run(gpg, "--batch", "--passphrase", "", "--quick-generate-key",
                         "OPB Selftest <selftest@example.invalid>", "default", "default", "never")
         assert generated.returncode == 0, generated.stderr.decode("utf-8", "replace")
         keyring = Path(td) / "key.gpg"
-        exported = run("gpg", "--batch", "--export")
+        exported = run(gpg, "--batch", "--export")
         assert exported.returncode == 0, exported.stderr.decode("utf-8", "replace")
         assert exported.stdout, "throwaway OpenPGP public-key export was empty"
         keyring.write_bytes(exported.stdout)
         payload = Path(td) / "data"; payload.write_bytes(b"trusted content\n")
         sig = Path(td) / "data.sig"
-        signed = run("gpg", "--batch", "--yes", "--detach-sign", "-o", str(sig), str(payload))
+        signed = run(gpg, "--batch", "--yes", "--detach-sign", "-o", str(sig), str(payload))
         assert signed.returncode == 0, signed.stderr.decode("utf-8", "replace")
         assert sig.is_file() and sig.stat().st_size > 0
 
@@ -242,7 +268,7 @@ def test_openpgp_verification_round_trip():
         # Clearsigned documents are verified inline (signature=None), which is
         # how APT InRelease files are handled.
         clear = Path(td) / "inline.asc"
-        clearsigned = run("gpg", "--batch", "--yes", "--clearsign", "-o", str(clear), str(payload))
+        clearsigned = run(gpg, "--batch", "--yes", "--clearsign", "-o", str(clear), str(payload))
         assert clearsigned.returncode == 0, clearsigned.stderr.decode("utf-8", "replace")
         assert clear.is_file() and clear.stat().st_size > 0
         verify_openpgp(clear.read_bytes(), None, str(keyring), "selftest-inline", Reporter())
@@ -286,7 +312,7 @@ def test_ascii_armored_keyring_verifies_with_gpgv_only(monkeypatch):
         home = Path(td) / "gnupg"
         home.mkdir()
         os.chmod(home, 0o700)
-        env = dict(os.environ, GNUPGHOME=str(home))
+        env = dict(os.environ, GNUPGHOME=_gpg_test_home(home, gpg))
         run = lambda *a: subprocess.run(a, env=env, capture_output=True)
         generated = run(gpg, "--batch", "--passphrase", "", "--quick-generate-key",
                         "Armored Selftest <asc@example.invalid>", "default", "default", "never")
