@@ -56,9 +56,10 @@ public static class FeatheredIsoStreamWriter
 }
 
 $image = New-Object -ComObject IMAPI2FS.MsftFileSystemImage
-# 1 = CDROM. ChooseImageDefaultsForMediaType establishes a zero-session image
-# suitable for saving as an ISO; ISO9660 alone is sufficient for this fixture.
-$image.ChooseImageDefaultsForMediaType(1)
+# 12 = IMAPI_MEDIA_TYPE_DISK. Use the generic disk profile for a file-backed
+# image so creation does not depend on optical-media defaults on the runner.
+$mediaTypeDisk = 12
+$image.ChooseImageDefaultsForMediaType($mediaTypeDisk)
 $image.FileSystemsToCreate = 1
 $image.VolumeName = $VolumeName
 $image.Root.AddTree($source, $false)

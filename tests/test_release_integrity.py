@@ -151,6 +151,11 @@ def test_windows_ci_contains_real_signed_production_release_gate():
     assert "actions/checkout@v" not in lower
     assert "actions/upload-artifact@v" not in lower
 
+    smoke_iso = (ROOT / "create_smoke_iso.ps1").read_text(encoding="utf-8").lower()
+    assert "$mediatypedisk = 12" in smoke_iso
+    assert ".chooseimagedefaultsformediatype($mediatypedisk)" in smoke_iso
+    assert ".chooseimagedefaultsformediatype(1)" not in smoke_iso
+
     # Signed publication must be mechanically coupled to the real package-
     # manager oracles for this caller SHA; documentation alone is not a gate.
     assert "native-conformance:" in lower
