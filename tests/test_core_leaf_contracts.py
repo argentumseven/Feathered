@@ -62,7 +62,7 @@ def snapshots():
                          ['baseline:' + name for name in ['same', 'republished', 'empty', 'missing-digest',
                           'weak', 'legacy-bare', 'bad-legacy', 'evidence', 'primary-before-evidence']])
 def test_pre_extraction_contract(key):
-    assert snapshots()[key] == json.loads(GOLDEN.read_text())[key]
+    assert snapshots()[key] == json.loads(GOLDEN.read_text(encoding='utf-8'))[key]
 
 
 @pytest.mark.parametrize('names', [('Demo.rpm', 'demo.RPM'), ('caf\u00e9.rpm', 'cafe\u0301.rpm')])
