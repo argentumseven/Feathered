@@ -1800,6 +1800,34 @@ def gpg_backend_name(backend: Optional[str]) -> str:
     return stem[:-4] if stem.endswith(".exe") else stem
 
 
+def _windows_path_to_msys(value: str) -> str:
+    """Translate an absolute Windows path for an MSYS-native GnuPG process."""
+    normalized = value.replace("\\", "/")
+    match = re.match(r"^([A-Za-z]):/(.*)$", normalized)
+    if match:
+        return f"/{match.group(1).lower()}/{match.group(2)}"
+    return normalized
+
+
+def _gpg_backend_uses_msys_paths(backend: str) -> bool:
+    """Return whether the selected Windows verifier uses MSYS path semantics."""
+    if os.name != "nt":
+        return False
+    resolved = shutil.which(backend) or backend
+    normalized = str(resolved).replace("\\", "/").lower()
+    if "/git/usr/bin/" in normalized:
+        return True
+    try:
+        return (Path(resolved).resolve().parent / "msys-2.0.dll").is_file()
+    except OSError:
+        return False
+
+
+def _gpg_path_arg(path: Union[Path, str], backend: str) -> str:
+    value = str(path)
+    return _windows_path_to_msys(value) if _gpg_backend_uses_msys_paths(backend) else value
+
+
 def gpg_backend() -> Optional[str]:
     """Return an authenticated OpenPGP verifier available to this process.
 
@@ -1889,15 +1917,16 @@ def verify_openpgp(signed_payload: bytes, signature: Optional[bytes], keyring: s
         payload_file = tmp / "payload"
         payload_file.write_bytes(signed_payload)
         if signature is None:
-            args = [str(payload_file)]
+            args = [_gpg_path_arg(payload_file, backend)]
         else:
             sig_file = tmp / "payload.sig"
             sig_file.write_bytes(signature)
-            args = [str(sig_file), str(payload_file)]
+            args = [_gpg_path_arg(sig_file, backend), _gpg_path_arg(payload_file, backend)]
+        keyring_cli = _gpg_path_arg(keyring_arg, backend)
         if gpg_backend_name(backend) == "gpgv":
-            cmd = [backend, "--keyring", str(keyring_arg), *args]
+            cmd = [backend, "--keyring", keyring_cli, *args]
         else:
-            cmd = [backend, "--batch", "--no-default-keyring", "--keyring", str(keyring_arg),
+            cmd = [backend, "--batch", "--no-default-keyring", "--keyring", keyring_cli,
                    "--verify", *args]
         proc = subprocess.run(cmd, capture_output=True, text=True)
         if proc.returncode != 0:

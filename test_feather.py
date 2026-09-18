@@ -224,6 +224,26 @@ def test_msys_gnupg_home_conversion():
     )
 
 
+def test_msys_gpg_file_argument_conversion(monkeypatch):
+    import core
+
+    monkeypatch.setattr(core, "_gpg_backend_uses_msys_paths", lambda backend: True)
+    assert core._gpg_path_arg(
+        r"C:\Users\RUNNER~1\AppData\Local\Temp\key.gpg", "gpgv"
+    ) == "/c/Users/RUNNER~1/AppData/Local/Temp/key.gpg"
+
+
+def test_git_for_windows_gpgv_is_detected_as_msys(monkeypatch):
+    import core
+
+    monkeypatch.setattr(core.os, "name", "nt")
+    monkeypatch.setattr(
+        core.shutil, "which",
+        lambda name: r"C:\Program Files\Git\usr\bin\gpgv.EXE" if name == "gpgv" else None,
+    )
+    assert core._gpg_backend_uses_msys_paths("gpgv")
+
+
 def test_openpgp_verification_round_trip():
     """Sign a payload with a throwaway key and check both accept and reject paths.
 
