@@ -19,6 +19,8 @@ a URL-safe path must encode to itself.
 from __future__ import annotations
 
 import hashlib
+import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -36,6 +38,75 @@ import core
 from core import BuildOptions, Package, RepoSpec, Reporter
 
 AWKWARD = "aw kward #dir 100%"
+
+
+def _bash_candidates() -> list[str]:
+    candidates: list[str] = []
+    seen: set[str] = set()
+
+    def add(value: str | None) -> None:
+        if not value:
+            return
+        key = os.path.normcase(os.path.abspath(value))
+        if key in seen:
+            return
+        seen.add(key)
+        candidates.append(value)
+
+    if os.name == "nt":
+        git = shutil.which("git")
+        if git:
+            root = Path(git).resolve().parent.parent
+            add(str(root / "bin" / "bash.exe"))
+            add(str(root / "usr" / "bin" / "bash.exe"))
+        for variable in ("ProgramFiles", "ProgramW6432"):
+            base = os.environ.get(variable)
+            if base:
+                add(str(Path(base) / "Git" / "bin" / "bash.exe"))
+                add(str(Path(base) / "Git" / "usr" / "bin" / "bash.exe"))
+    add(shutil.which("bash"))
+    return candidates
+
+
+def _usable_bash() -> str | None:
+    for candidate in _bash_candidates():
+        try:
+            proc = subprocess.run([candidate, "--version"], capture_output=True, timeout=5)
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        if proc.returncode == 0 and b"GNU bash" in proc.stdout + proc.stderr:
+            return candidate
+    return None
+
+
+def _bash_path(path: Path | str) -> str:
+    value = str(Path(path).resolve())
+    if os.name == "nt" and len(value) >= 3 and value[1] == ":":
+        return "/" + value[0].lower() + value[2:].replace("\\", "/")
+    return value
+
+
+def _python3_prelude() -> str:
+    if os.name != "nt":
+        return ""
+    executable = shlex.quote(_bash_path(sys.executable))
+    return f"python3() {{ MSYS2_ARG_CONV_EXCL='*' {executable} \"$@\"; }}\n"
+
+
+BASH = _usable_bash()
+
+
+def test_bash_discovery_rejects_non_gnu_launcher(monkeypatch):
+    monkeypatch.setattr(sys.modules[__name__], "_bash_candidates",
+                        lambda: ["windows-wsl-bash", "git-bash"])
+
+    def fake_run(command, **kwargs):
+        if command[0] == "windows-wsl-bash":
+            return subprocess.CompletedProcess(command, 1, b"\xff\xfeW\x00S\x00L\x00", b"")
+        return subprocess.CompletedProcess(command, 0, b"GNU bash, version 5.2", b"")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    assert _usable_bash() == "git-bash"
 
 
 def _rpm_bundle(root: Path) -> Path:
@@ -113,7 +184,7 @@ def test_encoder_runs_before_any_privileged_step(tmp_path, family):
     assert "command -v python3" in script
 
 
-@pytest.mark.skipif(shutil.which("bash") is None, reason="bash is required")
+@pytest.mark.skipif(BASH is None, reason="GNU bash is required")
 @pytest.mark.parametrize("path,expected", [
     ("/plain/bundle-path_1.0~rc", "/plain/bundle-path_1.0~rc"),
     ("/media/user/My Passport/bundle", "/media/user/My%20Passport/bundle"),
@@ -130,13 +201,14 @@ def test_emitted_encoder_produces_a_usable_file_url(tmp_path, path, expected):
     script = _script(tmp_path, "deb")
     start = script.index('HERE_URL="$(python3')
     end = script.index('\nfi\n', start) + 4
-    harness = f'set -euo pipefail\nHERE={path!r}\n' + script[start:end] + 'printf "%s" "$HERE_URL"\n'
-    proc = subprocess.run(["bash", "-c", harness], capture_output=True, text=True)
+    harness = (f'set -euo pipefail\nHERE={path!r}\n' + _python3_prelude() +
+               script[start:end] + 'printf "%s" "$HERE_URL"\n')
+    proc = subprocess.run([BASH, "-c", harness], capture_output=True, text=True)
     assert proc.returncode == 0, proc.stderr
     assert proc.stdout == expected
 
 
-@pytest.mark.skipif(shutil.which("bash") is None, reason="bash is required")
+@pytest.mark.skipif(BASH is None, reason="GNU bash is required")
 def test_apt_installer_refuses_an_unindexed_bundle_repository(tmp_path):
     """`apt-get update` exits 0 on a misparsed source, so a guard must follow it."""
     script = _script(tmp_path, "deb")
@@ -146,10 +218,12 @@ def test_apt_installer_refuses_an_unindexed_bundle_repository(tmp_path):
     assert guard.index("indextargets") < guard.index("--simulate")
 
 
+@pytest.mark.skipif(BASH is None, reason="GNU bash is required")
 def test_awkward_bundle_directory_still_produces_a_valid_script(tmp_path):
     """The build host may itself sit under an awkward path."""
     root = tmp_path / AWKWARD
     root.mkdir()
     script = (_deb_bundle(root) / "install-offline.sh")
-    proc = subprocess.run(["bash", "-n", str(script)], capture_output=True, text=True)
+    proc = subprocess.run([BASH, "-n"], input=script.read_text(encoding="utf-8"),
+                          capture_output=True, text=True)
     assert proc.returncode == 0, proc.stderr
