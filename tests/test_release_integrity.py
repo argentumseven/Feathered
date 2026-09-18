@@ -88,6 +88,11 @@ def test_build_requires_signing_iso_and_embedded_verifier_policy():
     assert "pyinstaller==%" not in lower and "pytest==%" not in lower
     assert "copy /y license dist\\license" in lower
     assert "copy /y notice.md dist\\notice.md" in lower
+    assert "staging tcl/tk runtime into build virtual environment" in lower
+    assert 'xcopy /e /i /y /q "%tcl_runtime_root%\\*" "%build_venv%\\tcl\\"' in lower
+    assert 'set "tcl_library=%build_venv%\\tcl\\%tcl_dir_name%"' in lower
+    assert 'set "tk_library=%build_venv%\\tcl\\%tk_dir_name%"' in lower
+    assert "release-build tcl" in lower
 
 
 def test_production_build_lock_authenticates_every_pinned_requirement():
@@ -145,6 +150,10 @@ def test_windows_ci_contains_real_signed_production_release_gate():
     assert "system.text.utf8encoding($false)" in bootstrap
     assert "[system.io.file]::writealltext" in bootstrap
     assert "./.feathered_bash_probe.sh" in bootstrap
+    assert "$gitcommand = get-command git.exe" in bootstrap
+    assert "bin\\bash.exe" in bootstrap
+    assert "'gnu bash'" in bootstrap
+    assert "a real gnu bash installation was not found" in bootstrap
     assert "$bashprobe | & $bash -s --" not in bootstrap
     assert "& $bash -lc" not in bootstrap
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in lower
@@ -152,9 +161,9 @@ def test_windows_ci_contains_real_signed_production_release_gate():
     assert "actions/upload-artifact@v" not in lower
 
     smoke_iso = (ROOT / "create_smoke_iso.ps1").read_text(encoding="utf-8").lower()
-    assert "$mediatypedisk = 12" in smoke_iso
-    assert ".chooseimagedefaultsformediatype($mediatypedisk)" in smoke_iso
-    assert ".chooseimagedefaultsformediatype(1)" not in smoke_iso
+    assert ".filesystemstocreate = 1" in smoke_iso
+    assert ".freemediablocks = 0" in smoke_iso
+    assert "chooseimagedefaultsformediatype" not in smoke_iso
 
     # Signed publication must be mechanically coupled to the real package-
     # manager oracles for this caller SHA; documentation alone is not a gate.
@@ -316,6 +325,9 @@ def test_windows_release_smoke_executes_actual_mount_path():
     assert "PythonExe" in ps1
     assert "Dismount-DiskImage" in ps1
     assert "probe._mount_disc_image(image)" in probe
+    media = (ROOT / "feathered_app" / "application" / "media.py").read_text(encoding="utf-8")
+    assert "Mount-DiskImage -ImagePath $p -PassThru" in media
+    assert "Mount-DiskImage -LiteralPath" not in media
     assert "windows_release_smoke.ps1" in build
     assert '-PythonExe "%PY%"' in build
 

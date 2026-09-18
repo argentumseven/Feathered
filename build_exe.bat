@@ -115,6 +115,49 @@ if exist "%BUILD_VENV%" rmdir /S /Q "%BUILD_VENV%"
 if errorlevel 1 goto :fail
 set "PY=%BUILD_VENV%\Scripts\python.exe"
 
+REM The source-gate venv carries its own Tcl/Tk data so a long multi-process
+REM test run never depends on the bootstrap copy under RUNNER_TEMP. Production
+REM rebuilds a fresh venv and reruns that corpus, so apply the same rule here.
+if not "%RELEASE_MODE%"=="1" goto :after_release_tcl_stage
+set "BUILD_STEP=staging Tcl/Tk runtime into build virtual environment"
+if not defined TCL_LIBRARY (
+  echo ERROR: TCL_LIBRARY was not exported by the authenticated Python bootstrap.
+  goto :fail
+)
+if not defined TK_LIBRARY (
+  echo ERROR: TK_LIBRARY was not exported by the authenticated Python bootstrap.
+  goto :fail
+)
+if not exist "%TCL_LIBRARY%\init.tcl" (
+  echo ERROR: Tcl runtime is incomplete: %TCL_LIBRARY%\init.tcl
+  goto :fail
+)
+if not exist "%TK_LIBRARY%\tk.tcl" (
+  echo ERROR: Tk runtime is incomplete: %TK_LIBRARY%\tk.tcl
+  goto :fail
+)
+for %%I in ("%TCL_LIBRARY%") do set "TCL_DIR_NAME=%%~nxI"
+for %%I in ("%TK_LIBRARY%") do set "TK_DIR_NAME=%%~nxI"
+for %%I in ("%TCL_LIBRARY%\..") do set "TCL_RUNTIME_ROOT=%%~fI"
+if exist "%BUILD_VENV%\tcl" rmdir /S /Q "%BUILD_VENV%\tcl"
+mkdir "%BUILD_VENV%\tcl"
+if errorlevel 1 goto :fail
+xcopy /E /I /Y /Q "%TCL_RUNTIME_ROOT%\*" "%BUILD_VENV%\tcl\" >nul
+if errorlevel 1 goto :fail
+set "TCL_LIBRARY=%BUILD_VENV%\tcl\%TCL_DIR_NAME%"
+set "TK_LIBRARY=%BUILD_VENV%\tcl\%TK_DIR_NAME%"
+if not exist "%TCL_LIBRARY%\init.tcl" (
+  echo ERROR: Staged Tcl runtime is incomplete: %TCL_LIBRARY%\init.tcl
+  goto :fail
+)
+if not exist "%TK_LIBRARY%\tk.tcl" (
+  echo ERROR: Staged Tk runtime is incomplete: %TK_LIBRARY%\tk.tcl
+  goto :fail
+)
+"%PY%" -c "import tkinter as tk; r=tk.Tk(); print('release-build Tcl',r.tk.call('info','patchlevel')); r.destroy()"
+if errorlevel 1 goto :fail
+:after_release_tcl_stage
+
 set "BUILD_STEP=installing build dependencies"
 if "%RELEASE_MODE%"=="1" (
   REM Production inputs are the complete CPython 3.13 / Windows x64 wheel lock.

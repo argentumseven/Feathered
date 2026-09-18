@@ -56,11 +56,11 @@ public static class FeatheredIsoStreamWriter
 }
 
 $image = New-Object -ComObject IMAPI2FS.MsftFileSystemImage
-# 12 = IMAPI_MEDIA_TYPE_DISK. Use the generic disk profile for a file-backed
-# image so creation does not depend on optical-media defaults on the runner.
-$mediaTypeDisk = 12
-$image.ChooseImageDefaultsForMediaType($mediaTypeDisk)
+# This is a file-backed fixture, not a burn to physical media. Set the image
+# properties directly instead of asking IMAPI2 to derive them from a media
+# profile. FsiFileSystemISO9660 is 1; FreeMediaBlocks=0 means no media-size cap.
 $image.FileSystemsToCreate = 1
+$image.FreeMediaBlocks = 0
 $image.VolumeName = $VolumeName
 $image.Root.AddTree($source, $false)
 $result = $image.CreateResultImage()

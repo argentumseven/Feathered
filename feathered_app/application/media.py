@@ -223,7 +223,7 @@ Choose the archive root: the directory directly above dists/.
             # executed as PowerShell.
             script = ("$ErrorActionPreference='Stop';"
                       "$p = [Console]::In.ReadLine();"
-                      "$i = Mount-DiskImage -LiteralPath $p -PassThru;"
+                      "$i = Mount-DiskImage -ImagePath $p -PassThru;"
                       "($i | Get-Volume).DriveLetter")
             out = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
                                  input=str(image) + "\n",

@@ -136,7 +136,35 @@ if ($LASTEXITCODE -ne 0) {
 # this authenticated installation when launched through Git Bash.
 $env:Path = "$Target;$env:Path"
 $env:FEATHERED_EXPECTED_PYTHON3 = $Python3
-$Bash = (Get-Command bash.exe -ErrorAction Stop).Source
+
+# Windows also ships a WSL bash.exe launcher on some hosts. It is not Git Bash
+# and fails when no WSL distribution is installed. Prefer bash from the Git
+# installation, then validate every candidate before using it.
+$BashCandidates = @()
+$GitCommand = Get-Command git.exe -ErrorAction SilentlyContinue
+if ($GitCommand) {
+    $GitCmdDirectory = Split-Path -Parent $GitCommand.Source
+    $GitRoot = Split-Path -Parent $GitCmdDirectory
+    $BashCandidates += (Join-Path $GitRoot 'bin\bash.exe')
+    $BashCandidates += (Join-Path $GitRoot 'usr\bin\bash.exe')
+}
+$PathBash = Get-Command bash.exe -ErrorAction SilentlyContinue
+if ($PathBash) { $BashCandidates += $PathBash.Source }
+
+$Bash = $null
+foreach ($Candidate in ($BashCandidates | Select-Object -Unique)) {
+    if (-not (Test-Path -LiteralPath $Candidate -PathType Leaf)) { continue }
+    $VersionOutput = @(& $Candidate --version 2>&1)
+    $VersionExitCode = $LASTEXITCODE
+    $VersionText = ($VersionOutput | ForEach-Object { "$_" }) -join "`n"
+    if ($VersionExitCode -eq 0 -and $VersionText -match 'GNU bash') {
+        $Bash = (Resolve-Path -LiteralPath $Candidate).Path
+        break
+    }
+}
+if (-not $Bash) {
+    throw 'A real GNU Bash installation was not found. Git for Windows is required by the release gate.'
+}
 Write-Host "Validating Git Bash python3 resolution through $Bash ..."
 $BashProbe = @'
 set -euo pipefail
