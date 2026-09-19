@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import artifact_digests
+import artifact_verification as _artifact_verification_engine
 import bundle_baseline
 import payload_identity
 import rpm_capabilities
@@ -76,6 +77,10 @@ from runtime_limits import (
     positive_env_int as _positive_env_int,
 )
 import rpm_metadata as _rpm_metadata
+import rpm_resolution as _rpm_resolution
+import rpm_repository_writer as _rpm_repository_writer
+import rpm_target_inventory as _rpm_target_inventory
+import rpm_bundle as _rpm_bundle
 RPM_NS = _rpm_metadata.RPM_NS
 
 FEATHERED_VERSION = "1.3.0"  # Keep in step with the newest CHANGELOG.md version.
@@ -619,16 +624,6 @@ def _sign_detached(path: Path, signing_key: str, reporter: Reporter) -> Optional
     return signature
 
 
-def declared_inventory_family(text: str) -> str:
-    """Read META|package_family from an inventory file, if present."""
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        parts = line.split("|")
-        if parts[0] == "META" and len(parts) >= 3 and parts[1] == "package_family":
-            return parts[2].strip().lower()
-    return ""
 
 
 def make_executable(path: Path) -> None:
@@ -1271,937 +1266,81 @@ def probe_repository(repo: RepoSpec, reporter: Optional[Reporter] = None, retrie
         return False, detail
 
 
-def _segments(value: str) -> List[Tuple[int, Union[int, str]]]:
-    out: List[Tuple[int, Union[int, str]]] = []
-    i = 0
-    value = value or ""
-    while i < len(value):
-        c = value[i]
-        if c == "~": out.append((-1, "~")); i += 1; continue
-        if c == "^": out.append((0, "^")); i += 1; continue
-        if not c.isalnum(): i += 1; continue
-        j = i + 1
-        if c.isdigit():
-            while j < len(value) and value[j].isdigit(): j += 1
-            out.append((2, int(value[i:j].lstrip("0") or "0")))
-        else:
-            while j < len(value) and value[j].isalpha(): j += 1
-            out.append((1, value[i:j]))
-        i = j
-    return out
 
+# RPM version/capability/provider resolution lives in rpm_resolution.py.
+# Keep compatibility names here while new code imports the engine directly.
+_segments = _rpm_resolution._segments
+rpmvercmp = _rpm_resolution.rpmvercmp
+compare_evr = _rpm_resolution.compare_evr
+_provider_candidates = _rpm_resolution._provider_candidates
+_requirement_note = _rpm_resolution._requirement_note
+should_ignore = _rpm_resolution.should_ignore
+evr_satisfies = _rpm_resolution.evr_satisfies
+package_satisfies = _rpm_resolution.package_satisfies
+inventory_satisfies = _rpm_resolution.inventory_satisfies
+_provider_rank = _rpm_resolution._provider_rank
+choose_provider = _rpm_resolution.choose_provider
+_detect_default_python_abi = _rpm_resolution._detect_default_python_abi
+_python_default_alias = _rpm_resolution._python_default_alias
+build_provider_index = _rpm_resolution.build_provider_index
+_find_root = _rpm_resolution._find_root
+_rich_outer_body = _rpm_resolution._rich_outer_body
+_split_top_level_keyword = _rpm_resolution._split_top_level_keyword
+_simple_requirement_from_text = _rpm_resolution._simple_requirement_from_text
+parse_simple_rich_if = _rpm_resolution.parse_simple_rich_if
+parse_simple_rich_or = _rpm_resolution.parse_simple_rich_or
+parse_simple_rich_with = _rpm_resolution.parse_simple_rich_with
+_package_satisfies_all = _rpm_resolution._package_satisfies_all
+_inventory_package_satisfies = _rpm_resolution._inventory_package_satisfies
+inventory_satisfies_same_package = _rpm_resolution.inventory_satisfies_same_package
+_same_package_provider_candidates = _rpm_resolution._same_package_provider_candidates
+_rich_with_note = _rpm_resolution._rich_with_note
+_rpm_arch_capability = _rpm_resolution._rpm_arch_capability
+format_requirement = _rpm_resolution.format_requirement
+_indexed_package_satisfies = _rpm_resolution._indexed_package_satisfies
+_selected_or_pending_satisfies = _rpm_resolution._selected_or_pending_satisfies
+_constraint_key = _rpm_resolution._constraint_key
+_satisfies_constraints = _rpm_resolution._satisfies_constraints
+_reject_failed_provider = _rpm_resolution._reject_failed_provider
+package_versions = _rpm_resolution.package_versions
+_parse_evr_text = _rpm_resolution._parse_evr_text
 
-def rpmvercmp(a: str, b: str) -> int:
-    sa, sb = _segments(a), _segments(b)
-    for left, right in zip(sa, sb):
-        if left == right: continue
-        lt, lv = left; rt, rv = right
-        if lt == -1 or rt == -1: return -1 if lt == -1 else 1
-        if lt != rt: return 1 if lt > rt else -1
-        # Segment kinds: 2 = numeric run (value is int), 1 = alphabetic run
-        # (value is str), 0 = "^", -1 = "~". Matching kinds guarantee matching
-        # value types, so each branch compares like with like -- comparing a
-        # numeric run as text would rank 1.9 above 1.10.
-        if lt == 2:
-            ln, rn = int(lv), int(rv)
-            if ln != rn: return -1 if ln < rn else 1
-        else:
-            ls, rs = str(lv), str(rv)
-            if ls != rs: return -1 if ls < rs else 1
-    if len(sa) == len(sb): return 0
-    rest = sa[len(sb):] if len(sa) > len(sb) else sb[len(sa):]
-    if rest and rest[0][0] == -1: return -1 if len(sa) > len(sb) else 1
-    return 1 if len(sa) > len(sb) else -1
-
-
-def compare_evr(left: Tuple[str, str, str], right: Tuple[str, str, str]) -> int:
-    try: le = int(left[0] or "0")
-    except ValueError: le = 0
-    try: re_ = int(right[0] or "0")
-    except ValueError: re_ = 0
-    if le != re_: return 1 if le > re_ else -1
-    c = rpmvercmp(left[1], right[1])
-    return c if c else rpmvercmp(left[2], right[2])
-
-
+# These tiny hooks deliberately stay dynamic because downstream tests and
+# integrations historically monkeypatch them through core.
 _PYDIST_CAP_RE = rpm_capabilities.PYDIST_CAP_RE
 
-
 def _pep503_name(value: str) -> str:
-    return rpm_capabilities.pep503_name(value, substitute=lambda pattern, replacement, text: re.sub(pattern, replacement, text))
-
+    return rpm_capabilities.pep503_name(
+        value, substitute=lambda pattern, replacement, text: re.sub(pattern, replacement, text))
 
 def canonical_capability_name(name: str) -> str:
     return rpm_capabilities.canonical_capability_name(
         name, pattern=_PYDIST_CAP_RE, normalize=lambda value: _pep503_name(value))
 
-
 def capability_names_equal(left: str, right: str) -> bool:
     return canonical_capability_name(left) == canonical_capability_name(right)
 
-
 def _index_keys(name: str) -> Tuple[str, ...]:
-    # Keep this tiny, frequently called index operation local. Capability
-    # normalization remains delegated through the existing core hook.
     raw = (name or "").strip()
     canonical = canonical_capability_name(raw)
     return (raw,) if canonical == raw else (raw, canonical)
 
-
-def _provider_candidates(index: Dict[str, List[ProviderMatch]], req: Requirement) -> List[ProviderMatch]:
-    """Return de-duplicated provider candidates using exact and canonical keys."""
-    seen: Set[Tuple[int, str, str, Optional[Tuple[str, str, str]]]] = set()
-    out: List[ProviderMatch] = []
-    for key in _index_keys(req.name):
-        for match in index.get(key, []):
-            ident = (id(match.package), match.provide.name, match.provide.flags or "", match.provide.evr)
-            if ident in seen:
-                continue
-            seen.add(ident)
-            out.append(match)
-    return out
-
-
-def _requirement_note(req: Requirement, candidates: Sequence[ProviderMatch]) -> str:
-    """Explain an unresolved capability without calling every case a missing repo."""
-    shown: List[str] = []
-    for match in candidates:
-        if not capability_names_equal(match.provide.name, req.name):
-            continue
-        pev = match.provide.evr
-        if pev is not None:
-            ep = f"{pev[0]}:" if pev[0] and pev[0] != "0" else ""
-            evr = f"{ep}{pev[1]}" + (f"-{pev[2]}" if pev[2] else "")
-        else:
-            evr = "unversioned"
-        item = f"{match.package.nevra} provides {match.provide.name} {evr} [{match.package.repo.name}]"
-        if item not in shown:
-            shown.append(item)
-        if len(shown) >= 3:
-            break
-    if shown:
-        return "Providers exist, but none satisfy the requested version: " + "; ".join(shown)
-    if _PYDIST_CAP_RE.fullmatch((req.name or "").strip()):
-        canonical = canonical_capability_name(req.name)
-        return (f"No enabled repository advertises Python virtual capability {canonical}. "
-                "Python RPM dependencies are satisfied through RPM Provides (python3dist/pythonX.Ydist), "
-                "not by guessing a python3-* package name. Check AppStream/CRB/EPEL or add the repository that owns the module.")
-    if req.name == "python(abi)" or req.name.startswith("/usr/bin/python"):
-        return ("No enabled repository provides the required Python interpreter/ABI capability. "
-                "Check the target release/architecture and BaseOS/AppStream sources.")
-    return "No matching provider in enabled repositories"
-
-
-def should_ignore(req: Requirement) -> bool:
-    return not req.name or req.name.startswith(("rpmlib(", "config(", "user(", "group("))
-
-
-def evr_satisfies(provider: Requirement, req: Requirement, package: Optional[Package] = None) -> bool:
-    if not req.flags or req.evr is None:
-        return True
-    pevr = provider.evr
-    if pevr is None and package is not None and provider.name == package.name:
-        pevr = package.evr
-    if pevr is None:
-        return False
-    c = compare_evr(pevr, req.evr)
-    flag = req.flags.upper()
-    return {"EQ": c == 0, "=": c == 0, "GE": c >= 0, ">=": c >= 0,
-            "GT": c > 0, ">": c > 0, "LE": c <= 0, "<=": c <= 0,
-            "LT": c < 0, "<": c < 0}.get(flag, False)  # unknown operators fail closed.
-
-
-def package_satisfies(pkg: Package, req: Requirement) -> bool:
-    own = Requirement(pkg.name, "EQ", pkg.epoch, pkg.version, pkg.release, "provides")
-    if capability_names_equal(own.name, req.name) and evr_satisfies(own, req, pkg):
-        return True
-    arch_cap = _rpm_arch_capability(pkg)
-    if arch_cap is not None and capability_names_equal(arch_cap.name, req.name) and evr_satisfies(arch_cap, req, pkg):
-        return True
-    for provide in pkg.provides:
-        if capability_names_equal(provide.name, req.name) and evr_satisfies(provide, req, pkg):
-            return True
-    return not req.flags and req.name in pkg.files
-
-
-def inventory_satisfies(inv: Optional[TargetInventory], req: Requirement) -> bool:
-    if inv is None:
-        return False
-    seen: Set[int] = set()
-    for key in _index_keys(req.name):
-        for p in inv.capabilities.get(key, []):
-            if id(p) in seen:
-                continue
-            seen.add(id(p))
-            if evr_satisfies(p, req):
-                return True
-    return False
-
-
-def _provider_rank(match: ProviderMatch, preferred_arch: str, requested_name: str) -> Tuple[int, int, int]:
-    pkg = match.package
-    exact_name = 0 if pkg.name == requested_name else 1
-    arch_rank = 0 if pkg.arch == preferred_arch else 1 if pkg.arch == "noarch" else 2
-    return (pkg.repo.priority, exact_name, arch_rank)
-
-
-def choose_provider(matches: Iterable[ProviderMatch], preferred_arch: str, requested_name: str) -> Optional[ProviderMatch]:
-    matches = list(matches)
-    if not matches:
-        return None
-    best_rank = min(_provider_rank(m, preferred_arch, requested_name) for m in matches)
-    candidates = [m for m in matches if _provider_rank(m, preferred_arch, requested_name) == best_rank]
-    best = candidates[0]
-    for m in candidates[1:]:
-        c = compare_evr(m.package.evr, best.package.evr)
-        if c > 0 or (c == 0 and m.package.nevra > best.package.nevra):
-            best = m
-    return best
-
-
-def _detect_default_python_abi(packages: Sequence[Package]) -> Optional[str]:
-    """Detect the distro default Python ABI from python3/python3-libs Provides.
-
-    Generic python3dist(...) refers to the default Python 3 stack. We only use
-    this ABI to create lookup aliases when the repository metadata exposes one
-    form (generic or X.Y-specific) but not the other.
-    """
-    candidates: List[Tuple[int, Tuple[str, str, str], str]] = []
-    for pkg in packages:
-        if pkg.name not in {"python3", "python3-libs"}:
-            continue
-        for provide in pkg.provides:
-            if provide.name != "python(abi)" or not provide.version:
-                continue
-            if not re.fullmatch(r"\d+\.\d+", provide.version):
-                continue
-            candidates.append((pkg.repo.priority, pkg.evr, provide.version))
-    if not candidates:
-        return None
-    best_priority = min(x[0] for x in candidates)
-    same = [x for x in candidates if x[0] == best_priority]
-    best = same[0]
-    for item in same[1:]:
-        if compare_evr(item[1], best[1]) > 0:
-            best = item
-    return best[2]
-
-
-def _python_default_alias(name: str, default_abi: Optional[str]) -> Optional[str]:
-    if not default_abi:
-        return None
-    canonical = canonical_capability_name(name)
-    m = _PYDIST_CAP_RE.fullmatch(canonical)
-    if not m:
-        return None
-    prefix, dist = m.groups()
-    if prefix == "python3dist":
-        return f"python{default_abi}dist({dist})"
-    if prefix == f"python{default_abi}dist":
-        return f"python3dist({dist})"
-    return None
-
-
-def build_provider_index(packages: Sequence[Package], reporter: Optional[Reporter] = None) -> Dict[str, List[ProviderMatch]]:
-    out: Dict[str, List[ProviderMatch]] = defaultdict(list)
-    default_python_abi = _detect_default_python_abi(packages)
-    if reporter and default_python_abi:
-        reporter.log(f"Detected default Python ABI {default_python_abi}; enabling safe python3dist/python{default_python_abi}dist lookup aliases")
-    for i, pkg in enumerate(packages, 1):
-        own = Requirement(pkg.name, "EQ", pkg.epoch, pkg.version, pkg.release, "provides")
-        for key in _index_keys(pkg.name):
-            out[key].append(ProviderMatch(pkg, own))
-        arch_cap = _rpm_arch_capability(pkg)
-        if arch_cap is not None:
-            for key in _index_keys(arch_cap.name):
-                out[key].append(ProviderMatch(pkg, arch_cap))
-        for p in pkg.provides:
-            if p.name:
-                keys = list(_index_keys(p.name))
-                alias = _python_default_alias(p.name, default_python_abi)
-                if alias:
-                    keys.extend(_index_keys(alias))
-                for key in dict.fromkeys(keys):
-                    out[key].append(ProviderMatch(pkg, p))
-        for f in pkg.files:
-            if f:
-                out[f].append(ProviderMatch(pkg, Requirement(f, kind="provides")))
-        if reporter and i % 12000 == 0:
-            reporter.log(f"Indexed {i:,}/{len(packages):,} package records")
-    return out
-
-
-def _find_root(name: str, version: Optional[str], index: Dict[str, List[ProviderMatch]],
-               preferred_arch: str, role: Optional[str] = None,
-               repo_name: Optional[str] = None, exact_arch: Optional[str] = None,
-               source_scope: Optional[str] = None, repo_identity: Optional[str] = None) -> Optional[ProviderMatch]:
-    """Find a root package under explicit provenance constraints.
-
-    ``source_scope="distribution"`` means any repository in the distribution/base
-    tier. This is intentionally different from ``role="dependency"``: several
-    top-level repositories can share that backend role, and supplemental repositories
-    may share it too. Workload/vendor roots instead use ``role``. Exact-package
-    browser selections may additionally pin repository name and architecture.
-    """
-    matches = _provider_candidates(index, Requirement(name))
-    if source_scope == "distribution":
-        matches = [m for m in matches
-                   if getattr(m.package.repo, "source_tier", "base") == "base"]
-    if role:
-        # An explicitly requested workload/vendor role is a constraint, not a hint.
-        matches = [m for m in matches if m.package.repo.role == role]
-    if repo_identity:
-        matches = [m for m in matches if m.package.repo.source_identity == repo_identity]
-    elif repo_name:
-        matches = [m for m in matches if m.package.repo.name == repo_name]
-    if exact_arch:
-        matches = [m for m in matches if m.package.arch == exact_arch]
-    if version and version != "Latest":
-        matches = [m for m in matches if m.package.evr_text == version or m.package.version == version]
-    return choose_provider(matches, preferred_arch, name)
-
-
-_RICH_IF_RE = re.compile(r"^\((.+?)\s+if\s+(.+?)\)$")
-
-
-def _rich_outer_body(text: str) -> Optional[str]:
-    """Return the body of one complete parenthesized rich dependency.
-
-    Capability names such as python3.9dist(chardet) contain parentheses of
-    their own, so rich operators must be detected only at the outer expression
-    depth rather than with a plain string split.
-    """
-    text = (text or "").strip()
-    if len(text) < 2 or text[0] != "(" or text[-1] != ")":
-        return None
-    depth = 0
-    for i, ch in enumerate(text):
-        if ch == "(":
-            depth += 1
-        elif ch == ")":
-            depth -= 1
-            if depth < 0:
-                return None
-            if depth == 0 and i != len(text) - 1:
-                return None
-    return text[1:-1].strip() if depth == 0 else None
-
-
-def _split_top_level_keyword(body: str, keyword: str) -> List[str]:
-    """Split on a whitespace-delimited rich operator at depth zero."""
-    needle = f" {keyword} "
-    depth = 0
-    start = 0
-    parts: List[str] = []
-    i = 0
-    while i < len(body):
-        ch = body[i]
-        if ch == "(":
-            depth += 1
-            i += 1
-            continue
-        if ch == ")":
-            depth -= 1
-            if depth < 0:
-                return []
-            i += 1
-            continue
-        if depth == 0 and body.startswith(needle, i):
-            part = body[start:i].strip()
-            if not part:
-                return []
-            parts.append(part)
-            i += len(needle)
-            start = i
-            continue
-        i += 1
-    if depth != 0:
-        return []
-    if not parts:
-        return []
-    tail = body[start:].strip()
-    if not tail:
-        return []
-    parts.append(tail)
-    return parts
-
-
-def _simple_requirement_from_text(text: str, kind: str = "requires") -> Optional[Requirement]:
-    """Parse the simple leaf form used inside common RPM rich deps.
-
-    Examples:
-      container-selinux
-      container-selinux >= 2:2.162.1
-      glibc-gconv-extra(x86-64) = 2.34-275.el9_8
-
-    This intentionally does not pretend to implement the complete RPM rich
-    dependency grammar. Unsupported expressions remain fail-closed.
-    """
-    text = (text or "").strip()
-    m = re.fullmatch(r"([^\s]+)(?:\s*(>=|<=|=|>|<)\s*([^\s]+))?", text)
-    if not m:
-        return None
-    name, flags, evr_text = m.groups()
-    if not evr_text:
-        return Requirement(name=name, kind=kind)
-    epoch, version, release = _parse_evr_text(evr_text)
-    return Requirement(name=name, flags=flags, epoch=epoch, version=version, release=release, kind=kind)
-
-
-def parse_simple_rich_if(req: Requirement) -> Optional[Tuple[Requirement, Requirement]]:
-    """Return (consequence, condition) for `(A if B)` rich dependencies."""
-    body = _rich_outer_body(req.name)
-    if body is None:
-        return None
-    parts = _split_top_level_keyword(body, "if")
-    if len(parts) != 2:
-        return None
-    consequence = _simple_requirement_from_text(parts[0], req.kind)
-    condition = _simple_requirement_from_text(parts[1], "condition")
-    if consequence is None or condition is None:
-        return None
-    return consequence, condition
-
-
-def parse_simple_rich_or(req: Requirement) -> Optional[List[Requirement]]:
-    """Parse the common RPM rich ``(A or B [or C])`` form.
-
-    Simple top-level alternatives are supported. Each branch
-    must still be a simple leaf requirement; nested boolean expressions remain
-    fail-closed so Feathered never guesses at semantics it did not parse.
-    """
-    body = _rich_outer_body(req.name)
-    if body is None:
-        return None
-    parts = _split_top_level_keyword(body, "or")
-    if len(parts) < 2:
-        return None
-    leaves = [_simple_requirement_from_text(part, req.kind) for part in parts]
-    if any(leaf is None for leaf in leaves):
-        return None
-    return [leaf for leaf in leaves if leaf is not None]
-
-
-def parse_simple_rich_with(req: Requirement) -> Optional[List[Requirement]]:
-    """Parse a simple RPM rich `with` expression into leaf requirements.
-
-    RPM defines `with` as requiring every operand to be fulfilled by the SAME
-    package. This is frequently emitted by Python dependency generators to
-    encode bounded ranges, for example:
-
-      (python3.9dist(chardet) < 5 with python3.9dist(chardet) >= 3.0.4)
-
-    We support one or more simple leaf operands and keep the same-package
-    semantics during provider selection. Nested boolean operands intentionally
-    remain fail-closed.
-    """
-    body = _rich_outer_body(req.name)
-    if body is None:
-        return None
-    parts = _split_top_level_keyword(body, "with")
-    if len(parts) < 2:
-        return None
-    leaves = [_simple_requirement_from_text(part, req.kind) for part in parts]
-    if any(leaf is None for leaf in leaves):
-        return None
-    return [leaf for leaf in leaves if leaf is not None]
-
-
-def _package_satisfies_all(index: Dict[str, List[ProviderMatch]], pkg: Package, reqs: Sequence[Requirement]) -> bool:
-    return all(_indexed_package_satisfies(index, pkg, req) for req in reqs)
-
-
-def _inventory_package_satisfies(inv: Optional[TargetInventory], capabilities: Sequence[Requirement], req: Requirement) -> bool:
-    if inv is None:
-        return False
-    for provide in capabilities:
-        if capability_names_equal(provide.name, req.name) and evr_satisfies(provide, req):
-            return True
-    return False
-
-
-def inventory_satisfies_same_package(inv: Optional[TargetInventory], reqs: Sequence[Requirement]) -> bool:
-    """Evaluate rich `with` against one installed package, not globally."""
-    if inv is None:
-        return False
-    for capabilities in inv.package_capabilities.values():
-        if all(_inventory_package_satisfies(inv, capabilities, req) for req in reqs):
-            return True
-    return False
-
-
-def _same_package_provider_candidates(index: Dict[str, List[ProviderMatch]], reqs: Sequence[Requirement]) -> List[ProviderMatch]:
-    """Return packages that satisfy every rich `with` operand themselves."""
-    if not reqs:
-        return []
-    seen_pkg: Set[int] = set()
-    out: List[ProviderMatch] = []
-    for first in _provider_candidates(index, reqs[0]):
-        pkg = first.package
-        ident = id(pkg)
-        if ident in seen_pkg:
-            continue
-        seen_pkg.add(ident)
-        if not _package_satisfies_all(index, pkg, reqs):
-            continue
-        # Keep a provider match for ranking/provenance. The package itself has
-        # already been verified against every operand above.
-        out.append(first)
-    return out
-
-
-def _rich_with_note(index: Dict[str, List[ProviderMatch]], reqs: Sequence[Requirement]) -> str:
-    details: List[str] = []
-    for leaf in reqs:
-        candidates = _provider_candidates(index, leaf)
-        satisfying = [m for m in candidates if evr_satisfies(m.provide, leaf, m.package)]
-        if satisfying:
-            sample = satisfying[0].package.nevra
-            details.append(f"{format_requirement(leaf)} has provider {sample}")
-        elif candidates:
-            details.append(f"{format_requirement(leaf)} has providers, but none satisfy its version bound")
-        else:
-            details.append(f"{format_requirement(leaf)} has no provider")
-    suffix = "; ".join(details[:4])
-    return ("RPM rich 'with' requires all operands to be satisfied by one RPM, but no single enabled package satisfies the full expression"
-            + (f": {suffix}" if suffix else ""))
-
-
-def _rpm_arch_capability(pkg: Package) -> Optional[Requirement]:
-    # RPM commonly exposes architecture-qualified package capabilities such as
-    # glibc-gconv-extra(x86-64). Primary metadata normally includes them, but
-    # synthesize the canonical package capability as a defensive fallback.
-    arch_names = {
-        "x86_64": "x86-64",
-        "aarch64": "aarch64",
-        "ppc64le": "ppc-64",
-        "s390x": "s390-64",
-    }
-    suffix = arch_names.get(pkg.arch)
-    if not suffix:
-        return None
-    return Requirement(f"{pkg.name}({suffix})", "EQ", pkg.epoch, pkg.version, pkg.release, "provides")
-
-
-def format_requirement(req: Requirement) -> str:
-    if req.flags and req.evr:
-        epoch, version, release = req.evr
-        rel = f"-{release}" if release else ""
-        ep = f"{epoch}:" if epoch and epoch != "0" else ""
-        return f"{req.name} {req.flags} {ep}{version}{rel}"
-    return req.name
-
-
-def _indexed_package_satisfies(index: Dict[str, List[ProviderMatch]], pkg: Package, req: Requirement) -> bool:
-    if package_satisfies(pkg, req):
-        return True
-    for match in _provider_candidates(index, req):
-        if match.package is pkg and evr_satisfies(match.provide, req, pkg):
-            return True
-    return False
-
-
-def _selected_or_pending_satisfies(packages: Iterable[Package], req: Requirement,
-                                    index: Optional[Dict[str, List[ProviderMatch]]] = None) -> bool:
-    if index is None:
-        return any(package_satisfies(pkg, req) for pkg in packages)
-    return any(_indexed_package_satisfies(index, pkg, req) for pkg in packages)
-
-
-def _constraint_key(req: Requirement) -> Tuple[object, ...]:
-    return (canonical_capability_name(req.name), req.flags, req.evr)
-
-
-def _satisfies_constraints(index: Dict[str, List[ProviderMatch]], pkg: Package,
-                           constraints: Sequence[Requirement]) -> bool:
-    return all(_indexed_package_satisfies(index, pkg, c) for c in constraints)
-
-
-def resolve(root_requests: Sequence[RootInput], packages: Sequence[Package],
-            preferred_arch: str, options: BuildOptions[TargetInventory], reporter: Reporter) -> ResolutionResult:
-    from transaction_model import resolve_transaction
-    return resolve_transaction(_resolve_once, root_requests, packages, preferred_arch,
-                               options, reporter, 'rpm')
-
-
-def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[Package],
-            preferred_arch: str, options: BuildOptions[TargetInventory], reporter: Reporter) -> ResolutionResult:
-    """Resolve package roots and their dependency closure.
-
-    Runs the closure repeatedly, accumulating *version floors*: constraints
-    that a previously selected package failed to satisfy. A single greedy pass
-    can pick package X-1.0 for an unversioned requirement and only later meet
-    a `Requires: X >= 2.0`; rather than declaring that unresolvable, the next
-    pass carries `X >= 2.0` forward and selects a candidate that satisfies both
-    requirements. Resolution stops when a pass discovers no new constraints, or
-    when a constraint set is genuinely unsatisfiable (reported as unresolved).
-    """
-    constraints: Dict[str, List[Requirement]] = defaultdict(list)
-    # Providers proven unworkable for a capability, so another can be tried.
-    rejected: Set[Tuple[str, str]] = set()
-    seen_keys: Set[Tuple[object, ...]] = set()
-    # The loop below always runs at least once, so `result` is bound before use.
-    result: ResolutionResult = ResolutionResult(selected=[], unresolved=[], roots=[])
-    for attempt in range(1, max(1, options.max_resolution_passes) + 1):
-        reporter.check_cancel()
-        result, discovered = _resolve_pass(root_requests, packages, preferred_arch, options,
-                                           reporter, constraints, rejected)
-        fresh = [(name, req) for name, req in discovered
-                 if (name, _constraint_key(req)) not in seen_keys]
-        if not fresh:
-            if not result.unresolved:
-                return result
-            if not _reject_failed_provider(result, rejected, reporter):
-                return result
-            # Constraints are derived from the abandoned branch's selections,
-            # so they are discarded with it and re-derived on the next pass.
-            constraints.clear()
-            seen_keys.clear()
-            continue
-        for name, req in fresh:
-            seen_keys.add((name, _constraint_key(req)))
-            constraints[name].append(req)
-            reporter.log(f"Re-resolving with version floor {name} {format_requirement(req)} "
-                         f"(pass {attempt + 1})")
-    reporter.warn("Dependency resolution hit the pass limit; the reported closure may still "
-                  "contain version conflicts. Review conflicts.txt before installing.")
-    return result
-
-
-def _reject_failed_provider(result, rejected: Set[Tuple[str, str]], reporter: Reporter) -> bool:
-    """Blame a failed closure on the provider choice that introduced it."""
-    for capability, chosen, others in reversed(getattr(result, "provider_choices", [])):
-        if (capability, chosen) in rejected:
-            continue
-        remaining = [o for o in others if (capability, o) not in rejected]
-        if not remaining:
-            continue
-        rejected.add((capability, chosen))
-        reporter.log(f"Provider '{chosen}' for '{capability}' led to an unresolvable closure; "
-                     f"trying {' or '.join(remaining)} instead")
-        return True
-    return False
-
-
-def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
-                  preferred_arch: str, options: BuildOptions[TargetInventory], reporter: Reporter,
-                  constraints: Dict[str, List[Requirement]],
-                  rejected: Optional[Set[Tuple[str, str]]] = None
-                  ) -> Tuple[ResolutionResult, List[Tuple[str, Requirement]]]:
-    reporter.log("Building provider index...")
-    index = build_provider_index(packages, reporter)
-    # Constraints are read-only in this pass; newly discovered floors are
-    # returned separately. Build the filtered universe only if a root needs it,
-    # then reuse it for the other roots. A new pass always starts fresh, including
-    # after provider rejection. None distinguishes 'not built' from an empty index.
-    constrained_index: Optional[Dict[str, List[ProviderMatch]]] = None
-    # Constraints discovered during this pass, fed back into the next one.
-    discovered: List[Tuple[str, Requirement]] = []
-    rejected_set = rejected if rejected is not None else set()
-    provider_choices: List[Tuple[str, str, List[str]]] = []
-
-    def pick(matches, requested_name: str):
-        """Choose a provider honouring version floors and past rejections."""
-        matches = list(matches)
-        filtered = [m for m in matches
-                    if _satisfies_constraints(index, m.package, constraints.get(m.package.name, ()))]
-        allowed = [m for m in filtered
-                   if (requested_name, m.package.name) not in rejected_set]
-        chosen = choose_provider(allowed or filtered or [], preferred_arch, requested_name)
-        if chosen is not None:
-            alternatives = sorted({m.package.name for m in filtered} - {chosen.package.name})
-            if alternatives:
-                provider_choices.append((requested_name, chosen.package.name, alternatives))
-        return chosen
-    roots: List[Package] = []
-    root_names: Set[str] = set()
-    # Declared before the root loop: missing roots are now recorded rather than
-    # aborting, so the loop needs somewhere to record them.
-    unresolved: List[Requirement] = []
-    unresolved_notes: Dict[str, str] = {}
-    skipped: Set[str] = set()
-    roots_requested = bool(root_requests)
-    for request in root_requests:
-        if len(request) < 3:
-            raise RuntimeError(f"Invalid root request: {request!r}")
-        name, version, role = request[:3]
-        repo_name = request[3] if len(request) >= 4 else None
-        exact_arch = request[4] if len(request) >= 5 else None
-        source_scope = request[5] if len(request) >= 6 else None
-        repo_identity = request[6] if len(request) >= 7 else None
-        match = _find_root(name, version, index, preferred_arch, role, repo_name, exact_arch, source_scope, repo_identity)
-        if match and not _satisfies_constraints(index, match.package, constraints.get(match.package.name, ())):
-            if constrained_index is None:
-                constrained_index = build_provider_index([
-                    p for p in packages if _satisfies_constraints(index, p, constraints.get(p.name, ()))], reporter)
-            match = _find_root(name, version, constrained_index, preferred_arch, role, repo_name,
-                               exact_arch, source_scope, repo_identity) or match
-        if not match:
-            # Report every missing root together rather than aborting on the
-            # first. A preset lists tools that span several repositories, and
-            # dying on one absent package hid the other 29 that were fine.
-            detail = f"No provider found for '{name}'"
-            if version:
-                detail += f" version '{version}'"
-            if repo_name:
-                detail += f" in repository '{repo_name}'"
-            if exact_arch:
-                detail += f" for architecture '{exact_arch}'"
-            if source_scope == "distribution":
-                detail += " in the distribution repository set"
-            if name in options.optional_roots:
-                skipped.add(f"{name} (optional; not offered by the configured sources)")
-                reporter.log(f"Skipping optional package '{name}': not present in any enabled source")
-                continue
-            requirement = Requirement(name, None, kind="root")
-            unresolved.append(requirement)
-            unresolved_notes[format_requirement(requirement)] = (
-                detail + ". Enable a repository that carries it (EPEL and CRB/PowerTools hold "
-                "many tools absent from BaseOS/AppStream), or remove it from the selection.")
-            reporter.log("UNRESOLVED root: " + detail)
-            continue
-        roots.append(match.package)
-        root_names.add(match.package.name)
-        reporter.log(f"Root: {match.package.nevra} [{match.package.repo.name}]")
-
-    if roots_requested and not roots:
-        raise RuntimeError(
-            "None of the selected packages were found in any enabled source. This usually means "
-            "the sources are for a different release or architecture than the target, or that no "
-            "source carrying operating-system packages is enabled.")
-    if not options.include_dependencies:
-        unique = {p.name: p for p in roots}
-        return ResolutionResult(selected=sorted(unique.values(), key=lambda p: p.name), unresolved=unresolved, roots=roots,
-                                unresolved_notes=unresolved_notes, skipped_installed=sorted(skipped),
-                                reasons={p.nevra: "requested package" for p in unique.values()}), []
-
-    selected_by_name: Dict[str, Package] = {}
-    pending_by_name: Dict[str, Package] = {p.name: p for p in roots}
-    queue = deque(roots)
-    unresolved_keys: Set[Tuple[object, ...]] = set()
-    reasons: Dict[str, str] = {p.nevra: "requested package" for p in roots}
-    installed_satisfied: Set[str] = set()
-
-    while queue:
-        reporter.check_cancel()
-        pkg = queue.popleft()
-        pending_by_name.pop(pkg.name, None)
-        existing = selected_by_name.get(pkg.name)
-        if existing is not None:
-            if existing.nevra != pkg.nevra:
-                reporter.log(f"Keeping {existing.nevra}; ignoring alternate {pkg.nevra}")
-            continue
-        selected_by_name[pkg.name] = pkg
-
-        reqs = list(pkg.requires)
-        if options.include_recommends:
-            reqs.extend(pkg.recommends)
-        for req in reqs:
-            if should_ignore(req):
-                continue
-            reason_override = None
-            if req.name.startswith("("):
-                rich_with = parse_simple_rich_with(req)
-                if rich_with is not None:
-                    all_current = list(selected_by_name.values()) + list(pending_by_name.values())
-                    if any(_package_satisfies_all(index, current, rich_with) for current in all_current):
-                        continue
-                    if inventory_satisfies_same_package(options.target_inventory, rich_with):
-                        installed_satisfied.add(format_requirement(req))
-                        continue
-                    same_pkg_candidates = _same_package_provider_candidates(index, rich_with)
-                    provider = pick(same_pkg_candidates, canonical_capability_name(rich_with[0].name))
-                    if provider is None:
-                        key = (req.name, req.flags, req.evr, "rich-with")
-                        if key not in unresolved_keys:
-                            unresolved_keys.add(key); unresolved.append(req)
-                            unresolved_notes[format_requirement(req)] = _rich_with_note(index, rich_with)
-                            reporter.log(f"UNRESOLVED rich WITH {format_requirement(req)} required by {pkg.nevra}: {unresolved_notes[format_requirement(req)]}")
-                        continue
-                    chosen = provider.package
-                    already = selected_by_name.get(chosen.name) or pending_by_name.get(chosen.name)
-                    if already is not None:
-                        if not _package_satisfies_all(index, already, rich_with):
-                            for operand in rich_with:
-                                discovered.append((chosen.name, operand))
-                            key = (req.name, req.flags, req.evr, "rich-with-version-conflict")
-                            if key not in unresolved_keys:
-                                unresolved_keys.add(key); unresolved.append(req)
-                                unresolved_notes[format_requirement(req)] = f"Selected package {already.nevra} does not satisfy every operand of this RPM rich 'with' expression"
-                                reporter.log(f"UNRESOLVED rich WITH version constraint {format_requirement(req)}; selected {already.nevra}")
-                        continue
-                    pending_by_name[chosen.name] = chosen
-                    queue.append(chosen)
-                    reasons.setdefault(chosen.nevra, f"required by {pkg.name}: {format_requirement(req)}")
-                    reporter.log(f"RICH WITH -> {chosen.nevra} satisfies all operands of {format_requirement(req)}")
-                    continue
-
-                rich_or = parse_simple_rich_or(req)
-                if rich_or is not None:
-                    all_current = list(selected_by_name.values()) + list(pending_by_name.values())
-                    if any(_selected_or_pending_satisfies(all_current, branch, index)
-                           for branch in rich_or):
-                        continue
-                    if any(inventory_satisfies(options.target_inventory, branch) for branch in rich_or):
-                        installed_satisfied.add(format_requirement(req))
-                        continue
-                    branch_matches: List[ProviderMatch] = []
-                    for branch in rich_or:
-                        branch_matches.extend(
-                            match for match in _provider_candidates(index, branch)
-                            if evr_satisfies(match.provide, branch, match.package))
-                    # De-duplicate identical packages that happen to satisfy more
-                    # than one branch while preserving provider-ranking input.
-                    seen_nevra = set()
-                    candidates = []
-                    for match in branch_matches:
-                        if match.package.nevra not in seen_nevra:
-                            seen_nevra.add(match.package.nevra)
-                            candidates.append(match)
-                    provider = pick(candidates, req.name)
-                    if provider is None:
-                        key = (req.name, req.flags, req.evr, "rich-or")
-                        if key not in unresolved_keys:
-                            unresolved_keys.add(key); unresolved.append(req)
-                            branch_text = " or ".join(format_requirement(branch) for branch in rich_or)
-                            unresolved_notes[format_requirement(req)] = (
-                                f"No enabled package satisfies any branch of this RPM rich dependency: {branch_text}")
-                            reporter.log(f"UNRESOLVED rich OR {format_requirement(req)} required by {pkg.nevra}")
-                        continue
-                    chosen = provider.package
-                    already = selected_by_name.get(chosen.name) or pending_by_name.get(chosen.name)
-                    if already is not None:
-                        # The same package name may already have been selected at
-                        # a version that does not satisfy the branch represented
-                        # by this provider; let the ordinary version-floor pass
-                        # discover a correction where possible.
-                        matching_branch = next((branch for branch in rich_or
-                                                if _indexed_package_satisfies(index, already, branch)), None)
-                        if matching_branch is None:
-                            branch = next((branch for branch in rich_or
-                                           if _indexed_package_satisfies(index, chosen, branch)), rich_or[0])
-                            discovered.append((chosen.name, branch))
-                            if req not in unresolved:
-                                unresolved.append(req)
-                                unresolved_notes[format_requirement(req)] = "Selected provider does not satisfy this rich OR dependency"
-                        continue
-                    pending_by_name[chosen.name] = chosen
-                    queue.append(chosen)
-                    reasons.setdefault(chosen.nevra,
-                                       f"required by {pkg.name}: {format_requirement(req)}")
-                    reporter.log(f"RICH OR -> {chosen.nevra} satisfies {format_requirement(req)}")
-                    continue
-
-                parsed_rich = parse_simple_rich_if(req)
-                if parsed_rich is None:
-                    key = (req.name, req.flags, req.evr, "rich")
-                    if key not in unresolved_keys:
-                        unresolved_keys.add(key); unresolved.append(req)
-                        unresolved_notes[format_requirement(req)] = "Unsupported/ambiguous RPM rich dependency expression"
-                        reporter.log(f"UNRESOLVED unsupported rich dependency {format_requirement(req)}")
-                    continue
-                consequence, condition = parsed_rich
-                all_current = list(selected_by_name.values()) + list(pending_by_name.values())
-                condition_true = (_selected_or_pending_satisfies(all_current + list(getattr(options, "_transaction_candidates", [])), condition, index) or
-                                  inventory_satisfies(options.target_inventory, condition))
-                if options.target_inventory is not None and not condition_true:
-                    # With a concrete target inventory, honor the `if` and do
-                    # not collect the consequence when its condition is absent.
-                    reporter.log(f"SKIP conditional dependency {format_requirement(consequence)}; target does not satisfy {format_requirement(condition)}")
-                    continue
-                # Without a target inventory we cannot know which standard OS
-                # capabilities are already installed. For an offline COMPLETE
-                # bundle, conservatively include the consequence so the bundle
-                # works when the condition is present on the destination.
-                req = consequence
-                reason_override = f"conditional dependency of {pkg.name}: {format_requirement(consequence)} if {format_requirement(condition)}"
-                reporter.log(f"RICH IF -> resolving {format_requirement(consequence)} (condition: {format_requirement(condition)})")
-            all_current = list(selected_by_name.values()) + list(pending_by_name.values())
-            if _selected_or_pending_satisfies(all_current, req, index):
-                continue
-            if inventory_satisfies(options.target_inventory, req):
-                installed_satisfied.add(format_requirement(req))
-                continue
-            all_candidates = _provider_candidates(index, req)
-            candidates = [m for m in all_candidates if evr_satisfies(m.provide, req, m.package)]
-            provider = pick(candidates, canonical_capability_name(req.name))
-            if provider is None:
-                key = (canonical_capability_name(req.name), req.flags, req.evr, req.kind)
-                if key not in unresolved_keys:
-                    unresolved_keys.add(key); unresolved.append(req)
-                    unresolved_notes[format_requirement(req)] = _requirement_note(req, all_candidates)
-                    reporter.log(f"UNRESOLVED {format_requirement(req)} required by {pkg.nevra}: {unresolved_notes[format_requirement(req)]}")
-                continue
-            chosen = provider.package
-            already = selected_by_name.get(chosen.name) or pending_by_name.get(chosen.name)
-            if already is not None:
-                if not _indexed_package_satisfies(index, already, req):
-                    # Ask for another pass pinned to this constraint; if no
-                    # candidate can satisfy every accumulated floor, the next
-                    # pass reports it as unresolved and the build stays blocked.
-                    discovered.append((chosen.name, req))
-                    key = (req.name, req.flags, req.evr, "version-conflict")
-                    if key not in unresolved_keys:
-                        unresolved_keys.add(key); unresolved.append(req)
-                        unresolved_notes[format_requirement(req)] = (
-                            f"Selected package {already.nevra} does not satisfy this version constraint")
-                        reporter.log(f"VERSION CONFLICT {format_requirement(req)}; selected {already.nevra}")
-                continue
-            pending_by_name[chosen.name] = chosen
-            queue.append(chosen)
-            reasons.setdefault(chosen.nevra, reason_override or f"required by {pkg.name}: {format_requirement(req)}")
-
-    selected = sorted(selected_by_name.values(), key=lambda p: (p.repo.priority, p.name, p.nevra))
-
-    conflicts: List[str] = []
-    conflict_seen: Set[str] = set()
-    for pkg in selected:
-        for req in pkg.conflicts:
-            if should_ignore(req):
-                continue
-            for other in selected:
-                if other.name == pkg.name:
-                    continue
-                if package_satisfies(other, req):
-                    text = f"{pkg.nevra} conflicts with {other.nevra} via {format_requirement(req)}"
-                    if text not in conflict_seen:
-                        conflict_seen.add(text); conflicts.append(text)
-            if inventory_satisfies(options.target_inventory, req):
-                text = f"{pkg.nevra} conflicts with an installed target capability: {format_requirement(req)}"
-                if text not in conflict_seen:
-                    conflict_seen.add(text); conflicts.append(text)
-
-    # `skipped` was seeded above with optional roots that were not offered by
-    # any source; keep those entries rather than starting a fresh list.
-    # Target-aware mode uses capabilities during resolution. Exact package
-    # matches are reported for visibility, but roots are never omitted.
-    if options.target_inventory:
-        for pkg in selected:
-            if pkg.name not in root_names and pkg.nevra in options.target_inventory.nevras:
-                skipped.add(pkg.nevra)
-        if skipped:
-            selected = [p for p in selected if p.nevra not in set(skipped)]
-
-    outcome = ResolutionResult(
-        selected=selected, unresolved=unresolved, roots=roots,
-        skipped_installed=sorted(skipped), conflicts=conflicts,
-        reasons=reasons, installed_satisfied=sorted(installed_satisfied),
-        unresolved_notes=unresolved_notes,
+def _resolve_pass(root_requests, packages, preferred_arch, options, reporter, constraints, rejected=None):
+    return _rpm_resolution._resolve_pass(
+        root_requests, packages, preferred_arch, options, reporter, constraints, rejected,
+        build_provider_index_fn=build_provider_index,
     )
-    outcome.provider_choices = provider_choices
-    return outcome, discovered
 
+def _resolve_once(root_requests, packages, preferred_arch, options, reporter):
+    return _rpm_resolution._resolve_once(
+        root_requests, packages, preferred_arch, options, reporter,
+        build_provider_index_fn=build_provider_index,
+    )
 
-def package_versions(packages: Sequence[Package], name: str, role: Optional[str], preferred_arch: str) -> List[str]:
-    vals = [p for p in packages if p.name == name and (not role or p.repo.role == role)
-            and p.arch in {preferred_arch, "noarch"}]
-    from functools import cmp_to_key
-    vals.sort(key=cmp_to_key(lambda a, b: -compare_evr(a.evr, b.evr)))
-    seen: Set[str] = set(); out: List[str] = []
-    for p in vals:
-        if p.evr_text not in seen:
-            seen.add(p.evr_text); out.append(p.evr_text)
-    return out
+def resolve(root_requests, packages, preferred_arch, options, reporter):
+    from transaction_model import resolve_transaction
+    return resolve_transaction(
+        _resolve_once, root_requests, packages, preferred_arch, options, reporter, 'rpm')
 
 
 def sha256_file(path: Path) -> str:
@@ -2218,812 +1357,120 @@ def hash_file(path: Path, algorithm: str) -> str:
 # intentionally stricter than generic hashlib support.  Weak repository hashes
 # can still be parsed for diagnostics, but they are not accepted as security
 # evidence.
-STRONG_PACKAGE_HASHES = {"sha256", "sha384", "sha512"}
 
 
-def normalized_hash_algorithm(value: str) -> str:
-    algo = (value or "").strip().lower().replace("-", "")
-    aliases = {"sha2": "sha256", "sha256sum": "sha256", "sha384sum": "sha384",
-               "sha512sum": "sha512", "sha": "sha1"}
-    return aliases.get(algo, algo)
 
 
-def strong_package_digest(checksum_type: str, checksum: str) -> Optional[Tuple[str, str]]:
-    algo = normalized_hash_algorithm(checksum_type)
-    value = (checksum or "").strip().lower()
-    if algo in STRONG_PACKAGE_HASHES and value:
-        return algo, value
-    return None
 
 
 # digest selection is a first-class
 # provenance control. Keep all published SHA-2 values and choose according to
 # repository policy rather than hard-coding SHA-256 or whichever field happened
 # to be parsed first.
-_DIGEST_STRENGTH_ORDER = ("sha512", "sha384", "sha256")
-
-def normalized_digest_map(values: Optional[Dict[str, str]]) -> Dict[str, str]:
-    result: Dict[str, str] = {}
-    for algo, value in (values or {}).items():
-        norm = normalized_hash_algorithm(algo)
-        text = str(value or "").strip().lower()
-        if norm in STRONG_PACKAGE_HASHES and text:
-            result[norm] = text
-    return result
-
-def select_digest_from_map(values: Optional[Dict[str, str]], preference: str = "auto")         -> Optional[Tuple[str, str]]:
-    """Return the strongest published digest meeting the configured minimum.
-
-    Explicit SHA choices are minimum-strength requirements. This keeps a
-    mixed repository set coherent: a SHA-256 minimum accepts a source publishing
-    SHA-512 without forcing every source to expose the identical field.
-    """
-    digests = normalized_digest_map(values)
-    pref = normalized_hash_algorithm(preference or "auto")
-    accepted: Tuple[str, ...]
-    if pref == "auto":
-        accepted = _DIGEST_STRENGTH_ORDER
-    elif pref == "sha256":
-        accepted = ("sha512", "sha384", "sha256")
-    elif pref == "sha384":
-        accepted = ("sha512", "sha384")
-    elif pref == "sha512":
-        accepted = ("sha512",)
-    else:
-        return None
-    for algo in accepted:
-        if algo in digests:
-            return algo, digests[algo]
-    return None
 
 
-def vendor_signature_settings(repo: RepoSpec, options: BuildOptions) -> Tuple[str, str, bool]:
-    """Return ``(vendor_id, keyring_path, required)`` for one RPM source.
-
-    once a vendor-scoped mapping is
-    supplied there is deliberately no global-key fallback.  This makes the
-    isolation rule explicit and independently testable.
-    """
-    vendor_id = getattr(repo, "vendor_id", "") or infer_vendor_id(repo.name, repo.url)
-    keyring = options.vendor_keyrings.get(vendor_id, "")
-    required = vendor_id in options.require_vendor_signatures_by_vendor
-    if not options.vendor_keyrings:
-        keyring = keyring or options.vendor_keyring
-        required = required or options.require_vendor_signatures
-    return vendor_id, keyring, required
 
 
-def repository_verification_strategy(repo: RepoSpec) -> str:
-    """Return the verification strategy for a repository.
-
-    Older RepoSpec instances may not have an explicit strategy. Infer their
-    historical Required?/evidence combination so CLI callers and existing
-    profiles remain compatible while the GUI uses the clearer strategy model.
-    """
-    explicit = (getattr(repo, "verification_strategy", "") or "").strip().lower()
-    valid = {"checksum-required", "checksum-available", "evidence-fallback",
-             "full-corroboration", "skip-provenance"}
-    if explicit in valid:
-        return explicit
-    required = (getattr(repo, "digest_requirement", "preferred") or "preferred").strip().lower() == "required"
-    evidence = (getattr(repo, "evidence_policy", "off") or "off").strip().lower()
-    if required and evidence == "required":
-        return "full-corroboration"
-    if required:
-        # Legacy required-checksum mode did not use evidence mirrors.
-        return "checksum-required"
-    if evidence == "fallback-required":
-        return "evidence-fallback"
-    if evidence == "required":
-        return "legacy-evidence-required"
-    if evidence == "fallback":
-        return "legacy-fallback"
-    if evidence == "best-effort":
-        return "legacy-corroborate"
-    return "checksum-available"
-
-def package_digest_map(pkg) -> Dict[str, str]:
-    digests = normalized_digest_map(getattr(pkg, "digests", None))
-    legacy = strong_package_digest(getattr(pkg, "checksum_type", ""),
-                                   getattr(pkg, "checksum", ""))
-    if legacy:
-        digests.setdefault(legacy[0], legacy[1])
-    return digests
-
-def selected_package_digest(pkg) -> Optional[Tuple[str, str]]:
-    preference = getattr(getattr(pkg, "repo", None), "digest_preference", "auto")
-    return select_digest_from_map(package_digest_map(pkg), preference)
-
-def package_has_selected_digest(pkg) -> bool:
-    return selected_package_digest(pkg) is not None
 
 
-def mirrors_are_distinct(primary_url: str, evidence_url: str) -> Tuple[bool, str]:
-    """Conservative endpoint-independence check for a source bond.
-
-    Different hostnames are necessary, though not sufficient, evidence of an
-    independent mirror operator.  Feathered records that limitation rather than
-    claiming organizational independence it cannot prove from URLs alone.
-    """
-    a = urllib.parse.urlparse(primary_url)
-    b = urllib.parse.urlparse(evidence_url)
-    if not a.scheme or not b.scheme:
-        return False, "both mirror URLs must be absolute"
-    if a.scheme == "file" or b.scheme == "file":
-        return False, "local file repositories are not independent network mirrors"
-    if (a.hostname or "").lower() == (b.hostname or "").lower():
-        return False, "same hostname"
-    if primary_url.rstrip("/") == evidence_url.rstrip("/"):
-        return False, "same repository endpoint"
-    return True, "different hostnames"
 
 
-def _artifact_verification(pkg) -> ArtifactVerification:
-    record = getattr(pkg, "verification", None)
-    if record is None:
-        record = ArtifactVerification()
-        setattr(pkg, "verification", record)
-    return record
 
 
-def evidence_relationship(primary_repo: RepoSpec, evidence_url: str) -> str:
-    """Return the explicit evidence relationship selected for this endpoint.
-
-    Profile/UI hints normally win. Impossible stale exact-mirror hints between
-    distinct Enterprise Linux rebuild vendors are downgraded to semantic peers.
-    Without a usable hint, Feathered falls back conservatively: known EL
-    rebuild-family cross-vendor sources are semantic peers; arbitrary sources
-    can prove only exact artifact equality.
-    """
-    hints = dict(getattr(primary_repo, "evidence_relationship_hints", {}) or {})
-    hint = hints.get(str(evidence_url), "")
-    return classify_relationship(primary_repo, evidence_url, hint=hint)
 
 
-def evidence_authority_relationship(primary_repo: RepoSpec, evidence_url: str) -> str:
-    return dict(getattr(primary_repo, "evidence_authority_hints", {}) or {}).get(
-        str(evidence_url), AUTH_UNKNOWN)
 
 
-def _rpm_source_lineage(source_rpm: str) -> Optional[Tuple[str, str, str]]:
-    """Return conservative (source-name, version, release) lineage from SRPM name."""
-    text = posixpath.basename(str(source_rpm or "").strip())
-    if text.endswith(".src.rpm"):
-        text = text[:-8]
-    elif text.endswith(".nosrc.rpm"):
-        text = text[:-10]
-    else:
-        return None
-    parts = text.rsplit("-", 2)
-    if len(parts) != 3 or not parts[0] or not parts[1]:
-        return None
-    return parts[0], parts[1], parts[2]
 
 
-def independent_peer_packages_match(primary_pkg, evidence_pkg) -> Tuple[bool, str, bool]:
-    """Compare semantic identity for independently rebuilt RPM packages.
-
-    Returns (match, detail, source_lineage_match). Binary release strings and
-    byte sizes are deliberately not required to match: rebuild distributions may
-    legitimately produce different RPM payloads.
-    """
-    if evidence_pkg is None:
-        return False, "peer does not publish the package", False
-    fields = ("name", "arch", "epoch", "version")
-    mismatches = [f for f in fields
-                  if str(getattr(primary_pkg, f, "") or "") !=
-                     str(getattr(evidence_pkg, f, "") or "")]
-    if mismatches:
-        return False, "peer differs in " + ", ".join(mismatches), False
-    p_lineage = _rpm_source_lineage(getattr(primary_pkg, "source_rpm", ""))
-    e_lineage = _rpm_source_lineage(getattr(evidence_pkg, "source_rpm", ""))
-    if p_lineage and e_lineage:
-        if p_lineage != e_lineage:
-            return False, (f"source lineage differs: acquisition {p_lineage[0]}-{p_lineage[1]}-{p_lineage[2]} "
-                           f"vs peer {e_lineage[0]}-{e_lineage[1]}-{e_lineage[2]}"), False
-        return True, "package identity and source lineage agree", True
-    # When source-RPM lineage is unavailable on either side, do not silently
-    # weaken the comparison all the way to upstream version alone. Require the
-    # binary package release to agree as a conservative fallback.
-    if str(getattr(primary_pkg, "release", "") or "") != str(getattr(evidence_pkg, "release", "") or ""):
-        return False, "source lineage is unavailable and package release differs", False
-    return True, "package name/version/release/architecture agree; source lineage unavailable on one side", False
 
 
-def find_independent_peer_package(primary_pkg, evidence_packages):
-    """Find the best semantic peer without fuzzy package-name inference."""
-    candidates = [p for p in evidence_packages
-                  if getattr(p, "name", "") == getattr(primary_pkg, "name", "")
-                  and getattr(p, "arch", "") == getattr(primary_pkg, "arch", "")
-                  and str(getattr(p, "epoch", "") or "0") == str(getattr(primary_pkg, "epoch", "") or "0")
-                  and getattr(p, "version", "") == getattr(primary_pkg, "version", "")]
-    if not candidates:
-        return None
-    # Exact release is preferred when available, but not required for a rebuild peer.
-    exact = [p for p in candidates if getattr(p, "release", "") == getattr(primary_pkg, "release", "")]
-    return (exact or candidates)[0]
 
 
-def evidence_repo_for_url(primary_repo: RepoSpec, evidence_url: str) -> RepoSpec:
-    """Create a credential-isolated repository spec for an evidence endpoint."""
-    evidence_repo = replace(
-        primary_repo, name=f"{primary_repo.name} [evidence]", url=evidence_url, optional=True,
-        client_cert="", client_key="", ca_cert="", keyring="",
-        vendor_id=infer_vendor_id("", evidence_url),
-        evidence_urls=[], evidence_suggestions=[], evidence_policy="off",
-        verification_strategy="checksum-available")
-    evidence_repo._evidence_distinct_from = primary_repo.normalized_url
-    evidence_repo._evidence_distinct_effective_origins = set(
-        getattr(primary_repo, "_effective_origins", set()) or set())
-    evidence_repo._evidence_distinct_effective_hosts = set(
-        getattr(primary_repo, "_effective_hosts", set()) or set())
-    return evidence_repo
 
 
-def evidence_artifact_candidates(evidence_url: str, package_location: str,
-                                 evidence_location: str = "") -> List[str]:
-    """Return deterministic exact-artifact URLs beneath an evidence endpoint.
 
-    A direct package URL (.rpm/.deb/.pkg.tar.*) is accepted only when its basename matches the exact
-    package basename. Otherwise Feathered preserves repository-relative layout; it
-    never scrapes directories or guesses similar filenames.
-    """
-    base = (evidence_url or "").strip()
-    if not base:
-        return []
-    primary_name = posixpath.basename(urllib.parse.urlsplit(package_location or "").path)
-    evidence_name = posixpath.basename(urllib.parse.urlsplit(evidence_location or "").path)
-    parsed = urllib.parse.urlsplit(base)
-    direct_name = posixpath.basename(parsed.path)
-    if direct_name.lower().endswith((".rpm", ".deb", ".pkg.tar.zst", ".pkg.tar.xz",
-                                     ".pkg.tar.gz", ".pkg.tar.bz2", ".pkg.tar.lz4")):
-        expected = evidence_name or primary_name
-        return [base] if expected and direct_name == expected else []
-    out: List[str] = []
-    for location in (evidence_location, package_location):
-        if not location:
-            continue
-        try:
-            candidate = repo_relative_url(base, location)
-        except RuntimeError:
-            continue
-        if candidate not in out:
-            out.append(candidate)
-    return out
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Artifact digest policy and independent-evidence verification live in
+# artifact_verification.py.  Transport and hashing remain dynamic core hooks so
+# existing callers can still replace them at runtime.
+STRONG_PACKAGE_HASHES = _artifact_verification_engine.STRONG_PACKAGE_HASHES
+_DIGEST_STRENGTH_ORDER = _artifact_verification_engine._DIGEST_STRENGTH_ORDER
+normalized_hash_algorithm = _artifact_verification_engine.normalized_hash_algorithm
+strong_package_digest = _artifact_verification_engine.strong_package_digest
+normalized_digest_map = _artifact_verification_engine.normalized_digest_map
+select_digest_from_map = _artifact_verification_engine.select_digest_from_map
+vendor_signature_settings = _artifact_verification_engine.vendor_signature_settings
+repository_verification_strategy = _artifact_verification_engine.repository_verification_strategy
+package_digest_map = _artifact_verification_engine.package_digest_map
+selected_package_digest = _artifact_verification_engine.selected_package_digest
+package_has_selected_digest = _artifact_verification_engine.package_has_selected_digest
+mirrors_are_distinct = _artifact_verification_engine.mirrors_are_distinct
+_artifact_verification = _artifact_verification_engine._artifact_verification
+evidence_relationship = _artifact_verification_engine.evidence_relationship
+evidence_authority_relationship = _artifact_verification_engine.evidence_authority_relationship
+_rpm_source_lineage = _artifact_verification_engine._rpm_source_lineage
+independent_peer_packages_match = _artifact_verification_engine.independent_peer_packages_match
+find_independent_peer_package = _artifact_verification_engine.find_independent_peer_package
+evidence_repo_for_url = _artifact_verification_engine.evidence_repo_for_url
+evidence_artifact_candidates = _artifact_verification_engine.evidence_artifact_candidates
+_evidence_comparison_algorithm = _artifact_verification_engine._evidence_comparison_algorithm
+apply_mirror_evidence = _artifact_verification_engine.apply_mirror_evidence
 
 def probe_evidence_artifact(url: str, repo: RepoSpec, reporter: Reporter) -> Tuple[bool, str]:
-    """Check that an exact evidence artifact is readable without downloading it all."""
-    try:
-        parsed = urllib.parse.urlsplit(url)
-        if parsed.scheme == "file":
-            local = Path(urllib.request.url2pathname(parsed.path))
-            if not local.is_file():
-                return False, f"Artifact file does not exist: {local}"
-            if local.stat().st_size <= 0:
-                return False, f"Artifact file is empty: {local.name}"
-            return True, f"Artifact file is readable ({local.stat().st_size:,} bytes)"
-        with _urlopen(url, timeout=25, repo=repo) as response:
-            sample = response.read(1)
-            if not sample:
-                return False, "Artifact endpoint returned an empty response"
-            length = response.headers.get("Content-Length", "") if getattr(response, "headers", None) else ""
-            detail = "Exact package artifact is readable"
-            if str(length).isdigit():
-                detail += f" ({int(length):,} bytes advertised)"
-            return True, detail
-    except Exception as exc:
-        return False, redact_text(str(exc))
-
+    return _artifact_verification_engine.probe_evidence_artifact(
+        url, repo, reporter, open_url_fn=_urlopen)
 
 def _stream_hash_url(url: str, algorithms: Iterable[str], repo: RepoSpec,
-                     reporter: Reporter,
-                     max_bytes: int = MAX_PACKAGE_DOWNLOAD_BYTES) -> Tuple[Dict[str, str], int]:
-    algos = list(dict.fromkeys(normalized_hash_algorithm(a) for a in algorithms if a))
-    if not algos:
-        raise RuntimeError("No checksum algorithm was selected for independent evidence")
-    hashers = {algo: hashlib.new(algo) for algo in algos}
-    total = 0
-    parsed = urllib.parse.urlsplit(url)
-    if parsed.scheme == "file":
-        stream = Path(urllib.request.url2pathname(parsed.path)).open("rb")
-    else:
-        stream = _urlopen(url, timeout=90, repo=repo)
-    try:
-        if parsed.scheme != "file" and hasattr(stream, "headers"):
-            declared = stream.headers.get("Content-Length")
-            try:
-                declared_size = int(declared) if declared is not None else None
-            except (TypeError, ValueError):
-                declared_size = None
-            if declared_size is not None and declared_size > max_bytes:
-                raise RuntimeError(
-                    f"Artifact response is {declared_size:,} bytes, above Feathered's "
-                    f"{max_bytes:,}-byte per-artifact limit")
-        while True:
-            reporter.check_cancel()
-            chunk = stream.read(1024 * 1024)
-            if not chunk:
-                break
-            total += len(chunk)
-            if total > max_bytes:
-                raise RuntimeError(
-                    f"Artifact response exceeded Feathered's {max_bytes:,}-byte per-artifact limit")
-            for hasher in hashers.values():
-                hasher.update(chunk)
-    finally:
-        stream.close()
-    return {algo: hasher.hexdigest().lower() for algo, hasher in hashers.items()}, total
-
-
+                     reporter: Reporter, max_bytes: int = MAX_PACKAGE_DOWNLOAD_BYTES) -> Tuple[Dict[str, str], int]:
+    return _artifact_verification_engine._stream_hash_url(
+        url, algorithms, repo, reporter, max_bytes, open_url_fn=_urlopen)
 
 def spot_compare_artifact_urls(acquisition_url: str, acquisition_repo: RepoSpec,
                                evidence_url: str, evidence_repo: RepoSpec,
                                checksum_policy: str, reporter: Reporter) -> Tuple[bool, str]:
-    """Hash one acquisition/evidence artifact pair without persisting either copy.
-
-    This is a configuration spot test used by the GUI. It proves that the selected
-    evidence endpoint can independently serve the same exact bytes for one
-    representative artifact. It is deliberately not a substitute for the build-time
-    per-package corroboration performed by ``_verify_independent_evidence_payload``.
-    """
-    policy = normalized_hash_algorithm(checksum_policy or "auto")
-    algorithm = "sha512" if policy == "auto" else policy
-    if algorithm not in STRONG_PACKAGE_HASHES:
-        return False, f"Unsupported evidence checksum policy: {checksum_policy or 'unset'}"
-    try:
-        acquisition_hashes, acquisition_size = _stream_hash_url(
-            acquisition_url, [algorithm], acquisition_repo, reporter)
-    except Exception as exc:
-        return False, "Could not hash the acquisition artifact: " + redact_text(str(exc))
-    try:
-        evidence_hashes, evidence_size = _stream_hash_url(
-            evidence_url, [algorithm], evidence_repo, reporter)
-    except Exception as exc:
-        return False, "Could not hash the evidence artifact: " + redact_text(str(exc))
-    if acquisition_size != evidence_size:
-        return False, (
-            f"Artifact size mismatch: acquisition is {acquisition_size:,} bytes and evidence is "
-            f"{evidence_size:,} bytes")
-    acquisition_digest = acquisition_hashes[algorithm]
-    evidence_digest = evidence_hashes[algorithm]
-    if not hmac.compare_digest(acquisition_digest, evidence_digest):
-        return False, f"Artifact checksum mismatch under {algorithm.upper()}"
-    return True, (
-        f"Spot check passed: acquisition and evidence artifacts match under {algorithm.upper()} "
-        f"({acquisition_size:,} bytes)")
+    return _artifact_verification_engine.spot_compare_artifact_urls(
+        acquisition_url, acquisition_repo, evidence_url, evidence_repo, checksum_policy, reporter,
+        open_url_fn=_urlopen)
 
 def spot_compare_peer_artifact_urls(primary_pkg, acquisition_url: str, acquisition_repo: RepoSpec,
                                     evidence_pkg, evidence_url: str, evidence_repo: RepoSpec,
                                     checksum_policy: str, reporter: Reporter) -> Tuple[bool, str]:
-    """Spot-check an independent rebuild peer without requiring identical bytes.
-
-    The two artifacts are independently hashed and, when their repositories
-    publish usable strong digests, each artifact is checked against its own
-    repository claim. The cross-source assertion is semantic identity/source
-    lineage, not binary equality.
-    """
-    semantic_ok, semantic_detail, _lineage = independent_peer_packages_match(primary_pkg, evidence_pkg)
-    if not semantic_ok:
-        return False, "Independent peer disagreement: " + semantic_detail
-    policy = normalized_hash_algorithm(checksum_policy or "auto")
-    algorithm = "sha512" if policy == "auto" else policy
-    if algorithm not in STRONG_PACKAGE_HASHES:
-        return False, f"Unsupported evidence checksum policy: {checksum_policy or 'unset'}"
-    primary_meta = selected_package_digest(primary_pkg)
-    evidence_meta = selected_package_digest(evidence_pkg)
-    algos = [algorithm]
-    for item in (primary_meta, evidence_meta):
-        if item and item[0] not in algos:
-            algos.append(item[0])
-    try:
-        primary_hashes, primary_size = _stream_hash_url(acquisition_url, algos, acquisition_repo, reporter)
-    except Exception as exc:
-        return False, "Could not hash the acquisition artifact: " + redact_text(str(exc))
-    try:
-        evidence_hashes, evidence_size = _stream_hash_url(evidence_url, algos, evidence_repo, reporter)
-    except Exception as exc:
-        return False, "Could not hash the peer artifact: " + redact_text(str(exc))
-    if primary_meta and not hmac.compare_digest(primary_hashes[primary_meta[0]], primary_meta[1].lower()):
-        return False, f"Acquisition artifact does not match its published {primary_meta[0].upper()} checksum"
-    if evidence_meta and not hmac.compare_digest(evidence_hashes[evidence_meta[0]], evidence_meta[1].lower()):
-        return False, f"Peer artifact does not match its published {evidence_meta[0].upper()} checksum"
-    binary_note = ("binary bytes also happen to match"
-                   if primary_size == evidence_size and hmac.compare_digest(primary_hashes[algorithm], evidence_hashes[algorithm])
-                   else "binary bytes differ, as permitted for an independent rebuild")
-    own_checks = []
-    if primary_meta:
-        own_checks.append("acquisition digest verified")
-    if evidence_meta:
-        own_checks.append("peer digest verified")
-    integrity = "; ".join(own_checks) if own_checks else "independent hashes calculated; no repository digest was available"
-    return True, (f"Independent peer spot check passed: {semantic_detail}; {binary_note}. "
-                  f"{integrity}. {algorithm.upper()} sizes: acquisition {primary_size:,} bytes, "
-                  f"peer {evidence_size:,} bytes")
-
-
-def _evidence_comparison_algorithm(pkg, primary: Optional[Tuple[str, str]]) -> str:
-    if primary:
-        return primary[0]
-    preference = normalized_hash_algorithm(getattr(getattr(pkg, "repo", None), "digest_preference", "auto"))
-    if preference in STRONG_PACKAGE_HASHES:
-        return preference
-    # Automatic evidence fallback must be deterministic even when acquisition
-    # metadata publishes no usable checksum. Use the strongest supported SHA-2.
-    return "sha512"
-
+    return _artifact_verification_engine.spot_compare_peer_artifact_urls(
+        primary_pkg, acquisition_url, acquisition_repo, evidence_pkg, evidence_url, evidence_repo,
+        checksum_policy, reporter, open_url_fn=_urlopen)
 
 def _verify_independent_evidence_payload(pkg, acquisition_path: Path, primary,
                                          computed: Dict[str, str], reporter: Reporter) -> None:
-    """Verify evidence according to the relationship to the acquisition source.
-
-    Exact mirrors/artifact mirrors must reproduce identical bytes. Independent
-    rebuild peers instead must publish a semantically corresponding package and
-    the peer artifact must verify against the peer repository's own strong digest.
-    """
-    record = _artifact_verification(pkg)
-    comparison_algo = _evidence_comparison_algorithm(pkg, primary)
-    if comparison_algo not in computed:
-        computed[comparison_algo] = hash_file(acquisition_path, comparison_algo).lower()
-    acquisition_digest = computed[comparison_algo]
-    acquisition_size = acquisition_path.stat().st_size
-    strategy = repository_verification_strategy(pkg.repo)
-    errors: List[str] = []
-
-    for evidence_url in list(getattr(pkg.repo, "evidence_urls", []) or []):
-        distinct, reason = mirrors_are_distinct(pkg.repo.normalized_url, evidence_url)
-        if not distinct:
-            errors.append(f"{redact_url(evidence_url)} ({reason})")
-            continue
-        relationship = evidence_relationship(pkg.repo, evidence_url)
-        authority = evidence_authority_relationship(pkg.repo, evidence_url)
-        evidence_repo = evidence_repo_for_url(pkg.repo, evidence_url)
-
-        if relationship == REL_REBUILD_PEER:
-            if strategy != "full-corroboration":
-                errors.append(
-                    f"{redact_url(evidence_url)} (independent rebuild peers cannot fill a missing "
-                    "acquisition checksum; Enhanced requires an exact artifact mirror for that gap)")
-                continue
-            if not record.evidence_peer_identity_match or not record.evidence_location:
-                errors.append(
-                    f"{redact_url(evidence_url)} (peer metadata did not establish a matching package identity)")
-                continue
-            metadata_digest = strong_package_digest(record.evidence_digest_type, record.evidence_digest)
-            if not metadata_digest:
-                errors.append(
-                    f"{redact_url(evidence_url)} (peer package publishes no strong checksum meeting the configured policy)")
-                continue
-            try:
-                candidate = repo_relative_url(evidence_url, record.evidence_location)
-            except Exception as exc:
-                errors.append(f"{redact_url(evidence_url)} ({redact_text(str(exc))})")
-                continue
-            algorithms = [comparison_algo]
-            if metadata_digest[0] not in algorithms:
-                algorithms.append(metadata_digest[0])
-            try:
-                reporter.log(
-                    f"EVIDENCE {getattr(pkg, 'nevra', getattr(pkg, 'name', 'package'))}: "
-                    f"hashing independent rebuild peer artifact {redact_url(candidate)}")
-                digests, size = _stream_hash_url(candidate, algorithms, evidence_repo, reporter)
-            except Exception as exc:
-                errors.append(f"{redact_url(candidate)} ({redact_text(str(exc))})")
-                continue
-            if not hmac.compare_digest(digests[metadata_digest[0]], metadata_digest[1].lower()):
-                raise RuntimeError(
-                    f"Independent peer evidence disagreement for {pkg.nevra}: the peer artifact "
-                    f"does not match its published {metadata_digest[0].upper()} checksum")
-            record.evidence_relationship = REL_REBUILD_PEER
-            record.evidence_authority_relationship = authority
-            record.evidence_digest_checked = True
-            record.evidence_artifact_checked = True
-            record.evidence_artifact_digest_type = comparison_algo
-            record.evidence_artifact_digest = digests[comparison_algo]
-            record.evidence_artifact_size = size
-            record.evidence_status = "peer-corroborated"
-            binary_same = (size == acquisition_size and
-                           hmac.compare_digest(acquisition_digest, digests[comparison_algo]))
-            record.notes.append(
-                "Independent rebuild peer corroborated package identity"
-                + (" and source lineage" if record.evidence_source_lineage_match else "")
-                + "; peer artifact verified against its own repository digest; "
-                + ("binary bytes also matched." if binary_same
-                   else "binary bytes differed as permitted for a rebuild peer."))
-            return
-
-        metadata_digest = strong_package_digest(record.evidence_digest_type, record.evidence_digest)
-        candidates = evidence_artifact_candidates(
-            evidence_url, getattr(pkg, "location", ""), record.evidence_location)
-        if not candidates:
-            errors.append(f"{redact_url(evidence_url)} (no exact artifact path can be derived)")
-            continue
-        for candidate in candidates:
-            algorithms = [comparison_algo]
-            if metadata_digest and metadata_digest[0] not in algorithms:
-                algorithms.append(metadata_digest[0])
-            try:
-                reporter.log(
-                    f"EVIDENCE {getattr(pkg, 'nevra', getattr(pkg, 'name', 'package'))}: "
-                    f"hashing independent artifact {redact_url(candidate)}")
-                digests, size = _stream_hash_url(candidate, algorithms, evidence_repo, reporter)
-            except Exception as exc:
-                errors.append(f"{redact_url(candidate)} ({redact_text(str(exc))})")
-                continue
-
-            if size != acquisition_size:
-                raise RuntimeError(
-                    f"Independent evidence disagreement for {pkg.nevra}: acquisition artifact is "
-                    f"{acquisition_size} bytes but {redact_url(candidate)} is {size} bytes")
-            evidence_digest = digests[comparison_algo]
-            if not hmac.compare_digest(acquisition_digest, evidence_digest):
-                raise RuntimeError(
-                    f"Independent evidence disagreement for {pkg.nevra}: acquisition and evidence "
-                    f"artifacts have different {comparison_algo.upper()} checksums")
-            if metadata_digest:
-                actual_metadata_digest = digests[metadata_digest[0]]
-                if not hmac.compare_digest(actual_metadata_digest, metadata_digest[1].lower()):
-                    raise RuntimeError(
-                        f"Independent evidence metadata disagreement for {pkg.nevra}: the evidence "
-                        f"artifact does not match its published {metadata_digest[0].upper()} checksum")
-                record.evidence_digest_checked = True
-
-            record.evidence_relationship = relationship
-            record.evidence_authority_relationship = authority
-            record.evidence_source = redact_url(evidence_url)
-            record.evidence_artifact_checked = True
-            record.evidence_artifact_digest_type = comparison_algo
-            record.evidence_artifact_digest = evidence_digest
-            record.evidence_artifact_size = size
-            record.evidence_status = ("digest-corroborated" if record.evidence_digest_checked
-                                      else "artifact-corroborated")
-            record.notes.append(
-                f"Independent artifact matched acquisition bytes using {comparison_algo.upper()}.")
-            return
-
-    detail = "; ".join(errors[-3:])
-    raise RuntimeError(
-        f"{pkg.nevra}: no configured independent evidence source could satisfy the selected evidence policy"
-        + (f" ({detail})" if detail else ""))
-
-def apply_mirror_evidence(primary_packages, evidence_packages, evidence_repo: RepoSpec,
-                          reporter: Reporter, relationship: str = REL_EXACT_ARTIFACT,
-                          authority: str = AUTH_UNKNOWN) -> Dict[str, int]:
-    """Attach evidence metadata without treating repository-wide skew as a build failure.
-
-    Evidence repository metadata is a locator/index aid. Live mirrors are not atomic
-    snapshots of one another, so an unrelated package that is missing or temporarily
-    divergent must not abort metadata loading for the package transaction being built.
-    Conflicts are recorded per package and decisive enforcement happens when the
-    selected artifact is actually verified. That preserves strict byte equality for
-    exact mirrors while avoiding false global failures during mirror synchronization.
-    """
-    stats = {"matched": 0, "digest": 0, "metadata": 0, "missing": 0,
-             "peer": 0, "conflict": 0}
-    if relationship == REL_REBUILD_PEER:
-        for pkg in primary_packages:
-            record = _artifact_verification(pkg)
-            other = find_independent_peer_package(pkg, evidence_packages)
-            if other is None:
-                if record.evidence_status in {"not-configured", "unavailable"}:
-                    record.evidence_status = "inconclusive"
-                stats["missing"] += 1
-                continue
-            ok, detail, lineage_match = independent_peer_packages_match(pkg, other)
-            record.evidence_relationship = REL_REBUILD_PEER
-            record.evidence_authority_relationship = authority
-            record.evidence_source = redact_url(evidence_repo.normalized_url)
-            record.evidence_location = str(getattr(other, "location", "") or "")
-            record.evidence_peer_package_id = getattr(other, "nevra", "")
-            record.evidence_peer_source_rpm = str(getattr(other, "source_rpm", "") or "")
-            evidence_digest = selected_package_digest(other)
-            if evidence_digest:
-                record.evidence_digest_type, record.evidence_digest = evidence_digest
-            if not ok:
-                record.evidence_status = "metadata-conflict"
-                record.evidence_metadata_match = False
-                record.notes.append("Independent rebuild-peer metadata conflict deferred to selected-package verification: " + detail + ".")
-                stats["conflict"] += 1
-                continue
-            record.evidence_peer_identity_match = True
-            record.evidence_source_lineage_match = lineage_match
-            record.evidence_metadata_match = True
-            evidence_trust: Optional[RepoTrust] = getattr(evidence_repo, "trust", None)
-            record.evidence_archive_signature_verified = bool(
-                evidence_trust and evidence_trust.archive_signature_verified)
-            if evidence_digest:
-                stats["digest"] += 1
-            else:
-                stats["metadata"] += 1
-            record.evidence_status = "peer-metadata-corroborated"
-            record.notes.append("Independent rebuild peer: " + detail + ".")
-            stats["matched"] += 1
-            stats["peer"] += 1
-        return stats
-
-    by_id = {getattr(p, "nevra", ""): p for p in evidence_packages}
-    for pkg in primary_packages:
-        record = _artifact_verification(pkg)
-        other = by_id.get(getattr(pkg, "nevra", ""))
-        if other is None:
-            if record.evidence_status in {"not-configured", "unavailable"}:
-                record.evidence_status = "inconclusive"
-            stats["missing"] += 1
-            continue
-
-        record.evidence_relationship = relationship
-        record.evidence_authority_relationship = authority
-        record.evidence_source = redact_url(evidence_repo.normalized_url)
-        record.evidence_location = str(getattr(other, "location", "") or "")
-        evidence_trust = getattr(evidence_repo, "trust", None)
-        record.evidence_archive_signature_verified = bool(
-            evidence_trust and evidence_trust.archive_signature_verified)
-        evidence_digest = selected_package_digest(other)
-        if evidence_digest:
-            record.evidence_digest_type, record.evidence_digest = evidence_digest
-
-        conflicts = []
-        psize = int(getattr(pkg, "size", 0) or 0)
-        esize = int(getattr(other, "size", 0) or 0)
-        if psize and esize and psize != esize:
-            conflicts.append(f"size differs ({psize} vs {esize} bytes)")
-
-        p_algo = normalized_hash_algorithm(getattr(pkg, "checksum_type", ""))
-        e_algo = normalized_hash_algorithm(getattr(other, "checksum_type", ""))
-        p_raw = str(getattr(pkg, "checksum", "") or "").strip().lower()
-        e_raw = str(getattr(other, "checksum", "") or "").strip().lower()
-        if p_algo and e_algo and p_algo == e_algo and p_raw and e_raw                 and not hmac.compare_digest(p_raw, e_raw):
-            conflicts.append(f"published {p_algo.upper()} differs")
-
-        p_strong = package_digest_map(pkg)
-        e_strong = package_digest_map(other)
-        for shared_algo in sorted(set(p_strong) & set(e_strong)):
-            if not hmac.compare_digest(p_strong[shared_algo], e_strong[shared_algo]):
-                conflicts.append(f"published {shared_algo.upper()} differs")
-                break
-
-        primary_digest = selected_package_digest(pkg)
-        if primary_digest and evidence_digest and primary_digest[0] == evidence_digest[0]                 and not hmac.compare_digest(primary_digest[1], evidence_digest[1]):
-            detail = f"selected {primary_digest[0].upper()} differs"
-            if detail not in conflicts:
-                conflicts.append(detail)
-
-        if conflicts:
-            record.evidence_status = "metadata-conflict"
-            record.evidence_metadata_match = False
-            record.notes.append(
-                "Exact-mirror metadata conflict deferred to selected-package artifact verification: "
-                + "; ".join(conflicts) + ".")
-            stats["conflict"] += 1
-            continue
-
-        record.evidence_metadata_match = True
-        stats["matched"] += 1
-        if primary_digest and evidence_digest:
-            record.evidence_status = "digest-corroborated"
-            stats["digest"] += 1
-        elif evidence_digest:
-            record.evidence_status = "independent-digest"
-            stats["digest"] += 1
-        else:
-            record.evidence_status = "metadata-corroborated"
-            stats["metadata"] += 1
-    return stats
+    return _artifact_verification_engine._verify_independent_evidence_payload(
+        pkg, acquisition_path, primary, computed, reporter,
+        open_url_fn=_urlopen, hash_file_fn=hash_file,
+        mirrors_are_distinct_fn=mirrors_are_distinct,
+        evidence_relationship_fn=evidence_relationship,
+        evidence_authority_relationship_fn=evidence_authority_relationship)
 
 def verify_package_artifact(pkg, path: Path, options: BuildOptions, reporter: Reporter) -> bool:
-    """Verify one cached or freshly transferred package under its strategy.
-
-    Enhanced and Maximum treat independent evidence as an independently
-    retrieved exact package artifact, not merely a second metadata claim.
-    Evidence-repository metadata remains useful extra provenance when present,
-    but an artifact-only mirror can still corroborate bytes.
-    """
-    before = artifact_digests.begin_verification(path)
-    record = _artifact_verification(pkg)
-    strategy = repository_verification_strategy(pkg.repo)
-    primary = selected_package_digest(pkg)
-    evidence = strong_package_digest(record.evidence_digest_type, record.evidence_digest)
-
-    if strategy == "skip-provenance":
-        record.notes.append("Upstream package provenance checks intentionally skipped by operator policy.")
-        record.evidence_status = "skipped"
-        return False
-
-    if strategy == "full-corroboration" and not options.verify_checksums:
-        raise RuntimeError(f"{pkg.nevra}: full corroboration requires acquisition checksum verification")
-
-    checks: List[Tuple[str, str, str]] = []
-    artifact_evidence_required = False
-
-    if strategy == "checksum-required":
-        if not options.verify_checksums:
-            raise RuntimeError(f"{pkg.nevra}: checksum-required strategy cannot run with checksum verification disabled")
-        if not primary:
-            raise RuntimeError(
-                f"{pkg.nevra}: acquisition metadata does not publish a checksum meeting "
-                f"the configured minimum {getattr(pkg.repo, 'digest_preference', 'auto').upper()}")
-        checks.append((primary[0], primary[1], "acquisition metadata"))
-
-    elif strategy == "checksum-available":
-        if options.verify_checksums and primary:
-            checks.append((primary[0], primary[1], "acquisition metadata"))
-
-    elif strategy == "evidence-fallback":
-        if options.verify_checksums and primary:
-            # Enhanced is a gap-filling policy. A qualifying acquisition digest
-            # satisfies it directly; the independent endpoint is retained as an
-            # explicitly configured fallback but is not needlessly downloaded.
-            checks.append((primary[0], primary[1], "acquisition metadata"))
-            record.evidence_status = "not-needed"
-        else:
-            if not list(getattr(pkg.repo, "evidence_urls", []) or []):
-                raise RuntimeError(
-                    f"{pkg.nevra}: Enhanced verification needs an independent evidence source "
-                    "because acquisition metadata does not meet the selected checksum minimum")
-            artifact_evidence_required = True
-
-    elif strategy == "full-corroboration":
-        if not primary:
-            raise RuntimeError(
-                f"{pkg.nevra}: full corroboration requires acquisition metadata to publish a "
-                "checksum meeting the selected minimum")
-        if not list(getattr(pkg.repo, "evidence_urls", []) or []):
-            raise RuntimeError(
-                f"{pkg.nevra}: full corroboration requires at least one configured independent evidence source")
-        checks.append((primary[0], primary[1], "acquisition metadata"))
-        artifact_evidence_required = True
-
-    elif strategy in {"legacy-fallback", "legacy-corroborate", "legacy-evidence-required"}:
-        # Compatibility for RepoSpec instances using legacy evidence fields.
-        if strategy == "legacy-evidence-required" and not record.evidence_metadata_match:
-            raise RuntimeError(f"{pkg.nevra}: required evidence source does not publish this exact package identity")
-        if options.verify_checksums and primary:
-            checks.append((primary[0], primary[1], "acquisition metadata"))
-        if evidence:
-            if strategy != "legacy-fallback" or not primary:
-                checks.append((evidence[0], evidence[1], "evidence mirror metadata"))
-        if strategy == "legacy-evidence-required" and not evidence:
-            raise RuntimeError(f"{pkg.nevra}: required evidence source publishes no usable strong digest")
-
-    else:
-        raise RuntimeError(f"{pkg.nevra}: unknown verification strategy '{strategy}'")
-
-    computed: Dict[str, str] = {}
-    for algo, expected, source in checks:
-        if algo not in computed:
-            computed[algo] = hash_file(path, algo).lower()
-        actual = computed[algo]
-        if not hmac.compare_digest(actual, expected.lower()):
-            raise RuntimeError(
-                f"{pkg.nevra}: {algo.upper()} mismatch against {source}: expected {expected}, got {actual}")
-        if source == "acquisition metadata":
-            record.package_digest_checked = True
-        else:
-            record.evidence_digest_checked = True
-
-    if artifact_evidence_required:
-        _verify_independent_evidence_payload(pkg, path, primary, computed, reporter)
-        artifact_digests.remember_verified(path, before, computed)
-        return True
-
-    if not checks:
-        published = package_digest_map(pkg)
-        if options.require_package_digests:
-            raise RuntimeError(
-                f"{pkg.nevra}: no usable SHA-256/SHA-384/SHA-512 package digest meets the configured policy")
-        if published:
-            reporter.warn(
-                f"{pkg.nevra}: no published checksum meets the configured minimum; "
-                "continuing with degraded package provenance")
-        else:
-            reporter.warn(
-                f"{pkg.nevra}: acquisition metadata publishes no strong package checksum; "
-                "continuing with degraded package provenance")
-        record.notes.append("No qualifying strong package digest was checked; artifact accepted by checksum-available strategy.")
-        return False
-
-    artifact_digests.remember_verified(path, before, computed)
-    return True
+    return _artifact_verification_engine.verify_package_artifact(
+        pkg, path, options, reporter, hash_file_fn=hash_file,
+        verify_independent_fn=_verify_independent_evidence_payload)
 
 def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, reporter: Reporter,
                       *, opener=None, verifier=None) -> None:
@@ -3082,639 +1529,46 @@ def _copy_or_download(pkg: DownloadPackage, dest: Path, options: BuildOptions, r
                                      f"retry {attempt + 1}/{options.retries}"))
             time.sleep(min(2 ** (attempt - 1), 5))
 
+# RPM repository emission, target-inventory parsing, and bundle publication now
+# live behind dedicated Tk-free modules.  core keeps the historical names as a
+# compatibility façade while supplying its dynamic hooks at call time.
+emit_rpm_repository = _rpm_repository_writer.emit_rpm_repository
+declared_inventory_family = _rpm_target_inventory.declared_inventory_family
+parse_target_inventory = _rpm_target_inventory.parse_target_inventory
+write_vendor_key_manifest = _rpm_bundle.write_vendor_key_manifest
+_write_provenance = _rpm_bundle._write_provenance
+_write_assurance_legend = _rpm_bundle._write_assurance_legend
+write_bundle_archive = _rpm_bundle.write_bundle_archive
+_write_workload_artifacts = _rpm_bundle._write_workload_artifacts
 
-
-def emit_rpm_repository(output_dir: Path, packages, reporter: RepositoryWriterReporter, preserve_package_locations: bool = False, supplemental_packages=None) -> None:
-    """Write repodata/ so the bundle is itself a usable RPM repository.
-
-    Each package's upstream <package> element is re-emitted verbatim with only
-    <location> rewritten, so dependency data and digests match exactly what the
-    resolver used. Packages whose metadata was not captured are reconstructed
-    from the fields Feathered holds, which is enough for dnf to install them.
-    """
-    packages = list(packages)
-    from module_policy import validate_modular_payloads
-    # The payload header, not a filename heuristic, identifies modular RPMs.
-    for package in packages:
-        filename = posixpath.basename(urllib.parse.urlparse(package.location).path)
-        payload = output_dir / package.location if preserve_package_locations else output_dir / "rpms" / filename
-        if payload.is_file():
-            with payload.open("rb") as handle:
-                is_rpm = handle.read(4) == b"\xed\xab\xee\xdb"
-            if is_rpm:
-                from repository_tools import _rpm_header_tags
-                labels = _rpm_header_tags(payload).get(5096, [])  # RPMTAG_MODULARITYLABEL
-                package.modularity_label = str(labels[0]) if labels else ""
-    validate_modular_payloads(packages, supplemental_packages or [])
-    ns = "http://linux.duke.edu/metadata/common"
-    rpm_ns = "http://linux.duke.edu/metadata/rpm"
-    # libsolv/DNF expects the common metadata namespace to be serialized as
-    # the default namespace and RPM extensions with the conventional ``rpm``
-    # prefix.  ElementTree otherwise invents ns0/ns1 prefixes for detached
-    # <package> chunks; those are XML-equivalent but are silently ignored by
-    # libsolv's primary.xml reader.
-    ET.register_namespace("", ns)
-    ET.register_namespace("rpm", rpm_ns)
-    chunks = []
-    for pkg in packages:
-        filename = posixpath.basename(urllib.parse.urlparse(pkg.location).path)
-        href = (pkg.location.replace("\\", "/").lstrip("./")
-                if preserve_package_locations else f"rpms/{filename}")
-        raw = pkg.raw_metadata
-        if raw:
-            # ElementTree serializes upstream metadata
-            # with namespace prefixes (for example <ns0:location>), so regexes
-            # looking only for <location> miss the real element.  Modify the
-            # namespace-qualified XML structurally instead.
-            try:
-                element = ET.fromstring(raw)
-                location = element.find(f"{{{ns}}}location")
-                if location is None:
-                    location = next((child for child in element.iter()
-                                     if child.tag.rsplit("}", 1)[-1] == "location"), None)
-                if location is None:
-                    raise ValueError("package metadata contains no <location> element")
-                location.set("href", href)
-                raw = ET.tostring(element, encoding="unicode")
-            except (ET.ParseError, ValueError) as exc:
-                raise RuntimeError(f"{pkg.nevra}: cannot rewrite RPM repository location: {exc}") from exc
-            chunks.append(raw)
-            continue
-        # Local repository rebuilds construct Package objects directly from RPM headers. When
-        # no upstream raw XML exists, emit the dependency/file metadata Feathered
-        # actually parsed instead of writing an empty <format/> element.
-        package_el = ET.Element(f"{{{ns}}}package", {"type": "rpm"})
-        ET.SubElement(package_el, f"{{{ns}}}name").text = pkg.name
-        ET.SubElement(package_el, f"{{{ns}}}arch").text = pkg.arch
-        ET.SubElement(package_el, f"{{{ns}}}version", {
-            "epoch": pkg.epoch or "0", "ver": pkg.version, "rel": pkg.release or ""})
-        checksum_el = ET.SubElement(package_el, f"{{{ns}}}checksum", {
-            "type": pkg.checksum_type or "sha256", "pkgid": "YES"})
-        checksum_el.text = pkg.checksum or ""
-        ET.SubElement(package_el, f"{{{ns}}}size", {"package": str(pkg.size or 0)})
-        ET.SubElement(package_el, f"{{{ns}}}location", {"href": href})
-        fmt = ET.SubElement(package_el, f"{{{ns}}}format")
-
-        def emit_entries(tag, requirements):
-            if not requirements:
-                return
-            parent = ET.SubElement(fmt, f"{{{rpm_ns}}}{tag}")
-            for requirement in requirements:
-                attrs = {"name": requirement.name}
-                if requirement.flags:
-                    attrs["flags"] = requirement.flags
-                if requirement.version is not None:
-                    attrs.update({"epoch": requirement.epoch or "0",
-                                  "ver": requirement.version or "",
-                                  "rel": requirement.release or ""})
-                ET.SubElement(parent, f"{{{rpm_ns}}}entry", attrs)
-
-        emit_entries("provides", pkg.provides)
-        emit_entries("requires", pkg.requires)
-        emit_entries("recommends", pkg.recommends)
-        emit_entries("conflicts", pkg.conflicts)
-        emit_entries("obsoletes", pkg.obsoletes)
-        for file_path in pkg.files:
-            ET.SubElement(fmt, f"{{{ns}}}file").text = file_path
-        chunks.append(ET.tostring(package_el, encoding="unicode"))
-
-    primary = (f'<?xml version="1.0" encoding="UTF-8"?>\n'
-               f'<metadata xmlns="{ns}" xmlns:rpm="{rpm_ns}" packages="{len(chunks)}">\n'
-               + "\n".join(chunks) + "\n</metadata>\n").encode("utf-8")
-    repodata = output_dir / "repodata"
-    repodata.mkdir(parents=True, exist_ok=True)
-    compressed = gzip.compress(primary, mtime=0)
-    (repodata / "primary.xml.gz").write_bytes(compressed)
-
-    stamp = int(time.time())
-    repomd = (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<repomd xmlns="http://linux.duke.edu/metadata/repo" '
-        'xmlns:rpm="http://linux.duke.edu/metadata/rpm">\n'
-        f'  <revision>{stamp}</revision>\n'
-        '  <data type="primary">\n'
-        f'    <checksum type="sha256">{hashlib.sha256(compressed).hexdigest()}</checksum>\n'
-        f'    <open-checksum type="sha256">{hashlib.sha256(primary).hexdigest()}</open-checksum>\n'
-        '    <location href="repodata/primary.xml.gz"/>\n'
-        f'    <timestamp>{stamp}</timestamp>\n'
-        f'    <size>{len(compressed)}</size>\n'
-        f'    <open-size>{len(primary)}</open-size>\n'
-        '  </data>\n</repomd>\n')
-    (repodata / "repomd.xml").write_text(repomd, encoding="utf-8")
-    from module_policy import emit_supplemental
-    emit_supplemental(output_dir, list(packages) + list(supplemental_packages or []), reporter)
-    reporter.log(f"Wrote RPM repository metadata for {len(chunks)} package(s)")
-    (output_dir / "USE-AS-REPOSITORY.txt").write_text(
-        "This bundle also contains RPM repository metadata.\n\n"
-        "On the target, add it as a local repository:\n\n"
-        "  sudo tee /etc/yum.repos.d/feathered.repo <<'EOF'\n"
-        "  [feathered]\n"
-        "  name=Feathered offline bundle\n"
-        "  baseurl=file:///path/to/this/bundle\n"
-        "  enabled=1\n"
-        "  gpgcheck=0\n"
-        "  repo_gpgcheck=0\n"
-        "  EOF\n\n"
-        "baseurl is a URL, not a path. If this bundle lives under a directory containing a\n"
-        "space, '#' or '%', percent-encode those characters (a space becomes %20). The\n"
-        "generated install-offline.sh does this for you.\n\n"
-        "The metadata is unsigned, hence gpgcheck=0 for the repository itself. Individual\n"
-        "packages keep their vendor signatures; set gpgcheck=1 and import the vendor key\n"
-        "if you want those enforced. Verify rpms/SHA256SUMS.txt before trusting the contents.\n",
-        encoding="utf-8")
-
-
-def write_vendor_key_manifest(metadata_dir: Path, entries) -> None:
-    """Record which vendor keys the target must already trust.
-
-    The installer refuses to import a key out of the bundle it is verifying, so
-    the operator needs to know which keys to establish through their own
-    channel. Signer text comes from the connected-side verification, which is
-    the only place the identity behind the key id was actually observed.
-    """
-    rows: Dict[str, Tuple[str, str]] = {}
-    for entry in entries or ():
-        if entry.assurance != provenance.VERIFIED_VENDOR or not entry.signing_key_id:
-            continue
-        rows.setdefault(entry.signing_key_id, (entry.signer, entry.repository))
-    if not rows:
-        return
-    lines = ["Vendor signing keys required on the target", "",
-             "install-offline.sh enables gpgcheck and will refuse to run until these keys",
-             "are present in the target rpm keyring. Import them from the target",
-             "distribution's own material (for example /etc/pki/rpm-gpg) or another",
-             "trusted channel. Do not import a key carried by this bundle: it could only",
-             "vouch for the bundle that carried it.", ""]
-    for key_id, (signer, repo) in sorted(rows.items()):
-        short = "".join(c for c in key_id if c in "0123456789abcdefABCDEF")[-8:].lower()
-        lines.append(f"  key {key_id}  (rpm: gpg-pubkey-{short})")
-        lines.append(f"    signer:     {signer or 'not reported by the verifier'}")
-        lines.append(f"    repository: {repo}")
-    (Path(metadata_dir) / "VENDOR-SIGNING-KEYS.txt").write_text(
-        "\n".join(lines) + "\n", encoding="utf-8")
-
-
-def _write_provenance(bundle_dir: Path, metadata_dir: Path, entries, already_present, options: BuildOptions,
-                      reporter: Reporter, metadata: Dict[str, object]) -> None:
-    """Emit payload-scoped provenance beside the package artifacts.
-
-    ``bundle_dir`` keeps the stable bundle identity while ``metadata_dir`` is the
-    package-family directory (rpms/, debs/, or packages/) that owns these records.
-    """
-    record = provenance.build_provenance(
-        bundle_id=bundle_dir.name,
-        target={k: str(v) for k, v in metadata.items()
-                if k in {"distribution", "release", "codename", "arch", "package_family",
-                         "dependency_mode", "workload", "acquisition_intent",
-                         "acquisition_capability", "analysis_type", "publication_type",
-                         "verification_scope", "dependency_completeness"}},
-        repositories=meta_dict_list(metadata, "repositories"),
-        entries=entries,
-        warnings=list(reporter.warnings),
+def _rpm_bundle_services():
+    return _rpm_bundle.BundleServices(
+        load_baseline=load_baseline,
+        split_against_baseline=split_against_baseline,
+        payload_filenames=payload_filenames,
+        verify_package_artifact=verify_package_artifact,
+        copy_or_download=_copy_or_download,
+        sha256_file=sha256_file,
+        repository_verification_strategy=repository_verification_strategy,
+        vendor_signature_settings=vendor_signature_settings,
+        emit_rpm_repository=emit_rpm_repository,
+        write_unified_mirror_records=write_unified_mirror_records,
+        write_bundle_index=write_bundle_index,
+        trust_summary=_trust_summary,
+        format_requirement=format_requirement,
+        merge_additive_manifest_rows=merge_additive_manifest_rows,
+        redact_url=redact_url,
+        url_join=url_join,
+        verifier_integrity_error=VerifierIntegrityError,
     )
-    if options.additive_publish and (metadata_dir / "provenance.json").is_file():
-        record = provenance.merge_previous_provenance(record, metadata_dir / "provenance.json")
-    if already_present:
-        record.warnings.append(
-            f"Differential bundle: {len(already_present)} package(s) were omitted because the "
-            "baseline manifest reports them already present on the target. This bundle is not "
-            "self-contained.")
-        (metadata_dir / "baseline-omitted.txt").write_text(
-            "\n".join(sorted(getattr(p, "nevra", p.name) for p in already_present)) + "\n",
-            encoding="utf-8")
-    (metadata_dir / "provenance.json").write_text(record.to_json(), encoding="utf-8")
-    _write_assurance_legend(metadata_dir, record)
-    counts = ", ".join(f"{v} {k}" for k, v in sorted(record.summary().items()))
-    reporter.log(f"Provenance recorded: {counts or 'no packages'}")
-    if options.signing_key:
-        provenance.sign_bundle(metadata_dir / "manifest.json", options.signing_key, reporter)
-        provenance.sign_bundle(metadata_dir / "provenance.json", options.signing_key, reporter)
-
-def _write_assurance_legend(metadata_dir: Path, record) -> None:
-    """Emit ASSURANCE.txt beside the bundle.
-
-    provenance.json already carries the legend, but the person who has to act on
-    it is on the far side of an air gap, often reading files on a console with
-    no JSON tooling and no access to Feathered's documentation. The mode names
-    are short enough to invite a strength ordering they do not carry -- most
-    importantly, "independent-peer-corroboration" reads as stronger than
-    "digest-only" and is weaker than a signature or a byte match. Spell it out
-    where they will actually see it.
-    """
-    counts = dict(record.summary())
-    for mode, value in record.mode_summary().items():
-        counts.setdefault(mode, value)
-    rows = provenance.assurance_legend(list(counts))
-    if not rows:
-        return
-    lines = [
-        "FEATHERED BUNDLE ASSURANCE LEGEND",
-        "",
-        "What Feathered proved about the artifacts in this bundle, strongest first.",
-        "Counts are the number of packages recording that mode; one package can",
-        "record several, because provenance is multi-axis rather than a single tier.",
-        "",
-        "Read 'DOES NOT PROVE' before relying on any row. A stronger-sounding name",
-        "does not mean a stronger guarantee; the rank below is the ordering.",
-        "",
-    ]
-    for row in rows:
-        count = counts.get(row["mode"], 0)
-        lines.append(f"[rank {row['rank']:3d}] {row['label']}  ({row['mode']})")
-        lines.append(f"    packages       : {count}")
-        lines.append(f"    authority      : {row['authority']}")
-        lines.append(f"    proves         : {row['proves']}")
-        lines.append(f"    does not prove : {row['does_not_prove']}")
-        lines.append("")
-    lines.append("Full per-package detail is in provenance.json.")
-    (metadata_dir / "ASSURANCE.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-
-def write_bundle_archive(bundle_dir: Path, reporter: Optional[Reporter] = None) -> Path:
-    """Create a portable ZIP containing the complete generated bundle directory."""
-    bundle_dir = bundle_dir.resolve()
-    if not bundle_dir.is_dir():
-        raise RuntimeError(f"Bundle directory does not exist: {bundle_dir}")
-    archive = bundle_dir.with_suffix(".zip")
-    rep = reporter or Reporter()
-    rep.log(f"PACK {archive.name}")
-    made = shutil.make_archive(
-        str(bundle_dir), "zip",
-        root_dir=str(bundle_dir.parent),
-        base_dir=bundle_dir.name,
-    )
-    return Path(made)
-
 
 def write_bundle(result: ResolutionResult, output_dir: Path, options: BuildOptions, reporter: Reporter,
                  metadata: Dict[str, object]) -> Path:
-    # Build beside the destination and publish only on success, so a failed or
-    # interrupted run cannot leave something that looks like a finished bundle.
-    # Transfer occupies the first part of the bar when sealing will follow it.
-    reporter.phase(0.0, SEAL_PHASE_START if options.sign_bundle_index else 1.0)
-    final_dir = output_dir
-    output_dir = open_staging(final_dir, reporter)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    if not options.sign_bundle_index:
-        invalidate_bundle_seal(output_dir, reporter)
-    try:
-        with artifact_digests.digest_scope():
-            return _write_bundle_body(result, output_dir, final_dir, options, reporter, metadata)
-    except BaseException:
-        # Anything short of success leaves the previous bundle untouched and
-        # removes the half-built one, so nothing can be mistaken for finished.
-        abandon_staging(output_dir, reporter)
-        raise
-
+    return _rpm_bundle.write_bundle(
+        result, output_dir, options, reporter, metadata, _rpm_bundle_services())
 
 def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Path, options: BuildOptions,
                        reporter: Reporter, metadata: Dict[str, object]) -> Path:
-    rpm_dir = output_dir / "rpms"
-    rpm_dir.mkdir(exist_ok=True)
-    metadata_dir = rpm_dir  # Payload-scoped records travel with this RPM set.
-    from transaction_model import validate_retained_payloads, write_installation_contract, installation_roots
-    validate_retained_payloads(metadata_dir, result.selected, 'rpm', reporter, options)
+    return _rpm_bundle._write_bundle_body(
+        result, output_dir, final_dir, options, reporter, metadata, _rpm_bundle_services())
 
-    # Keep rebuilt bundles deterministic. If the same output folder was used
-    # for an earlier analysis/build with a different closure, remove RPMs that
-    # are no longer part of the current result before writing checksums/ZIPs.
-    # Differential bundles: drop anything the baseline says the target already has.
-    baseline = load_baseline(options.baseline_manifest, reporter)
-    to_ship, already_present = split_against_baseline(result.selected, baseline, reporter)
-    # detect payload basename collisions before transfer
-    # instead of allowing the later package to overwrite the earlier one.
-    filename_map = payload_filenames(to_ship, ".rpm")
-
-    # Existing payloads in staging are retained as an addendum. Same-name
-    # artifacts may still be verified and overwritten below, but unrelated
-    # packages are never pruned from a previously populated output folder.
-
-    from bundle_writer import acquire_payloads, write_records
-    from package_family import RPM
-    acquire_payloads(
-        to_ship, filename_map, rpm_dir, final_dir.parent, options, reporter, RPM,
-        verify=lambda pkg, dest: verify_package_artifact(pkg, dest, options, reporter),
-        download=lambda pkg, dest: _copy_or_download(pkg, dest, options, reporter),
-    )
-
-    manifest = []
-    shipped_ids = {id(p) for p in to_ship}
-    for p in result.selected:
-        # record the actual shipped SHA-256 plus the upstream source
-        # digest used for pre-download differential comparison.
-        filename = filename_map.get(id(p), posixpath.basename(urllib.parse.urlparse(p.location).path))
-        dest = rpm_dir / filename
-        record = getattr(p, "verification", None)
-        manifest.append({
-            "nevra": p.nevra, "package_id": p.nevra, "name": p.name, "arch": p.arch,
-            "version": p.version, "release": p.release, "source_rpm": getattr(p, "source_rpm", ""), "filename": filename,
-            "sha256": artifact_digests.payload_sha256(dest, sha256_file) if id(p) in shipped_ids and dest.exists() else "",
-            "source_digest_type": p.checksum_type or "", "source_digest": p.checksum or "",
-            "repo": p.repo.name, "repo_url": redact_url(p.repo.normalized_url),
-            "source": redact_url(url_join(p.repo.normalized_url, p.location, p.repo)), "size": p.size,
-            "reason": result.reasons.get(p.nevra, "dependency"),
-            "shipped": id(p) in shipped_ids,
-            "evidence_status": getattr(record, "evidence_status", "not-configured"),
-            "evidence_source": getattr(record, "evidence_source", ""),
-            "evidence_digest_type": getattr(record, "evidence_digest_type", ""),
-            "evidence_digest": getattr(record, "evidence_digest", ""),
-            "evidence_relationship": getattr(record, "evidence_relationship", ""),
-            "evidence_authority_relationship": getattr(record, "evidence_authority_relationship", AUTH_UNKNOWN),
-            "evidence_peer_identity_match": bool(getattr(record, "evidence_peer_identity_match", False)),
-            "evidence_source_lineage_match": bool(getattr(record, "evidence_source_lineage_match", False)),
-            "evidence_peer_package_id": getattr(record, "evidence_peer_package_id", ""),
-            "evidence_peer_source_rpm": getattr(record, "evidence_peer_source_rpm", ""),
-        })
-    if options.additive_publish:
-        manifest = merge_additive_manifest_rows(metadata_dir / "manifest.json", manifest)
-    payload_files = list(rpm_dir.glob("*.rpm"))
-    payload = {
-        "metadata": metadata,
-        "summary": {
-            # Bundle-local values describe bytes actually present in rpms/.
-            "package_count": len(payload_files) if options.additive_publish else len(to_ship),
-            "total_size": (sum(p.stat().st_size for p in payload_files) if options.additive_publish
-                           else sum(int(getattr(p, "size", 0) or 0) for p in to_ship)),
-            "resolved_package_count": len(result.selected),
-            "resolved_total_size": result.total_size,
-            "baseline_omitted_count": len(already_present),
-            "unresolved_count": len(result.unresolved),
-            "ignored_unresolved_count": len(getattr(result, "ignored_unresolved", []) or []),
-            "conflict_count": len(result.conflicts),
-            "dependency_completeness": metadata.get("dependency_completeness", "analyzed"),
-        },
-        "packages": manifest,
-    }
-    write_records(
-        metadata_dir, rpm_dir, RPM, payload, manifest,
-        unresolved=(format_requirement(req) for req in result.unresolved),
-        ignored_unresolved=result.ignored_unresolved,
-        conflicts=result.conflicts, skipped_installed=result.skipped_installed,
-        installed_satisfied=result.installed_satisfied, hash_file=sha256_file,
-    )
-
-
-    # ---- Provenance -------------------------------------------------------
-    # Record, per artifact, exactly what was proven about it. RPMs carry their
-    # own vendor signature, so this is the strongest assurance Feathered can
-    # report; when a vendor keyring is configured it is enforced here.
-    prov_entries = []
-    for pkg in to_ship:
-        archive_trust = getattr(pkg.repo, "trust", None)
-        filename = filename_map[id(pkg)]
-        dest = rpm_dir / filename
-        entry = provenance.PackageProvenance(
-            package_id=pkg.nevra, filename=filename,
-            sha256=artifact_digests.payload_sha256(dest, sha256_file) if dest.exists() else "",
-            size=dest.stat().st_size if dest.exists() else 0,
-            source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location, pkg.repo)),
-            repository=pkg.repo.name,
-            # Recorded verification, not inferred from configuration: a
-            # keyring being set says an operator intended verification, not
-            # that a signature was checked or that it passed.
-            index_digest_verified=bool(getattr(pkg, "verification", None)
-                                       and pkg.verification.index_digest_verified),
-            archive_signature_verified=bool(
-                archive_trust and archive_trust.archive_signature_verified),
-            # source-bond facts are recorded separately from the
-            # acquisition archive's trust chain.
-            evidence_status=getattr(getattr(pkg, "verification", None), "evidence_status", "not-configured"),
-            evidence_source=getattr(getattr(pkg, "verification", None), "evidence_source", ""),
-            evidence_digest_type=getattr(getattr(pkg, "verification", None), "evidence_digest_type", ""),
-            evidence_digest=getattr(getattr(pkg, "verification", None), "evidence_digest", ""),
-            evidence_digest_checked=bool(getattr(pkg, "verification", None)
-                                         and pkg.verification.evidence_digest_checked),
-            evidence_metadata_match=bool(getattr(pkg, "verification", None)
-                                         and pkg.verification.evidence_metadata_match),
-            evidence_artifact_checked=bool(getattr(pkg, "verification", None)
-                                           and pkg.verification.evidence_artifact_checked),
-            evidence_artifact_digest_type=getattr(getattr(pkg, "verification", None), "evidence_artifact_digest_type", ""),
-            evidence_artifact_digest=getattr(getattr(pkg, "verification", None), "evidence_artifact_digest", ""),
-            evidence_artifact_size=int(getattr(getattr(pkg, "verification", None), "evidence_artifact_size", 0) or 0),
-            evidence_archive_signature_verified=bool(getattr(pkg, "verification", None)
-                                                      and pkg.verification.evidence_archive_signature_verified),
-            evidence_relationship=getattr(getattr(pkg, "verification", None), "evidence_relationship", ""),
-            evidence_authority_relationship=getattr(getattr(pkg, "verification", None), "evidence_authority_relationship", AUTH_UNKNOWN),
-            evidence_peer_identity_match=bool(getattr(pkg, "verification", None)
-                                              and pkg.verification.evidence_peer_identity_match),
-            evidence_source_lineage_match=bool(getattr(pkg, "verification", None)
-                                               and pkg.verification.evidence_source_lineage_match),
-            evidence_peer_package_id=getattr(getattr(pkg, "verification", None), "evidence_peer_package_id", ""),
-            evidence_peer_source_rpm=getattr(getattr(pkg, "verification", None), "evidence_peer_source_rpm", ""),
-        )
-        if repository_verification_strategy(pkg.repo) == "skip-provenance":
-            entry.notes.append("Upstream vendor-signature verification intentionally skipped by operator policy.")
-            entry.digest_checked = False
-            entry.assurance = provenance.assurance_from(entry)
-        else:
-            vendor_id, scoped_keyring, scoped_required = vendor_signature_settings(pkg.repo, options)
-            if scoped_keyring and dest.exists():
-                try:
-                    detail = provenance.verify_rpm_package(dest, scoped_keyring, reporter)
-                    entry.assurance = provenance.VERIFIED_VENDOR
-                    entry.signature_algorithm = detail.get("algorithm", "")
-                    entry.signer = detail.get("signer", "")
-                    entry.signing_key_id = detail.get("key_id", "")
-                except VerifierIntegrityError:
-                    # Never downgrade a compromised verifier to a package note.
-                    # "This package is unsigned" and "this machine cannot be
-                    # trusted to tell you whether it is signed" are not the
-                    # same finding, and only the first one is waivable.
-                    raise
-                except RuntimeError as exc:
-                    if scoped_required:
-                        raise RuntimeError(
-                            f"Vendor signature check failed for {vendor_display_name(vendor_id)} "
-                            f"and signatures are required: {exc}") from exc
-                    entry.notes.append(str(exc))
-                    entry.assurance = provenance.assurance_from(entry)
-                    reporter.warn(f"{filename}: {exc}")
-            elif scoped_required:
-                raise RuntimeError(
-                    f"Vendor signatures are required for {vendor_display_name(vendor_id)}, "
-                    "but no vendor package keyring is configured for that vendor.")
-            else:
-                if dest.exists():
-                    entry.notes.append(provenance.rpm_signature_summary(dest))
-                entry.digest_checked = bool(getattr(pkg, "verification", None)
-                                            and pkg.verification.package_digest_checked)
-                entry.assurance = provenance.assurance_from(entry)
-        prov_entries.append(entry)
-    if options.emit_repository:
-        repo_packages = to_ship
-        preserve_locations = False
-        if options.additive_publish:
-            from repository_tools import load_local_repository_packages
-            _family, repo_packages = load_local_repository_packages(output_dir, "rpm")
-            preserve_locations = True
-            reporter.log(f"Regenerating RPM repository metadata over {len(repo_packages)} total package(s) in the additive folder.")
-        emit_rpm_repository(output_dir, repo_packages, reporter,
-                            preserve_package_locations=preserve_locations, supplemental_packages=result.selected)
-    _write_provenance(output_dir, metadata_dir, prov_entries, already_present, options, reporter, metadata)
-
-    package_only = bool(metadata.get("package_only_acquisition"))
-    repository_mirror = bool(metadata.get("repository_mirror"))
-    if package_only:
-        warning = str(metadata.get("package_only_warning") or
-                      "Dependencies were not derived for this package-only acquisition.")
-        (metadata_dir / "PACKAGE-ONLY-WARNING.txt").write_text(
-            "PACKAGE-ONLY ACQUISITION - NOT A COMPLETE OFFLINE INSTALLATION BUNDLE\n\n"
-            + warning +
-            "\n\nThe rpms/ directory contains only the requested root artifacts. "
-            "Enable appropriate dependency-provider repositories and rebuild before treating "
-            "this package set as install-complete.\n",
-            encoding="utf-8")
-    elif repository_mirror:
-        (metadata_dir / "MIRROR-BUNDLE.txt").write_text(
-            "REPOSITORY MIRROR - NO PACKAGE-ROOT TRANSACTION\n\n"
-            "This output mirrors the selected repository population. Feathered did not derive a "
-            "root-package dependency closure and intentionally did not generate install-offline.sh.\n\n"
-            "Use USE-AS-REPOSITORY.txt to expose the generated local repository metadata to DNF/YUM. "
-            "Package installation decisions remain the target package manager's responsibility.\n",
-            encoding="utf-8")
-    else:
-        write_installation_contract(metadata_dir, result, 'rpm', metadata, already_present)
-        roots = installation_roots(result, 'rpm')
-        if roots:
-            (metadata_dir / "REQUESTED-ROOTS.txt").write_text("\n".join(roots) + "\n", encoding="utf-8")
-            if options.emit_repository:
-                from installer import write_installer
-                write_vendor_key_manifest(metadata_dir, prov_entries)
-                write_installer(output_dir, metadata_dir, result, options, 'rpm', metadata,
-                                provenance_entries=prov_entries)
-            else:
-                (output_dir / "INSTALL-OFFLINE-NOTE.txt").write_text(
-                    "Enable local repository metadata to generate the offline installer.\n", encoding="utf-8")
-    write_unified_mirror_records(output_dir, metadata_dir, options)
-    if reporter.warnings:
-        (metadata_dir / "trust-warnings.txt").write_text(
-            "Conditions recorded while building this bundle. Review before installing.\n\n"
-            + "\n".join(f"- {w}" for w in reporter.warnings) + "\n", encoding="utf-8")
-    # Seal and publish. The index is computed from the finished files on disk,
-    # so the operator signature attests to the bundle that actually exists.
-    _write_workload_artifacts(output_dir, metadata_dir, metadata, result)
-    if options.sign_bundle_index:
-        # Sealing owns the last slice of the same bar the transfer advanced.
-        reporter.phase(SEAL_PHASE_START, 1.0 - SEAL_PHASE_START)
-        write_bundle_index(output_dir, reporter, {
-            "tool": provenance._tool_identity(),
-            # The published name, not the temporary staging directory.
-            "bundle_id": final_dir.name,
-            "target": {k: str(v) for k, v in metadata.items()
-                       if k in {"distribution", "release", "arch", "workload"}},
-            "trust": _trust_summary(to_ship),
-        }, options.signing_key)
-    return commit_staging(output_dir, final_dir, reporter)
-
-
-def _parse_evr_text(text: str) -> Tuple[str, str, str]:
-    text = (text or "").strip()
-    if not text or text == "(none)":
-        return ("0", "", "")
-    epoch = "0"
-    if ":" in text:
-        maybe_epoch, rest = text.split(":", 1)
-        if maybe_epoch.isdigit():
-            epoch, text = maybe_epoch, rest
-    if "-" in text:
-        version, release = text.rsplit("-", 1)
-    else:
-        version, release = text, ""
-    return epoch, version, release
-
-
-def parse_target_inventory(path: Path) -> TargetInventory:
-    """Parse inventory v2 or legacy exact-NEVRA inventory.
-
-    v2 format is produced by target_inventory.sh:
-      META|key|value
-      PKG|name|epoch|version|release|arch
-      PROVIDE|name|flags|evr
-    PROVIDE lines belong to the most recent PKG line only for reporting; the
-    dependency resolver indexes them globally by capability.
-    """
-    inv = TargetInventory()
-    current_pkg = ""
-    text = path.read_text(encoding="utf-8", errors="replace")
-    declared = declared_inventory_family(text)
-    if declared and declared != "rpm":
-        raise RuntimeError(
-            f"{path.name} is a '{declared}' target inventory, but the selected target uses RPM. "
-            "Re-run target_inventory.sh on the intended RHEL/Fedora-family host."
-        )
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.startswith("DETAIL|"):
-            continue
-        parts = line.split("|")
-        if parts[0] == "ERROR":
-            raise RuntimeError(f"{path.name} records a collection failure on the target: "
-                               + "|".join(parts[1:]))
-        if parts[0] == "DEB":
-            # A dpkg record has five fields and used to fall through to the
-            # legacy NEVRA branch below, injecting a bogus package named "DEB"
-            # and a garbage capability into the resolver index.
-            raise RuntimeError(f"{path.name} contains dpkg inventory records, but the selected target "
-                               "uses RPM. Re-run target_inventory.sh on the intended host.")
-        if parts[0] == "META" and len(parts) >= 3:
-            inv.metadata[parts[1]] = "|".join(parts[2:])
-            continue
-        if parts[0] == "PKG" and len(parts) == 6:
-            _, name, epoch, version, release, arch = parts
-            ep = "" if epoch in {"", "0", "(none)"} else f"{epoch}:"
-            current_pkg = f"{name}-{ep}{version}-{release}.{arch}"
-            inv.nevras.add(current_pkg)
-            cap = Requirement(name, "EQ", epoch or "0", version, release, "installed")
-            inv.package_capabilities[current_pkg].append(cap)
-            for key in _index_keys(name):
-                inv.capabilities[key].append(cap)
-            continue
-        if parts[0] == "PROVIDE" and len(parts) >= 4:
-            _, name, flags, evr_text = parts[:4]
-            epoch, version, release = _parse_evr_text(evr_text)
-            normalized_flags = flags.strip() or None
-            cap = (Requirement(name, normalized_flags or "EQ", epoch, version, release, "installed")
-                   if version else Requirement(name, None, kind="installed"))
-            if current_pkg:
-                inv.package_capabilities[current_pkg].append(cap)
-            for key in _index_keys(name):
-                inv.capabilities[key].append(cap)
-            continue
-        # Legacy NAME|EPOCH|VERSION|RELEASE|ARCH
-        if len(parts) == 5 and (parts[1].isdigit() or parts[1] in {"", "(none)"}):
-            name, epoch, version, release, arch = parts
-            ep = "" if epoch in {"", "0", "(none)"} else f"{epoch}:"
-            legacy_nevra = f"{name}-{ep}{version}-{release}.{arch}"
-            inv.nevras.add(legacy_nevra)
-            cap = Requirement(name, "EQ", epoch or "0", version, release, "installed")
-            inv.package_capabilities[legacy_nevra].append(cap)
-            for key in _index_keys(name):
-                inv.capabilities[key].append(cap)
-            continue
-        # Anything else is unrecognised. Adding it to the NEVRA set (the old
-        # behaviour) made malformed inventories look like valid ones.
-        inv.unparsed.append(line)
-    if inv.unparsed and not inv.nevras:
-        raise RuntimeError(f"{path.name} contains no recognisable package records "
-                           f"({len(inv.unparsed)} unparsed line(s)). Re-generate it with target_inventory.sh.")
-    from inventory_relationships import attach
-    return attach(inv, text, 'rpm')
-
-
-def _write_workload_artifacts(output_dir, metadata_dir, metadata, result):
-    data = metadata.get('kubernetes')
-    if not data:
-        return
-    assurance = metadata_dir / 'ASSURANCE.txt'
-    previous = assurance.read_text(encoding='utf-8') if assurance.exists() else ''
-    lines = ['KUBERNETES WORKLOAD OBSERVATIONS', 'PROVES: ' + data['proves'],
-             'DOES NOT PROVE: ' + data['does_not_prove'],
-             'API server versions assumed: ' + str(data['apiserver_assumed']),
-             'Advisories acknowledged: ' + str(data['advisories_acknowledged'])]
-    lines += [f"{f['severity']}: {f['package']} {f['version']}: {f['message']}" for f in data['findings'] + data['platform_advisories']]
-    assurance.write_text(previous + '\n' + '\n'.join(lines) + '\n', encoding='utf-8')
-    if data.get('image_draft_context'):
-        from kubernetes_workflow import WorkloadContext, write_image_draft
-        write_image_draft(output_dir, WorkloadContext(**data['image_draft_context']), result)

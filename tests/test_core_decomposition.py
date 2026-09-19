@@ -7,6 +7,11 @@ from pathlib import Path
 
 import core
 import core_models
+import artifact_verification
+import rpm_bundle
+import rpm_repository_writer
+import rpm_resolution
+import rpm_target_inventory
 import credential_redaction
 import execution_reporter
 import publication_staging
@@ -34,12 +39,23 @@ def test_repository_and_reporting_boundaries_are_canonical_exports():
     assert core.redact_url is credential_redaction.redact_url
 
 
+
+
+def test_new_rpm_boundaries_are_canonical_exports():
+    assert core.build_provider_index is rpm_resolution.build_provider_index
+    assert core.apply_mirror_evidence is artifact_verification.apply_mirror_evidence
+    assert core.emit_rpm_repository is rpm_repository_writer.emit_rpm_repository
+    assert core.parse_target_inventory is rpm_target_inventory.parse_target_inventory
+    assert core._write_provenance is rpm_bundle._write_provenance
+
 def test_leaf_boundaries_do_not_runtime_import_core():
     root = Path(core.__file__).resolve().parent
     modules = [
         "core_models", "credential_redaction", "execution_reporter",
         "package_transfer", "publication_staging", "repository_config",
-        "repository_paths", "rpm_metadata", "runtime_limits",
+        "repository_paths", "rpm_metadata", "rpm_resolution",
+        "artifact_verification", "rpm_repository_writer", "rpm_target_inventory",
+        "rpm_bundle", "runtime_limits",
     ]
     code = (
         "import importlib,sys; "
