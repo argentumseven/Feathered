@@ -15,6 +15,7 @@ import rpm_metadata
 from core_models import ArtifactVerification, Package, RepoDataRef, RepoTrust
 from evidence_model import REL_REBUILD_PEER
 from execution_reporter import Reporter
+from package_contracts import PackageArtifact
 from repository_config import RepoSpec
 
 
@@ -29,8 +30,8 @@ class RepositoryLoaderServices:
     hash_bytes: Callable[[bytes, str], str]
     decompress_metadata: Callable[..., bytes]
     parse_primary: Callable[[bytes, RepoSpec, Set[str], Reporter], List[Package]]
-    package_has_selected_digest: Callable[[object], bool]
-    artifact_verification: Callable[[object], ArtifactVerification]
+    package_has_selected_digest: Callable[[PackageArtifact], bool]
+    artifact_verification: Callable[[PackageArtifact], ArtifactVerification]
     mirrors_are_distinct: Callable[[str, str], Tuple[bool, str]]
     redact_url: Callable[[str], str]
     evidence_repo_for_url: Callable[[RepoSpec, str], RepoSpec]

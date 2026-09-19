@@ -12,6 +12,7 @@ import check_python_sources
 import package_acquisition
 import package_contracts
 import package_transfer
+import repository_loader
 from root_requests import RootInput
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,6 +51,30 @@ def test_shared_artifact_helpers_are_package_family_neutral() -> None:
     assert transfer_hints["pkg"] is package_contracts.PackageArtifact
     assert package_contracts.PackageArtifact in core.DownloadPackage.__mro__
 
+
+
+def test_repository_loader_service_callbacks_match_shared_artifact_contract() -> None:
+    annotations = get_type_hints(repository_loader.RepositoryLoaderServices)
+    digest_callback = annotations["package_has_selected_digest"]
+    verification_callback = annotations["artifact_verification"]
+    digest_args = get_args(digest_callback)
+    verification_args = get_args(verification_callback)
+    assert digest_args[0] == [package_contracts.PackageArtifact]
+    assert verification_args[0] == [package_contracts.PackageArtifact]
+
+
+def test_extracted_service_bundles_do_not_require_object_artifact_callbacks() -> None:
+    service_sources = (
+        ROOT / "repository_loader.py",
+        ROOT / "package_acquisition.py",
+        ROOT / "artifact_verification.py",
+    )
+    offenders: list[str] = []
+    for path in service_sources:
+        source = path.read_text(encoding="utf-8")
+        if "Callable[[object]" in source:
+            offenders.append(path.name)
+    assert offenders == []
 
 def _core_surface_used_by(path: Path) -> set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
