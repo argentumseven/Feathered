@@ -30,7 +30,7 @@ import unicodedata
 import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict, deque
-from dataclasses import dataclass, field, replace
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Dict, Iterable, List, Optional, Protocol, Sequence, Set, SupportsInt, SupportsIndex, Tuple, TypeVar, Union
@@ -48,11 +48,6 @@ try:
 except (ImportError, ModuleNotFoundError):
     zstd = None
 
-RPM_NS = {
-    "repo": "http://linux.duke.edu/metadata/repo",
-    "common": "http://linux.duke.edu/metadata/common",
-    "rpm": "http://linux.duke.edu/metadata/rpm",
-}
 import provenance
 import repository_transport as _transport
 from evidence_model import (
@@ -60,16 +55,28 @@ from evidence_model import (
     AUTH_UNKNOWN, classify_relationship, infer_vendor_id, vendor_display_name,
 )
 from core_models import (
-    ArtifactVerification,
-    BuildOptions,
-    Package,
-    ProviderMatch,
-    RepoDataRef,
-    RepoTrust,
-    Requirement,
-    ResolutionResult,
-    TargetInventory,
+    ArtifactVerification, BuildOptions, Package, ProviderMatch, RepoDataRef,
+    RepoTrust, Requirement, ResolutionResult, TargetInventory,
 )
+from credential_redaction import (
+    SENSITIVE_QUERY_KEYS, _KNOWN_SECRET_ORDER, _KNOWN_SECRETS, _KNOWN_SECRETS_LOCK,
+    _MAX_KNOWN_SECRETS, _MIN_GLOBAL_SECRET_LENGTH, _remember_secret,
+    active_sensitive_query_keys as _active_sensitive_query_keys,
+    redact_text, redact_url, register_url_secrets,
+)
+from execution_reporter import Cancelled, CancellationProbe, Reporter
+from package_transfer import copy_package_stream_bounded, package_download_limit
+from publication_staging import (
+    _publication_backup_path, abandon_staging, commit_staging, invalidate_bundle_seal, open_staging,
+)
+from repository_config import RepoSpec
+from repository_paths import file_url_to_path, human_size, path_to_file_url, repo_relative_url
+from runtime_limits import (
+    MAX_METADATA_DOWNLOAD_BYTES, MAX_METADATA_EXPANDED_BYTES, MAX_PACKAGE_DOWNLOAD_BYTES,
+    positive_env_int as _positive_env_int,
+)
+import rpm_metadata as _rpm_metadata
+RPM_NS = _rpm_metadata.RPM_NS
 
 FEATHERED_VERSION = "1.3.0"  # Keep in step with the newest CHANGELOG.md version.
 
@@ -79,20 +86,8 @@ USER_AGENT = f"Feathered-Airgap-Sideloader/{FEATHERED_VERSION}"
 # Bound both transfer size and expanded size so a malformed mirror cannot turn a
 # metadata fetch into an unbounded memory allocation. Environment overrides are
 # available for unusually large legitimate repositories.
-def _positive_env_int(name: str, default: int) -> int:
-    try:
-        value = int(os.environ.get(name, str(default)))
-        return value if value > 0 else default
-    except (TypeError, ValueError):
-        return default
 
 
-MAX_METADATA_DOWNLOAD_BYTES = _positive_env_int(
-    "FEATHERED_MAX_METADATA_DOWNLOAD_BYTES", 256 * 1024 * 1024)
-MAX_METADATA_EXPANDED_BYTES = _positive_env_int(
-    "FEATHERED_MAX_METADATA_EXPANDED_BYTES", 768 * 1024 * 1024)
-MAX_PACKAGE_DOWNLOAD_BYTES = _positive_env_int(
-    "FEATHERED_MAX_PACKAGE_DOWNLOAD_BYTES", 32 * 1024 * 1024 * 1024)
 
 
 def zstd_backend() -> Optional[str]:
@@ -109,165 +104,26 @@ def zstd_backend() -> Optional[str]:
 # for compatibility with existing backend/UI imports.
 
 
-@dataclass
-class RepoSpec:
-    name: str
-    url: str
-    role: str = "dependency"
-    priority: int = 50
-    enabled: bool = True
-    note: str = ""
-    target_release: str = ""
-    client_cert: str = ""
-    client_key: str = ""
-    ca_cert: str = ""
-    # Optional escape hatch for credentialed repositories whose vendor
-    # intentionally redirects to another HTTPS origin (for example a vendor
-    # CDN that also accepts the same mTLS identity). Empty is the secure
-    # default: credentialed requests may redirect only within the same origin.
-    # Entries may be full URLs or normalized origins (https://host:443).
-    redirect_allow_origins: List[str] = field(default_factory=list)
-    optional: bool = False
-    repo_format: str = "rpm"
-    suite: str = ""
-    components: str = ""
-    # Optional numeric identity expected in authenticated APT Release metadata.
-    expected_release_version: str = ""
-    # package-signature credentials are
-    # scoped by vendor.  This prevents a keyring selected for one vendor from
-    # being applied to unrelated repositories participating in the same build.
-    vendor_id: str = ""
-    # Trust configuration. `keyring` points at an OpenPGP keyring (an exported
-    # .gpg/.asc file) used to verify repository signatures. When it is empty,
-    # signature verification is skipped and the repository is reported as
-    # unsigned so the operator can see exactly what was trusted.
-    keyring: str = ""
-    # Escape hatch for repositories that publish incomplete metadata (an index
-    # that is not listed in the signed/rooted checksum manifest). Off by
-    # default: an unverifiable index must be an explicit operator decision.
-    allow_unverified_index: bool = False
 
-    # Maximum age, in days, that a signed APT Release may reach when it
-    # declares no Valid-Until. Zero disables the check, which is the default
-    # for two reasons: APT itself ships Acquire::Max-ValidTime at 0, and
-    # building from a deliberately pinned archive (a vault repository, a
-    # Debian snapshot, a frozen internal mirror) is a first-class air-gap
-    # workflow that a default age limit would break. Set it per repository to
-    # make replay of an undated mirror a hard failure.
-    max_release_age_days: int = 0
 
-    # Independent evidence sources may be complete repositories or artifact-only
-    # mirrors. Feathered never places the evidence copy in the output bundle; when
-    # evidence is required it retrieves the exact matching artifact transiently
-    # and compares its checksum with the acquisition copy.
-    evidence_urls: List[str] = field(default_factory=list)
-    # Curated candidates supplied by the distribution profile. They are UI
-    # suggestions only until the operator activates a bond.
-    evidence_suggestions: List[object] = field(default_factory=list)
-    # Explicit proof semantics for active evidence URLs. These are populated by
-    # the evidence selector and keep runtime verification from re-inferring a
-    # relationship from a hostname after the operator made a concrete choice.
-    evidence_relationship_hints: Dict[str, str] = field(default_factory=dict)
-    evidence_authority_hints: Dict[str, str] = field(default_factory=dict)
-    # off | fallback | best-effort | required. `fallback` consults the evidence
-    # mirror only when the acquisition source cannot supply the operator-selected
-    # digest strength; `best-effort` corroborates whenever possible; `required`
-    # requires the selected package to exist on a distinct evidence mirror.
-    evidence_policy: str = "off"
 
-    # Minimum accepted package digest strength. ``auto`` uses the strongest
-    # supported digest published by each source.
-    digest_preference: str = "auto"
-    # Compatibility field for older profiles and callers.
-    digest_requirement: str = "preferred"
-    # one non-overlapping verification
-    # strategy replaces the old Required?/Evidence-policy pair in the UI.
-    # Empty means infer the historical behavior from digest_requirement and
-    # evidence_policy, preserving compatibility for older saved/configured repos.
-    # checksum-required | checksum-available | evidence-fallback | full-corroboration | skip-provenance
-    verification_strategy: str = ""
 
-    # Vendor-specific query fields that carry credential material. Built-in
-    # names such as token/access_token are always recognized; these lists let a
-    # custom repository declare spellings such as license_token without relying
-    # on a global hard-coded allowlist. These fields are appended to the
-    # dataclass so the established positional RepoSpec constructor remains
-    # compatible with older callers.
-    sensitive_query_keys: List[str] = field(default_factory=list)
-    # Only fields explicitly declared inheritable are copied from a repository
-    # root URL to same-origin child metadata/package URLs. A declared inheritable
-    # field is automatically treated as sensitive too.
-    inheritable_query_credential_keys: List[str] = field(default_factory=list)
 
-    def __post_init__(self) -> None:
-        if not self.vendor_id:
-            object.__setattr__(self, "vendor_id", infer_vendor_id(self.name, self.url))
-        _transport.register_sensitive_query_keys(self.sensitive_query_keys)
-        _transport.register_sensitive_query_keys(self.inheritable_query_credential_keys)
-        register_url_secrets(self.url)
-        # evidence URLs can carry the same credentials as acquisition
-        # URLs, so register them with the central log redactor as well.
-        for evidence_url in self.evidence_urls:
-            register_url_secrets(evidence_url)
 
-    def __setattr__(self, name, value):
-        # URLs are also assigned after construction (media selection, custom
-        # repositories), so secrets are registered on every assignment.
-        if name == "sensitive_query_keys":
-            value = sorted(_transport.normalize_query_key_names(value))
-        elif name == "inheritable_query_credential_keys":
-            value = sorted(
-                _transport.normalize_query_key_names(value)
-                - _transport.NON_INHERITABLE_QUERY_CREDENTIAL_KEYS)
-        object.__setattr__(self, name, value)
-        if name == "url":
-            register_url_secrets(value)
-        elif name in {"sensitive_query_keys", "inheritable_query_credential_keys"}:
-            _transport.register_sensitive_query_keys(value)
-            existing_url = getattr(self, "url", "")
-            if existing_url:
-                register_url_secrets(existing_url)
-        elif name == "evidence_urls" and value:
-            # assignments happen after construction from the GUI.
-            for evidence_url in value:
-                register_url_secrets(evidence_url)
 
-    flat_repo: bool = False
 
-    @property
-    def normalized_url(self) -> str:
-        if not self.url:
-            return ""
-        text = str(self.url)
-        try:
-            parts = urllib.parse.urlsplit(text)
-        except ValueError:
-            return text.rstrip("/") + "/"
-        if not parts.scheme:
-            return text.rstrip("/") + "/"
-        path = (parts.path or "/").rstrip("/") + "/"
-        return urllib.parse.urlunsplit((parts.scheme, parts.netloc, path, parts.query, parts.fragment))
 
-    @property
-    def source_identity(self) -> str:
-        """Stable opaque identity for the concrete repository slice.
 
-        Display names are deliberately excluded: two configured rows that point
-        at the same archive slice are the same source, while two rows with the
-        same human-readable name but different URLs/suites/components are not.
-        Exact-package requests carry this fingerprint so later resolution cannot
-        silently substitute a different repository that happens to share a name.
-        """
-        payload: Dict[str, object] = {
-            "format": (self.repo_format or "rpm").strip().lower(),
-            "url": self.normalized_url,
-            "suite": (self.suite or "").strip(),
-            "components": sorted(x for x in (self.components or "").split() if x),
-        }
-        if self.flat_repo:
-            payload["flat_repo"] = True
-        raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
-        return "repo-sha256:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+
+
+
+
+
+
+
+
 
 
 class DownloadPackage(Protocol):
@@ -298,72 +154,10 @@ class RepositoryWriterReporter(Protocol):
     def log(self, message: str, /) -> None: ...
 
 
-class Cancelled(RuntimeError):
-    pass
 
 
-class CancellationProbe(Protocol):
-    """Cancellation needs a query, not a particular threading implementation."""
-
-    def is_set(self) -> bool: ...
 
 
-class Reporter:
-    def __init__(self, log: Optional[Callable[[str], None]] = None,
-                 progress: Optional[Callable[[str, float], None]] = None,
-                 cancel_event: Optional[CancellationProbe] = None,
-                 item: Optional[Callable[[str, str, dict], None]] = None,
-                 transfer: Optional[Callable[[str, int, int], None]] = None):
-        self._log = log or (lambda msg: None)
-        self._progress = progress or (lambda label, value: None)
-        self._item = item or (lambda identity, state, info: None)
-        self._transfer = transfer or (lambda identity, transferred, total: None)
-        self.cancel_event = cancel_event
-        # Phase window: progress values are scaled into [start, start+span).
-        self._phase_start = 0.0
-        self._phase_span = 1.0
-        # Warnings are both logged and retained so the GUI can show a count and
-        # the bundle manifest can record what was not verified.
-        self.warnings: List[str] = []
-
-    def log(self, msg: str) -> None:
-        # Redacting at the sink means a future call site cannot reintroduce a
-        # credential leak by forgetting to redact its own message.
-        self._log(redact_text(msg))
-
-    def warn(self, msg: str) -> None:
-        """Record a condition the operator must see before trusting a bundle."""
-        text = redact_text(str(msg))
-        if text not in self.warnings:
-            self.warnings.append(text)
-        self._log("WARNING: " + text)
-
-    def item(self, identity: str, state: str, **info) -> None:
-        """Report the state of one artifact: pending, active, done, reused, failed."""
-        self._item(identity, state, info)
-
-    def transfer(self, identity: str, transferred: int, total: int = 0) -> None:
-        """Report current byte transfer for one artifact."""
-        self._transfer(identity, max(0, int(transferred)), max(0, int(total)))
-
-    def phase(self, start: float, span: float) -> None:
-        """Map subsequent progress reports onto a slice of the overall bar.
-
-        A build has two byte-heavy phases -- transferring packages, then
-        sealing. Reporting each as its own 0..1 made the bar complete and then
-        restart, which on a multi-terabyte mirror looks like the build began
-        again. Each phase now advances its own portion of one monotonic bar.
-        """
-        self._phase_start = max(0.0, min(1.0, start))
-        self._phase_span = max(0.0, min(1.0 - self._phase_start, span))
-
-    def progress(self, label: str, value: float) -> None:
-        local = max(0.0, min(1.0, value))
-        self._progress(label, self._phase_start + local * self._phase_span)
-
-    def check_cancel(self) -> None:
-        if self.cancel_event and self.cancel_event.is_set():
-            raise Cancelled("Operation cancelled")
 
 
 # Compatibility exports during the transport-boundary migration.  Network
@@ -417,56 +211,18 @@ def _repo_trust(repo: RepoSpec) -> RepoTrust:
     return record
 
 
+
+
 def get_repo_data(repo: RepoSpec, reporter: Reporter, retries: int = 3) -> Dict[str, RepoDataRef]:
-    if not repo.normalized_url:
-        raise RuntimeError(f"{repo.name}: no repository URL/path configured")
-    repomd_url = url_join(repo.normalized_url, "repodata/repomd.xml", repo)
-    raw = fetch_bytes(repomd_url, reporter, retries=retries, repo=repo)
-    # repomd.xml is the trust root for an RPM repository: every other digest in
-    # the repository is chained from it. Verify its detached signature when a
-    # keyring is configured, unless the operator explicitly selected the
-    # skip-upstream-provenance strategy.
-    if repository_verification_strategy(repo) == "skip-provenance":
-        reporter.warn(f"{repo.name}: upstream provenance checks are intentionally skipped by policy; "
-                      "repomd.xml signature/keyring verification was not attempted.")
-        _repo_trust(repo).notes.append("Upstream provenance checks intentionally skipped by operator policy.")
-    elif repo.keyring:
-        try:
-            signature = fetch_bytes(repomd_url + ".asc", reporter, retries=1, repo=repo)
-        except Exception as exc:
-            raise RuntimeError(f"{repo.name}: a keyring is configured but repodata/repomd.xml.asc "
-                               f"could not be retrieved: {exc}") from exc
-        verify_openpgp(raw, signature, repo.keyring, f"{repo.name} repomd.xml", reporter)
-        _repo_trust(repo).archive_signature_verified = True
-    else:
-        reporter.warn(f"{repo.name}: repository metadata is NOT signature-verified "
-                      "(no keyring configured). Package digests are only as trustworthy as the transport.")
-    try:
-        root = ET.fromstring(raw)
-    except ET.ParseError as exc:
-        raise RuntimeError(f"{repo.name}: invalid repomd.xml: {exc}") from exc
-    refs: Dict[str, RepoDataRef] = {}
-    for data_el in root.findall("repo:data", RPM_NS):
-        kind = data_el.attrib.get("type", "")
-        loc = data_el.find("repo:location", RPM_NS)
-        if not kind or loc is None or not loc.attrib.get("href"):
-            continue
-        checksum = data_el.find("repo:checksum", RPM_NS)
-        open_checksum = data_el.find("repo:open-checksum", RPM_NS)
-        refs[kind] = RepoDataRef(
-            data_type=kind,
-            # repomd.xml is still repository
-            # input. Apply the same repository-root confinement used for RPM
-            # package payload locations; an absolute file:/ URL, another host,
-            # or ../ traversal must never be followed merely because repomd
-            # advertised it.
-            url=repo_relative_url(repo.normalized_url, loc.attrib["href"], repo),
-            checksum_type=checksum.attrib.get("type", "") if checksum is not None else "",
-            checksum=(checksum.text or "").strip() if checksum is not None else "",
-            open_checksum_type=open_checksum.attrib.get("type", "") if open_checksum is not None else "",
-            open_checksum=(open_checksum.text or "").strip() if open_checksum is not None else "",
-        )
-    return refs
+    return _rpm_metadata.get_repo_data(
+        repo, reporter, retries=retries,
+        url_join_fn=url_join,
+        fetch_bytes_fn=fetch_bytes,
+        verification_strategy_fn=repository_verification_strategy,
+        verify_openpgp_fn=verify_openpgp,
+        repo_trust_fn=_repo_trust,
+        repo_relative_url_fn=repo_relative_url,
+    )
 
 
 # Repository metadata names its own digest algorithm, so an attacker or a
@@ -616,229 +372,12 @@ def diagnose_missing_repository(repo_url: str, reporter: Reporter, retries: int 
             "repository root (the folder that directly contains repodata/).")
 
 
-SENSITIVE_QUERY_KEYS = _transport.SENSITIVE_QUERY_KEYS
 
 
-def _active_sensitive_query_keys() -> Set[str]:
-    """Built-in plus operator-declared query credential field names."""
-    return _transport.registered_sensitive_query_keys()
 
 
-def repo_relative_url(base: str, location: str, repo: Optional[RepoSpec] = None) -> str:
-    """Resolve a package location against its repository, refusing to escape it.
-
-    Package locations come from repository metadata, which is exactly the thing
-    an attacker controls when a mirror is compromised. urljoin() happily honours
-    an absolute URL, a protocol-relative one, or enough ../ segments to leave
-    the repository -- so a hostile index could redirect a package fetch to
-    another host, or to a file: path on the build machine. A location must be a
-    path underneath the repository root, and anything else is refused.
-    """
-    text = (location or "").strip()
-    if not text:
-        raise RuntimeError("Repository metadata supplied an empty package location")
-    parsed = urllib.parse.urlsplit(text)
-    if parsed.scheme or parsed.netloc or text.startswith("//"):
-        raise RuntimeError(
-            f"Repository metadata supplies an absolute package location ({redact_url(text)}). "
-            "Package locations must be relative to the repository; refusing to fetch from a "
-            "different origin than the repository that advertised it.")
-    # Normalize the repository *path* rather than appending '/' to the raw URL;
-    # appending after '?token=...' corrupts query-authenticated repository URLs.
-    base_parts = urllib.parse.urlsplit(base)
-    root_path = (base_parts.path or "/").rstrip("/") + "/"
-    root = urllib.parse.urlunsplit(
-        (base_parts.scheme, base_parts.netloc, root_path, base_parts.query, base_parts.fragment))
-    joined = urllib.parse.urljoin(root, text)
-    # Compare on the normalised path so ../ traversal cannot climb out.
-    root_parts = urllib.parse.urlsplit(root)
-    joined_parts = urllib.parse.urlsplit(joined)
-    # validate decoded path semantics too.
-    # Reverse proxies and HTTP servers commonly decode %2e/%2f before routing;
-    # checking only the encoded string would let %2e%2e escape the repository
-    # even though literal ../ is refused. Decode repeatedly for validation only
-    # (the original URL is still returned/fetched).
-    def fully_decode_path(path: str) -> str:
-        decoded = path
-        for _ in range(16):
-            try:
-                next_value = urllib.parse.unquote(decoded, errors="strict")
-            except UnicodeDecodeError as exc:
-                raise RuntimeError(
-                    "Repository metadata contains invalid percent-encoded path bytes; "
-                    "refusing ambiguous repository traversal semantics.") from exc
-            if next_value == decoded:
-                return decoded
-            decoded = next_value
-        raise RuntimeError(
-            "Repository metadata path encoding is nested too deeply to canonicalize safely; "
-            "refusing ambiguous repository traversal semantics.")
-
-    decoded_root = fully_decode_path(root_parts.path)
-    decoded_joined = fully_decode_path(joined_parts.path)
-    if "\x00" in decoded_root or "\x00" in decoded_joined:
-        raise RuntimeError(
-            "Repository metadata contains a NUL byte in a decoded path; refusing ambiguous "
-            "repository traversal semantics.")
-    if "\\" in decoded_joined:
-        raise RuntimeError(
-            f"Repository metadata supplies a location with backslash path separators "
-            f"({redact_url(text)}). Refusing ambiguous repository traversal semantics.")
-    if (joined_parts.scheme, joined_parts.netloc) != (root_parts.scheme, root_parts.netloc) \
-            or not posixpath.normpath(decoded_joined).startswith(
-                posixpath.normpath(decoded_root).rstrip("/") + "/"):
-        raise RuntimeError(
-            f"Repository metadata supplies a package location that escapes the repository "
-            f"({redact_url(text)}). Refusing to fetch outside {redact_url(root)}.")
-    return _inherit_sensitive_query_credentials(base, joined, repo)
 
 
-# Secret values seen in configured repository URLs. Pattern matching alone is
-# not enough: a malformed URL inside an exception ("nonnumeric port:
-# 'hunter2@example.invalid'") carries the password with no scheme to anchor on.
-# Registering literal values lets long credentials be scrubbed if an exception
-# surfaces them outside URL syntax.  Keep the cache bounded and synchronized:
-# RepoSpec objects are created from worker and UI paths, while logs are rendered
-# concurrently on the Tk thread.  Very short values are only redacted in URL/
-# key=value context; global substring replacement of e.g. ``ab`` corrupts
-# unrelated package names and digests.
-_KNOWN_SECRETS: Set[str] = set()
-_KNOWN_SECRET_ORDER: deque[str] = deque()
-_KNOWN_SECRETS_LOCK = threading.RLock()
-_MIN_GLOBAL_SECRET_LENGTH = 7
-_MAX_KNOWN_SECRETS = 4096
-
-
-def _remember_secret(value: str) -> None:
-    secret = str(value or "")
-    if len(secret) < _MIN_GLOBAL_SECRET_LENGTH:
-        return
-    with _KNOWN_SECRETS_LOCK:
-        if secret in _KNOWN_SECRETS:
-            return
-        _KNOWN_SECRETS.add(secret)
-        _KNOWN_SECRET_ORDER.append(secret)
-        while len(_KNOWN_SECRET_ORDER) > _MAX_KNOWN_SECRETS:
-            _KNOWN_SECRETS.discard(_KNOWN_SECRET_ORDER.popleft())
-
-
-def register_url_secrets(url: str) -> None:
-    """Remember long URL credential values for context-free exception scrubbing."""
-    text = str(url or "")
-    if "://" not in text:
-        return
-    try:
-        parsed = urllib.parse.urlsplit(text)
-    except ValueError:
-        return
-    if parsed.password:
-        _remember_secret(parsed.password)
-    sensitive = _active_sensitive_query_keys()
-    for key, value in urllib.parse.parse_qsl(parsed.query, keep_blank_values=True):
-        if key.lower() in sensitive and value:
-            _remember_secret(value)
-
-
-def redact_text(text: str) -> str:
-    """Redact credentials anywhere in free text.
-
-    Exception messages quote URLs in shapes we do not control, so redacting
-    only known URL-valued fields leaves holes. This scrubs userinfo and
-    sensitive query values out of any URL-looking substring.
-    """
-    body = str(text)
-    body = re.sub(r"(?i)\b([a-z][a-z0-9+.-]*://)([^/\s:@]+):([^/\s@]+)@",
-                  lambda m: f"{m.group(1)}{m.group(2)}:REDACTED@", body)
-    body = re.sub(r"(?i)\b([a-z][a-z0-9+.-]*://)([^/\s:@]+)@",
-                  lambda m: f"{m.group(1)}REDACTED@", body)
-    sensitive = _active_sensitive_query_keys()
-    if sensitive:
-        body = re.sub(r"(?i)\b(" + "|".join(re.escape(k) for k in sorted(sensitive)) + r")=([^&\s\"\']+)",
-                      lambda m: f"{m.group(1)}=REDACTED", body)
-    with _KNOWN_SECRETS_LOCK:
-        secrets = tuple(_KNOWN_SECRETS)
-    for secret in secrets:
-        if secret in body:
-            body = body.replace(secret, "REDACTED")
-    return body
-
-
-def redact_url(url: str) -> str:
-    """Strip credentials from a URL before it is logged or written to a bundle.
-
-    Repository URLs legitimately carry userinfo or token query parameters. A
-    bundle crosses an air gap and is reviewed by people who should not receive
-    the build station's credentials, and logs get pasted into tickets.
-    """
-    text = str(url or "")
-    if "://" not in text:
-        return text
-    try:
-        parsed = urllib.parse.urlsplit(text)
-    except ValueError:
-        return text
-    netloc = parsed.netloc
-    if "@" in netloc:
-        userinfo, host = netloc.rsplit("@", 1)
-        name = userinfo.split(":", 1)[0]
-        netloc = (f"{name}:REDACTED@{host}" if name and ":" in userinfo else f"REDACTED@{host}")
-    query = parsed.query
-    if query:
-        # Preserve every non-sensitive field byte-for-byte.  parse_qsl followed
-        # by manual concatenation used to decode %2B/%26 and '+' and then emit
-        # those decoded delimiters/spaces raw, producing an audit URL that was
-        # never contacted.  Decode only the key for sensitivity classification.
-        fields = []
-        sensitive = _active_sensitive_query_keys()
-        # Named `raw_field` rather than `field`: the module-level dataclasses
-        # `field` import is shadowed by the shorter name.
-        for raw_field in query.split("&"):
-            raw_key, separator, _raw_value = raw_field.partition("=")
-            try:
-                key = urllib.parse.unquote_plus(raw_key).lower()
-            except (UnicodeDecodeError, ValueError):
-                key = raw_key.lower()
-            if key in sensitive:
-                fields.append(f"{raw_key}=REDACTED")
-            else:
-                fields.append(raw_field)
-        query = "&".join(fields)
-    return urllib.parse.urlunsplit((parsed.scheme, netloc, parsed.path, query, parsed.fragment))
-
-
-def path_to_file_url(path) -> str:
-    """Convert a filesystem path to a file: URL that survives round-tripping.
-
-    Path.as_uri() is wrong for Windows UNC paths: it renders
-    \\\\server\\share\\x as file://server/share/x, putting the server in the URL
-    *host* field. Every consumer then parses it back with url2pathname(path),
-    which sees only /share/x and silently drops the server -- so an SMB mirror
-    resolves to a non-existent local directory and reports "not found".
-
-    pathname2url encodes UNC as file:////server/share/x (empty host, path
-    beginning //server), which url2pathname reverses correctly.
-    """
-    text = str(path)
-    return "file:" + urllib.request.pathname2url(text)
-
-
-def file_url_to_path(url: str) -> Path:
-    """Inverse of path_to_file_url for local and UNC file: URLs."""
-    parsed = urllib.parse.urlparse(url)
-    if parsed.netloc and parsed.netloc.lower() not in {"", "localhost"}:
-        # Tolerate the legacy file://server/share form written by as_uri().
-        return Path(urllib.request.url2pathname("//" + parsed.netloc + parsed.path))
-    return Path(urllib.request.url2pathname(parsed.path))
-
-
-def human_size(value: float) -> str:
-    """Byte count for humans; shared so progress text reads the same everywhere."""
-    size = float(value)
-    for unit in ("B", "KB", "MB", "GB", "TB"):
-        if size < 1024 or unit == "TB":
-            return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}"
-        size /= 1024
-    return f"{size:.1f} TB"
 
 
 def merge_additive_manifest_rows(manifest_path: Path, current_rows: List[dict]) -> List[dict]:
@@ -863,282 +402,24 @@ def merge_additive_manifest_rows(manifest_path: Path, current_rows: List[dict]) 
 
 # Root-level artifacts that assert a whole-bundle seal. An unsealed successor
 # must never inherit them from a previously sealed additive bundle.
-_BUNDLE_SEAL_PATHS = frozenset({
-    "bundle-index.json",
-    "bundle-index.json.asc",
-    "verify-bundle.py",
-    "verify-bundle.py.asc",
-})
 
 
-def _publication_backup_path(dest: Path) -> Path:
-    return Path(dest).parent / f".{Path(dest).name}.feathered-previous"
 
 
-def _recover_interrupted_publication(dest: Path, reporter: Reporter) -> None:
-    """Recover/clean the reserved sibling left by an interrupted directory swap."""
-    dest = Path(dest)
-    backup = _publication_backup_path(dest)
-    if not (backup.exists() or backup.is_symlink()):
-        return
-    if backup.is_symlink() or not backup.is_dir():
-        raise RuntimeError(
-            f"Reserved publication backup path is not a directory: {backup}. "
-            "Move it aside manually before building.")
-    if dest.exists() or dest.is_symlink():
-        if dest.is_symlink() or not dest.is_dir():
-            raise RuntimeError(f"Output destination exists but is not a directory: {dest}")
-        # The new directory made it into place and only cleanup was interrupted.
-        # This path is reserved exclusively for Feathered's transaction backup.
-        try:
-            shutil.rmtree(backup)
-        except OSError as exc:
-            raise RuntimeError(
-                f"A prior publication completed, but its transaction backup could not be removed: {backup}: {exc}") from exc
-        reporter.log(f"Cleaned prior publication backup: {backup}")
-        return
-    try:
-        os.replace(backup, dest)
-    except OSError as exc:
-        raise RuntimeError(
-            f"A prior publication was interrupted after moving the old bundle. "
-            f"Automatic recovery from {backup} failed: {exc}") from exc
-    reporter.warn(f"Recovered the previous published bundle after an interrupted final swap: {dest}")
 
 
-def open_staging(dest: Path, reporter: Reporter) -> Path:
-    """Begin a build beside its destination without mutating published data.
-
-    When a destination already exists, staging receives a complete snapshot of
-    it. Immutable package payloads are hard-linked where possible; every other
-    file is copied so rewriting generated manifests/repository metadata cannot
-    mutate the published folder through a shared inode. This lets a subsequent
-    build behave as an addendum while still keeping incomplete work isolated.
-    """
-    dest = Path(dest)
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    _recover_interrupted_publication(dest, reporter)
-    staging = dest.parent / f".{dest.name}.feathered-building"
-    if staging.exists() or staging.is_symlink():
-        if staging.is_symlink() or not staging.is_dir():
-            raise RuntimeError(
-                f"Reserved staging path is not a directory: {staging}. Move it aside manually before building.")
-        shutil.rmtree(staging, ignore_errors=True)
-    staging.mkdir(parents=True, exist_ok=True)
-    if not dest.exists():
-        return staging
-    if dest.is_symlink() or not dest.is_dir():
-        raise RuntimeError(f"Output destination exists but is not a directory: {dest}")
-
-    def is_payload(relative: Path) -> bool:
-        if len(relative.parts) != 2:
-            return False
-        directory, name = relative.parts
-        lower = name.lower()
-        if directory == "rpms":
-            return lower.endswith(".rpm")
-        if directory == "debs":
-            return lower.endswith(".deb")
-        if directory == "packages":
-            return ".pkg.tar." in lower and not lower.endswith(".sig")
-        return False
-
-    linked = copied = 0
-    for source in sorted(dest.rglob("*"), key=lambda x: str(x).lower()):
-        relative = source.relative_to(dest)
-        target = staging / relative
-        if source.is_symlink():
-            target.parent.mkdir(parents=True, exist_ok=True)
-            try:
-                target.symlink_to(os.readlink(source), target_is_directory=source.is_dir())
-            except OSError:
-                # Windows privilege/policy can reject symlink creation. Copy the
-                # resolved object instead; the published source remains untouched.
-                if source.is_dir():
-                    shutil.copytree(source, target, dirs_exist_ok=True)
-                else:
-                    shutil.copy2(source, target)
-                    copied += 1
-            continue
-        if source.is_dir():
-            target.mkdir(parents=True, exist_ok=True)
-            continue
-        if not source.is_file():
-            continue
-        target.parent.mkdir(parents=True, exist_ok=True)
-        if is_payload(relative):
-            try:
-                os.link(source, target)
-                linked += 1
-                continue
-            except OSError:
-                pass
-        shutil.copy2(source, target)
-        copied += 1
-    if linked or copied:
-        reporter.log(
-            f"Prepared additive staging from the existing folder: {linked} package payload(s) reused "
-            f"and {copied} other file(s) copied; published files remain untouched until final publication.")
-    return staging
 
 
-def invalidate_bundle_seal(staging: Path, reporter: Reporter) -> None:
-    """Remove seal artifacts inherited from an older bundle before an unsealed build."""
-    staging = Path(staging)
-    removed = []
-    for name in sorted(_BUNDLE_SEAL_PATHS):
-        path = staging / name
-        if path.is_symlink() or path.is_file():
-            path.unlink()
-            removed.append(name)
-        elif path.exists():
-            raise RuntimeError(
-                f"Cannot invalidate stale bundle seal because {name} is a directory. "
-                "Resolve the output-folder conflict manually.")
-    if removed:
-        reporter.warn(
-            "Removed stale whole-bundle seal artifacts inherited from the previous bundle because "
-            "this build is not being sealed: " + ", ".join(removed))
 
 
-def _path_present(path: Path) -> bool:
-    return path.exists() or path.is_symlink()
 
 
-def _preflight_additive_snapshot(staging: Path, dest: Path) -> None:
-    """Reject merge conflicts before the published directory is moved."""
-    for source in sorted(staging.rglob("*"), key=lambda p: (len(p.relative_to(staging).parts), str(p).lower())):
-        relative = source.relative_to(staging)
-        target = dest / relative
-        if not _path_present(target):
-            continue
-        if source.is_symlink() or target.is_symlink():
-            if not (source.is_symlink() and target.is_symlink()
-                    and os.readlink(source) == os.readlink(target)):
-                raise RuntimeError(
-                    f"Cannot publish {relative}: a symlink conflicts with the staged/output path. "
-                    "Open the output folder and resolve it manually.")
-            continue
-        if source.is_dir() and not target.is_dir():
-            raise RuntimeError(
-                f"Cannot publish {relative}: a file already exists where a directory is required. "
-                "Open the output folder and resolve it manually.")
-        if source.is_file() and target.is_dir():
-            raise RuntimeError(
-                f"Cannot publish {relative}: a directory already exists where a file is required. "
-                "Open the output folder and resolve it manually.")
 
 
-def _preserve_destination_only_entries(staging: Path, dest: Path) -> int:
-    """Complete staging with destination-only entries before the directory swap."""
-    preserved = 0
-    for source in sorted(dest.rglob("*"), key=lambda p: (len(p.relative_to(dest).parts), str(p).lower())):
-        relative = source.relative_to(dest)
-        relative_text = relative.as_posix()
-        target = staging / relative
-        if _path_present(target):
-            continue
-        # Missing seal files are deliberate tombstones produced by
-        # invalidate_bundle_seal(); carrying them back would recreate a stale
-        # signature beside changed bundle contents.
-        if relative_text in _BUNDLE_SEAL_PATHS:
-            continue
-        target.parent.mkdir(parents=True, exist_ok=True)
-        if source.is_symlink():
-            target.symlink_to(os.readlink(source), target_is_directory=source.is_dir())
-        elif source.is_dir():
-            target.mkdir(parents=True, exist_ok=True)
-        elif source.is_file():
-            # These entries appeared only in the published destination after
-            # staging began (or were deliberately omitted from staging). Copy
-            # rather than hard-link so the completed successor cannot be
-            # mutated through the still-published inode before the swap.
-            shutil.copy2(source, target)
-            preserved += 1
-    return preserved
 
 
-def commit_staging(staging: Path, dest: Path, reporter: Reporter) -> Path:
-    """Publish a completed additive snapshot with rollback-safe directory swapping.
-
-    Staging begins as a snapshot of the prior destination. Before publication we
-    preflight all type/symlink conflicts and restore any destination-only files
-    that appeared or were intentionally omitted from staging, except invalidated
-    whole-bundle seal artifacts. The old destination is then moved to a reserved
-    sibling and the completed staging directory is moved into place. If the
-    second move fails, the old directory is restored before the error escapes.
-    """
-    staging = Path(staging)
-    dest = Path(dest)
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    if staging.is_symlink() or not staging.is_dir():
-        raise RuntimeError(f"Completed staging directory does not exist: {staging}")
-    _recover_interrupted_publication(dest, reporter)
-    if not dest.exists():
-        try:
-            os.replace(staging, dest)
-        except OSError as exc:
-            raise RuntimeError(f"Could not publish completed bundle to {dest}: {exc}") from exc
-        reporter.log(f"Bundle published transactionally: {dest} (new destination)")
-        return dest
-    if dest.is_symlink() or not dest.is_dir():
-        raise RuntimeError(f"Output destination exists but is not a directory: {dest}")
-
-    _preflight_additive_snapshot(staging, dest)
-    preserved = _preserve_destination_only_entries(staging, dest)
-    # Re-run after preservation so a concurrently appeared type conflict cannot
-    # slip into the final snapshot after the first check.
-    _preflight_additive_snapshot(staging, dest)
-
-    backup = _publication_backup_path(dest)
-    if backup.exists() or backup.is_symlink():
-        raise RuntimeError(
-            f"Reserved publication backup path is unexpectedly occupied: {backup}. "
-            "Move it aside manually before building.")
-
-    try:
-        os.replace(dest, backup)
-    except OSError as exc:
-        raise RuntimeError(
-            f"Could not begin transactional publication; the previous bundle is untouched: {exc}") from exc
-
-    try:
-        os.replace(staging, dest)
-    except BaseException as publish_exc:
-        try:
-            os.replace(backup, dest)
-        except BaseException as rollback_exc:
-            reporter.warn(
-                f"CRITICAL: publication failed and automatic rollback also failed. The previous bundle is "
-                f"retained at {backup}; restore it to {dest} before using this output. Rollback error: {rollback_exc}")
-            raise RuntimeError(
-                f"Bundle publication failed and the previous bundle could not be restored automatically; "
-                f"it remains at {backup}") from publish_exc
-        reporter.warn("Final publication failed; restored the previous bundle unchanged.")
-        raise
-
-    try:
-        shutil.rmtree(backup)
-    except OSError as exc:
-        # The new bundle is already fully in place. Retaining the hidden prior
-        # snapshot is a cleanup issue, not a reason to report a failed build.
-        reporter.warn(
-            f"Bundle published, but the previous transaction snapshot could not be removed ({backup}): {exc}. "
-            "Feathered will clean it before the next build.")
-    reporter.log(
-        f"Bundle published transactionally: {dest}; preserved {preserved} destination-only file(s), "
-        "with no per-file in-place mutation of the previously published bundle.")
-    return dest
 
 
-def abandon_staging(staging: Path, reporter: Reporter) -> None:
-    """Discard an incomplete build so it cannot be mistaken for a bundle."""
-    try:
-        if staging and Path(staging).exists():
-            shutil.rmtree(staging, ignore_errors=True)
-            reporter.log("Discarded the incomplete build; the previous bundle is untouched.")
-    except OSError as exc:
-        reporter.warn(f"Could not remove the incomplete build directory: {exc}")
 
 
 # Files that describe the bundle rather than belong to it, so they are not
@@ -1817,211 +1098,34 @@ def _prepare_keyring(keyring_path: Path, tmpdir: Path, backend: str) -> Path:
 
 
 
-def _read_bounded_stream(reader, max_bytes: int, description: str) -> bytes:
-    total = 0
-    # A list of chunks followed by b"".join() can transiently hold nearly two
-    # copies of a very large metadata document.  Spool after 64 MiB so the
-    # bounded result needs only one in-memory bytes object when returned.
-    with tempfile.SpooledTemporaryFile(max_size=min(max_bytes, 64 * 1024 * 1024)) as spool:
-        while True:
-            chunk = reader.read(1024 * 1024)
-            if not chunk:
-                break
-            total += len(chunk)
-            if total > max_bytes:
-                raise RuntimeError(
-                    f"{description} expands beyond Feathered's {max_bytes:,}-byte metadata limit")
-            spool.write(chunk)
-        spool.seek(0)
-        return spool.read()
 
 
-def package_download_limit(pkg) -> Tuple[int, int]:
-    """Return (hard transfer ceiling, advertised payload size).
-
-    Package metadata for RPM, DEB, and ALPM records describes the compressed
-    artifact byte size.  Treat that value as an exact post-transfer invariant
-    when present, and always retain a configurable global ceiling for records
-    that omit size metadata.
-    """
-    try:
-        expected = int(getattr(pkg, "size", 0) or 0)
-    except (TypeError, ValueError):
-        expected = 0
-    if expected < 0:
-        expected = 0
-    if expected > MAX_PACKAGE_DOWNLOAD_BYTES:
-        raise RuntimeError(
-            f"{getattr(pkg, 'nevra', 'Package')}: advertised size {expected:,} bytes exceeds "
-            f"Feathered's configured {MAX_PACKAGE_DOWNLOAD_BYTES:,}-byte per-package limit")
-    return (expected if expected > 0 else MAX_PACKAGE_DOWNLOAD_BYTES), expected
 
 
-def copy_package_stream_bounded(stream, target, pkg, reporter: Reporter,
-                                declared_length: Optional[Union[str, bytes, bytearray, SupportsInt, SupportsIndex]] = None) -> int:
-    """Copy one package payload while enforcing metadata/global byte ceilings."""
-    limit, expected = package_download_limit(pkg)
-    try:
-        declared = int(declared_length) if declared_length is not None else None
-    except (TypeError, ValueError):
-        declared = None
-    if declared is not None:
-        if declared < 0:
-            declared = None
-        elif declared > limit:
-            raise RuntimeError(
-                f"{pkg.nevra}: server declared {declared:,} bytes, above the allowed "
-                f"{limit:,}-byte package transfer limit")
-        elif expected and declared != expected:
-            raise RuntimeError(
-                f"{pkg.nevra}: server Content-Length {declared:,} does not match repository "
-                f"metadata size {expected:,}")
-    total = 0
-    reported_size = expected or declared or 0
-    while True:
-        reporter.check_cancel()
-        chunk = stream.read(1024 * 1024)
-        if not chunk:
-            break
-        total += len(chunk)
-        if total > limit:
-            raise RuntimeError(
-                f"{pkg.nevra}: package transfer exceeded the allowed {limit:,}-byte limit")
-        target.write(chunk)
-        reporter.transfer(pkg.nevra, total, reported_size)
-    if expected and total != expected:
-        raise RuntimeError(
-            f"{pkg.nevra}: downloaded size {total:,} does not match repository metadata "
-            f"size {expected:,}")
-    return total
+
+
+
+
+
+
+
+
 
 
 def decompress_metadata(data: bytes, url: str,
                         max_bytes: int = MAX_METADATA_EXPANDED_BYTES) -> bytes:
-    """Decompress repository metadata with an explicit expanded-size ceiling.
-
-    the old gzip/bzip2/xz helpers expanded
-    the whole frame in one call and Zstd accumulated without a limit. A small
-    compression bomb could therefore consume arbitrary RAM before Feathered ever
-    parsed the metadata. All supported formats now stream into the same bound.
-    """
-    lower = urllib.parse.urlparse(url).path.lower()
-    if lower.endswith(".gz"):
-        with gzip.GzipFile(fileobj=io.BytesIO(data), mode="rb") as reader:
-            return _read_bounded_stream(reader, max_bytes, "Gzip repository metadata")
-    if lower.endswith(".bz2"):
-        with bz2.BZ2File(io.BytesIO(data), mode="rb") as reader:
-            return _read_bounded_stream(reader, max_bytes, "Bzip2 repository metadata")
-    if lower.endswith(".xz"):
-        with lzma.LZMAFile(io.BytesIO(data), mode="rb") as reader:
-            return _read_bounded_stream(reader, max_bytes, "XZ repository metadata")
-    if lower.endswith((".zst", ".zstd")):
-        # Docker's current RPM metadata can use Zstandard frames without a
-        # content-size field. ZstdDecompressor.decompress() requires that size
-        # unless max_output_size is supplied, so use streaming decompression.
-        if zstd is not None:
-            dctx = zstd.ZstdDecompressor()
-            with dctx.stream_reader(io.BytesIO(data)) as reader:
-                return _read_bounded_stream(reader, max_bytes, "Zstandard repository metadata")
-        if stdlib_zstd is not None:
-            try:
-                with stdlib_zstd.ZstdFile(io.BytesIO(data), mode="rb") as reader:
-                    return _read_bounded_stream(reader, max_bytes, "Zstandard repository metadata")
-            except Exception as exc:
-                raise RuntimeError(f"stdlib Zstandard decompression failed: {exc}") from exc
-        raise RuntimeError(
-            "Repository metadata is Zstandard-compressed but Zstandard support is unavailable. "
-            "Start with run_gui.bat or install the Python 'zstandard' package."
-        )
-    if len(data) > max_bytes:
-        raise RuntimeError(
-            f"Repository metadata is {len(data):,} bytes, above Feathered's {max_bytes:,}-byte expanded limit")
-    return data
-
-
-def _entry(el: ET.Element, kind: str) -> Requirement:
-    return Requirement(
-        name=el.attrib.get("name", "").strip(),
-        flags=el.attrib.get("flags"),
-        epoch=el.attrib.get("epoch"),
-        version=el.attrib.get("ver") or el.attrib.get("version"),
-        release=el.attrib.get("rel") or el.attrib.get("release"),
-        kind=kind,
+    return _rpm_metadata.decompress_metadata(
+        data, url, max_bytes, zstd_module=zstd, stdlib_zstd_module=stdlib_zstd
     )
 
 
-def _entries(fmt: Optional[ET.Element], tag: str, kind: str) -> List[Requirement]:
-    if fmt is None:
-        return []
-    parent = fmt.find(f"rpm:{tag}", RPM_NS)
-    return [_entry(x, kind) for x in parent.findall("rpm:entry", RPM_NS)] if parent is not None else []
-
-
 def parse_primary(xml: bytes, repo: RepoSpec, arches: Set[str], reporter: Reporter) -> List[Package]:
-    packages: List[Package] = []
-    count = 0
-    for _, el in ET.iterparse(io.BytesIO(xml), events=("end",)):
-        if el.tag != f"{{{RPM_NS['common']}}}package":
-            continue
-        count += 1
-        raw_element = ET.tostring(el, encoding="unicode")
-        if count % 3000 == 0:
-            reporter.log(f"{repo.name}: parsed {count:,} package records")
-        if el.attrib.get("type") != "rpm":
-            el.clear(); continue
-        name_el = el.find("common:name", RPM_NS)
-        arch_el = el.find("common:arch", RPM_NS)
-        version_el = el.find("common:version", RPM_NS)
-        location_el = el.find("common:location", RPM_NS)
-        checksum_el = el.find("common:checksum", RPM_NS)
-        if any(x is None for x in (name_el, arch_el, version_el, location_el, checksum_el)):
-            el.clear(); continue
-        arch = (arch_el.text or "").strip()
-        if arch not in arches:
-            el.clear(); continue
-        name = (name_el.text or "").strip()
-        epoch = version_el.attrib.get("epoch", "0")
-        version = version_el.attrib.get("ver", "")
-        release = version_el.attrib.get("rel", "")
-        fmt = el.find("common:format", RPM_NS)
-        provides = _entries(fmt, "provides", "provides")
-        requires = _entries(fmt, "requires", "requires")
-        recommends = _entries(fmt, "recommends", "recommends")
-        conflicts = _entries(fmt, "conflicts", "conflicts")
-        obsoletes = _entries(fmt, "obsoletes", "obsoletes")
-        files = [(x.text or "").strip() for x in fmt.findall("common:file", RPM_NS) if x.text] if fmt is not None else []
-        source_rpm_el = fmt.find("rpm:sourcerpm", RPM_NS) if fmt is not None else None
-        source_rpm = (source_rpm_el.text or "").strip() if source_rpm_el is not None else ""
-        if not any(p.name == name for p in provides):
-            provides.append(Requirement(name, "EQ", epoch, version, release, "provides"))
-        size_el = el.find("common:size", RPM_NS)
-        try:
-            size = int(size_el.attrib.get("package", "0")) if size_el is not None else 0
-        except ValueError:
-            size = 0
-        raw_checksum_type = checksum_el.attrib.get("type", "sha256")
-        raw_checksum = (checksum_el.text or "").strip()
-        digest_map = {normalized_hash_algorithm(raw_checksum_type): raw_checksum} if raw_checksum else {}
-        selected_digest = select_digest_from_map(digest_map, repo.digest_preference)
-        selected_type, selected_value = selected_digest if selected_digest else (raw_checksum_type, raw_checksum)
-        package = Package(
-            name=name, arch=arch, epoch=epoch, version=version, release=release,
-            location=location_el.attrib.get("href", ""),
-            checksum_type=selected_type,
-            checksum=selected_value, repo=repo, digests=digest_map,
-            provides=provides, requires=requires, recommends=recommends,
-            conflicts=conflicts, obsoletes=obsoletes, files=files, size=size,
-            source_rpm=source_rpm,
-        )
-        package.raw_metadata = raw_element
-        package.verification = ArtifactVerification(
-            index_digest_verified=_repo_trust(repo).metadata_digest_verified,
-            package_digest_declared=bool(package.digests),
-        )
-        packages.append(package)
-        el.clear()
-    reporter.log(f"{repo.name}: {len(packages):,} usable packages for {', '.join(sorted(arches))}")
-    return packages
+    return _rpm_metadata.parse_primary(
+        xml, repo, arches, reporter,
+        normalized_hash_algorithm_fn=normalized_hash_algorithm,
+        select_digest_from_map_fn=select_digest_from_map,
+        repo_trust_fn=_repo_trust,
+    )
 
 
 def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter, retries: int = 3) -> List[Package]:

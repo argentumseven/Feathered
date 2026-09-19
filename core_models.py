@@ -1,14 +1,8 @@
 """Core package, verification, inventory, and resolution data contracts.
 
-This module is intentionally runtime-independent from :mod:`core`.
-
-``RepoSpec`` remains in ``core`` temporarily because repository construction
-still owns credential/redaction registration side effects.  Its reference here
-is TYPE_CHECKING-only, so importing these model contracts does not pull in the
-legacy core module.
-
-``core`` re-exports these names during migration so historical import paths
-remain valid while new code can depend on this smaller boundary directly.
+This module is deliberately independent of the legacy ``core`` implementation.
+``core`` re-exports these classes during the migration so existing imports remain
+valid while new code can depend on the smaller domain boundary directly.
 """
 from __future__ import annotations
 
@@ -19,7 +13,7 @@ from typing import TYPE_CHECKING, Dict, Generic, List, Optional, Set, Tuple, Typ
 from evidence_model import AUTH_UNKNOWN
 
 if TYPE_CHECKING:
-    from core import RepoSpec
+    from repository_config import RepoSpec
 
 
 @dataclass(frozen=True)
@@ -37,7 +31,6 @@ class Requirement:
             return None
         return (self.epoch or "0", self.version or "", self.release or "")
 
-
 @dataclass
 class RepoDataRef:
     data_type: str
@@ -46,7 +39,6 @@ class RepoDataRef:
     checksum: str = ""
     open_checksum_type: str = ""
     open_checksum: str = ""
-
 
 @dataclass
 class Package:
@@ -99,12 +91,10 @@ class Package:
         prefix = f"{self.epoch}:" if self.epoch and self.epoch != "0" else ""
         return f"{prefix}{self.version}-{self.release}"
 
-
 @dataclass(frozen=True)
 class ProviderMatch:
     package: Package
     provide: Requirement
-
 
 @dataclass
 class RepoTrust:
@@ -126,7 +116,6 @@ class RepoTrust:
             return f"archive signature verified ({self.signer})" if self.signer \
                 else "archive signature verified"
         return "archive signature not verified"
-
 
 @dataclass
 class ArtifactVerification:
@@ -165,7 +154,6 @@ class ArtifactVerification:
     evidence_peer_source_rpm: str = ""
     notes: List[str] = field(default_factory=list)
 
-
 @dataclass
 class TargetInventory:
     nevras: Set[str] = field(default_factory=set)
@@ -181,7 +169,6 @@ class TargetInventory:
 
     relationships_complete: bool = field(default=False, compare=False, repr=False)
     retained_packages: List[Package] = field(default_factory=list, compare=False, repr=False)
-
 
 @dataclass
 class ResolutionResult:
@@ -205,9 +192,7 @@ class ResolutionResult:
     def total_size(self) -> int:
         return sum(p.size for p in self.selected)
 
-
 InventoryT = TypeVar("InventoryT")
-
 
 @dataclass
 class BuildOptions(Generic[InventoryT]):
@@ -263,7 +248,6 @@ class BuildOptions(Generic[InventoryT]):
     # disagreement is never ignored.
     require_package_digests: bool = False
     workload_context: object = None
-
 
 __all__ = [
     "ArtifactVerification",
