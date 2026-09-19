@@ -123,6 +123,9 @@ family_host: BackendHost = FamilyHost()
 
 def backend_contracts(rpm: list[core.Package], deb: list[apt_core.DebPackage], arch: list[arch_core.ArchPackage]) -> None:
     reporter = core.Reporter()
+    rpm_baseline: tuple[list[core.Package], list[core.Package]] = core.split_against_baseline(rpm, {}, reporter)
+    deb_baseline: tuple[list[apt_core.DebPackage], list[apt_core.DebPackage]] = core.split_against_baseline(deb, {}, reporter)
+    arch_baseline: tuple[list[arch_core.ArchPackage], list[arch_core.ArchPackage]] = core.split_against_baseline(arch, {}, reporter)
     rpm_result: core.ResolutionResult = core.resolve([RootRequest("root")], rpm, "x86_64", core.BuildOptions(target_inventory=core.TargetInventory()), reporter)
     deb_result: apt_core.DebResolutionResult = apt_core.resolve([], deb, "amd64", core.BuildOptions(target_inventory=apt_core.AptTargetInventory()), reporter)
     arch_result: arch_core.ArchResolutionResult = arch_core.resolve([], arch, "x86_64", core.BuildOptions(target_inventory=arch_core.ArchTargetInventory()), reporter)
@@ -237,6 +240,7 @@ bad_download: core.DownloadPackage = object()  # reject
 bad_family_host: BackendHost = object()  # reject
 
 def wrong_inventory_and_package_families(deb: list[apt_core.DebPackage], reporter: core.Reporter) -> None:
+    wrong_baseline: tuple[list[core.Package], list[core.Package]] = core.split_against_baseline(deb, {}, reporter)  # reject
     core.resolve([], [], "x86_64", core.BuildOptions(target_inventory=apt_core.AptTargetInventory()), reporter)  # reject
     arch_core.resolve([], [], "x86_64", core.BuildOptions(target_inventory=core.TargetInventory()), reporter)  # reject
     core.resolve([], deb, "x86_64", core.BuildOptions(), reporter)  # reject

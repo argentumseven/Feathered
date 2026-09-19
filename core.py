@@ -17,7 +17,7 @@ import sys
 import unicodedata
 import urllib.parse
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Protocol, Sequence, Set, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Protocol, Sequence, Set, Tuple, TypeVar, Union
 
 import artifact_verification as _artifact_verification_engine
 import bundle_sealing as _bundle_sealing
@@ -138,6 +138,9 @@ class DownloadPackage(Protocol):
 
 class RepositoryWriterReporter(Protocol):
     def log(self, message: str, /) -> None: ...
+
+
+BaselinePackageT = TypeVar("BaselinePackageT", bound=_bundle_support.BaselinePackage)
 
 
 # ---------------------------------------------------------------------------
@@ -439,10 +442,10 @@ def load_baseline(manifest_path: str, reporter: Reporter) -> Dict[str, str]:
 
 
 def split_against_baseline(
-    selected: Iterable[Package],
+    selected: Iterable[BaselinePackageT],
     baseline: Dict[str, str],
     reporter: Reporter,
-) -> Tuple[List[Package], List[Package]]:
+) -> Tuple[List[BaselinePackageT], List[BaselinePackageT]]:
     return _bundle_support.split_against_baseline(
         selected, baseline, reporter,
         digest_fn=strong_package_digest, compare_fn=hmac.compare_digest)

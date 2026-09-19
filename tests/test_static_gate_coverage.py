@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Sequence, get_type_hints
+from typing import Sequence, get_args, get_type_hints
 
 import core
+import bundle_support
 import check_python_sources
 from root_requests import RootInput
 
@@ -22,6 +23,15 @@ def test_rpm_resolver_compatibility_facade_retains_static_contract() -> None:
     assert all(parameter.annotation is not inspect.Parameter.empty
                for parameter in signature.parameters.values())
     assert signature.return_annotation is not inspect.Signature.empty
+
+
+def test_baseline_split_facade_preserves_package_family_type() -> None:
+    hints = get_type_hints(core.split_against_baseline)
+    package_type = get_args(hints["selected"])[0]
+    first_return, second_return = get_args(hints["return"])
+    assert get_args(first_return)[0] is package_type
+    assert get_args(second_return)[0] is package_type
+    assert package_type.__bound__ is bundle_support.BaselinePackage
 
 
 def test_python_source_gate_discovers_new_modules_automatically(tmp_path: Path) -> None:
