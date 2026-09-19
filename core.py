@@ -445,7 +445,7 @@ def split_against_baseline(selected, baseline: Dict[str, str], reporter: Reporte
 
 def _windows_payload_key(name: str) -> str:
     return _bundle_support.windows_payload_key(
-        name, normalize_fn=lambda form, value: unicodedata.normalize(form, value))
+        name, normalize_fn=unicodedata.normalize)
 
 
 def payload_filenames(packages, expected_suffix: str):

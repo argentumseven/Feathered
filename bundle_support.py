@@ -12,7 +12,7 @@ import posixpath
 import unicodedata
 import urllib.parse
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Protocol, Tuple, TypeVar
+from typing import Callable, Dict, Iterable, List, Literal, Protocol, Tuple, TypeVar
 
 import bundle_baseline
 import payload_identity
@@ -89,7 +89,7 @@ def split_against_baseline(
 def windows_payload_key(
     name: str,
     *,
-    normalize_fn: Callable[[str, str], str] = unicodedata.normalize,
+    normalize_fn: Callable[[Literal["NFC"], str], str] = unicodedata.normalize,
 ) -> str:
     return payload_identity.windows_key(
         name,
