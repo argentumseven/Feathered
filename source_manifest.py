@@ -16,6 +16,7 @@ stops covering a directory looks exactly like a manifest that passes.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Iterator
 
 MANIFEST_NAME = "SOURCE-SHA256.json"
 
@@ -67,7 +68,7 @@ def is_excluded(relative: str) -> bool:
     return Path(name).suffix in EXCLUDED_SUFFIXES
 
 
-def iter_source_files(root: Path):
+def iter_source_files(root: Path) -> Iterator[str]:
     """Yield root-relative POSIX paths for every in-scope regular file.
 
     Symlinks are refused rather than skipped.  A skipped symlink would leave a

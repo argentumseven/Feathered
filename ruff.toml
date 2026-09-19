@@ -62,9 +62,6 @@ ignore = [
 
 # B023 flags any closure referencing a loop variable, including the safe case
 # where the closure is invoked inside the same iteration and never escapes it.
-# Both sites here were read and are that safe case: core.py's emit_entries is
-# called immediately for the element it just created, and native_conformance's
-# run_oracle is called twice within its own iteration. Scoped per file so B023
-# still catches a genuinely escaping closure anywhere else.
-"core.py" = ["B023"]
+# native_conformance's run_oracle is called twice within its own iteration and
+# never escapes. Scoped to that file so B023 catches escaping closures elsewhere.
 "native_conformance.py" = ["B023"]

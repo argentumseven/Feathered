@@ -309,7 +309,7 @@ def main() -> int:
             path.write_text(source, encoding="utf-8")
             result = subprocess.run(
                 [sys.executable, "-m", "mypy", "--config-file", str(ROOT / "mypy.ini"),
-                 "--no-error-summary", "--show-error-codes", str(path)],
+                 "--no-error-summary", "--no-color-output", "--show-error-codes", str(path)],
                 cwd=ROOT, capture_output=True, text=True,
             )
             output = result.stdout + result.stderr
@@ -328,7 +328,25 @@ def main() -> int:
             wanted_status = 1 if expected else 0
             if (result.returncode != wanted_status or set(actual) != expected
                     or len(actual) != len(expected) or unexpected):
-                print(f"Host contract gate FAILED for {name}:\n{output}")
+                missing = sorted(expected - set(actual))
+                extra = sorted(set(actual) - expected)
+                print(f"Host contract gate FAILED for {name}:")
+                if result.returncode != wanted_status:
+                    print(f"  mypy exit status {result.returncode}; expected {wanted_status}")
+                if missing:
+                    print("  expected rejection(s) were accepted:")
+                    source_lines = source.splitlines()
+                    for line_number in missing:
+                        print(f"    line {line_number}: {source_lines[line_number - 1].strip()}")
+                if extra:
+                    print(f"  unexpected rejection line(s): {extra}")
+                if len(actual) != len(set(actual)):
+                    print("  one or more reject lines produced multiple mypy errors")
+                if unexpected:
+                    print("  mypy reported errors outside the generated host fixture:")
+                    for line in unexpected:
+                        print(f"    {line}")
+                print("\nFull mypy output:\n" + output)
                 return 1
             print(f"{name}: {'rejected all ' + str(len(expected)) + ' malformed capabilities' if expected else 'checked service, source, metadata, transport, backend and transaction interfaces accepted'}")
     print("Host contract gate passed.")

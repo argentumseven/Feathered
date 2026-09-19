@@ -175,8 +175,8 @@ if "%RELEASE_MODE%"=="1" (
   set "FEATHERED_BUILD_LOCK="
 )
 
-set "BUILD_STEP=byte-compiling application source"
-"%PY%" -m compileall -q app.py core.py apt_core.py arch_core.py provenance.py repository_tools.py write_release_manifest.py verify_release_checksums.py feathered_app
+set "BUILD_STEP=checking all Python source syntax"
+"%PY%" check_python_sources.py
 if errorlevel 1 goto :fail
 
 if "%RELEASE_MODE%"=="1" (

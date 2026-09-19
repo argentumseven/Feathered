@@ -17,7 +17,7 @@ import sys
 import unicodedata
 import urllib.parse
 from pathlib import Path
-from typing import Dict, Iterable, Optional, Protocol, Set, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Protocol, Sequence, Set, Tuple, Union
 
 import artifact_verification as _artifact_verification_engine
 import bundle_sealing as _bundle_sealing
@@ -78,6 +78,7 @@ from publication_staging import (
     open_staging,
 )
 from repository_config import RepoSpec
+from root_requests import RootInput
 from repository_paths import (
     file_url_to_path,
     human_size,
@@ -324,7 +325,7 @@ def parse_primary(
     repo: RepoSpec,
     arches: Set[str],
     reporter: Reporter,
-):
+) -> List[Package]:
     return _rpm_metadata.parse_primary(
         xml,
         repo,
@@ -389,7 +390,7 @@ def _load_repository_once(
     arches: Set[str],
     reporter: Reporter,
     retries: int = 3,
-):
+) -> List[Package]:
     return _repository_loader.load_repository_once(
         repo,
         arches,
@@ -404,7 +405,7 @@ def load_repository(
     arches: Set[str],
     reporter: Reporter,
     retries: int = 3,
-):
+) -> List[Package]:
     return _repository_loader.load_repository(
         repo,
         arches,
@@ -437,7 +438,11 @@ def load_baseline(manifest_path: str, reporter: Reporter) -> Dict[str, str]:
         manifest_path, reporter, digest_fn=strong_package_digest)
 
 
-def split_against_baseline(selected, baseline: Dict[str, str], reporter: Reporter):
+def split_against_baseline(
+    selected: Iterable[Package],
+    baseline: Dict[str, str],
+    reporter: Reporter,
+) -> Tuple[List[Package], List[Package]]:
     return _bundle_support.split_against_baseline(
         selected, baseline, reporter,
         digest_fn=strong_package_digest, compare_fn=hmac.compare_digest)
@@ -448,7 +453,7 @@ def _windows_payload_key(name: str) -> str:
         name, normalize_fn=unicodedata.normalize)
 
 
-def payload_filenames(packages, expected_suffix: str):
+def payload_filenames(packages: Iterable[object], expected_suffix: str) -> Dict[int, str]:
     return _bundle_support.payload_filenames(
         packages, expected_suffix,
         location_name_fn=lambda location: posixpath.basename(urllib.parse.urlparse(location).path),
@@ -613,7 +618,13 @@ def _resolve_once(root_requests, packages, preferred_arch, options, reporter):
     )
 
 
-def resolve(root_requests, packages, preferred_arch, options, reporter):
+def resolve(
+    root_requests: Sequence[RootInput],
+    packages: Sequence[Package],
+    preferred_arch: str,
+    options: BuildOptions[TargetInventory],
+    reporter: Reporter,
+) -> ResolutionResult:
     from transaction_model import resolve_transaction
 
     return resolve_transaction(
@@ -705,10 +716,10 @@ def spot_compare_artifact_urls(
 
 
 def spot_compare_peer_artifact_urls(
-    primary_pkg,
+    primary_pkg: Package,
     acquisition_url: str,
     acquisition_repo: RepoSpec,
-    evidence_pkg,
+    evidence_pkg: Package,
     evidence_url: str,
     evidence_repo: RepoSpec,
     checksum_policy: str,
@@ -728,9 +739,9 @@ def spot_compare_peer_artifact_urls(
 
 
 def _verify_independent_evidence_payload(
-    pkg,
+    pkg: Package,
     acquisition_path: Path,
-    primary,
+    primary: Optional[Tuple[str, str]],
     computed: Dict[str, str],
     reporter: Reporter,
 ) -> None:
@@ -749,7 +760,7 @@ def _verify_independent_evidence_payload(
 
 
 def verify_package_artifact(
-    pkg,
+    pkg: Package,
     path: Path,
     options: BuildOptions,
     reporter: Reporter,
@@ -807,7 +818,7 @@ write_bundle_archive = _rpm_bundle.write_bundle_archive
 _write_workload_artifacts = _rpm_bundle._write_workload_artifacts
 
 
-def _rpm_bundle_services():
+def _rpm_bundle_services() -> _rpm_bundle.BundleServices:
     return _rpm_bundle.BundleServices(
         load_baseline=load_baseline,
         split_against_baseline=split_against_baseline,

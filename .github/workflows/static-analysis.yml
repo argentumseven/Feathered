@@ -33,6 +33,9 @@ jobs:
             'ruff==0.14.2' 'mypy==1.18.2' 'types-PyYAML==6.0.12.20250915'
           python -m pip install --disable-pip-version-check -r requirements.txt
 
+      - name: Compile every in-scope Python source
+        run: python check_python_sources.py
+
       # Configured in ruff.toml. Selects genuine-defect rules (pyflakes,
       # bugbear, a few shell-injection checks) and scopes out house style, so a
       # finding here means something is actually wrong.

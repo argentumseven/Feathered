@@ -74,11 +74,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Could not generate SOURCE-SHA256.json.' }
           .\.release-venv\Scripts\python.exe verify_source_checksums.py
           if ($LASTEXITCODE -ne 0) { throw 'Generated SOURCE-SHA256.json does not describe this source tree.' }
-      - name: Compile and run complete regression corpus
+      - name: Check all Python source and run complete regression corpus
         shell: powershell
         run: |
           $python = '.\.release-venv\Scripts\python.exe'
-          & $python -m compileall -q app.py core.py apt_core.py arch_core.py provenance.py repository_tools.py feathered_app
+          & $python check_python_sources.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & $python release_test_runner.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
