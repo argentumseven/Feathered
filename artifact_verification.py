@@ -7,13 +7,14 @@ import urllib.parse
 import urllib.request
 from dataclasses import replace
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 import artifact_digests
 from core_models import ArtifactVerification, BuildOptions, RepoTrust
 from credential_redaction import redact_text, redact_url
 from evidence_model import REL_EXACT_ARTIFACT, REL_REBUILD_PEER, AUTH_UNKNOWN, classify_relationship, infer_vendor_id
 from execution_reporter import Reporter
+from package_contracts import PackageArtifact
 from repository_config import RepoSpec
 from repository_paths import repo_relative_url
 from runtime_limits import MAX_PACKAGE_DOWNLOAD_BYTES
@@ -118,7 +119,7 @@ def repository_verification_strategy(repo: RepoSpec) -> str:
     return "checksum-available"
 
 
-def package_digest_map(pkg) -> Dict[str, str]:
+def package_digest_map(pkg: PackageArtifact) -> Dict[str, str]:
     digests = normalized_digest_map(getattr(pkg, "digests", None))
     legacy = strong_package_digest(getattr(pkg, "checksum_type", ""),
                                    getattr(pkg, "checksum", ""))
@@ -127,12 +128,12 @@ def package_digest_map(pkg) -> Dict[str, str]:
     return digests
 
 
-def selected_package_digest(pkg) -> Optional[Tuple[str, str]]:
+def selected_package_digest(pkg: PackageArtifact) -> Optional[Tuple[str, str]]:
     preference = getattr(getattr(pkg, "repo", None), "digest_preference", "auto")
     return select_digest_from_map(package_digest_map(pkg), preference)
 
 
-def package_has_selected_digest(pkg) -> bool:
+def package_has_selected_digest(pkg: PackageArtifact) -> bool:
     return selected_package_digest(pkg) is not None
 
 
@@ -156,7 +157,7 @@ def mirrors_are_distinct(primary_url: str, evidence_url: str) -> Tuple[bool, str
     return True, "different hostnames"
 
 
-def _artifact_verification(pkg) -> ArtifactVerification:
+def _artifact_verification(pkg: PackageArtifact) -> ArtifactVerification:
     record = getattr(pkg, "verification", None)
     if record is None:
         record = ArtifactVerification()
@@ -440,7 +441,7 @@ def spot_compare_peer_artifact_urls(primary_pkg, acquisition_url: str, acquisiti
                   f"peer {evidence_size:,} bytes")
 
 
-def _evidence_comparison_algorithm(pkg, primary: Optional[Tuple[str, str]]) -> str:
+def _evidence_comparison_algorithm(pkg: PackageArtifact, primary: Optional[Tuple[str, str]]) -> str:
     if primary:
         return primary[0]
     preference = normalized_hash_algorithm(getattr(getattr(pkg, "repo", None), "digest_preference", "auto"))
@@ -451,7 +452,8 @@ def _evidence_comparison_algorithm(pkg, primary: Optional[Tuple[str, str]]) -> s
     return "sha512"
 
 
-def _verify_independent_evidence_payload(pkg, acquisition_path: Path, primary,
+def _verify_independent_evidence_payload(pkg: PackageArtifact, acquisition_path: Path,
+                                         primary: Optional[Tuple[str, str]],
                                          computed: Dict[str, str], reporter: Reporter, *,
                                          open_url_fn, hash_file_fn, mirrors_are_distinct_fn,
                                          evidence_relationship_fn, evidence_authority_relationship_fn) -> None:
@@ -712,8 +714,15 @@ def apply_mirror_evidence(primary_packages, evidence_packages, evidence_repo: Re
     return stats
 
 
-def verify_package_artifact(pkg, path: Path, options: BuildOptions, reporter: Reporter, *,
-                            hash_file_fn, verify_independent_fn) -> bool:
+def verify_package_artifact(
+    pkg: PackageArtifact,
+    path: Path,
+    options: BuildOptions,
+    reporter: Reporter,
+    *,
+    hash_file_fn: Callable[[Path, str], str],
+    verify_independent_fn: Callable[[PackageArtifact, Path, Optional[Tuple[str, str]], Dict[str, str], Reporter], None],
+) -> bool:
     """Verify one cached or freshly transferred package under its strategy.
 
     Enhanced and Maximum treat independent evidence as an independently

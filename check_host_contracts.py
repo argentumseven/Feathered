@@ -129,8 +129,15 @@ def backend_contracts(rpm: list[core.Package], deb: list[apt_core.DebPackage], a
     rpm_result: core.ResolutionResult = core.resolve([RootRequest("root")], rpm, "x86_64", core.BuildOptions(target_inventory=core.TargetInventory()), reporter)
     deb_result: apt_core.DebResolutionResult = apt_core.resolve([], deb, "amd64", core.BuildOptions(target_inventory=apt_core.AptTargetInventory()), reporter)
     arch_result: arch_core.ArchResolutionResult = arch_core.resolve([], arch, "x86_64", core.BuildOptions(target_inventory=arch_core.ArchTargetInventory()), reporter)
+    if rpm:
+        rpm_artifact: core.DownloadPackage = rpm[0]
+        rpm_verified: bool = core.verify_package_artifact(rpm[0], Path("rpm.pkg"), core.BuildOptions(), reporter)
+    if deb:
+        deb_artifact: core.DownloadPackage = deb[0]
+        deb_verified: bool = core.verify_package_artifact(deb[0], Path("deb.pkg"), core.BuildOptions(), reporter)
     if arch:
-        shared_package: core.DownloadPackage = arch[0]
+        arch_artifact: core.DownloadPackage = arch[0]
+        arch_verified: bool = core.verify_package_artifact(arch[0], Path("arch.pkg"), core.BuildOptions(), reporter)
     payload: bytes = fetch_bytes("https://example.test/metadata", reporter,
         repo=core.RepoSpec("base", "https://example.test/"),
         open_url_fn=lambda url, timeout, source: io.BytesIO(b"metadata"),
@@ -228,6 +235,7 @@ def wrong_cache_write(cache: MetadataCacheHost[str]) -> None:
     store_metadata_cache(cache, "sources", [42])  # reject
 
 import io
+from pathlib import Path
 import core
 import apt_core
 import arch_core
@@ -238,6 +246,7 @@ bad_response: ByteResponse = io.StringIO("text")  # reject
 bad_transport_reporter: TransportReporter = object()  # reject
 bad_download: core.DownloadPackage = object()  # reject
 bad_family_host: BackendHost = object()  # reject
+core.verify_package_artifact(object(), Path("bad.pkg"), core.BuildOptions(), core.Reporter())  # reject
 
 def wrong_inventory_and_package_families(deb: list[apt_core.DebPackage], reporter: core.Reporter) -> None:
     wrong_baseline: tuple[list[core.Package], list[core.Package]] = core.split_against_baseline(deb, {}, reporter)  # reject

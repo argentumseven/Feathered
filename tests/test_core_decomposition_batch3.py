@@ -10,6 +10,8 @@ import bundle_support
 import metadata_digests
 import openpgp_verifier
 import package_acquisition
+import package_contracts
+import package_transfer
 import repository_loader
 
 
@@ -23,6 +25,8 @@ def test_new_boundaries_import_without_legacy_core() -> None:
         "metadata_digests",
         "openpgp_verifier",
         "package_acquisition",
+        "package_contracts",
+        "package_transfer",
         "repository_loader",
     )
     for module in modules:
@@ -50,3 +54,5 @@ def test_compatibility_names_point_at_extracted_boundaries() -> None:
     assert core._sign_detached is bundle_sealing.sign_detached
     assert repository_loader.repo_trust(core.RepoSpec("x", "file:///tmp"))
     assert package_acquisition.AcquisitionServices
+    assert package_contracts.PackageArtifact in core.DownloadPackage.__mro__
+    assert package_transfer.package_download_limit

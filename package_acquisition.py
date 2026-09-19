@@ -14,6 +14,7 @@ import repository_transport as transport
 from core_models import BuildOptions
 from credential_redaction import redact_text, redact_url
 from execution_reporter import Reporter
+from package_contracts import PackageArtifact
 from package_transfer import copy_package_stream_bounded, package_download_limit
 from repository_paths import repo_relative_url
 
@@ -21,11 +22,11 @@ from repository_paths import repo_relative_url
 @dataclass(frozen=True)
 class AcquisitionServices:
     open_url: Callable[..., Any]
-    verify_artifact: Callable[[Any, Path, BuildOptions, Reporter], bool]
+    verify_artifact: Callable[[PackageArtifact, Path, BuildOptions, Reporter], bool]
 
 
 def copy_or_download(
-    pkg: Any,
+    pkg: PackageArtifact,
     dest: Path,
     options: BuildOptions,
     reporter: Reporter,

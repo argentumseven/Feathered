@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import ast
 import inspect
 from pathlib import Path
 from typing import Sequence, get_args, get_type_hints
 
 import core
+import artifact_verification
 import bundle_support
 import check_python_sources
+import package_acquisition
+import package_contracts
+import package_transfer
 from root_requests import RootInput
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +37,53 @@ def test_baseline_split_facade_preserves_package_family_type() -> None:
     assert get_args(first_return)[0] is package_type
     assert get_args(second_return)[0] is package_type
     assert package_type.__bound__ is bundle_support.BaselinePackage
+
+
+def test_shared_artifact_helpers_are_package_family_neutral() -> None:
+    core_hints = get_type_hints(core.verify_package_artifact)
+    engine_hints = get_type_hints(artifact_verification.verify_package_artifact)
+    acquisition_hints = get_type_hints(package_acquisition.copy_or_download)
+    transfer_hints = get_type_hints(package_transfer.package_download_limit)
+    assert core_hints["pkg"] is package_contracts.PackageArtifact
+    assert engine_hints["pkg"] is package_contracts.PackageArtifact
+    assert acquisition_hints["pkg"] is package_contracts.PackageArtifact
+    assert transfer_hints["pkg"] is package_contracts.PackageArtifact
+    assert package_contracts.PackageArtifact in core.DownloadPackage.__mro__
+
+
+def _core_surface_used_by(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module == "core":
+            names.update(alias.name for alias in node.names)
+        elif (isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name)
+              and node.value.id == "core"):
+            names.add(node.attr)
+    return names
+
+
+def _contains_concrete_rpm_package(annotation: object) -> bool:
+    if annotation is core.Package:
+        return True
+    return any(_contains_concrete_rpm_package(item) for item in get_args(annotation))
+
+
+def test_shared_apt_arch_core_surface_does_not_hardcode_rpm_package() -> None:
+    apt_surface = _core_surface_used_by(ROOT / "apt_core.py")
+    arch_surface = _core_surface_used_by(ROOT / "arch_core.py")
+    offenders: list[str] = []
+    for name in sorted(apt_surface | arch_surface):
+        value = getattr(core, name, None)
+        if not inspect.isfunction(value):
+            continue
+        hints = get_type_hints(value)
+        if any(_contains_concrete_rpm_package(annotation) for annotation in hints.values()):
+            # RPM-only resolver/publication APIs are allowed only when neither
+            # non-RPM backend consumes them. Any APT/Arch consumer must use a
+            # structural or generic package contract.
+            offenders.append(name)
+    assert offenders == []
 
 
 def test_python_source_gate_discovers_new_modules_automatically(tmp_path: Path) -> None:
@@ -64,6 +116,8 @@ def test_release_and_static_gates_use_automatic_source_syntax_check() -> None:
     assert "python check_python_sources.py" in static
     assert "& $python check_python_sources.py" in windows
     assert '"%PY%" check_python_sources.py' in build
+    assert static.index("Host contract acceptance and rejection") < static.index("- name: mypy")
+    assert "package_contracts.py" in (ROOT / "mypy.ini").read_text(encoding="utf-8")
     stale = "compileall -q app.py core.py apt_core.py arch_core.py"
     assert stale not in windows
     assert stale not in build

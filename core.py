@@ -69,6 +69,7 @@ from evidence_model import (
     vendor_display_name,
 )
 from execution_reporter import Cancelled, CancellationProbe, Reporter
+from package_contracts import PackageArtifact
 from package_transfer import copy_package_stream_bounded, package_download_limit
 from publication_staging import (
     _publication_backup_path,
@@ -108,32 +109,8 @@ USER_AGENT = f"Feathered-Airgap-Sideloader/{FEATHERED_VERSION}"
 RPM_NS = _rpm_metadata.RPM_NS
 
 
-class DownloadPackage(Protocol):
-    verification: Optional[ArtifactVerification]
-
-    @property
-    def name(self) -> str: ...
-
-    @property
-    def size(self) -> int: ...
-
-    @property
-    def checksum_type(self) -> str: ...
-
-    @property
-    def checksum(self) -> str: ...
-
-    @property
-    def digests(self) -> Dict[str, str]: ...
-
-    @property
-    def repo(self) -> RepoSpec: ...
-
-    @property
-    def location(self) -> str: ...
-
-    @property
-    def nevra(self) -> str: ...
+class DownloadPackage(PackageArtifact, Protocol):
+    """Compatibility name for the shared package-artifact protocol."""
 
 
 class RepositoryWriterReporter(Protocol):
@@ -742,7 +719,7 @@ def spot_compare_peer_artifact_urls(
 
 
 def _verify_independent_evidence_payload(
-    pkg: Package,
+    pkg: PackageArtifact,
     acquisition_path: Path,
     primary: Optional[Tuple[str, str]],
     computed: Dict[str, str],
@@ -763,7 +740,7 @@ def _verify_independent_evidence_payload(
 
 
 def verify_package_artifact(
-    pkg: Package,
+    pkg: PackageArtifact,
     path: Path,
     options: BuildOptions,
     reporter: Reporter,

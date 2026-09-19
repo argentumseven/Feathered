@@ -4,10 +4,11 @@ from __future__ import annotations
 from typing import Optional, SupportsIndex, SupportsInt, Tuple, Union
 
 from execution_reporter import Reporter
+from package_contracts import PackageArtifact
 from runtime_limits import MAX_PACKAGE_DOWNLOAD_BYTES
 
 
-def package_download_limit(pkg) -> Tuple[int, int]:
+def package_download_limit(pkg: PackageArtifact) -> Tuple[int, int]:
     """Return (hard transfer ceiling, advertised payload size).
 
     Package metadata for RPM, DEB, and ALPM records describes the compressed
@@ -27,7 +28,7 @@ def package_download_limit(pkg) -> Tuple[int, int]:
             f"Feathered's configured {MAX_PACKAGE_DOWNLOAD_BYTES:,}-byte per-package limit")
     return (expected if expected > 0 else MAX_PACKAGE_DOWNLOAD_BYTES), expected
 
-def copy_package_stream_bounded(stream, target, pkg, reporter: Reporter,
+def copy_package_stream_bounded(stream, target, pkg: PackageArtifact, reporter: Reporter,
                                 declared_length: Optional[Union[str, bytes, bytearray, SupportsInt, SupportsIndex]] = None) -> int:
     """Copy one package payload while enforcing metadata/global byte ceilings."""
     limit, expected = package_download_limit(pkg)

@@ -36,6 +36,13 @@ jobs:
       - name: Compile every in-scope Python source
         run: python check_python_sources.py
 
+      # Run the focused cross-family/host contract fixture before the broad
+      # mypy ratchet. This produces a precise failure when a shared façade is
+      # accidentally narrowed to one package family instead of leaving the
+      # developer to infer that from downstream APT/Arch assignment errors.
+      - name: Host contract acceptance and rejection
+        run: python check_host_contracts.py
+
       # Configured in ruff.toml. Selects genuine-defect rules (pyflakes,
       # bugbear, a few shell-injection checks) and scopes out house style, so a
       # finding here means something is actually wrong.
@@ -47,9 +54,6 @@ jobs:
       # the list as modules are cleaned; never add one with an ignore.
       - name: mypy
         run: mypy
-
-      - name: Host contract acceptance and rejection
-        run: python check_host_contracts.py
 
       # The source manifest is generated evidence, not a tracked merge input.
       # Generate it from the checked-out commit, then verify that exact tree.
