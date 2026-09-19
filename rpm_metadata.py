@@ -11,13 +11,18 @@ import gzip
 import io
 import lzma
 import tempfile
-from typing import Dict, List, Optional, Set
+from typing import Dict, IO, List, Optional, Set, Union
 import urllib.parse
 import xml.etree.ElementTree as ET
 
 from core_models import ArtifactVerification, Package, RepoDataRef, Requirement, RepoTrust
 from execution_reporter import Reporter
 from repository_config import RepoSpec
+from runtime_limits import (
+    MAX_METADATA_FILE_ENTRIES,
+    MAX_METADATA_PACKAGE_RECORDS,
+    MAX_METADATA_RELATIONSHIP_RECORDS,
+)
 
 RPM_NS = {
     "repo": "http://linux.duke.edu/metadata/repo",
@@ -77,23 +82,75 @@ def get_repo_data(repo: RepoSpec, reporter: Reporter, retries: int = 3, *, url_j
         )
     return refs
 
-def _read_bounded_stream(reader, max_bytes: int, description: str) -> bytes:
+def _copy_bounded_stream(reader, target: IO[bytes], max_bytes: int, description: str) -> int:
     total = 0
-    # A list of chunks followed by b"".join() can transiently hold nearly two
-    # copies of a very large metadata document.  Spool after 64 MiB so the
-    # bounded result needs only one in-memory bytes object when returned.
-    with tempfile.SpooledTemporaryFile(max_size=min(max_bytes, 64 * 1024 * 1024)) as spool:
-        while True:
-            chunk = reader.read(1024 * 1024)
-            if not chunk:
-                break
-            total += len(chunk)
-            if total > max_bytes:
+    while True:
+        chunk = reader.read(1024 * 1024)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > max_bytes:
+            raise RuntimeError(
+                f"{description} expands beyond Feathered's {max_bytes:,}-byte metadata limit")
+        target.write(chunk)
+    return total
+
+
+def decompress_metadata_stream(
+    data: bytes,
+    url: str,
+    max_bytes: int,
+    *,
+    zstd_module,
+    stdlib_zstd_module,
+) -> IO[bytes]:
+    """Return expanded metadata as a rewindable bounded spooled stream.
+
+    Large indexes roll to a temporary file after 64 MiB instead of becoming a
+    second hundreds-of-megabytes ``bytes`` object before parsing.  Callers own
+    the returned stream and must close it.
+    """
+    spool: IO[bytes] = tempfile.SpooledTemporaryFile(
+        max_size=min(max_bytes, 64 * 1024 * 1024)
+    )
+    lower = urllib.parse.urlparse(url).path.lower()
+    try:
+        if lower.endswith(".gz"):
+            with gzip.GzipFile(fileobj=io.BytesIO(data), mode="rb") as reader:
+                _copy_bounded_stream(reader, spool, max_bytes, "Gzip repository metadata")
+        elif lower.endswith(".bz2"):
+            with bz2.BZ2File(io.BytesIO(data), mode="rb") as reader:
+                _copy_bounded_stream(reader, spool, max_bytes, "Bzip2 repository metadata")
+        elif lower.endswith(".xz"):
+            with lzma.LZMAFile(io.BytesIO(data), mode="rb") as reader:
+                _copy_bounded_stream(reader, spool, max_bytes, "XZ repository metadata")
+        elif lower.endswith((".zst", ".zstd")):
+            if zstd_module is not None:
+                dctx = zstd_module.ZstdDecompressor()
+                with dctx.stream_reader(io.BytesIO(data)) as reader:
+                    _copy_bounded_stream(reader, spool, max_bytes, "Zstandard repository metadata")
+            elif stdlib_zstd_module is not None:
+                try:
+                    with stdlib_zstd_module.ZstdFile(io.BytesIO(data), mode="rb") as reader:
+                        _copy_bounded_stream(reader, spool, max_bytes, "Zstandard repository metadata")
+                except Exception as exc:
+                    raise RuntimeError(f"stdlib Zstandard decompression failed: {exc}") from exc
+            else:
                 raise RuntimeError(
-                    f"{description} expands beyond Feathered's {max_bytes:,}-byte metadata limit")
-            spool.write(chunk)
+                    "Repository metadata is Zstandard-compressed but Zstandard support is unavailable. "
+                    "Start with run_gui.bat or install the Python 'zstandard' package."
+                )
+        else:
+            if len(data) > max_bytes:
+                raise RuntimeError(
+                    f"Repository metadata is {len(data):,} bytes, above Feathered's "
+                    f"{max_bytes:,}-byte expanded limit")
+            spool.write(data)
         spool.seek(0)
-        return spool.read()
+        return spool
+    except Exception:
+        spool.close()
+        raise
 
 def decompress_metadata(data: bytes, url: str, max_bytes: int, *, zstd_module, stdlib_zstd_module) -> bytes:
     """Decompress repository metadata with an explicit expanded-size ceiling.
@@ -103,38 +160,14 @@ def decompress_metadata(data: bytes, url: str, max_bytes: int, *, zstd_module, s
     compression bomb could therefore consume arbitrary RAM before Feathered ever
     parsed the metadata. All supported formats now stream into the same bound.
     """
-    lower = urllib.parse.urlparse(url).path.lower()
-    if lower.endswith(".gz"):
-        with gzip.GzipFile(fileobj=io.BytesIO(data), mode="rb") as reader:
-            return _read_bounded_stream(reader, max_bytes, "Gzip repository metadata")
-    if lower.endswith(".bz2"):
-        with bz2.BZ2File(io.BytesIO(data), mode="rb") as reader:
-            return _read_bounded_stream(reader, max_bytes, "Bzip2 repository metadata")
-    if lower.endswith(".xz"):
-        with lzma.LZMAFile(io.BytesIO(data), mode="rb") as reader:
-            return _read_bounded_stream(reader, max_bytes, "XZ repository metadata")
-    if lower.endswith((".zst", ".zstd")):
-        # Docker's current RPM metadata can use Zstandard frames without a
-        # content-size field. ZstdDecompressor.decompress() requires that size
-        # unless max_output_size is supplied, so use streaming decompression.
-        if zstd_module is not None:
-            dctx = zstd_module.ZstdDecompressor()
-            with dctx.stream_reader(io.BytesIO(data)) as reader:
-                return _read_bounded_stream(reader, max_bytes, "Zstandard repository metadata")
-        if stdlib_zstd_module is not None:
-            try:
-                with stdlib_zstd_module.ZstdFile(io.BytesIO(data), mode="rb") as reader:
-                    return _read_bounded_stream(reader, max_bytes, "Zstandard repository metadata")
-            except Exception as exc:
-                raise RuntimeError(f"stdlib Zstandard decompression failed: {exc}") from exc
-        raise RuntimeError(
-            "Repository metadata is Zstandard-compressed but Zstandard support is unavailable. "
-            "Start with run_gui.bat or install the Python 'zstandard' package."
-        )
-    if len(data) > max_bytes:
-        raise RuntimeError(
-            f"Repository metadata is {len(data):,} bytes, above Feathered's {max_bytes:,}-byte expanded limit")
-    return data
+    with decompress_metadata_stream(
+        data,
+        url,
+        max_bytes,
+        zstd_module=zstd_module,
+        stdlib_zstd_module=stdlib_zstd_module,
+    ) as stream:
+        return stream.read()
 
 def _entry(el: ET.Element, kind: str) -> Requirement:
     return Requirement(
@@ -152,14 +185,21 @@ def _entries(fmt: Optional[ET.Element], tag: str, kind: str) -> List[Requirement
     parent = fmt.find(f"rpm:{tag}", RPM_NS)
     return [_entry(x, kind) for x in parent.findall("rpm:entry", RPM_NS)] if parent is not None else []
 
-def parse_primary(xml: bytes, repo: RepoSpec, arches: Set[str], reporter: Reporter, *, normalized_hash_algorithm_fn, select_digest_from_map_fn, repo_trust_fn) -> List[Package]:
+def parse_primary(xml: Union[bytes, IO[bytes]], repo: RepoSpec, arches: Set[str], reporter: Reporter, *, normalized_hash_algorithm_fn, select_digest_from_map_fn, repo_trust_fn) -> List[Package]:
     packages: List[Package] = []
     count = 0
-    for _, el in ET.iterparse(io.BytesIO(xml), events=("end",)):
+    relationship_count = 0
+    file_count = 0
+    source = io.BytesIO(xml) if isinstance(xml, bytes) else xml
+    source.seek(0)
+    for _, el in ET.iterparse(source, events=("end",)):
         if el.tag != f"{{{RPM_NS['common']}}}package":
             continue
         count += 1
-        raw_element = ET.tostring(el, encoding="unicode")
+        if count > MAX_METADATA_PACKAGE_RECORDS:
+            raise RuntimeError(
+                f"{repo.name}: primary metadata contains more than Feathered's "
+                f"{MAX_METADATA_PACKAGE_RECORDS:,} package-record safety limit")
         if count % 3000 == 0:
             reporter.log(f"{repo.name}: parsed {count:,} package records")
         if el.attrib.get("type") != "rpm":
@@ -185,6 +225,18 @@ def parse_primary(xml: bytes, repo: RepoSpec, arches: Set[str], reporter: Report
         conflicts = _entries(fmt, "conflicts", "conflicts")
         obsoletes = _entries(fmt, "obsoletes", "obsoletes")
         files = [(x.text or "").strip() for x in fmt.findall("common:file", RPM_NS) if x.text] if fmt is not None else []
+        relationship_count += sum(
+            len(items) for items in (provides, requires, recommends, conflicts, obsoletes)
+        )
+        file_count += len(files)
+        if relationship_count > MAX_METADATA_RELATIONSHIP_RECORDS:
+            raise RuntimeError(
+                f"{repo.name}: primary metadata contains more than Feathered's "
+                f"{MAX_METADATA_RELATIONSHIP_RECORDS:,} relationship-entry safety limit")
+        if file_count > MAX_METADATA_FILE_ENTRIES:
+            raise RuntimeError(
+                f"{repo.name}: primary metadata contains more than Feathered's "
+                f"{MAX_METADATA_FILE_ENTRIES:,} file-entry safety limit")
         source_rpm_el = fmt.find("rpm:sourcerpm", RPM_NS) if fmt is not None else None
         source_rpm = (source_rpm_el.text or "").strip() if source_rpm_el is not None else ""
         if not any(p.name == name for p in provides):
@@ -208,7 +260,6 @@ def parse_primary(xml: bytes, repo: RepoSpec, arches: Set[str], reporter: Report
             conflicts=conflicts, obsoletes=obsoletes, files=files, size=size,
             source_rpm=source_rpm,
         )
-        package.raw_metadata = raw_element
         package.verification = ArtifactVerification(
             index_digest_verified=repo_trust_fn(repo).metadata_digest_verified,
             package_digest_declared=bool(package.digests),

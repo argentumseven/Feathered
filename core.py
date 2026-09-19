@@ -17,7 +17,7 @@ import sys
 import unicodedata
 import urllib.parse
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Protocol, Sequence, Set, Tuple, TypeVar, Union
+from typing import Dict, IO, Iterable, List, Optional, Protocol, Sequence, Set, Tuple, TypeVar, Union
 
 import artifact_verification as _artifact_verification_engine
 import bundle_sealing as _bundle_sealing
@@ -199,6 +199,7 @@ _HASH_ALIASES = _metadata_digests._HASH_ALIASES
 WEAK_HASHES = _metadata_digests.WEAK_HASHES
 normalize_hash_name = _metadata_digests.normalize_hash_name
 _hash_bytes = _metadata_digests.hash_bytes
+_hash_stream = _metadata_digests.hash_stream
 
 
 # ---------------------------------------------------------------------------
@@ -300,8 +301,22 @@ def decompress_metadata(
     )
 
 
+def decompress_metadata_stream(
+    data: bytes,
+    url: str,
+    max_bytes: int = MAX_METADATA_EXPANDED_BYTES,
+) -> IO[bytes]:
+    return _rpm_metadata.decompress_metadata_stream(
+        data,
+        url,
+        max_bytes,
+        zstd_module=zstd,
+        stdlib_zstd_module=stdlib_zstd,
+    )
+
+
 def parse_primary(
-    xml: bytes,
+    xml: Union[bytes, IO[bytes]],
     repo: RepoSpec,
     arches: Set[str],
     reporter: Reporter,
@@ -326,7 +341,9 @@ def _repository_loader_services() -> _repository_loader.RepositoryLoaderServices
         repo_trust=_repo_trust,
         repo_relative_url=repo_relative_url,
         hash_bytes=_hash_bytes,
+        hash_stream=_hash_stream,
         decompress_metadata=decompress_metadata,
+        decompress_metadata_stream=decompress_metadata_stream,
         parse_primary=parse_primary,
         package_has_selected_digest=package_has_selected_digest,
         artifact_verification=_artifact_verification,

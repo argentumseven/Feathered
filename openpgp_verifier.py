@@ -238,10 +238,11 @@ def gpg_backend(
             "This Feathered release is missing its bundled OpenPGP verifier. "
             "Refusing to fall back to an unauthenticated PATH executable."
         )
-    for candidate in ("gpgv", "gpg"):
-        if shutil.which(candidate):
-            return candidate
-    return None
+    # Verification deliberately requires gpgv.  Ordinary gpg reads user
+    # configuration and can consult keyboxd/automatic-key-retrieval state,
+    # which breaks the semantic guarantee that verification is confined to the
+    # operator-configured repository keyring.
+    return "gpgv" if shutil.which("gpgv") else None
 
 
 def gpg_backend_or_none(
@@ -386,8 +387,14 @@ def verify_openpgp(
     backend = backend_fn()
     if backend is None:
         raise RuntimeError(
-            f"{description}: a keyring is configured but neither gpgv nor gpg is installed. "
-            "Install GnuPG (Gpg4win on Windows) or clear the keyring setting for this repository."
+            f"{description}: a keyring is configured but gpgv is not installed. "
+            "Install the GnuPG verifier (gpgv; Gpg4win on Windows) or clear the keyring "
+            "setting for this repository. Feathered does not fall back to ordinary gpg for verification."
+        )
+    if backend_name_fn(backend) != "gpgv":
+        raise RuntimeError(
+            f"{description}: OpenPGP verification requires gpgv; refusing verifier "
+            f"{Path(backend).name!r} because it may consult user configuration or external key stores."
         )
     with tempfile.TemporaryDirectory(prefix="feathered-gpg-") as tmpdir:
         tmp = Path(tmpdir)
@@ -401,18 +408,7 @@ def verify_openpgp(
             sig_file.write_bytes(signature)
             args = [path_arg_fn(sig_file, backend), path_arg_fn(payload_file, backend)]
         keyring_cli = path_arg_fn(keyring_arg, backend)
-        if backend_name_fn(backend) == "gpgv":
-            cmd = [backend, "--keyring", keyring_cli, *args]
-        else:
-            cmd = [
-                backend,
-                "--batch",
-                "--no-default-keyring",
-                "--keyring",
-                keyring_cli,
-                "--verify",
-                *args,
-            ]
+        cmd = [backend, "--keyring", keyring_cli, *args]
         proc = subprocess.run(cmd, capture_output=True, text=True)
         if proc.returncode != 0:
             detail = [

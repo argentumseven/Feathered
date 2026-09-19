@@ -156,6 +156,49 @@ class RepoSpec:
         return urllib.parse.urlunsplit((parts.scheme, parts.netloc, path, parts.query, parts.fragment))
 
     @property
+    def identity_url(self) -> str:
+        """Canonical repository URL with credential material removed.
+
+        ``source_identity`` is published into bundle contracts and therefore
+        must never act as an offline verifier for repository credentials.  The
+        identity keeps repository-location semantics (scheme, host/port, path,
+        and non-secret query parameters) while dropping all URL userinfo,
+        fragments, and both built-in and repository-declared credential query
+        fields.  Query pairs are sorted so credential rotation and harmless
+        parameter ordering do not change repository identity.
+        """
+        text = self.normalized_url
+        if not text:
+            return ""
+        try:
+            parts = urllib.parse.urlsplit(text)
+        except ValueError:
+            # Invalid URLs will fail later when used as repository sources.  Do
+            # not risk hashing a malformed credential-bearing spelling here.
+            return ""
+        if not parts.scheme:
+            return text
+
+        # Remove userinfo completely rather than replacing the password with a
+        # sentinel.  Authentication identity is not repository identity.
+        netloc = parts.netloc.rsplit("@", 1)[-1].lower()
+        sensitive = set(_transport.SENSITIVE_QUERY_KEYS)
+        sensitive.update(_transport.normalize_query_key_names(self.sensitive_query_keys))
+        sensitive.update(
+            _transport.normalize_query_key_names(self.inheritable_query_credential_keys)
+        )
+        query_pairs = []
+        for key, value in urllib.parse.parse_qsl(parts.query, keep_blank_values=True):
+            if key.lower() in sensitive:
+                continue
+            query_pairs.append((key, value))
+        query_pairs.sort()
+        query = urllib.parse.urlencode(query_pairs, doseq=True)
+        return urllib.parse.urlunsplit(
+            (parts.scheme.lower(), netloc, parts.path or "/", query, "")
+        )
+
+    @property
     def source_identity(self) -> str:
         """Stable opaque identity for the concrete repository slice.
 
@@ -167,7 +210,7 @@ class RepoSpec:
         """
         payload: Dict[str, object] = {
             "format": (self.repo_format or "rpm").strip().lower(),
-            "url": self.normalized_url,
+            "url": self.identity_url,
             "suite": (self.suite or "").strip(),
             "components": sorted(x for x in (self.components or "").split() if x),
         }

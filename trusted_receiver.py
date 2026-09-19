@@ -25,6 +25,37 @@ _MAX_INDEX_PATH_DEPTH = 64
 _SHA256_RE = re.compile(r"[0-9a-f]{64}")
 
 
+def _trusted_gpgv():
+    """Return an absolute, locally trusted gpgv executable path.
+
+    The receiver is itself part of the trusted bootstrap, so resolving gpgv
+    through PATH would unnecessarily add the caller's executable search path to
+    the TCB.  Deployments may override ``FEATHERED_GPGV`` with another absolute
+    path, but on POSIX the resolved executable and every parent directory must
+    be root-owned and not group/world writable.
+    """
+    configured = os.environ.get('FEATHERED_GPGV', '/usr/bin/gpgv')
+    path = Path(configured)
+    if not path.is_absolute():
+        raise RuntimeError('FEATHERED_GPGV must name an absolute gpgv path')
+    try:
+        resolved = path.resolve(strict=True)
+        info = resolved.stat()
+    except OSError as exc:
+        raise RuntimeError(f'Trusted gpgv executable is unavailable: {path}: {exc}') from exc
+    if not stat.S_ISREG(info.st_mode) or not os.access(resolved, os.X_OK):
+        raise RuntimeError(f'Trusted gpgv path is not an executable regular file: {resolved}')
+    if os.name != 'nt' and hasattr(info, 'st_uid'):
+        for candidate in (resolved, *resolved.parents):
+            candidate_info = candidate.stat()
+            if candidate_info.st_uid != 0 or candidate_info.st_mode & 0o022:
+                raise RuntimeError(
+                    f'Trusted gpgv path is not protected by root-owned, non-writable filesystem objects: {candidate}')
+            if candidate == Path('/'):
+                break
+    return str(resolved)
+
+
 def _secure_temp_base():
     for candidate in (Path('/var/tmp'), Path('/tmp')):
         try:
@@ -263,8 +294,9 @@ def _stage_bootstrap(source, destination):
 
 def _authenticate_bootstrap(directory, keyring):
     directory = Path(directory)
+    gpgv = _trusted_gpgv()
     for filename in ['bundle-index.json', 'verify-bundle.py']:
-        subprocess.run(['gpgv', '--keyring', str(keyring), str(directory / (filename + '.asc')),
+        subprocess.run([gpgv, '--keyring', str(keyring), str(directory / (filename + '.asc')),
                         str(directory / filename)], check=True, cwd=directory)
 
 

@@ -45,10 +45,10 @@ def _emit_requirement_entries(
 def emit_rpm_repository(output_dir: Path, packages, reporter: RepositoryWriterReporter, preserve_package_locations: bool = False, supplemental_packages=None) -> None:
     """Write repodata/ so the bundle is itself a usable RPM repository.
 
-    Each package's upstream <package> element is re-emitted verbatim with only
-    <location> rewritten, so dependency data and digests match exactly what the
-    resolver used. Packages whose metadata was not captured are reconstructed
-    from the fields Feathered holds, which is enough for dnf to install them.
+    Repository-loaded packages are reconstructed from the structured fields
+    Feathered retained, avoiding a second full serialized XML copy per package
+    in memory. Compatibility callers may still supply ``raw_metadata``; when
+    present it is re-emitted with only <location> rewritten.
     """
     packages = list(packages)
     from module_policy import validate_modular_payloads

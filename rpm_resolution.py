@@ -593,9 +593,15 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[Package],
         fresh = [(name, req) for name, req in discovered
                  if (name, _constraint_key(req)) not in seen_keys]
         if not fresh:
-            if not result.unresolved:
+            if not result.unresolved and not result.conflicts:
                 return result
-            if not _reject_failed_provider(result, rejected, reporter):
+            conflict_only = bool(result.conflicts) and not result.unresolved
+            if not _reject_failed_provider(
+                result,
+                rejected,
+                reporter,
+                conflict_only=conflict_only,
+            ):
                 return result
             # Constraints are derived from the abandoned branch's selections,
             # so they are discarded with it and re-derived on the next pass.
@@ -612,16 +618,26 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[Package],
     return result
 
 
-def _reject_failed_provider(result, rejected: Set[Tuple[str, str]], reporter: Reporter) -> bool:
+def _reject_failed_provider(
+    result,
+    rejected: Set[Tuple[str, str]],
+    reporter: Reporter,
+    *,
+    conflict_only: bool = False,
+) -> bool:
     """Blame a failed closure on the provider choice that introduced it."""
+    conflict_participants = set(getattr(result, "conflict_participants", ()))
     for capability, chosen, others in reversed(getattr(result, "provider_choices", [])):
+        if conflict_only and chosen not in conflict_participants:
+            continue
         if (capability, chosen) in rejected:
             continue
         remaining = [o for o in others if (capability, o) not in rejected]
         if not remaining:
             continue
         rejected.add((capability, chosen))
-        reporter.log(f"Provider '{chosen}' for '{capability}' led to an unresolvable closure; "
+        reason = "a conflicting closure" if conflict_only else "an unresolvable closure"
+        reporter.log(f"Provider '{chosen}' for '{capability}' led to {reason}; "
                      f"trying {' or '.join(remaining)} instead")
         return True
     return False
@@ -723,6 +739,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
 
     selected_by_name: Dict[str, Package] = {}
     pending_by_name: Dict[str, Package] = {p.name: p for p in roots}
+    dependency_parent: Dict[str, str] = {}
     queue = deque(roots)
     unresolved_keys: Set[Tuple[object, ...]] = set()
     reasons: Dict[str, str] = {p.nevra: "requested package" for p in roots}
@@ -777,6 +794,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                                 reporter.log(f"UNRESOLVED rich WITH version constraint {format_requirement(req)}; selected {already.nevra}")
                         continue
                     pending_by_name[chosen.name] = chosen
+                    dependency_parent.setdefault(chosen.name, pkg.name)
                     queue.append(chosen)
                     reasons.setdefault(chosen.nevra, f"required by {pkg.name}: {format_requirement(req)}")
                     reporter.log(f"RICH WITH -> {chosen.nevra} satisfies all operands of {format_requirement(req)}")
@@ -832,6 +850,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                                 unresolved_notes[format_requirement(req)] = "Selected provider does not satisfy this rich OR dependency"
                         continue
                     pending_by_name[chosen.name] = chosen
+                    dependency_parent.setdefault(chosen.name, pkg.name)
                     queue.append(chosen)
                     reasons.setdefault(chosen.nevra,
                                        f"required by {pkg.name}: {format_requirement(req)}")
@@ -894,6 +913,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                         reporter.log(f"VERSION CONFLICT {format_requirement(req)}; selected {already.nevra}")
                 continue
             pending_by_name[chosen.name] = chosen
+            dependency_parent.setdefault(chosen.name, pkg.name)
             queue.append(chosen)
             reasons.setdefault(chosen.nevra, reason_override or f"required by {pkg.name}: {format_requirement(req)}")
 
@@ -901,6 +921,17 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
 
     conflicts: List[str] = []
     conflict_seen: Set[str] = set()
+    conflict_participants: Set[str] = set()
+
+    def mark_conflict_branch(package_name: str) -> None:
+        """Mark a conflicting package and every dependency ancestor that selected it."""
+        seen: Set[str] = set()
+        current = package_name
+        while current and current not in seen:
+            seen.add(current)
+            conflict_participants.add(current)
+            current = dependency_parent.get(current, "")
+
     for pkg in selected:
         for req in pkg.conflicts:
             if should_ignore(req):
@@ -912,10 +943,13 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                     text = f"{pkg.nevra} conflicts with {other.nevra} via {format_requirement(req)}"
                     if text not in conflict_seen:
                         conflict_seen.add(text); conflicts.append(text)
+                    mark_conflict_branch(pkg.name)
+                    mark_conflict_branch(other.name)
             if inventory_satisfies(options.target_inventory, req):
                 text = f"{pkg.nevra} conflicts with an installed target capability: {format_requirement(req)}"
                 if text not in conflict_seen:
                     conflict_seen.add(text); conflicts.append(text)
+                mark_conflict_branch(pkg.name)
 
     # `skipped` was seeded above with optional roots that were not offered by
     # any source; keep those entries rather than starting a fresh list.
@@ -935,6 +969,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
         unresolved_notes=unresolved_notes,
     )
     outcome.provider_choices = provider_choices
+    outcome.conflict_participants = sorted(conflict_participants)
     return outcome, discovered
 
 

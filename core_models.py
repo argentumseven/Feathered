@@ -187,6 +187,11 @@ class ResolutionResult:
     # Capabilities where more than one provider could have been chosen, so an
     # unworkable choice can be retried with another.
     provider_choices: List[Tuple[str, str, List[str]]] = field(default_factory=list)
+    # Package names participating in direct transaction conflicts.  Resolver
+    # backtracking uses this internal attribution to reject only a provider
+    # branch that actually caused a conflict rather than discarding unrelated
+    # choices.  It is not part of bundle provenance.
+    conflict_participants: List[str] = field(default_factory=list, compare=False, repr=False)
 
     @property
     def total_size(self) -> int:

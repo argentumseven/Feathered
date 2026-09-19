@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from functools import cmp_to_key
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Sequence, Set, Tuple
+from typing import IO, TYPE_CHECKING, Dict, Iterable, Iterator, List, Optional, Sequence, Set, Tuple
 
 if TYPE_CHECKING:
     from root_requests import RootInput
@@ -39,7 +39,12 @@ from core import (RepositoryWriterReporter, ArtifactVerification, BuildOptions, 
                   evidence_repo_for_url, _artifact_verification, payload_filenames, select_digest_from_map,
                   write_unified_mirror_records as core_write_unified_mirror_records,
                   package_has_selected_digest, repository_verification_strategy,
-                  decompress_metadata)
+                  decompress_metadata, decompress_metadata_stream)
+from runtime_limits import (
+    MAX_METADATA_PACKAGE_RECORDS,
+    MAX_METADATA_RELATIONSHIP_RECORDS,
+    MAX_RETAINED_METADATA_CHARS,
+)
 
 import provenance
 
@@ -138,6 +143,10 @@ class DebResolutionResult:
     # Requirements where more than one alternative could have been taken, used
     # to retry a different branch when the chosen one fails to resolve.
     alternative_choices: List[Tuple[str, str, List[str]]] = field(default_factory=list)
+    # Package identities participating in direct Conflicts/Breaks.  Kept
+    # internal so conflict-driven backtracking can reject the branch that
+    # introduced the conflicting provider without perturbing unrelated choices.
+    conflict_participants: List[str] = field(default_factory=list, compare=False, repr=False)
 
     @property
     def total_size(self) -> int:
@@ -322,26 +331,21 @@ MAX_DEB822_LINE_CHARS = 8 * 1024 * 1024
 MAX_DEB822_FIELD_CHARS = 64 * 1024 * 1024
 
 
-def _parse_deb822(text: str, max_line_chars: int = MAX_DEB822_LINE_CHARS,
-                  max_field_chars: int = MAX_DEB822_FIELD_CHARS) -> List[Dict[str, str]]:
-    """Parse Deb822 records without duplicating the entire input into a line list.
-
-    Packages/Release files are repository
-    input. Iterating StringIO avoids splitlines()'s second full-size allocation,
-    and explicit line/field ceilings stop a single pathological record from
-    dominating memory even inside the overall metadata-size limit.
-    """
-    records: List[Dict[str, str]] = []
+def _iter_deb822(lines: Iterable[str], max_line_chars: int = MAX_DEB822_LINE_CHARS,
+                 max_field_chars: int = MAX_DEB822_FIELD_CHARS) -> Iterator[Dict[str, str]]:
+    """Yield Deb822 records incrementally from an iterable of text lines."""
     current: Dict[str, str] = {}
     last = None
-    for raw in io.StringIO(text):
+    for raw in lines:
         raw = raw.rstrip("\r\n")
         if len(raw) > max_line_chars:
             raise RuntimeError(
                 f"Deb822 metadata contains a line longer than Feathered's {max_line_chars:,}-character limit")
         if not raw.strip():
             if current:
-                records.append(current); current = {}; last = None
+                yield current
+                current = {}
+                last = None
             continue
         if raw[:1].isspace() and last:
             combined = current[last] + "\n" + raw[1:]
@@ -359,8 +363,35 @@ def _parse_deb822(text: str, max_line_chars: int = MAX_DEB822_LINE_CHARS,
                 f"Deb822 field {key!r} exceeds Feathered's {max_field_chars:,}-character limit")
         current[key] = value; last = key
     if current:
-        records.append(current)
-    return records
+        yield current
+
+
+def _decoded_metadata_lines(stream: IO[bytes], max_line_chars: int = MAX_DEB822_LINE_CHARS) -> Iterator[str]:
+    """Decode metadata one bounded physical line at a time.
+
+    UTF-8 uses at most four bytes per code point.  ``readline(limit)`` therefore
+    lets us reject a pathological line before allocating an unbounded bytes or
+    text object, while ``_iter_deb822`` still enforces the exact character cap.
+    """
+    max_line_bytes = max_line_chars * 4 + 2
+    while True:
+        raw = stream.readline(max_line_bytes + 1)
+        if not raw:
+            return
+        if len(raw) > max_line_bytes:
+            raise RuntimeError(
+                f"Deb822 metadata contains a line longer than Feathered's {max_line_chars:,}-character limit")
+        yield raw.decode("utf-8", "replace")
+
+
+def _parse_deb822(text: str, max_line_chars: int = MAX_DEB822_LINE_CHARS,
+                  max_field_chars: int = MAX_DEB822_FIELD_CHARS) -> List[Dict[str, str]]:
+    """Compatibility parser for small Release/control documents.
+
+    Large Packages indexes use ``_iter_deb822`` directly over a decompression
+    stream so they never become both a giant text object and a full record list.
+    """
+    return list(_iter_deb822(io.StringIO(text), max_line_chars, max_field_chars))
 
 
 def _release_payload(raw: bytes) -> str:
@@ -421,6 +452,10 @@ def _release_checksums(fields: Dict[str, str]) -> Dict[str, Tuple[str, str, int]
 def _decompress(data: bytes, path: str) -> bytes:
     # Use the shared bounded metadata decompressor.
     return decompress_metadata(data, path)
+
+
+def _decompress_stream(data: bytes, path: str) -> IO[bytes]:
+    return decompress_metadata_stream(data, path)
 
 
 def target_arch(arches) -> str:
@@ -835,6 +870,9 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
     loaded_indices = 0
     unverified_indexes: List[str] = []
     skipped_components: List[str] = []
+    metadata_record_count = 0
+    relationship_count = 0
+    retained_metadata_chars = 0
     # Called for its side effect: _repo_trust lazily attaches the verification
     # record to the repository, and later stages read repo.trust directly.
     _repo_trust(repo)
@@ -896,48 +934,68 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
                         f"{repo.name}: metadata {index_algorithm.upper()} mismatch for {index_path}")
                 index_verified = True
         assert index_path is not None, "index path must be resolved before decompression"
-        text = _decompress(raw, index_path).decode("utf-8", "replace")
         loaded_indices += 1
-        for rec in _parse_deb822(text):
-            name = rec.get("Package", "").strip()
-            version = rec.get("Version", "").strip()
-            parch = rec.get("Architecture", "").strip()
-            location = rec.get("Filename", "").strip()
-            if not (name and version and parch and location):
-                continue
-            if parch not in {arch, "all"}:
-                continue
-            digests = {
-                algo: value
-                for algo, value in (
-                    ("sha256", rec.get("SHA256", "").strip()),
-                    ("sha384", rec.get("SHA384", "").strip()),
-                    ("sha512", rec.get("SHA512", "").strip()),
+        with _decompress_stream(raw, index_path) as expanded:
+            for rec in _iter_deb822(_decoded_metadata_lines(expanded)):
+                metadata_record_count += 1
+                if metadata_record_count > MAX_METADATA_PACKAGE_RECORDS:
+                    raise RuntimeError(
+                        f"{repo.name}: Packages metadata contains more than Feathered's "
+                        f"{MAX_METADATA_PACKAGE_RECORDS:,} package-record safety limit")
+                name = rec.get("Package", "").strip()
+                version = rec.get("Version", "").strip()
+                parch = rec.get("Architecture", "").strip()
+                location = rec.get("Filename", "").strip()
+                if not (name and version and parch and location):
+                    continue
+                if parch not in {arch, "all"}:
+                    continue
+                digests = {
+                    algo: value
+                    for algo, value in (
+                        ("sha256", rec.get("SHA256", "").strip()),
+                        ("sha384", rec.get("SHA384", "").strip()),
+                        ("sha512", rec.get("SHA512", "").strip()),
+                    )
+                    if value
+                }
+                selected_digest = select_digest_from_map(digests, repo.digest_preference)
+                checksum_type, checksum = selected_digest if selected_digest else ("", "")
+                try:
+                    size = int(rec.get("Size", "0") or 0)
+                except ValueError:
+                    size = 0
+                provides = parse_provides(rec.get("Provides", ""))
+                depends = parse_dependency_field(rec.get("Depends", ""), "depends")
+                pre_depends = parse_dependency_field(rec.get("Pre-Depends", ""), "pre-depends")
+                recommends = parse_dependency_field(rec.get("Recommends", ""), "recommends")
+                conflicts = parse_dependency_field(rec.get("Conflicts", ""), "conflicts")
+                breaks = parse_dependency_field(rec.get("Breaks", ""), "breaks")
+                relationship_count += sum(
+                    len(items)
+                    for items in (provides, depends, pre_depends, recommends, conflicts, breaks)
                 )
-                if value
-            }
-            selected_digest = select_digest_from_map(digests, repo.digest_preference)
-            checksum_type, checksum = selected_digest if selected_digest else ("", "")
-            try:
-                size = int(rec.get("Size", "0") or 0)
-            except ValueError:
-                size = 0
-            packages.append(DebPackage(
-                name=name, arch=parch, version=version, location=location,
-                checksum_type=checksum_type, checksum=checksum, repo=repo, digests=digests,
-                provides=parse_provides(rec.get("Provides", "")),
-                depends=parse_dependency_field(rec.get("Depends", ""), "depends"),
-                pre_depends=parse_dependency_field(rec.get("Pre-Depends", ""), "pre-depends"),
-                recommends=parse_dependency_field(rec.get("Recommends", ""), "recommends"),
-                conflicts=parse_dependency_field(rec.get("Conflicts", ""), "conflicts"),
-                breaks=parse_dependency_field(rec.get("Breaks", ""), "breaks"),
-                size=size, multi_arch=rec.get("Multi-Arch", "").strip(),
-                raw_fields=dict(rec),
-            ))
-            packages[-1].verification = ArtifactVerification(
-                index_digest_verified=index_verified,
-                package_digest_declared=bool(packages[-1].digests),
-            )
+                if relationship_count > MAX_METADATA_RELATIONSHIP_RECORDS:
+                    raise RuntimeError(
+                        f"{repo.name}: Packages metadata contains more than Feathered's "
+                        f"{MAX_METADATA_RELATIONSHIP_RECORDS:,} relationship-entry safety limit")
+                retained_metadata_chars += sum(len(key) + len(value) for key, value in rec.items())
+                if retained_metadata_chars > MAX_RETAINED_METADATA_CHARS:
+                    raise RuntimeError(
+                        f"{repo.name}: retained Packages stanza text exceeds Feathered's "
+                        f"{MAX_RETAINED_METADATA_CHARS:,}-character safety limit")
+                packages.append(DebPackage(
+                    name=name, arch=parch, version=version, location=location,
+                    checksum_type=checksum_type, checksum=checksum, repo=repo, digests=digests,
+                    provides=provides, depends=depends, pre_depends=pre_depends,
+                    recommends=recommends, conflicts=conflicts, breaks=breaks,
+                    size=size, multi_arch=rec.get("Multi-Arch", "").strip(),
+                    raw_fields=dict(rec),
+                ))
+                packages[-1].verification = ArtifactVerification(
+                    index_digest_verified=index_verified,
+                    package_digest_declared=bool(packages[-1].digests),
+                )
     if loaded_indices == 0:
         published = sorted(advertised)
         detail = (f"{repo.name}: no usable APT Packages indexes were found for "
@@ -1179,11 +1237,17 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
                                            reporter, constraints, rejected)
         fresh = [(name, atom) for name, atom in discovered if (name, _atom_key(atom)) not in seen]
         if not fresh:
-            if not result.unresolved:
+            if not result.unresolved and not result.conflicts:
                 return result
             # Something could not be resolved. If it was pulled in by a choice
             # between alternatives, reject that choice and try the next one.
-            retry = _reject_failed_alternative(result, rejected, reporter)
+            conflict_only = bool(result.conflicts) and not result.unresolved
+            retry = _reject_failed_alternative(
+                result,
+                rejected,
+                reporter,
+                conflict_only=conflict_only,
+            )
             if not retry:
                 return result
             # Version floors are derived from the selections a branch made, so
@@ -1202,7 +1266,13 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
     return result
 
 
-def _reject_failed_alternative(result, rejected: Set[Tuple[str, str]], reporter: Reporter) -> bool:
+def _reject_failed_alternative(
+    result,
+    rejected: Set[Tuple[str, str]],
+    reporter: Reporter,
+    *,
+    conflict_only: bool = False,
+) -> bool:
     """Blame a failed closure on the alternative that introduced it.
 
     Walks from each unresolved requirement back through the chain that pulled
@@ -1210,15 +1280,20 @@ def _reject_failed_alternative(result, rejected: Set[Tuple[str, str]], reporter:
     has an untried option. Returns True when a choice was rejected, meaning
     another pass is worth running.
     """
+    conflict_participants = set(getattr(result, "conflict_participants", ()))
     for choice in reversed(result.alternative_choices):
         requirement_key, chosen, others = choice
+        chosen_package = chosen.rsplit(" -> ", 1)[-1]
+        if conflict_only and chosen_package not in conflict_participants:
+            continue
         if (requirement_key, chosen) in rejected:
             continue
         remaining = [o for o in others if (requirement_key, o) not in rejected]
         if not remaining:
             continue
         rejected.add((requirement_key, chosen))
-        reporter.log(f"Dependency choice '{chosen}' led to an unresolvable closure; "
+        reason = "a conflicting closure" if conflict_only else "an unresolvable closure"
+        reporter.log(f"Dependency choice '{chosen}' led to {reason}; "
                      f"trying {' or '.join(remaining)} instead")
         return True
     return False
@@ -1267,6 +1342,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
         roots.append(root)
 
     selected_by_name: Dict[str, DebPackage] = {}
+    dependency_parent: Dict[str, str] = {}
     reasons: Dict[str, str] = {}
     conflicts: List[str] = []
     installed_satisfied: List[str] = []
@@ -1369,17 +1445,33 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
                 installed_satisfied.append(f"{format_requirement(req)} <- installed {provider.nevra}")
                 continue
             selected_by_name[provider.name] = provider
+            dependency_parent.setdefault(provider.name, pkg.name)
             reasons[provider.nevra] = f"required by {pkg.name}: {format_requirement(req)}"
             q.append(provider)
 
     # Surface direct package Conflicts/Breaks among the selected set.
     chosen = list(selected_by_name.values())
+    chosen_by_name = {candidate.name: candidate for candidate in chosen}
+    conflict_participants: Set[str] = set()
+
+    def mark_conflict_branch(package: DebPackage) -> None:
+        seen: Set[str] = set()
+        current = package.name
+        while current and current not in seen:
+            seen.add(current)
+            candidate = chosen_by_name.get(current)
+            if candidate is not None:
+                conflict_participants.add(candidate.nevra)
+            current = dependency_parent.get(current, "")
+
     for pkg in chosen:
         for req in pkg.conflicts + pkg.breaks:
             for other in chosen:
                 if other is pkg: continue
                 if any(_pkg_satisfies_atom(other, atom) for atom in req.alternatives):
                     conflicts.append(f"{pkg.nevra} declares {req.kind}: {format_requirement(req)}; selected {other.nevra}")
+                    mark_conflict_branch(pkg)
+                    mark_conflict_branch(other)
 
     # Stable display: roots first, then dependency reason/name.
     root_ids = {r.nevra for r in roots}
@@ -1388,6 +1480,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
                                   sorted(set(conflicts)), reasons,
                                   sorted(set(installed_satisfied)), unresolved_notes)
     outcome.alternative_choices = alternative_choices
+    outcome.conflict_participants = sorted(conflict_participants)
     return outcome, discovered
 
 
@@ -1470,7 +1563,7 @@ def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir:
             "sha256": artifact_digests.payload_sha256(dest, sha256_file) if id(p) in shipped_ids and dest.exists() else "",
             "source_digest_type": p.checksum_type or "", "source_digest": p.checksum or "",
             "repo": p.repo.name, "repo_url": redact_url(p.repo.normalized_url), "suite": p.repo.suite,
-            "source": redact_url(url_join(p.repo.normalized_url, p.location, p.repo)), "size": p.size,
+            "source": redact_url(repo_relative_url(p.repo.normalized_url, p.location, p.repo)), "size": p.size,
             "reason": result.reasons.get(p.nevra, "dependency"),
             "shipped": id(p) in shipped_ids,
             "evidence_status": getattr(record, "evidence_status", "not-configured"),
@@ -1525,7 +1618,7 @@ def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir:
             package_id=pkg.nevra, filename=filename,
             sha256=artifact_digests.payload_sha256(dest, sha256_file) if dest.exists() else "",
             size=dest.stat().st_size if dest.exists() else 0,
-            source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location, pkg.repo)),
+            source_url=redact_url(repo_relative_url(pkg.repo.normalized_url, pkg.location, pkg.repo)),
             repository=pkg.repo.name,
             # Recorded verification, not inferred from configuration: a
             # keyring being set says an operator intended verification, not

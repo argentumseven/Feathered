@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, IO, List, Optional, Set, Tuple, Union
 
 import rpm_metadata
 from core_models import ArtifactVerification, Package, RepoDataRef, RepoTrust
@@ -28,8 +28,10 @@ class RepositoryLoaderServices:
     repo_trust: Callable[[RepoSpec], RepoTrust]
     repo_relative_url: Callable[..., str]
     hash_bytes: Callable[[bytes, str], str]
+    hash_stream: Callable[[IO[bytes], str], str]
     decompress_metadata: Callable[..., bytes]
-    parse_primary: Callable[[bytes, RepoSpec, Set[str], Reporter], List[Package]]
+    decompress_metadata_stream: Callable[..., IO[bytes]]
+    parse_primary: Callable[[Union[bytes, IO[bytes]], RepoSpec, Set[str], Reporter], List[Package]]
     package_has_selected_digest: Callable[[PackageArtifact], bool]
     artifact_verification: Callable[[PackageArtifact], ArtifactVerification]
     mirrors_are_distinct: Callable[[str, str], Tuple[bool, str]]
@@ -185,16 +187,16 @@ def load_repository_once(
             "package digests cannot be trusted. Use a complete mirror, or enable 'Allow unverified "
             "indexes' for this repository in Advanced… if you accept that risk."
         )
-    xml = services.decompress_metadata(compressed, primary.url)
-    if primary.open_checksum and not skip_provenance:
-        actual_open = services.hash_bytes(xml, primary.open_checksum_type)
-        if actual_open.lower() != primary.open_checksum.lower():
-            raise RuntimeError(f"{repo.name}: decompressed metadata checksum mismatch")
+    with services.decompress_metadata_stream(compressed, primary.url) as xml_stream:
+        if primary.open_checksum and not skip_provenance:
+            actual_open = services.hash_stream(xml_stream, primary.open_checksum_type)
+            if actual_open.lower() != primary.open_checksum.lower():
+                raise RuntimeError(f"{repo.name}: decompressed metadata checksum mismatch")
 
-    from module_policy import load_supplemental
+        from module_policy import load_supplemental
 
-    load_supplemental(repo, refs, reporter, retries)
-    return services.parse_primary(xml, repo, arches, reporter)
+        load_supplemental(repo, refs, reporter, retries)
+        return services.parse_primary(xml_stream, repo, arches, reporter)
 
 
 def load_repository(
