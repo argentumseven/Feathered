@@ -7,8 +7,40 @@ import time
 import urllib.parse
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Iterable, Protocol
 
-from execution_reporter import Reporter
+from core_models import Requirement
+
+
+class RepositoryWriterReporter(Protocol):
+    def log(self, message: str, /) -> None: ...
+
+
+def _emit_requirement_entries(
+    fmt: ET.Element,
+    rpm_ns: str,
+    tag: str,
+    requirements: Iterable[Requirement],
+) -> None:
+    entries = list(requirements)
+    if not entries:
+        return
+
+    parent = ET.SubElement(fmt, f"{{{rpm_ns}}}{tag}")
+    for requirement in entries:
+        attrs = {"name": requirement.name}
+        if requirement.flags:
+            attrs["flags"] = requirement.flags
+        if requirement.version is not None:
+            attrs.update(
+                {
+                    "epoch": requirement.epoch or "0",
+                    "ver": requirement.version or "",
+                    "rel": requirement.release or "",
+                }
+            )
+        ET.SubElement(parent, f"{{{rpm_ns}}}entry", attrs)
+
 
 def emit_rpm_repository(output_dir: Path, packages, reporter: RepositoryWriterReporter, preserve_package_locations: bool = False, supplemental_packages=None) -> None:
     """Write repodata/ so the bundle is itself a usable RPM repository.
@@ -81,25 +113,11 @@ def emit_rpm_repository(output_dir: Path, packages, reporter: RepositoryWriterRe
         ET.SubElement(package_el, f"{{{ns}}}location", {"href": href})
         fmt = ET.SubElement(package_el, f"{{{ns}}}format")
 
-        def emit_entries(tag, requirements):
-            if not requirements:
-                return
-            parent = ET.SubElement(fmt, f"{{{rpm_ns}}}{tag}")
-            for requirement in requirements:
-                attrs = {"name": requirement.name}
-                if requirement.flags:
-                    attrs["flags"] = requirement.flags
-                if requirement.version is not None:
-                    attrs.update({"epoch": requirement.epoch or "0",
-                                  "ver": requirement.version or "",
-                                  "rel": requirement.release or ""})
-                ET.SubElement(parent, f"{{{rpm_ns}}}entry", attrs)
-
-        emit_entries("provides", pkg.provides)
-        emit_entries("requires", pkg.requires)
-        emit_entries("recommends", pkg.recommends)
-        emit_entries("conflicts", pkg.conflicts)
-        emit_entries("obsoletes", pkg.obsoletes)
+        _emit_requirement_entries(fmt, rpm_ns, "provides", pkg.provides)
+        _emit_requirement_entries(fmt, rpm_ns, "requires", pkg.requires)
+        _emit_requirement_entries(fmt, rpm_ns, "recommends", pkg.recommends)
+        _emit_requirement_entries(fmt, rpm_ns, "conflicts", pkg.conflicts)
+        _emit_requirement_entries(fmt, rpm_ns, "obsoletes", pkg.obsoletes)
         for file_path in pkg.files:
             ET.SubElement(fmt, f"{{{ns}}}file").text = file_path
         chunks.append(ET.tostring(package_el, encoding="unicode"))

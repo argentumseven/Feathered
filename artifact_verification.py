@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
 import artifact_digests
-from core_models import ArtifactVerification, BuildOptions
+from core_models import ArtifactVerification, BuildOptions, RepoTrust
 from credential_redaction import redact_text, redact_url
 from evidence_model import REL_EXACT_ARTIFACT, REL_REBUILD_PEER, AUTH_UNKNOWN, classify_relationship, infer_vendor_id
 from execution_reporter import Reporter
