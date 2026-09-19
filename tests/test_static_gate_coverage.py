@@ -9,6 +9,7 @@ import core
 import artifact_verification
 import bundle_support
 import check_python_sources
+import checksum_inspection
 import package_acquisition
 import package_contracts
 import package_transfer
@@ -51,6 +52,34 @@ def test_shared_artifact_helpers_are_package_family_neutral() -> None:
     assert transfer_hints["pkg"] is package_contracts.PackageArtifact
     assert package_contracts.PackageArtifact in core.DownloadPackage.__mro__
 
+
+
+def test_checksum_inspection_preserves_shared_artifact_bound() -> None:
+    hints = get_type_hints(checksum_inspection.inspect_checksums)
+    _loader_args, loader_return = get_args(hints["load"])
+    package_type = get_args(loader_return)[0]
+    assert package_type.__bound__ is package_contracts.PackageArtifact
+
+
+def test_cross_family_helpers_do_not_reintroduce_rpm_package_model() -> None:
+    shared = (
+        "artifact_verification.py",
+        "bundle_support.py",
+        "checksum_inspection.py",
+        "package_acquisition.py",
+        "package_contracts.py",
+        "package_transfer.py",
+    )
+    offenders: list[str] = []
+    for name in shared:
+        source = (ROOT / name).read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=name)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module == "core_models":
+                if any(alias.name == "Package" for alias in node.names):
+                    offenders.append(name)
+                    break
+    assert offenders == []
 
 
 def test_repository_loader_service_callbacks_match_shared_artifact_contract() -> None:

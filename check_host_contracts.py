@@ -102,6 +102,7 @@ import io
 import core
 import apt_core
 import arch_core
+from checksum_inspection import ChecksumCoverage, inspect_checksums
 from repository_transport import fetch_bytes
 from transaction_model import RootRequest
 from root_requests import RootInput, RootTuple, normalize_requests
@@ -121,8 +122,16 @@ class FamilyHost:
 
 family_host: BackendHost = FamilyHost()
 
+def _load_rpm(repo: core.RepoSpec, arches: set[str], reporter: core.Reporter) -> list[core.Package]: return []
+def _load_deb(repo: core.RepoSpec, arches: set[str], reporter: core.Reporter) -> list[apt_core.DebPackage]: return []
+def _load_arch(repo: core.RepoSpec, arches: set[str], reporter: core.Reporter) -> list[arch_core.ArchPackage]: return []
+
 def backend_contracts(rpm: list[core.Package], deb: list[apt_core.DebPackage], arch: list[arch_core.ArchPackage]) -> None:
     reporter = core.Reporter()
+    repo = core.RepoSpec("base", "https://example.test/base/")
+    rpm_coverage: ChecksumCoverage = inspect_checksums(repo, {"x86_64"}, reporter, _load_rpm)
+    deb_coverage: ChecksumCoverage = inspect_checksums(repo, {"amd64"}, reporter, _load_deb)
+    arch_coverage: ChecksumCoverage = inspect_checksums(repo, {"x86_64"}, reporter, _load_arch)
     rpm_baseline: tuple[list[core.Package], list[core.Package]] = core.split_against_baseline(rpm, {}, reporter)
     deb_baseline: tuple[list[apt_core.DebPackage], list[apt_core.DebPackage]] = core.split_against_baseline(deb, {}, reporter)
     arch_baseline: tuple[list[arch_core.ArchPackage], list[arch_core.ArchPackage]] = core.split_against_baseline(arch, {}, reporter)
@@ -240,6 +249,7 @@ import core
 import apt_core
 import arch_core
 from repository_transport import ByteResponse, TransportReporter
+from checksum_inspection import inspect_checksums
 from feathered_app.build_backend import BackendHost
 
 bad_response: ByteResponse = io.StringIO("text")  # reject
@@ -247,6 +257,9 @@ bad_transport_reporter: TransportReporter = object()  # reject
 bad_download: core.DownloadPackage = object()  # reject
 bad_family_host: BackendHost = object()  # reject
 core.verify_package_artifact(object(), Path("bad.pkg"), core.BuildOptions(), core.Reporter())  # reject
+
+def _bad_checksum_loader(repo: core.RepoSpec, arches: set[str], reporter: core.Reporter) -> list[object]: return []
+inspect_checksums(core.RepoSpec("base", "https://example.test/base/"), {"x86_64"}, core.Reporter(), _bad_checksum_loader)  # reject
 
 def wrong_inventory_and_package_families(deb: list[apt_core.DebPackage], reporter: core.Reporter) -> None:
     wrong_baseline: tuple[list[core.Package], list[core.Package]] = core.split_against_baseline(deb, {}, reporter)  # reject

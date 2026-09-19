@@ -6,8 +6,9 @@ from dataclasses import dataclass
 from typing import Callable, Sequence, TypeVar
 
 from core import RepoSpec, Reporter, package_digest_map, select_digest_from_map
+from package_contracts import PackageArtifact
 
-PackageT = TypeVar('PackageT')
+PackageT = TypeVar("PackageT", bound=PackageArtifact)
 
 
 @dataclass(frozen=True)
