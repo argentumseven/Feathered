@@ -1473,6 +1473,12 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
                     mark_conflict_branch(pkg)
                     mark_conflict_branch(other)
 
+    if options.include_dependencies:
+        from transaction_conflicts import deb_installed_conflicts
+        for package, text in deb_installed_conflicts(chosen, options.target_inventory, preferred_arch):
+            conflicts.append(text)
+            mark_conflict_branch(package)
+
     # Stable display: roots first, then dependency reason/name.
     root_ids = {r.nevra for r in roots}
     selected = sorted(chosen, key=lambda p: (0 if p.nevra in root_ids else 1, p.name, p.arch, p.version))

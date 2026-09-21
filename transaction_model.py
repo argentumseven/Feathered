@@ -52,13 +52,18 @@ def resolve_transaction(resolve_once, requests, packages, architecture, options,
     if family == "arch":
         requests, full_upgrade = arch_upgrade_requests(requests, packages, architecture, options)
     module_sources = {}
+    module_failures = {}
     if family == "rpm":
         for package in packages:
             if getattr(package.repo, "module_documents", []):
                 module_sources.setdefault(package.repo.source_identity, package)
         from module_policy import filter_candidates
         if options.include_dependencies:
-            packages = filter_candidates(packages, options.target_inventory, architecture)
+            packages = filter_candidates(packages, options.target_inventory, architecture, module_failures)
+    if module_failures and not any(package.name in {root.name for root in requests} for package in packages):
+        reasons = [module_failures[root.name] for root in requests if root.name in module_failures]
+        if reasons:
+            raise RuntimeError('; '.join(dict.fromkeys(reasons)))
     from transaction_resolution import TransactionContext, resolve_fixed_point
 
     def prepare_options(prior):
@@ -76,6 +81,16 @@ def resolve_transaction(resolve_once, requests, packages, architecture, options,
         result.target_inventory = options.target_inventory
         if family == "rpm":
             result.module_metadata_packages = list(module_sources.values())
+            if options.include_dependencies:
+                from module_policy import validate_selected_modules
+                validate_selected_modules(result.module_metadata_packages, result.selected,
+                                          options.target_inventory, architecture)
+                import core
+                for requirement in result.unresolved:
+                    reason = module_failures.get(requirement.name)
+                    if reason:
+                        label = core.format_requirement(requirement)
+                        result.unresolved_notes[label] = reason
         result.transaction_family = family
         result.root_contract = roots
 

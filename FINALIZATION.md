@@ -69,7 +69,8 @@ Primary sources checked for this update:
 ## Validation
 
 The initial local results are recorded in `validation/finalization/REVIEW.md`.
-The later module changes and their results are in `validation/module-runtime/REVIEW.md`.
+The module changes and their results are in `validation/module-runtime/REVIEW.md`.
+The latest follow-up is `validation/release-logic/REVIEW.md`.
 The update does not turn failed or unavailable checks into passes. Earlier
 reports elsewhere in `validation/` describe earlier source trees.
 
@@ -116,6 +117,38 @@ Four real modular DNF scenarios now run in the existing native CI gate. Local
 DNF 4 dependency resolution and package downloads passed all four. The sandbox
 denied RPM's chroot transaction test, so full native transaction acceptance
 still requires the normal CI host. See the follow-up report for exact results.
+
+## Installed conflicts, RPM accounts, and module scope
+
+The next review reproduced three gaps. APT plans could miss conflicts with
+installed packages, RPM planning ignored hard account dependencies, and the r3
+module change could reject an unrelated nonmodular request. These are now covered
+by targeted regressions and native fixture checks.
+
+Target capture and loading retain conflict declarations for Debian, RPM, and
+Arch records. Planning checks selected packages against the retained installed
+set in both directions. Debian Breaks is included. APT and RPM provider search
+can select a compatible alternative instead of retaining a conflicting provider.
+These checks do not authorize package removal or require a target inventory.
+Old RPM captures lack conflict declarations; collect a fresh inventory using the
+updated companion script to include them. Legacy captures remain accepted with
+only the information they actually contain.
+
+RPM `user()` and `group()` requirements now participate in normal provider
+resolution. Missing providers remain unresolved; providers already captured as
+installed can satisfy them. Package-only acquisition still skips dependency
+planning.
+
+Module runtime failures are isolated by dependency group. A failed group's RPMs
+and competing nonmodular replacements remain excluded, but unrelated packages
+can still be resolved. Requests for excluded roots or dependencies receive the
+module reason. Selected modular groups are checked together for platform
+compatibility before the result is finalized.
+
+The native gate adds account-provider coverage, an unrelated-module scenario,
+and four installed Conflicts/Breaks simulations. Local native results and the
+remaining sandbox restrictions are recorded in the latest report. This update
+supersedes r3; r3 is not the recommended release candidate.
 
 ## Applying the update
 

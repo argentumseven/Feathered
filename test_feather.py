@@ -4448,7 +4448,7 @@ def test_native_dnf_conformance_has_real_offline_transaction_oracle(monkeypatch)
     commands = []
     all_names = (
         "fnc-deep fnc-mid fnc-leaf fnc-needs-new fnc-versioned "
-        "fnc-needs-virtual fnc-provider"
+        "fnc-needs-virtual fnc-provider fnc-needs-account fnc-accounts"
     )
 
     def fake_run(command, **kwargs):
@@ -4469,10 +4469,10 @@ def test_native_dnf_conformance_has_real_offline_transaction_oracle(monkeypatch)
     assert line.endswith("modular fixture tier")
     assert len(modular_runs) == 1
     assert modular_runs[0][1] is native_conformance._make_rpm
-    assert len(written) == 3
-    assert len(commands) == 4
+    assert len(written) == 4
+    assert len(commands) == 5
     assert [command[-1] for command in commands] == [
-        "fnc-deep", "fnc-deep", "fnc-needs-new", "fnc-needs-virtual"]
+        "fnc-deep", "fnc-deep", "fnc-needs-new", "fnc-needs-virtual", "fnc-needs-account"]
     repo_args = [next(part for part in command if part.startswith("--repofrompath=feathered,"))
                  for command in commands]
     assert repo_args[0].startswith("--repofrompath=feathered,file:///")

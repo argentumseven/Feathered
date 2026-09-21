@@ -1,0 +1,18 @@
+{
+  "tests": 1760,
+  "passed": 1758,
+  "failed": 2,
+  "skipped": 0,
+  "errors": 0,
+  "failures": [
+    "test_openpgp_verification_round_trip",
+    "test_ascii_armored_keyring_verifies_with_gpgv_only"
+  ],
+  "new_regressions": 21,
+  "native_apt_conflict_simulations_passed": 4,
+  "native_dnf_ordinary_solves_passed": 4,
+  "native_dnf_module_cases_passed": 5,
+  "native_dnf_loopback_transfer_passed": true,
+  "full_native_transaction_gate_passed": false,
+  "release_accepted": false
+}

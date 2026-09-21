@@ -47,14 +47,32 @@ def _artifact_id(package):
     return f'{package.name}-{package.epoch or "0"}:{package.version}-{package.release}.{package.arch}'
 
 
-def filter_candidates(packages, inventory, architecture):
+def filter_candidates(packages, inventory, architecture, failures=None):
     """Use captured module state, otherwise repository defaults; never guess a stream."""
     repos = {p.repo.source_identity: p.repo for p in packages}
     docs = [d for repo in repos.values() for d in getattr(repo, 'module_documents', [])]
     if not docs:
         return packages
-    from module_runtime import active_module_documents
-    active = active_module_documents(docs, inventory, architecture)
+    from module_runtime import active_module_documents, module_components
+    active = []
+    blocked_names = set()
+    if failures is None:
+        active = active_module_documents(docs, inventory, architecture)
+    else:
+        for component in module_components(docs):
+            try:
+                active.extend(active_module_documents(component, inventory, architecture))
+            except RuntimeError as exc:
+                identities = {identity for doc in component if doc.get('document') == 'modulemd'
+                              for identity in doc.get('data', {}).get('artifacts', {}).get('rpms', [])}
+                names = {identity.rsplit('-', 2)[0] for identity in identities
+                         if not identity.endswith(('.src', '.nosrc'))}
+                blocked_names.update(names)
+                for package in packages:
+                    if _artifact_id(package) in identities:
+                        names.update(requirement.name for requirement in package.provides)
+                for name in names:
+                    failures[name] = str(exc)
     all_modular = {identity for doc in docs if doc.get('document') == 'modulemd'
                    for identity in doc.get('data', {}).get('artifacts', {}).get('rpms', [])}
     allowed = {identity for row in active for identity in row.get('artifacts', {}).get('rpms', [])}
@@ -67,6 +85,7 @@ def filter_candidates(packages, inventory, architecture):
             latest[key] = row
     demodularized = {name for row in latest.values() for name in row.get('demodularized', {}).get('rpms', [])}
     active_names.difference_update(demodularized)
+    active_names.update(blocked_names)
     selected = []
     for package in packages:
         identity = _artifact_id(package)
@@ -127,3 +146,19 @@ def validate_modular_payloads(packages, supplemental_packages):
     for package in packages:
         if getattr(package, "modularity_label", "") and _artifact_id(package) not in identities:
             raise RuntimeError(f"{package.nevra}: modular RPM has no matching modulemd. Load its original repository metadata before rebuilding; refusing to publish an orphan modular package.")
+
+
+def validate_selected_modules(sources, selected, inventory, architecture):
+    """Check the platform shared by module groups that supplied selected RPMs."""
+    from module_runtime import active_module_documents, module_components
+    repos = {p.repo.source_identity: p.repo for p in sources}
+    documents = [d for repo in repos.values() for d in getattr(repo, 'module_documents', [])]
+    selected_ids = {_artifact_id(package) for package in selected}
+    relevant = []
+    for component in module_components(documents):
+        identities = {identity for doc in component if doc.get('document') == 'modulemd'
+                      for identity in doc.get('data', {}).get('artifacts', {}).get('rpms', [])}
+        if identities.intersection(selected_ids):
+            relevant.extend(component)
+    if relevant:
+        active_module_documents(relevant, inventory, architecture)

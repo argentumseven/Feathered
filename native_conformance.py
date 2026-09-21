@@ -89,7 +89,7 @@ def _http_repository(path: Path):
 # --------------------------------------------------------------------------
 
 def _make_deb(root: Path, upstream: Path, name: str, depends: str = "",
-              version: str = "1.0", provides: str = "") -> None:
+              version: str = "1.0", provides: str = "", conflicts: str = "", breaks: str = "") -> None:
     tree = root / f"{name}-{version}-src"
     if tree.exists():
         shutil.rmtree(tree)
@@ -103,6 +103,10 @@ def _make_deb(root: Path, upstream: Path, name: str, depends: str = "",
         control += f"Depends: {depends}\n"
     if provides:
         control += f"Provides: {provides}\n"
+    if conflicts:
+        control += f"Conflicts: {conflicts}\n"
+    if breaks:
+        control += f"Breaks: {breaks}\n"
     (tree / "DEBIAN" / "control").write_text(control, encoding="utf-8")
     subprocess.run(
         ["dpkg-deb", "--build", str(tree), str(upstream / f"{name}_{version}_amd64.deb")],
@@ -294,9 +298,12 @@ def run_apt_conformance() -> str:
         _apt_solve(root, delta, 102, "installed baseline permits empty delta", "fnc-versioned", [],
                    status_row("fnc-versioned", "1.0"))
 
+        from native_installed_conflicts import run_apt_conflict_conformance
+        installed_conflicts = run_apt_conflict_conformance(root, _make_deb)
+
     return ("PASS APT: native apt-get accepted and solved "
             f"{len(scenarios)+3} generated Feathered bundle/target scenarios offline "
-            f"({', '.join(label for label, _, _ in scenarios)}, pinned additive/optional roots, reverse dependency rejection, baseline delta)")
+            f"({', '.join(label for label, _, _ in scenarios)}, pinned additive/optional roots, reverse dependency rejection, baseline delta); {installed_conflicts}")
 
 
 def _apt_solve(root: Path, bundle: Path, index: int, label: str,
@@ -378,11 +385,14 @@ def run_dnf_conformance() -> str:
         _make_rpm(root, upstream, "fnc-needs-new", "fnc-versioned >= 2.0")
         _make_rpm(root, upstream, "fnc-provider", provides="fnc-virtual = 1.0")
         _make_rpm(root, upstream, "fnc-needs-virtual", "fnc-virtual")
+        _make_rpm(root, upstream, "fnc-accounts", provides="user(fnc-service), group(fnc-service)")
+        _make_rpm(root, upstream, "fnc-needs-account", "user(fnc-service), group(fnc-service)")
 
         scenarios = [
             ("transitive depth", "fnc-deep", ("fnc-deep", "fnc-mid", "fnc-leaf")),
             ("version floor", "fnc-needs-new", ("fnc-needs-new", "fnc-versioned")),
             ("virtual provides", "fnc-needs-virtual", ("fnc-needs-virtual", "fnc-provider")),
+            ("account dependencies", "fnc-needs-account", ("fnc-needs-account", "fnc-accounts")),
         ]
 
         repository_tools.rebuild_repository_metadata(upstream)

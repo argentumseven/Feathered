@@ -113,3 +113,38 @@ def active_module_documents(documents, inventory, architecture):
                            + '. Check disabled streams, dependency metadata, and the captured platform_id.')
     return [row for key, rows in groups.items()
             if key[0] in solution and key[1:] == solution[key[0]][:2] for row in rows]
+
+
+def module_components(documents):
+    """Group modules linked by runtime requirements; platform is checked separately."""
+    graph = {}
+    named = []
+    for document in documents:
+        data = document.get('data', {})
+        name = data.get('name') if document.get('document') == 'modulemd' else data.get('module')
+        if name is None:
+            continue
+        name = str(name)
+        graph.setdefault(name, set())
+        named.append((name, document))
+        if document.get('document') != 'modulemd':
+            continue
+        for block in data.get('dependencies', []):
+            for dependency in block.get('requires', {}):
+                dependency = str(dependency)
+                if dependency == 'platform':
+                    continue
+                graph[name].add(dependency)
+                graph.setdefault(dependency, set()).add(name)
+    remaining = set(graph)
+    while remaining:
+        pending = [min(remaining)]
+        component = set()
+        while pending:
+            name = pending.pop()
+            if name in component:
+                continue
+            component.add(name)
+            pending.extend(graph[name] - component)
+        remaining.difference_update(component)
+        yield [document for name, document in named if name in component]

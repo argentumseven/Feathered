@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "/workspace/scratch/bf1886667624/review/Feathered-main/native_conformance.py", line 263, in run_apt_conformance
+    _apt_solve(root, bundle, index, label, root_name, expected)
+  File "/workspace/scratch/bf1886667624/review/Feathered-main/native_conformance.py", line 336, in _apt_solve
+    raise RuntimeError(f"[{label}] Native APT rejected Feathered repository metadata:\n"
+RuntimeError: [transitive depth] Native APT rejected Feathered repository metadata:
+Reading package lists...
+E: setgroups 65534 failed - setgroups (1: Operation not permitted)
+E: setegid 65534 failed - setegid (22: Invalid argument)
+E: seteuid 42 failed - seteuid (22: Invalid argument)
+E: setgroups 0 failed - setgroups (1: Operation not permitted)
+W: chown to _apt:root of directory /workspace/scratch/bf1886667624/tmp/feathered-native-apt-c492sh1e/apt-state-0/lists/partial failed - SetupAPTPartialDirectory (22: Invalid argument)
+W: chown to _apt:root of directory /workspace/scratch/bf1886667624/tmp/feathered-native-apt-c492sh1e/apt-state-0/lists/auxfiles failed - SetupAPTPartialDirectory (22: Invalid argument)
+E: setgroups 65534 failed - setgroups (1: Operation not permitted)
+E: setegid 65534 failed - setegid (22: Invalid argument)
+E: seteuid 42 failed - seteuid (22: Invalid argument)
+E: setgroups 0 failed - setgroups (1: Operation not permitted)
+E: Method gave invalid 400 URI Failure message: Failed to setgroups - setgroups (1: Operation not permitted)
+E: Method file has died unexpectedly!
+E: Sub-process file returned an error code (112)
+E: Sub-process returned an error code
+

@@ -134,7 +134,7 @@ def _requirement_note(req: Requirement, candidates: Sequence[ProviderMatch]) -> 
 
 
 def should_ignore(req: Requirement) -> bool:
-    return not req.name or req.name.startswith(("rpmlib(", "config(", "user(", "group("))
+    return not req.name or req.name.startswith(("rpmlib(", "config("))
 
 
 def evr_satisfies(provider: Requirement, req: Requirement, package: Optional[Package] = None) -> bool:
@@ -962,6 +962,13 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                 if text not in conflict_seen:
                     conflict_seen.add(text); conflicts.append(text)
                 mark_conflict_branch(pkg.name)
+
+    if options.include_dependencies:
+        from transaction_conflicts import rpm_installed_conflicts
+        for package, text in rpm_installed_conflicts(selected, options.target_inventory):
+            if text not in conflict_seen:
+                conflict_seen.add(text); conflicts.append(text)
+            mark_conflict_branch(package.name)
 
     # `skipped` was seeded above with optional roots that were not offered by
     # any source; keep those entries rather than starting a fresh list.

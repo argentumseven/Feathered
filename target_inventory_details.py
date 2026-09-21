@@ -41,14 +41,16 @@ def collect(family):
             raise RuntimeError('pacman database changed during capture; retry inventory collection')
     elif family == 'rpm':
         # RPM emits dependency strings using its native formatter, including rich relations.
-        fmt = 'PKG\t%{NAME}\t%{EPOCHNUM}\t%{VERSION}\t%{RELEASE}\t%{ARCH}\n[REQ\t%{REQUIRENAME}\t%{REQUIREFLAGS:depflags}\t%{REQUIREVERSION}\n][FILE\t%{FILENAMES}\n]'
+        fmt = 'PKG\t%{NAME}\t%{EPOCHNUM}\t%{VERSION}\t%{RELEASE}\t%{ARCH}\n[REQ\t%{REQUIRENAME}\t%{REQUIREFLAGS:depflags}\t%{REQUIREVERSION}\n][CON\t%{CONFLICTNAME}\t%{CONFLICTFLAGS:depflags}\t%{CONFLICTVERSION}\n][FILE\t%{FILENAMES}\n]'
         current = None
         for line in query(['rpm', '-qa', '--qf', fmt]).splitlines():
             values = line.split('\t')
             if values[0] == 'PKG':
-                current = dict(zip(['name','epoch','version','release','arch'], values[1:])); current['requires'] = []; current['files'] = []; rows.append(current)
+                current = dict(zip(['name','epoch','version','release','arch'], values[1:])); current['requires'] = []; current['conflicts'] = []; current['files'] = []; rows.append(current)
             elif values[0] == 'REQ' and current is not None:
                 current['requires'].append(values[1:])
+            elif values[0] == 'CON' and current is not None:
+                current['conflicts'].append(values[1:])
             elif values[0] == 'FILE' and current is not None:
                 current['files'].append(values[1])
         states = {}
@@ -60,6 +62,7 @@ def collect(family):
     for row in rows:
         print('DETAIL|' + json.dumps(row, separators=(',', ':')))
     print('META|relationships|complete')
+    print('META|conflicts|complete')
 
 
 if __name__ == '__main__':

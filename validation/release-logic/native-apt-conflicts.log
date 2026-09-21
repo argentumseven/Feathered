@@ -1,0 +1,5 @@
+APT installed conflict selected declares conflicts: PASS
+APT installed conflict installed declares conflicts: PASS
+APT installed conflict selected declares breaks: PASS
+APT installed conflict installed declares breaks: PASS
+4 installed conflict scenarios passed

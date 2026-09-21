@@ -750,6 +750,12 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[ArchPackage
             for other in providers.get(relation.name, ()):
                 if identity(other) != identity(candidate) and _relation_matches_package(other, relation):
                     return f"{candidate.nevra} conflicts with {other.nevra}"
+        if options.include_dependencies:
+            from transaction_conflicts import arch_installed_conflicts
+            trial = dict(chosen); trial[candidate.name] = candidate
+            installed_problems = arch_installed_conflicts(list(trial.values()), options.target_inventory)
+            if installed_problems:
+                return installed_problems[0][1]
         candidate_names = {candidate.name, *(relation.name for relation in candidate.provides)}
         for name in candidate_names:
             for other, relation in conflict_index.get(name, ()):
@@ -894,6 +900,9 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[ArchPackage
                         "by the selected transaction")
 
     conflicts = _conflict_messages(selected_values)
+    if options.include_dependencies:
+        from transaction_conflicts import arch_installed_conflicts
+        conflicts += [text for _, text in arch_installed_conflicts(selected_values, options.target_inventory)]
     selected_values.sort(key=lambda p: (p.name, p.arch, p.version))
     reporter.log(f"pacman closure: {len(selected_values):,} package(s), {len(unresolved):,} unresolved, "
                  f"{sum(p.size for p in selected_values):,} compressed bytes")

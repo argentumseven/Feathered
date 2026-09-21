@@ -2,6 +2,10 @@
 
 ## Fixed
 
+- Check selected packages against retained installed conflicts in both directions, including Debian Breaks. Preserve conflict metadata during target capture and loading.
+- Resolve RPM user() and group() requirements through package or installed providers instead of ignoring them.
+- Keep failed module dependency groups from blocking unrelated nonmodular builds. Preserve module diagnostics for affected requests and shared-platform checks for selected modular packages.
+
 - Include module runtime dependency streams in RPM plans and resolve contexts against captured streams and platform state.
 - Preserve required module metadata from repositories that contribute no selected RPMs.
 - Apply active module filtering to nonmodular virtual providers and honor demodularized package names.

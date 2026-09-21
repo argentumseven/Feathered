@@ -1,0 +1,7 @@
+DNF dependency resolution and downloads only; no RPM transaction test.
+DNF modular dependent stream: PASS
+DNF modular captured context: PASS
+DNF modular platform context: PASS
+DNF modular disabled dependency: PASS
+DNF modular unrelated ambiguous contexts: PASS
+PASS DNF: native dnf accepted and dependency-resolved (download-only) 4 generated Feathered bundles over canonical file URLs, plus loopback HTTP transfer validation (transitive depth, version floor, virtual provides, account dependencies); 5 modular scenarios passed

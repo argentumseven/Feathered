@@ -42,6 +42,8 @@ def run_modular_conformance(root, make_rpm):
         if tags.get(5096) != [label]:
             raise RuntimeError(f'Modular fixture RPM has no expected modularity label: {rpm.name}')
 
+    make_rpm(fixture, payloads, 'fnm-plain')
+
     runtime = _module('runtime', 'stable', 'ctx9', 'fnm-runtime', '1.0')
     runtime_next = _module('runtime', 'next', 'ctx9', 'fnm-runtime', '2.0')
     stable = _module('apps', 'stable', 'stable9', 'fnm-app', '1.0', {'runtime': ['stable'], 'platform': ['el9']})
@@ -51,12 +53,13 @@ def run_modular_conformance(root, make_rpm):
     enabled_next = {'runtime': {'state': 'enabled', 'stream': 'next'}}
     disabled_runtime = {'runtime': {'state': 'disabled'}}
     scenarios = [
-        ('dependent stream', [stable, runtime], {}, '1.0'),
-        ('captured context', [stable, next_context, runtime, runtime_next], enabled_next, '2.0'),
-        ('platform context', [stable, other_platform, runtime], {}, '1.0'),
-        ('disabled dependency', [stable, runtime], disabled_runtime, None),
+        ('dependent stream', [stable, runtime], {}, '1.0', 'fnm-app'),
+        ('captured context', [stable, next_context, runtime, runtime_next], enabled_next, '2.0', 'fnm-app'),
+        ('platform context', [stable, other_platform, runtime], {}, '1.0', 'fnm-app'),
+        ('disabled dependency', [stable, runtime], disabled_runtime, None, 'fnm-app'),
+        ('unrelated ambiguous contexts', [stable, next_context, runtime, runtime_next], {}, '1.0', 'fnm-plain'),
     ]
-    for index, (label, documents, states, expected_version) in enumerate(scenarios):
+    for index, (label, documents, states, expected_version, root_name) in enumerate(scenarios):
         case = fixture / str(index)
         upstream = case / 'upstream'
         upstream.mkdir(parents=True)
@@ -66,6 +69,8 @@ def run_modular_conformance(root, make_rpm):
             if f'{name}-0:{version}-1.noarch' in identities:
                 filename = f'{name}-{version}-1.noarch.rpm'
                 shutil.copy2(payloads / filename, upstream / filename)
+        if root_name == 'fnm-plain':
+            shutil.copy2(payloads / 'fnm-plain-1.0-1.noarch.rpm', upstream)
         subprocess.run(['createrepo_c', str(upstream)], check=True, capture_output=True, text=True)
         module_file = case / 'modules.yaml'
         module_file.write_text(yaml.safe_dump_all([default] + documents), encoding='utf-8')
@@ -78,14 +83,16 @@ def run_modular_conformance(root, make_rpm):
         inventory = core.TargetInventory(metadata={'module_states': json.dumps(states), 'platform_id': 'platform:el9'})
         options = core.BuildOptions(include_dependencies=True, emit_repository=True, target_inventory=inventory)
         try:
-            result = core.resolve([('fnm-app', None, None)], packages, 'x86_64', options, reporter)
+            result = core.resolve([(root_name, None, None)], packages, 'x86_64', options, reporter)
         except RuntimeError as exc:
             if expected_version is not None or 'No compatible module runtime dependency set' not in str(exc):
                 raise
         else:
             if expected_version is None:
                 raise RuntimeError(f'[{label}] Feathered accepted a disabled module dependency')
-            expected = {('fnm-app', expected_version), ('fnm-runtime', expected_version)}
+            expected = {(root_name, expected_version)}
+            if root_name == 'fnm-app':
+                expected.add(('fnm-runtime', expected_version))
             actual = {(p.name, p.version) for p in result.selected}
             if result.unresolved or result.conflicts or actual != expected:
                 raise RuntimeError(f'[{label}] Incorrect modular closure: {actual}, {result.unresolved}, {result.conflicts}')
@@ -107,13 +114,13 @@ def run_modular_conformance(root, make_rpm):
                    '--setopt=persistdir=/var/lib/dnf', '--setopt=module_platform_id=platform:el9',
                    '--setopt=install_weak_deps=False', '--setopt=tsflags=test', '--disablerepo=*',
                    f'--repofrompath=feathered,{upstream.resolve().as_uri()}', '--enablerepo=feathered',
-                   '--nogpgcheck', 'install', 'fnm-app' if expected_version is None else f'fnm-app-{expected_version}-1.noarch']
+                   '--nogpgcheck', 'install', root_name if expected_version is None else f'{root_name}-{expected_version}-1.noarch']
         solve = subprocess.run(command, capture_output=True, text=True, env=_dnf_environment())
         output = solve.stdout + solve.stderr
         if expected_version is None:
             if solve.returncode == 0 or not any(word in output.lower() for word in ('modular', 'module')):
                 raise RuntimeError(f'[{label}] Native DNF did not reject the disabled dependency:\n{output}')
-        elif solve.returncode or 'fnm-runtime' not in output:
+        elif solve.returncode or any(name not in output for name, _ in expected):
             raise RuntimeError(f'[{label}] Native DNF could not test Feathered modular bundle:\n{output}')
         print(f'DNF modular {label}: PASS', flush=True)
     return f'{len(scenarios)} modular scenarios passed'

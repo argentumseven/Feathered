@@ -4,7 +4,8 @@ Source completion and binary release acceptance are separate decisions. The
 current architecture is described in `feathered_app/ARCHITECTURE.md`. The review
 and local results for this update are in `FINALIZATION.md` and
 `validation/finalization/`. The module follow-up is recorded in
-`validation/module-runtime/`.
+`validation/module-runtime/`. The subsequent installed-conflict, RPM account,
+and module-scope fixes are recorded in `validation/release-logic/`.
 
 ## Required checks
 
@@ -77,8 +78,15 @@ The modular cases build RPMs with real modularity labels, load modulemd through
 repository metadata, build Feathered bundles, and ask DNF to test transactions
 using only those bundles. Cases cover a dependent stream without its own default,
 a context selected by captured stream state, a platform-dependent context, and
-rejection of a disabled runtime dependency. The positive cases also cover RPM
+rejection of a disabled runtime dependency, and an ordinary package request
+alongside unrelated ambiguous module contexts. The positive cases also cover RPM
 version requirements that omit a release, such as `runtime = 1.0`.
+
+The ordinary DNF cases include hard `user()` and `group()` requirements and the
+package providing those accounts. `native_installed_conflicts.py` adds four APT
+simulation cases for selected and installed Conflicts/Breaks. They load captured
+relationships, verify that Feathered reports the conflict, and independently
+check native rejection using the emitted package and an isolated status file.
 
 CI retains `tsflags=test`. A local dependency solve or download-only check is
 useful evidence but does not pass that transaction gate. DNF 5 without modularity

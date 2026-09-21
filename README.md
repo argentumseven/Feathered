@@ -122,6 +122,8 @@ A differential bundle records the baseline package identities expected to exist 
 
 Feathered performs connected-side package analysis so that required content can be transported before the native target solver is available.
 
+Fresh target inventories retain installed conflict declarations. Selected packages are checked against the packages that remain installed, including Debian Conflicts and Breaks. Older inventories without those declarations cannot establish the same coverage; collect again to include them. Inventory remains optional.
+
 The resolver includes package-family-specific handling for providers, versions, alternatives, conflicts, architecture rules, installed-state reconciliation, retained-package relationships, and iterative transaction constraints. It is deliberately conservative where native semantics cannot be established safely.
 
 Important boundaries:
@@ -129,7 +131,7 @@ Important boundaries:
 - Native APT, DNF/YUM, and pacman transaction checks remain authoritative.
 - RPM module metadata is retained when needed; modular RPMs without matching module metadata are refused rather than published as orphan modular content.
 - RPM dependency planning follows module runtime requirements from repository defaults and captured enabled streams. It handles transitive requirements, cycles, stream exclusions, alternative dependency blocks, and contexts constrained by the captured platform and module state.
-- Conflicting or ambiguous module choices produce a diagnostic. Feathered does not reproduce DNF's relaxed solver fallbacks or switch enabled streams automatically. The generated installer runs DNF against the emitted offline repository; it cannot fetch packages omitted by the builder.
+- Conflicting or ambiguous module choices exclude the affected candidates and produce a diagnostic when the request needs them. Unrelated nonmodular packages remain available. Feathered does not reproduce DNF's relaxed solver fallbacks or switch enabled streams automatically. The generated installer runs DNF against the emitted offline repository; it cannot fetch packages omitted by the builder.
 - Package-only acquisition does not require module dependency resolution. It preserves available module metadata but makes no claim that the downloaded package is an installable transaction.
 - Arch-family installs use full-upgrade semantics. Installed inventory is optional; when it is absent Feathered transfers a complete repository-derived dependency closure and leaves the final transaction to pacman.
 - Unsupported or ambiguous dependency expressions are blocked or surfaced rather than guessed.
