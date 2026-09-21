@@ -4,11 +4,9 @@ from __future__ import annotations
 import shutil
 import time
 import urllib.parse
-import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
-
 import artifact_digests
 import repository_transport as transport
 from core_models import BuildOptions
@@ -16,14 +14,12 @@ from credential_redaction import redact_text, redact_url
 from execution_reporter import Reporter
 from package_contracts import PackageArtifact
 from package_transfer import copy_package_stream_bounded, package_download_limit
-from repository_paths import repo_relative_url
-
+from repository_paths import file_url_to_path, repo_relative_url
 
 @dataclass(frozen=True)
 class AcquisitionServices:
     open_url: Callable[..., Any]
     verify_artifact: Callable[[PackageArtifact, Path, BuildOptions, Reporter], bool]
-
 
 def copy_or_download(
     pkg: PackageArtifact,
@@ -43,7 +39,7 @@ def copy_or_download(
             reporter.transfer(pkg.nevra, 0, int(getattr(pkg, "size", 0) or 0))
             parsed = urllib.parse.urlparse(src)
             if parsed.scheme == "file":
-                local = Path(urllib.request.url2pathname(parsed.path))
+                local = file_url_to_path(src)
                 reporter.log(f"COPY {local} -> {dest.name}")
                 limit, expected = package_download_limit(pkg)
                 actual = local.stat().st_size

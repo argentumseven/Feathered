@@ -6,7 +6,6 @@ small number of lookup hooks so the legacy ``core`` façade remains monkeypatch
 compatible while new code can use this module directly.
 """
 from __future__ import annotations
-
 import base64
 import binascii
 import hmac
@@ -32,7 +31,6 @@ class VerifierReporter(Protocol):
 class VerifierIntegrityError(RuntimeError):
     """The bundled OpenPGP verifier is missing, unauthenticated, or tampered."""
 
-
 def bundled_gpg_dir() -> Optional[Path]:
     try:
         roots = []
@@ -46,7 +44,6 @@ def bundled_gpg_dir() -> Optional[Path]:
     except OSError:
         pass
     return None
-
 
 def verifier_policy_path() -> Optional[Path]:
     roots = []
@@ -64,7 +61,6 @@ def verifier_policy_path() -> Optional[Path]:
 def sha256_file(path: Path) -> str:
     return file_hashing.stream_digest(path, hashlib.sha256())
 
-
 _VERIFIER_CACHE_LOCK = threading.Lock()
 _VERIFIER_VERIFIED: Dict[str, frozenset[tuple[str, int, int]]] = {}
 
@@ -74,7 +70,6 @@ def verifier_fingerprint(files: Dict[str, Path]) -> frozenset[tuple[str, int, in
         (rel, path.stat().st_size, path.stat().st_mtime_ns)
         for rel, path in files.items()
     )
-
 
 def enumerate_verifier_files(directory: Path) -> Dict[str, Path]:
     found: Dict[str, Path] = {}
@@ -91,7 +86,6 @@ def enumerate_verifier_files(directory: Path) -> Dict[str, Path]:
             "Unable to enumerate bundled OpenPGP verifier files."
         ) from exc
     return found
-
 
 def verify_bundled_gpg_integrity(
     directory: Path,
@@ -119,7 +113,6 @@ def verify_bundled_gpg_integrity(
         raise VerifierIntegrityError(
             "Bundled OpenPGP verifier integrity policy contains no files."
         )
-
     actual = enumerate_verifier_files(directory)
     expected_names = set(expected)
     actual_names = set(actual)
@@ -136,7 +129,6 @@ def verify_bundled_gpg_integrity(
             + (" (" + "; ".join(detail) + ")" if detail else "")
             + "."
         )
-
     key = str(directory.resolve())
     try:
         fingerprint = verifier_fingerprint(actual)
@@ -147,7 +139,6 @@ def verify_bundled_gpg_integrity(
 
     with _VERIFIER_CACHE_LOCK:
         cached = _VERIFIER_VERIFIED.get(key) == fingerprint
-
     def check(rel: str, path: Path) -> None:
         wanted = str(expected[rel]).lower()
         if len(wanted) != 64 or any(c not in "0123456789abcdef" for c in wanted):
@@ -159,11 +150,13 @@ def verify_bundled_gpg_integrity(
                 f"Bundled OpenPGP verifier integrity check failed for {rel}. "
                 "Refusing to execute it."
             )
-
     if cached:
+        # Size and mtime are useful cache metadata, but they are not a trust
+        # boundary: an attacker with write access can replace a sidecar and
+        # restore both values.  Re-hash the complete authenticated file set even
+        # when its metadata fingerprint matches a prior verification.
         for rel, path in actual.items():
-            if rel.rsplit("/", 1)[-1].lower() in ("gpgv.exe", "gpgv"):
-                check(rel, path)
+            check(rel, path)
         return
 
     for rel, path in actual.items():
@@ -176,7 +169,6 @@ def verify_bundled_gpg_integrity(
 def reset_verifier_integrity_cache() -> None:
     with _VERIFIER_CACHE_LOCK:
         _VERIFIER_VERIFIED.clear()
-
 
 def gpg_backend_name(backend: Optional[str]) -> str:
     if not backend:
@@ -192,7 +184,6 @@ def windows_path_to_msys(value: str) -> str:
         return f"/{match.group(1).lower()}/{match.group(2)}"
     return normalized
 
-
 def gpg_backend_uses_msys_paths(backend: str) -> bool:
     if os.name != "nt":
         return False
@@ -205,7 +196,6 @@ def gpg_backend_uses_msys_paths(backend: str) -> bool:
     except OSError:
         return False
 
-
 def gpg_path_arg(
     path: Union[Path, str],
     backend: str,
@@ -214,7 +204,6 @@ def gpg_path_arg(
 ) -> str:
     value = str(path)
     return windows_path_to_msys(value) if uses_msys_fn(backend) else value
-
 
 def gpg_backend(
     *,
@@ -244,7 +233,6 @@ def gpg_backend(
     # operator-configured repository keyring.
     return "gpgv" if shutil.which("gpgv") else None
 
-
 def gpg_backend_or_none(
     *,
     backend_fn: Callable[[], Optional[str]] = gpg_backend,
@@ -253,7 +241,6 @@ def gpg_backend_or_none(
         return backend_fn()
     except VerifierIntegrityError:
         return None
-
 
 def gpg_backend_version(
     backend: Optional[str] = None,
@@ -275,9 +262,7 @@ def gpg_backend_version(
     first = (proc.stdout or "").strip().splitlines()
     return first[0].strip() if proc.returncode == 0 and first else ""
 
-
 MAX_ARMORED_KEYRING_BYTES = 32 * 1024 * 1024
-
 
 def dearmor_public_keyring(data: bytes) -> bytes:
     begin = b"-----BEGIN PGP PUBLIC KEY BLOCK-----"
@@ -289,7 +274,6 @@ def dearmor_public_keyring(data: bytes) -> bytes:
         raise RuntimeError(
             "ASCII keyring is missing an OpenPGP public-key armour header"
         ) from exc
-
     body_started = False
     body = []
     armor_crc: Optional[bytes] = None
@@ -314,7 +298,6 @@ def dearmor_public_keyring(data: bytes) -> bytes:
             armor_crc = line[1:]
             continue
         body.append(line)
-
     if not saw_end:
         raise RuntimeError("ASCII keyring is missing its OpenPGP armour footer")
     if not body:
@@ -344,7 +327,6 @@ def dearmor_public_keyring(data: bytes) -> bytes:
             raise RuntimeError("ASCII keyring armour checksum does not match its contents")
     return decoded
 
-
 def prepare_keyring(keyring_path: Path, tmpdir: Path, backend: str) -> Path:
     try:
         with keyring_path.open("rb") as handle:
@@ -365,7 +347,6 @@ def prepare_keyring(keyring_path: Path, tmpdir: Path, backend: str) -> Path:
     target = tmpdir / "keyring.gpg"
     target.write_bytes(dearmor_public_keyring(data))
     return target
-
 
 def verify_openpgp(
     signed_payload: bytes,
