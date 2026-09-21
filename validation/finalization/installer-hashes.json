@@ -1,0 +1,16 @@
+[
+  {
+    "file": "gnupg-w32-2.5.22_20260831.exe",
+    "version": "2.5.22",
+    "size": 5776480,
+    "sha256": "2e5841e345d56f05199351bfcf585d28c6dc2326c8f76962f1e402f41f6d10e9",
+    "executed": false
+  },
+  {
+    "file": "python-3.13.15-amd64.exe",
+    "version": "3.13.15",
+    "size": 29452944,
+    "sha256": "edec09c4853aeae9ac36efb8c9f95b6b8e2fee65eee56d9767a8b7c69c574403",
+    "executed": false
+  }
+]

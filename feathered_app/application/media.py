@@ -58,6 +58,7 @@ Choose the archive root: the directory directly above dists/.
         credentials must not erase that repository from dependency capability
         derivation.
         """
+        self._refresh_repository_transport_warning()
         source_status = getattr(self, "source_status", None)
         if source_status is None:
             if self._mirror_mode():

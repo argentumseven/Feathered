@@ -3,7 +3,7 @@
 Feathered-authored source code is licensed under the MIT License in `LICENSE`.
 
 Production builds also contain third-party software, including the CPython
-runtime and standard library, python-zstandard, the PyInstaller bootloader and
+runtime and standard library, python-zstandard, PyYAML, the PyInstaller bootloader and
 runtime components, and the staged GnuPG `gpgv` verifier with its runtime
 libraries. Those components are not relicensed by Feathered's MIT License and
 remain subject to their respective upstream licenses and notices.

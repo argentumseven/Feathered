@@ -42,7 +42,7 @@ root cancels active and pending queries. Transports without cancellation support
 finish their bounded request but their obsolete completion is ignored. Legacy
 tuple consumers can still unpack completion payloads.
 
-This is an incremental migration. Builds retain their existing operation lease;
+Builds retain their existing operation lease;
 distribution refresh and other older query producers retain their existing
-context guards and are serviced by the bounded event pump. They are not claimed
-to have migrated to the new query coordinator in this batch.
+context guards and are serviced by the bounded event pump. These are supported ownership boundaries. Moving every producer to the same
+coordinator is optional maintenance, not a requirement for completing this split.

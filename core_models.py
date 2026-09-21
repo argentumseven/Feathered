@@ -1,7 +1,7 @@
 """Core package, verification, inventory, and resolution data contracts.
 
 This module is deliberately independent of the legacy ``core`` implementation.
-``core`` re-exports these classes during the migration so existing imports remain
+``core`` re-exports these classes for compatibility so existing imports remain
 valid while new code can depend on the smaller domain boundary directly.
 """
 from __future__ import annotations

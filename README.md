@@ -2,7 +2,7 @@
 
 # Feathered 1.3.0
 
-Feathered builds controlled Linux software repositories for air-gapped environments.
+Feathered downloads Linux workloads, individual packages, and complete repositories for use offline. Choose what to collect, select the sources, and build a bundle. Archive keyrings, independent evidence, vendor signature requirements, and bundle signing are optional.
 
 From a connected Windows workstation, Feathered can acquire, verify, curate, and mirror RPM, APT, and pacman content, then publish native repositories for transfer into a disconnected network. Those repositories can be consumed directly by native package managers or staged into downstream repository-management infrastructure such as Red Hat Satellite or Pulp.
 
@@ -27,6 +27,27 @@ A build can produce:
 - an offline installer for direct target consumption when the selected workflow supports it.
 
 Workload mode offers dependency-complete acquisition and an explicit **Workload packages only** alternative. Workload/vendor repositories constrain where requested roots come from; every other enabled target-compatible repository may satisfy transitive dependencies. If the operator disables every separate dependency provider, Feathered falls back to package-only acquisition instead of pretending the workload is install-complete. Package-only output is not represented as a complete offline transaction and does not receive the normal offline installer.
+
+## Default workflow
+
+Choose a distribution and release, then select a workload, exact packages, or a
+repository mirror. Use the default **Verify what is available** policy to check
+published package digests without requiring archive keyrings or a second mirror.
+Target inventory is optional. Workload packages can also be collected without
+dependencies through **Workload packages only**.
+
+Stronger provenance is available on Provenance and Keying. **Skip upstream
+provenance checks** remains an explicit option; it also bypasses configured
+archive keyrings. Bundle hashes record transfer integrity separately from
+upstream authenticity.
+
+Devuan's built-in sources retain the upstream HTTP defaults. The Repositories
+and Provenance and Keying pages warn when participating sources use HTTP.
+Configure a trusted Devuan archive keyring to authenticate signed metadata and
+its package checksums. Obtain the keyring through a trusted channel, such as an
+existing trusted Devuan installation's `devuan-keyring` package. Keep upstream
+checks enabled to use it. Signatures authenticate content but do not encrypt HTTP.
+See [Devuan's package source instructions](https://www.devuan.org/os/packages).
 
 ## Typical deployment model
 
@@ -147,7 +168,7 @@ Repository acquisition is designed around source boundaries:
 - repository-relative paths are confined to the selected repository;
 - metadata and decompression operations use explicit resource limits.
 
-Frozen Windows releases use a staged GnuPG `gpgv` verifier. Production build tooling authenticates the staged verifier inputs, signs the staged PE files when configured, embeds their expected hashes in the executable, and prevents a frozen build from silently falling back to an arbitrary verifier on `PATH`.
+Frozen Windows releases use a staged GnuPG `gpgv` verifier. Bundle signing separately requires `gpg` on PATH and an operator secret key. Production build tooling authenticates the staged verifier inputs, signs the staged PE files when configured, embeds their expected hashes in the executable, and prevents a frozen build from silently falling back to an arbitrary verifier on `PATH`.
 
 ## Workloads
 
@@ -266,7 +287,15 @@ A verifier stored only inside an untrusted bundle cannot independently establish
 
 The desktop application is organized under `feathered_app/` with `app.py` as the Tk composition root. Build specifications, preparation, service contracts, repository/source scoping, and the headless execution path are separated from the GUI.
 
-See [feathered_app/ARCHITECTURE.md](feathered_app/ARCHITECTURE.md) for module ownership and the headless/build-service boundaries.
+The internal split is complete for the current scope: GUI composition, portable
+requests, build preparation and execution, package-family backends, and shared
+transport/publication code have defined owners. Compatibility exports and GUI
+mixins are retained interfaces. Further extraction is optional maintenance.
+
+See [feathered_app/ARCHITECTURE.md](feathered_app/ARCHITECTURE.md) for those
+boundaries and [FINALIZATION.md](FINALIZATION.md) for this review's changes and
+validation limits. Completing the source split does not certify a Windows binary;
+release builds still need the platform gates described in [VALIDATION.md](VALIDATION.md).
 
 ## Development checks
 

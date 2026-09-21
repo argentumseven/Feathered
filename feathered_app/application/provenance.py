@@ -5,6 +5,7 @@
 import apt_core
 
 from checksum_inspection import inspect_checksums
+from feathered_app.repository_advisory import archive_keyring_state
 from feathered_app.build_sources import BuildSourcesMixin, _SnapshotSelection  # noqa: F401
 from feathered_app.context import (
     APP_TITLE,
@@ -1666,6 +1667,7 @@ class ProvenanceMixin(BuildSourcesMixin):
         threading.Thread(target=worker, daemon=True).start()
 
     def _refresh_provenance_tree(self):
+        self._refresh_repository_transport_warning()
         self._refresh_provenance_editor()
 
     def _edit_selected_provenance(self):
@@ -1679,12 +1681,7 @@ class ProvenanceMixin(BuildSourcesMixin):
         for i, repo in enumerate(self.repo_rows):
             if id(repo) not in participating:
                 continue
-            if repo.keyring:
-                state, tag = "Signed", "signed"
-            elif repo.allow_unverified_index:
-                state, tag = "Unverified allowed", "open"
-            else:
-                state, tag = "Digest only", "digest"
+            state, tag = archive_keyring_state(repo)
             self.keyring_tree.insert("", "end", iid=str(i), tags=(tag,),
                                      values=(repo.name, state, repo.keyring or "-"))
 

@@ -277,8 +277,8 @@ class BuildSpec:
 def _var(host, name: str, default: str = "") -> str:
     """Read one Tk variable without letting an absent control raise.
 
-    Capture runs against partially built hosts in tests and, during migration,
-    against a window whose later panes have not been constructed yet. A missing
+    Capture runs against partially built hosts in tests and against a window
+    whose later panes have not been constructed yet. A missing
     control must yield the documented default, not an exception.
     """
     variable = host.__dict__.get(name)

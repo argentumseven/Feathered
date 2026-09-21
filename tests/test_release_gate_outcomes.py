@@ -256,6 +256,7 @@ def test_windows_release_plan_isolates_real_tk_root_modules():
         "tests/test_k8s_knowledge.py::",
         "tests/test_prepared_adapter_parity.py::",
         "tests/test_reported_defects.py::",
+        "tests/test_repository_advisory_gui.py::",
         "tests/test_review_dialog_lock.py::",
         "tests/test_signing_navigation.py::",
         "tests/test_ui_event_budget.py::",

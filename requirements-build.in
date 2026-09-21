@@ -1,7 +1,7 @@
 # Human-reviewed roots for the Windows x86-64 / CPython 3.13 production build.
 # requirements-build.lock is the install input used by build_exe.bat.
 zstandard==0.25.0
-pyinstaller==6.22.2
+pyinstaller==6.22.3
 pytest==9.1.1
 
 PyYAML==6.0.3

@@ -3,6 +3,7 @@
 """
 
 import math
+import shutil
 from release_seed import RELEASE_SEEDS
 
 from acquisition_model import AcquisitionCapability
@@ -1066,12 +1067,11 @@ class DiscoveryMixin:
             pass
 
     def _sync_openpgp_availability(self) -> None:
-        """Enable or disable the signature layers based on a real verifier.
+        """Enable verification with gpgv and signing separately with gpg.
 
-        Without gpg/gpgv these controls cannot do anything: a configured
-        keyring would fail at build time and bundle signing is impossible.
-        Greying them with a stated reason is more honest than accepting
-        configuration that is guaranteed not to work."""
+        A configured keyring requires a verifier at build time. The bundled
+        gpgv executable cannot provide the operator's signing capability.
+        """
         hint = self.__dict__.get("openpgp_status_hint")
         if hint is None:
             return
@@ -1085,6 +1085,16 @@ class DiscoveryMixin:
             backend = None
             integrity_failure = str(exc)
         widgets = getattr(self, "_openpgp_dependent_widgets", [])
+        signer = self.__dict__.get("signing_key_entry")
+        signing_available = bool(shutil.which("gpg")) and not integrity_failure
+        if signer is not None:
+            signer.configure(state="normal" if signing_available else "disabled")
+        signing_note = (
+            " Bundle signing is available through gpg; select your operator key below."
+            if signing_available else
+            " Bundle signing requires gpg on PATH and an operator secret key. "
+            "The bundled gpgv verifier cannot sign."
+        )
         if backend:
             version = ""
             try:
@@ -1092,12 +1102,15 @@ class DiscoveryMixin:
             except Exception:
                 version = ""
             hint.configure(
-                text=f"Verifier found: {version or backend}. Repository signature verification, "
-                     "vendor package signatures and bundle signing are available.",
-                foreground=OK_FG)
+                text=f"Verifier found: {version or backend}. Repository and vendor "
+                     "signature verification are available." + signing_note,
+                foreground=OK_FG if signing_available else WARN_FG)
             row = self.__dict__.get("openpgp_install_row")
             if row is not None:
-                row.pack_forget()
+                if signing_available:
+                    row.pack_forget()
+                else:
+                    row.pack(fill="x", pady=(8, 0))
             for widget in widgets:
                 try:
                     widget.configure(state="normal")
@@ -1119,13 +1132,10 @@ class DiscoveryMixin:
                     pass
             return
         hint.configure(
-            text="GnuPG is not installed, so no OpenPGP verifier is available. Repository "
-                 "metadata will be reported as unsigned, vendor package signatures cannot be "
-                 "checked, and bundles cannot be signed. Package digest verification and "
-                 "independent mirror evidence still work and are unaffected. Install GnuPG "
-                 "(Gpg4win, or the lighter 'Simple installer for GnuPG' from gnupg.org), then "
-                 "press Re-check - no restart needed. Release builds of Feathered ship a "
-                 "verifier beside the executable; a source checkout does not.",
+            text="No gpgv verifier is available. Repository and vendor signature "
+                 "verification require gpgv; configured keyrings will fail until it is installed. "
+                 "Package digests and independent evidence remain available. "
+                 "Install GnuPG from gnupg.org or your distribution and press Re-check." + signing_note,
             foreground=WARN_FG)
         row = self.__dict__.get("openpgp_install_row")
         if row is not None:
@@ -1139,14 +1149,11 @@ class DiscoveryMixin:
     def _show_gnupg_install_help(self) -> None:
         messagebox.showinfo(
             APP_TITLE,
-            "Feathered verifies OpenPGP signatures with GnuPG's gpgv/gpg rather than "
-            "reimplementing OpenPGP.\n\n"
-            "Install one of:\n"
-            "  • Gpg4win - https://gpg4win.org (full suite)\n"
-            "  • 'Simple installer for GnuPG' - https://gnupg.org/download (command line only)\n\n"
-            "Make sure the install adds gpg.exe to PATH, then press Re-check.\n\n"
-            "Feathered does not install software on your machine on its own: it is an airgap "
-            "tool, and silently downloading and running an installer would contradict that. "
-            "Release builds (build_exe.bat) stage a verifier next to Feathered.exe so end "
-            "users need no separate install; you are running from a source checkout, which "
-            "uses whatever GnuPG is on the system.")
+            "Repository and vendor signatures are verified with gpgv. "
+            "Bundle signing uses gpg and requires your operator secret key.\n\n"
+            "Windows: install Gpg4win (https://gpg4win.org) or the Simple installer "
+            "for GnuPG (https://gnupg.org/download). Add its bin directory to PATH.\n\n"
+            "Linux: install your distribution's gnupg and gpgv packages.\n\n"
+            "Release builds include gpgv for verification. Signing still requires "
+            "a separate gpg installation and your key. Feathered does not install software "
+            "automatically. Press Re-check after setup.")

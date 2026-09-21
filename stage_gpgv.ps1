@@ -7,9 +7,9 @@ Set-StrictMode -Version Latest
 # Feathered stages the official GnuPG Windows installer directly. The requested
 # HTTPS origin and exact upstream SHA-256 are pinned; installer bytes are not
 # trusted until the hash check below succeeds.
-$Version = '2.5.21'
-$InstallerName = 'gnupg-w32-2.5.21_20260702.exe'
-$InstallerSha256 = '6246C925A73167253444AFC24A0DEB83A3F43B7D636AF84D6AAF48A98A62F024'
+$Version = '2.5.22'
+$InstallerName = 'gnupg-w32-2.5.22_20260831.exe'
+$InstallerSha256 = '2E5841E345D56F05199351BFCF585D28C6DC2326C8F76962F1E402F41F6D10E9'
 $InstallerUrl = "https://www.gnupg.org/ftp/gcrypt/binary/$InstallerName"
 $ExpectedInstallerHost = 'www.gnupg.org'
 

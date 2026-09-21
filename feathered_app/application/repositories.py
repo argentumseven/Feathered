@@ -6,6 +6,7 @@ import apt_core
 import arch_core
 import core
 from checksum_inspection import inspect_checksums
+from feathered_app.repository_advisory import archive_keyring_state, http_repository_advice
 from repository_transport import normalize_query_key_names
 
 from feathered_app.context import (
@@ -74,7 +75,22 @@ class RepositoriesMixin:
 
         threading.Thread(target=work, daemon=True).start()
 
+    def _refresh_repository_transport_warning(self):
+        labels = [self.__dict__.get(name) for name in (
+            "repository_transport_warning", "provenance_transport_warning")]
+        labels = [label for label in labels if label is not None]
+        if not labels:
+            return
+        text = http_repository_advice(self._build_repository_scope())
+        for label in labels:
+            label.configure(text=text)
+            if text:
+                label.pack(fill="x", pady=(0, 12))
+            else:
+                label.pack_forget()
+
     def _sync_keyring_view(self):
+        self._refresh_repository_transport_warning()
         if getattr(self, "keyring_tree", None):
             self._refresh_keyring_tree()
         self._refresh_provenance_tree()
@@ -97,12 +113,7 @@ class RepositoriesMixin:
             location = redact_url(r.url) if r.url else "<not configured>"
             if r.repo_format == "apt" and r.suite:
                 location += f"  [suite={r.suite}; components={r.components or 'main'}]"
-            if r.keyring:
-                trust = "Signed (keyring)"
-            elif r.allow_unverified_index:
-                trust = "UNVERIFIED OK"
-            else:
-                trust = "Digest only"
+            trust, _tag = archive_keyring_state(r)
             strategy = repository_verification_strategy(r)
             if self._strategy_uses_evidence(strategy) and r.evidence_urls:
                 rel = evidence_relationship(r, r.evidence_urls[0])

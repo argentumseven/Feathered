@@ -169,7 +169,7 @@ if "%RELEASE_MODE%"=="1" (
   REM Local compilation pins the two root packages but lets pip select compatible
   REM transitive wheels for Python 3.12-3.14. This artifact is explicitly unsigned
   REM and is not release evidence.
-  "%PY%" -m pip install --disable-pip-version-check --only-binary=:all: "pyinstaller==6.22.2" "zstandard==0.25.0" "PyYAML==6.0.3"
+  "%PY%" -m pip install --disable-pip-version-check --only-binary=:all: "pyinstaller==6.22.3" "zstandard==0.25.0" "PyYAML==6.0.3"
   if errorlevel 1 goto :fail
   set "FEATHERED_BUILD_MODE=local"
   set "FEATHERED_BUILD_LOCK="

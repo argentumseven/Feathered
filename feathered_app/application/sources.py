@@ -391,6 +391,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         self._paint_mirror_rows()
 
     def _paint_mirror_rows(self):
+        self._refresh_repository_transport_warning()
         off, on = self._checkbox_images()
         mapping = self.__dict__.get("_mirror_iid_to_source_identity", {})
         for iid in self.mirror_tree.get_children():

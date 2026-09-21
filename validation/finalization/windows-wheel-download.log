@@ -1,0 +1,46 @@
+Collecting altgraph==0.17.5 (from -r requirements-build.lock (line 11))
+  Downloading altgraph-0.17.5-py2.py3-none-any.whl (21 kB)
+Collecting colorama==0.4.6 (from -r requirements-build.lock (line 13))
+  Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Collecting iniconfig==2.3.0 (from -r requirements-build.lock (line 15))
+  Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+Collecting packaging==26.3 (from -r requirements-build.lock (line 17))
+  Downloading packaging-26.3-py3-none-any.whl (129 kB)
+Collecting pefile==2024.8.26 (from -r requirements-build.lock (line 19))
+  Downloading pefile-2024.8.26-py3-none-any.whl (74 kB)
+Collecting pluggy==1.6.0 (from -r requirements-build.lock (line 21))
+  Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+Collecting pygments==2.21.0 (from -r requirements-build.lock (line 23))
+  Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 32.2 MB/s  0:00:00
+Collecting pyinstaller==6.22.3 (from -r requirements-build.lock (line 25))
+  Downloading pyinstaller-6.22.3-py3-none-win_amd64.whl (1.5 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.5/1.5 MB 77.2 MB/s  0:00:00
+Collecting pyinstaller-hooks-contrib==2026.7 (from -r requirements-build.lock (line 27))
+  Downloading pyinstaller_hooks_contrib-2026.7-py3-none-any.whl (459 kB)
+Collecting pytest==9.1.1 (from -r requirements-build.lock (line 29))
+  Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+Collecting pywin32-ctypes==0.2.3 (from -r requirements-build.lock (line 31))
+  Downloading pywin32_ctypes-0.2.3-py3-none-any.whl (30 kB)
+Collecting setuptools==84.0.0 (from -r requirements-build.lock (line 33))
+  Downloading setuptools-84.0.0-py3-none-any.whl (818 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 818.2/818.2 kB 60.1 MB/s  0:00:00
+Collecting zstandard==0.25.0 (from -r requirements-build.lock (line 35))
+  Downloading zstandard-0.25.0-cp313-cp313-win_amd64.whl (506 kB)
+Collecting PyYAML==6.0.3 (from -r requirements-build.lock (line 38))
+  Downloading pyyaml-6.0.3-cp313-cp313-win_amd64.whl (154 kB)
+Saved /workspace/scratch/bf1886667624/build-wheels/altgraph-0.17.5-py2.py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/colorama-0.4.6-py2.py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/iniconfig-2.3.0-py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/packaging-26.3-py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/pefile-2024.8.26-py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/pluggy-1.6.0-py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/pygments-2.21.0-py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/pyinstaller-6.22.3-py3-none-win_amd64.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/pyinstaller_hooks_contrib-2026.7-py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/pytest-9.1.1-py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/pywin32_ctypes-0.2.3-py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/setuptools-84.0.0-py3-none-any.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/zstandard-0.25.0-cp313-cp313-win_amd64.whl
+Saved /workspace/scratch/bf1886667624/build-wheels/pyyaml-6.0.3-cp313-cp313-win_amd64.whl
+Successfully downloaded altgraph colorama iniconfig packaging pefile pluggy pygments pyinstaller pyinstaller-hooks-contrib pytest pywin32-ctypes setuptools zstandard PyYAML

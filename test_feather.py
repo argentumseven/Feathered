@@ -9266,6 +9266,7 @@ def test_123_mirror_checkbox_repaint_invalidates_output_preview():
         mirror_tree=Tree(),
         _mirror_iid_to_source_identity={"row-a": "a", "row-b": "b"},
         mirror_repos={"a"}, mirror_status=Status(),
+        _refresh_repository_transport_warning=lambda: None,
         _checkbox_images=lambda: (object(), object()),
         _refresh_package_source_plan=lambda: None,
         _refresh_workload_repository_views=lambda: None,
@@ -9508,7 +9509,7 @@ def test_117_build_script_supports_current_python_locally_but_pins_release_pytho
     assert 'set "base_py=py -3.13"' in source
     assert 'py -3.12 -c' in source
     assert 'production releases require 64-bit cpython 3.13' in source
-    assert '"pyinstaller==6.22.2" "zstandard==0.25.0"' in source
+    assert '"pyinstaller==6.22.3" "zstandard==0.25.0"' in source
     assert '"%py%" -m pyinstaller' in source
     assert 'release_test_runner.py' in source
 

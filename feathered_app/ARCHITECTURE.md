@@ -53,3 +53,30 @@ Tk state is captured on the main thread before build execution. Worker execution
 ## Package-manager boundary
 
 Feathered computes and transports a conservative content set. It does not claim to replace the native package manager's final transaction semantics. Generated receiver workflows and native-conformance harnesses intentionally hand final transaction evaluation to APT, DNF/YUM, or pacman.
+
+## Completion scope
+
+The application/build split is implemented. GUI capture creates a portable
+`BuildSpec`; preparation produces an owned plan; execution uses explicit services
+and a package-family backend. CLI execution imports no Tk modules. The worker
+path consumes captured state rather than reading live widgets.
+
+The RPM implementation has been separated from `core.py` into domain models,
+metadata loading, resolution, artifact verification, native repository writing,
+publication, transport, and OpenPGP modules. `core.py` retains compatibility
+exports and dependency injection hooks. APT and Arch retain their family-specific
+metadata, resolver, and writer entry points, while sharing acquisition, digests,
+bundle records, and publication support.
+
+The remaining mixins, state views, and compatibility adapters are supported code.
+`ApplicationStateView` groups existing App attributes; it does not create a second
+state store. APT and Arch are not fully decomposed into one module per operation,
+and not every background producer uses the same coordinator. Neither is required
+by the current boundary. Further extraction should follow a demonstrated defect,
+maintenance problem, or performance need.
+
+Boundary coverage lives in `tests/test_architecture.py`,
+`tests/test_core_decomposition.py`, `tests/test_headless_execution.py`,
+`tests/test_prepared_adapter_parity.py`, `tests/test_build_worker_isolation.py`,
+and the host-contract checker. Release acceptance is documented in
+`../VALIDATION.md`.

@@ -1,6 +1,6 @@
 # Feathered 1.3.0 production-build dependency lock.
 #
-# Platform contract: Windows x86-64, CPython 3.13.14, binary wheels only.
+# Platform contract: Windows x86-64, CPython 3.13.15, binary wheels only.
 # build_exe.bat installs this file with --require-hashes --only-binary=:all:.
 # Every direct and transitive package required by the production build is
 # version-pinned and authenticated by the exact wheel SHA-256 below.
@@ -22,8 +22,8 @@ pluggy==1.6.0 \
     --hash=sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746
 pygments==2.21.0 \
     --hash=sha256:2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9
-pyinstaller==6.22.2 \
-    --hash=sha256:9b990fa6bbe143572f06644a984ad0d7aa2e2ccc6929d4916031343a5888e9a7
+pyinstaller==6.22.3 \
+    --hash=sha256:500bd58c7bf7e584a8435adccbd763a0b918d5c12b08d74ff50fd79b2915458b
 pyinstaller-hooks-contrib==2026.7 \
     --hash=sha256:24257a04c7a5a7a034cf28e39dcee20fbeeb9f043076729480f2e1b69904408a
 pytest==9.1.1 \

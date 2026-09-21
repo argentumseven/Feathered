@@ -318,6 +318,11 @@ class PaneMixin(KubernetesWorkloadMixin):
                   style="PaneTitle.TLabel").pack(anchor="w")
         ttk.Label(pane, textvariable=self.repositories_hint_var, style="Hint.TLabel",
                   wraplength=740).pack(anchor="w", pady=(4, 16))
+        warning_host = ttk.Frame(pane)
+        warning_host.pack(fill="x")
+        self.repository_transport_warning = ttk.Label(
+            warning_host, style="Hint.TLabel", foreground=WARN_FG,
+            wraplength=740, justify="left")
         self.repository_workflow_host = ttk.Frame(pane)
         self.repository_workflow_host.pack(fill="x")
         self._render_repository_workflow(force=True)
@@ -1429,6 +1434,12 @@ class PaneMixin(KubernetesWorkloadMixin):
             pane, "Provenance and Keying",
             "Feathered inherits the repositories that can participate in the current build. In normal dependency analysis that is the enabled set; package-only acquisition is restricted to the selected root sources. Inspect their checksum support, choose a minimum strength, then choose one verification strategy. Independent evidence is configured only for strategies that use it.")
 
+        warning_host = ttk.Frame(pane)
+        warning_host.pack(fill="x")
+        self.provenance_transport_warning = ttk.Label(
+            warning_host, style="Hint.TLabel", foreground=WARN_FG,
+            wraplength=740, justify="left")
+
         checksum = self._card(pane, "Package verification")
         self.prov_checksum_card = checksum
         self._panel_hint(
@@ -1588,7 +1599,7 @@ class PaneMixin(KubernetesWorkloadMixin):
         self.signing_key_var = tk.StringVar(value="")
         self.signing_key_entry = ttk.Entry(og, textvariable=self.signing_key_var)
         self.signing_key_entry.pack(side="left", fill="x", expand=True, padx=(10, 0))
-        self._openpgp_dependent_widgets = [self.signing_key_entry]
+        self._openpgp_dependent_widgets = []
         self.signing_key_var.trace_add("write", lambda *_a: self._clear_validation_attention())
 
         vendor = self._card(pane, "Vendor package signatures (optional)", pady=(18, 0))

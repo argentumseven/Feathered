@@ -1,0 +1,97 @@
+........................................................................ [  4%]
+......................F.F............................................... [  8%]
+........................................................................ [ 12%]
+........................................................................ [ 16%]
+........................................................................ [ 21%]
+........................................................................ [ 25%]
+........................................................................ [ 29%]
+........................................................................ [ 33%]
+........................................................................ [ 37%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+........................................................................ [ 50%]
+........................................................................ [ 54%]
+........................................................................ [ 59%]
+........................................................................ [ 63%]
+........................................................................ [ 67%]
+........................................................................ [ 71%]
+........................................................................ [ 75%]
+........................................................................ [ 80%]
+........................................................................ [ 84%]
+........................................................................ [ 88%]
+........................................................................ [ 92%]
+........................................................................ [ 96%]
+....................................................                     [100%]
+=================================== FAILURES ===================================
+_____________________ test_openpgp_verification_round_trip _____________________
+
+    def test_openpgp_verification_round_trip():
+        """Sign a payload with a throwaway key and check both accept and reject paths.
+    
+        Ordinary developer environments may skip when GnuPG is absent. The Linux
+        release gate installs GnuPG explicitly, so absence there is a gate failure.
+        """
+        import os
+        import subprocess
+        import pytest
+        from core import gpg_backend, verify_openpgp
+        gpg = shutil_which("gpg")
+        if gpg_backend() is None or not gpg:
+            pytest.skip("GnuPG signing and verification tools are unavailable on this host")
+        with tempfile.TemporaryDirectory() as td:
+            env = dict(os.environ, GNUPGHOME=_gpg_test_home(td, gpg))
+            os.chmod(td, 0o700)
+            run = lambda *a: subprocess.run(a, env=env, capture_output=True)
+            generated = run(gpg, "--batch", "--passphrase", "", "--quick-generate-key",
+                            "OPB Selftest <selftest@example.invalid>", "default", "default", "never")
+>           assert generated.returncode == 0, generated.stderr.decode("utf-8", "replace")
+E           AssertionError: gpg: keybox '/workspace/scratch/bf1886667624/tmp/tmptfe8kx4r/pubring.kbx' created
+E             gpg: error running '/usr/bin/gpg-agent': exit status 2
+E             gpg: failed to start gpg-agent '/usr/bin/gpg-agent': General error
+E             gpg: can't connect to the gpg-agent: General error
+E             gpg: agent_genkey failed: No agent running
+E             gpg: key generation failed: No agent running
+E             
+E           assert 2 == 0
+E            +  where 2 = CompletedProcess(args=('/usr/bin/gpg', '--batch', '--passphrase', '', '--quick-generate-key', 'OPB Selftest <selftest@... gpg-agent: General error\ngpg: agent_genkey failed: No agent running\ngpg: key generation failed: No agent running\n").returncode
+
+test_feather.py:266: AssertionError
+______________ test_ascii_armored_keyring_verifies_with_gpgv_only ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f13e20ed250>
+
+    def test_ascii_armored_keyring_verifies_with_gpgv_only(monkeypatch):
+        """Integration regression for the Windows release's verifier-only layout."""
+        import os
+        import subprocess
+        import pytest
+        import core
+    
+        gpg = shutil_which("gpg")
+        gpgv = shutil_which("gpgv")
+        if not gpg or not gpgv:
+            pytest.skip("GnuPG signing and verification tools are unavailable on this host")
+        with tempfile.TemporaryDirectory() as td:
+            home = Path(td) / "gnupg"
+            home.mkdir()
+            os.chmod(home, 0o700)
+            env = dict(os.environ, GNUPGHOME=_gpg_test_home(home, gpg))
+            run = lambda *a: subprocess.run(a, env=env, capture_output=True)
+            generated = run(gpg, "--batch", "--passphrase", "", "--quick-generate-key",
+                            "Armored Selftest <asc@example.invalid>", "default", "default", "never")
+>           assert generated.returncode == 0, generated.stderr.decode("utf-8", "replace")
+E           AssertionError: gpg: keybox '/workspace/scratch/bf1886667624/tmp/tmpf_fb_wn5/gnupg/pubring.kbx' created
+E             gpg: error running '/usr/bin/gpg-agent': exit status 2
+E             gpg: failed to start gpg-agent '/usr/bin/gpg-agent': General error
+E             gpg: can't connect to the gpg-agent: General error
+E             gpg: agent_genkey failed: No agent running
+E             gpg: key generation failed: No agent running
+E             
+E           assert 2 == 0
+E            +  where 2 = CompletedProcess(args=('/usr/bin/gpg', '--batch', '--passphrase', '', '--quick-generate-key', 'Armored Selftest <asc@e... gpg-agent: General error\ngpg: agent_genkey failed: No agent running\ngpg: key generation failed: No agent running\n").returncode
+
+test_feather.py:339: AssertionError
+=========================== short test summary info ============================
+FAILED test_feather.py::test_openpgp_verification_round_trip - AssertionError...
+FAILED test_feather.py::test_ascii_armored_keyring_verifies_with_gpgv_only - ...
+2 failed, 1706 passed in 51.11s

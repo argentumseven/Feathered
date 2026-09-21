@@ -243,7 +243,7 @@ def test_project_is_mit_licensed_and_distribution_notice_is_present():
 def test_gpg_acquisition_is_pinned_to_expected_installer_hash():
     text = (ROOT / "stage_gpgv.ps1").read_text(encoding="utf-8")
     assert "https://www.gnupg.org/ftp/gcrypt/binary/$InstallerName" in text
-    assert "6246C925A73167253444AFC24A0DEB83A3F43B7D636AF84D6AAF48A98A62F024" in text
+    assert "2E5841E345D56F05199351BFCF585D28C6DC2326C8F76962F1E402F41F6D10E9" in text
     assert "$ExpectedInstallerHost = 'www.gnupg.org'" in text
     assert "FEATHERED_BUILD_TEMP" in text
     assert "FEATHERED_GNUPG_INSTALLER" in text

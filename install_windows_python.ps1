@@ -1,8 +1,8 @@
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
-$Version = '3.13.14'
-$ExpectedSha256 = 'c54d9b9bbb8a36e6489363ddd01139707fd781d72f1f9e90c7ec65d0061368e0'
+$Version = '3.13.15'
+$ExpectedSha256 = 'edec09c4853aeae9ac36efb8c9f95b6b8e2fee65eee56d9767a8b7c69c574403'
 $InstallerUrl = "https://www.python.org/ftp/python/$Version/python-$Version-amd64.exe"
 
 if ([string]::IsNullOrWhiteSpace($env:RUNNER_TEMP)) {

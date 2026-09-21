@@ -1,0 +1,14 @@
+{
+  "base_commit": "6f409f2a84a927bd7bafbfeebaff8c1e7fecee93",
+  "tests": 1708,
+  "passed": 1706,
+  "failed": 2,
+  "errors": 0,
+  "skipped": 0,
+  "failures": [
+    "test_openpgp_verification_round_trip",
+    "test_ascii_armored_keyring_verifies_with_gpgv_only"
+  ],
+  "release_accepted": false,
+  "reason": "The sandbox denies Unix-domain sockets required by gpg-agent. Native-platform and Windows production gates must still run."
+}

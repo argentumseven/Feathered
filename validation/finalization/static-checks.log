@@ -1,0 +1,26 @@
+$ python -m ruff check .
+All checks passed!
+Exit: 0
+
+$ python -m mypy
+Success: no issues found in 81 source files
+Exit: 0
+
+$ python check_host_contracts.py
+valid_host: checked service, source, metadata, transport, backend and transaction interfaces accepted
+invalid_host: rejected all 53 malformed capabilities
+Host contract gate passed.
+Exit: 0
+
+$ python check_python_sources.py
+Python source syntax gate passed (215 files).
+Exit: 0
+
+$ python check_installer_syntax.py
+Generated installer shell syntax (bash -n on the emitted install-offline.sh):
+  PASS RPM
+  PASS RPM (vendor-signed)
+  PASS APT
+  PASS Arch
+Exit: 0
+
