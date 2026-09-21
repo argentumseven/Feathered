@@ -1,0 +1,7 @@
+Local DNF module checks: dependency resolution and downloads only.
+RPM transaction testing is unavailable: the sandbox denies chroot.
+DNF modular dependent stream: PASS
+DNF modular captured context: PASS
+DNF modular platform context: PASS
+DNF modular disabled dependency: PASS
+4 modular scenarios passed

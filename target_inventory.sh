@@ -21,6 +21,7 @@ trap 'rm -f "$TMP"' EXIT
     . /etc/os-release
     echo "META|id|${ID:-unknown}"
     echo "META|version_id|${VERSION_ID:-unknown}"
+    echo "META|platform_id|${PLATFORM_ID:-}"
     echo "META|codename|${VERSION_CODENAME:-${UBUNTU_CODENAME:-}}"
   fi
   echo "META|arch|$(uname -m)"

@@ -128,7 +128,9 @@ Important boundaries:
 
 - Native APT, DNF/YUM, and pacman transaction checks remain authoritative.
 - RPM module metadata is retained when needed; modular RPMs without matching module metadata are refused rather than published as orphan modular content.
-- Full DNF module-context/dependency solving and automatic stream transitions are not reimplemented by Feathered.
+- RPM dependency planning follows module runtime requirements from repository defaults and captured enabled streams. It handles transitive requirements, cycles, stream exclusions, alternative dependency blocks, and contexts constrained by the captured platform and module state.
+- Conflicting or ambiguous module choices produce a diagnostic. Feathered does not reproduce DNF's relaxed solver fallbacks or switch enabled streams automatically. The generated installer runs DNF against the emitted offline repository; it cannot fetch packages omitted by the builder.
+- Package-only acquisition does not require module dependency resolution. It preserves available module metadata but makes no claim that the downloaded package is an installable transaction.
 - Arch-family installs use full-upgrade semantics. Installed inventory is optional; when it is absent Feathered transfers a complete repository-derived dependency closure and leaves the final transaction to pacman.
 - Unsupported or ambiguous dependency expressions are blocked or surfaced rather than guessed.
 

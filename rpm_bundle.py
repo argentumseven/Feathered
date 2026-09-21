@@ -385,7 +385,7 @@ def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Pa
             preserve_locations = True
             reporter.log(f"Regenerating RPM repository metadata over {len(repo_packages)} total package(s) in the additive folder.")
         emit_rpm_repository(output_dir, repo_packages, reporter,
-                            preserve_package_locations=preserve_locations, supplemental_packages=result.selected)
+                            preserve_package_locations=preserve_locations, supplemental_packages=result.selected + result.module_metadata_packages)
     _write_provenance(output_dir, metadata_dir, prov_entries, already_present, options, reporter, metadata)
 
     package_only = bool(metadata.get("package_only_acquisition"))

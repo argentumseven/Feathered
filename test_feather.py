@@ -4425,6 +4425,12 @@ def test_native_dnf_conformance_has_real_offline_transaction_oracle(monkeypatch)
     from types import SimpleNamespace
     import native_conformance
 
+    import native_dnf_modules
+    modular_runs = []
+    def modular_tier(root, make_rpm):
+        modular_runs.append((root, make_rpm))
+        return "modular fixture tier"
+    monkeypatch.setattr(native_dnf_modules, "run_modular_conformance", modular_tier)
     monkeypatch.setattr(native_conformance.shutil, "which", lambda name: f"/usr/bin/{name}")
     monkeypatch.setattr(native_conformance, "_make_rpm", lambda *args, **kwargs: None)
     monkeypatch.setattr(
@@ -4460,6 +4466,9 @@ def test_native_dnf_conformance_has_real_offline_transaction_oracle(monkeypatch)
     line = native_conformance.run_dnf_conformance()
 
     assert line.startswith("PASS DNF:")
+    assert line.endswith("modular fixture tier")
+    assert len(modular_runs) == 1
+    assert modular_runs[0][1] is native_conformance._make_rpm
     assert len(written) == 3
     assert len(commands) == 4
     assert [command[-1] for command in commands] == [

@@ -3,7 +3,8 @@
 Source completion and binary release acceptance are separate decisions. The
 current architecture is described in `feathered_app/ARCHITECTURE.md`. The review
 and local results for this update are in `FINALIZATION.md` and
-`validation/finalization/`.
+`validation/finalization/`. The module follow-up is recorded in
+`validation/module-runtime/`.
 
 ## Required checks
 
@@ -64,6 +65,24 @@ native package-manager conformance, and static analysis. Production publication
 requires the configured jobs for the same Git SHA, authenticated dependency
 installation, the staged verifier, and the production signing path. A local
 source test run does not establish that these remote jobs passed.
+
+## Native RPM module coverage
+
+`python native_conformance.py --require dnf` includes ordinary RPM dependency
+checks and the modular scenarios in `native_dnf_modules.py`. It requires DNF 4,
+rpmbuild, createrepo_c, modifyrepo_c, and the Python runtime dependencies. The
+existing Rocky Linux 9 CI job supplies these tools.
+
+The modular cases build RPMs with real modularity labels, load modulemd through
+repository metadata, build Feathered bundles, and ask DNF to test transactions
+using only those bundles. Cases cover a dependent stream without its own default,
+a context selected by captured stream state, a platform-dependent context, and
+rejection of a disabled runtime dependency. The positive cases also cover RPM
+version requirements that omit a release, such as `runtime = 1.0`.
+
+CI retains `tsflags=test`. A local dependency solve or download-only check is
+useful evidence but does not pass that transaction gate. DNF 5 without modularity
+support cannot substitute for this DNF 4 coverage.
 
 ## Historical reports
 

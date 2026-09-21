@@ -68,7 +68,8 @@ Primary sources checked for this update:
 
 ## Validation
 
-The final local results are recorded in `validation/finalization/REVIEW.md`.
+The initial local results are recorded in `validation/finalization/REVIEW.md`.
+The later module changes and their results are in `validation/module-runtime/REVIEW.md`.
 The update does not turn failed or unavailable checks into passes. Earlier
 reports elsewhere in `validation/` describe earlier source trees.
 
@@ -83,6 +84,38 @@ hard-coded `(3,13,14)` checks in the bootstrap and builder. The bootstrap would
 reject Python 3.13.15. Both checks now match the installer, and a regression test
 compares them with the declared version and lock-file contract. Use the revised
 zip; it contains the complete update and supersedes the first one.
+
+## RPM module follow-up
+
+The module investigation found that the builder filtered out a required stream
+unless it was separately enabled or default. Receiver-side DNF validation could
+reject that incomplete bundle, but could not repair its missing payloads.
+
+The builder now resolves unambiguous module runtime requirements before RPM
+selection. Captured enabled and disabled streams are respected. Captured
+`PLATFORM_ID` constrains platform-dependent contexts and is checked by receiver
+preflight. With no captured platform, module metadata can establish a unique
+platform choice; that is repository-derived planning, not target verification.
+Conflicting defaults, incompatible requirements, unresolved context choices, and
+a bounded search limit produce explicit diagnostics. DNF's relaxed fallback
+policies and automatic changes to enabled streams remain outside this planner.
+
+Module metadata from participating RPM repositories remains in the bundle even
+when those repositories contribute no selected payload. Nonmodular filtering
+also checks virtual provides and the active module's demodularized package names.
+Package-only acquisition bypasses module solving and retains its existing
+limited assurance.
+
+The native fixtures also exposed an RPM comparison bug: a requirement without a
+release, such as `runtime = 1.0`, must accept package version `1.0-1`. Dependency
+comparison now follows RPM's omitted-release rules, including version-only
+provides against release-qualified inequalities. Explicit release comparisons
+and package version ordering are unchanged.
+
+Four real modular DNF scenarios now run in the existing native CI gate. Local
+DNF 4 dependency resolution and package downloads passed all four. The sandbox
+denied RPM's chroot transaction test, so full native transaction acceptance
+still requires the normal CI host. See the follow-up report for exact results.
 
 ## Applying the update
 

@@ -80,3 +80,9 @@ Boundary coverage lives in `tests/test_architecture.py`,
 `tests/test_prepared_adapter_parity.py`, `tests/test_build_worker_isolation.py`,
 and the host-contract checker. Release acceptance is documented in
 `../VALIDATION.md`.
+
+RPM module planning is implemented in `module_runtime.py`, with metadata loading,
+filtering, and emission in `module_policy.py`. Planning resolves unambiguous
+runtime requirements before choosing RPMs. It does not invoke a native DNF
+fallback on the builder. DNF remains the receiver transaction evaluator;
+`native_dnf_modules.py` adds modular fixtures to the existing native CI gate.

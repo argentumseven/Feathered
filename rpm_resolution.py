@@ -145,11 +145,23 @@ def evr_satisfies(provider: Requirement, req: Requirement, package: Optional[Pac
         pevr = package.evr
     if pevr is None:
         return False
-    c = compare_evr(pevr, req.evr)
+    requested = req.evr
     flag = req.flags.upper()
+    comparisons = {"EQ", "=", "GE", ">=", "GT", ">", "LE", "<=", "LT", "<"}
+    if flag not in comparisons:
+        return False
+    # RPM treats an omitted release differently on each side. A requirement
+    # without a release compares only epoch/version. A provide without a release
+    # covers every release of that version, including both sides of an inequality.
+    if not pevr[2] or not requested[2]:
+        c = compare_evr((pevr[0], pevr[1], ""), (requested[0], requested[1], ""))
+        if c == 0 and not pevr[2] and requested[2]:
+            return True
+    else:
+        c = compare_evr(pevr, requested)
     return {"EQ": c == 0, "=": c == 0, "GE": c >= 0, ">=": c >= 0,
             "GT": c > 0, ">": c > 0, "LE": c <= 0, "<=": c <= 0,
-            "LT": c < 0, "<": c < 0}.get(flag, False)  # unknown operators fail closed.
+            "LT": c < 0, "<": c < 0}[flag]
 
 
 def package_satisfies(pkg: Package, req: Requirement) -> bool:

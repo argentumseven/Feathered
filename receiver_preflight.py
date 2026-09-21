@@ -81,7 +81,7 @@ def main():
                 parsed = shlex.split(value)
                 release[key.lower()] = parsed[0] if parsed else ''
     captured = contract.get('captured_target', {})
-    for key in ['id', 'version_id']:
+    for key in ['id', 'version_id', 'platform_id']:
         expected = captured.get(key)
         if expected and expected != 'unknown' and release.get(key) != expected:
             raise RuntimeError(f'Target {key} differs from the captured inventory; rebuild for this receiver')

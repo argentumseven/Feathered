@@ -193,6 +193,9 @@ class ResolutionResult:
     # choices.  It is not part of bundle provenance.
     conflict_participants: List[str] = field(default_factory=list, compare=False, repr=False)
 
+    # Repositories needed for module runtime metadata, including metadata-only dependencies.
+    module_metadata_packages: List[Package] = field(default_factory=list, compare=False, repr=False)
+
     @property
     def total_size(self) -> int:
         return sum(p.size for p in self.selected)

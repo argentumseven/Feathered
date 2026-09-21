@@ -51,9 +51,14 @@ def resolve_transaction(resolve_once, requests, packages, architecture, options,
     full_upgrade = False
     if family == "arch":
         requests, full_upgrade = arch_upgrade_requests(requests, packages, architecture, options)
+    module_sources = {}
     if family == "rpm":
+        for package in packages:
+            if getattr(package.repo, "module_documents", []):
+                module_sources.setdefault(package.repo.source_identity, package)
         from module_policy import filter_candidates
-        packages = filter_candidates(packages, options.target_inventory, architecture)
+        if options.include_dependencies:
+            packages = filter_candidates(packages, options.target_inventory, architecture)
     from transaction_resolution import TransactionContext, resolve_fixed_point
 
     def prepare_options(prior):
@@ -69,6 +74,8 @@ def resolve_transaction(resolve_once, requests, packages, architecture, options,
         result.arch_full_upgrade = full_upgrade
         result.validation_scope = "captured-relationships" if getattr(options.target_inventory, "relationships_complete", False) else "forward-closure"
         result.target_inventory = options.target_inventory
+        if family == "rpm":
+            result.module_metadata_packages = list(module_sources.values())
         result.transaction_family = family
         result.root_contract = roots
 

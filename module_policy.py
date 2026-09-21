@@ -53,53 +53,32 @@ def filter_candidates(packages, inventory, architecture):
     docs = [d for repo in repos.values() for d in getattr(repo, 'module_documents', [])]
     if not docs:
         return packages
-    defaults = {}
-    streams = []
-    for doc in docs:
-        data = doc.get('data', {})
-        if doc.get('document') == 'modulemd-defaults' and data.get('stream') is not None:
-            name, stream = str(data['module']), str(data['stream'])
-            if name in defaults and defaults[name] != stream:
-                raise RuntimeError(f'{name}: conflicting module defaults across repositories')
-            defaults[name] = stream
-        elif doc.get('document') == 'modulemd':
-            streams.append(data)
-    states = json.loads(getattr(inventory, 'metadata', {}).get('module_states', '{}')) if inventory else {}
-    active = dict(defaults)
-    for name, state in states.items():
-        if state.get('state') == 'disabled':
-            active.pop(name, None)
-        elif state.get('state') == 'enabled':
-            active[name] = str(state.get('stream', ''))
-    all_modular = set(); allowed = set(); active_names = set()
-    context_artifacts = {}
-    active_contexts = {}
-    for data in streams:
-        artifacts = set(data.get('artifacts', {}).get('rpms', []))
-        all_modular.update(artifacts)
-        name, stream = str(data['name']), str(data['stream'])
-        if active.get(name) != stream or data.get('arch', architecture) != architecture:
-            continue
-        # Preserve all contexts for the native module solver, but refuse a build
-        # that would require choosing between different runtime contexts.
-        active_contexts.setdefault((name, stream), set()).add(str(data.get('context', '')))
-        allowed.update(artifacts)
-        context_artifacts.setdefault((name, stream), set()).update(artifacts)
-    ambiguous = set()
-    for key, contexts in active_contexts.items():
-        if len(contexts) > 1:
-            ambiguous.update(context_artifacts[key])
-    allowed.difference_update(ambiguous)
+    from module_runtime import active_module_documents
+    active = active_module_documents(docs, inventory, architecture)
+    all_modular = {identity for doc in docs if doc.get('document') == 'modulemd'
+                   for identity in doc.get('data', {}).get('artifacts', {}).get('rpms', [])}
+    allowed = {identity for row in active for identity in row.get('artifacts', {}).get('rpms', [])}
+    active_names = {identity.rsplit('-', 2)[0] for identity in allowed
+                    if not identity.endswith(('.src', '.nosrc'))}
+    latest = {}
+    for row in active:
+        key = (str(row['name']), str(row['stream']), str(row.get('context', '')))
+        if key not in latest or int(row.get('version', 0)) > int(latest[key].get('version', 0)):
+            latest[key] = row
+    demodularized = {name for row in latest.values() for name in row.get('demodularized', {}).get('rpms', [])}
+    active_names.difference_update(demodularized)
     selected = []
-    for pkg in packages:
-        identity = _artifact_id(pkg)
-        if identity in allowed:
-            selected.append(pkg); active_names.add(pkg.name)
-        elif identity not in all_modular:
-            selected.append(pkg)
-    # Match DNF's filtering of nonmodular builds whose names belong to an active stream.
-    return [p for p in selected if p.name not in active_names or _artifact_id(p) in allowed
-            or getattr(p.repo, 'module_hotfixes', False)]
+    for package in packages:
+        identity = _artifact_id(package)
+        if getattr(package.repo, 'module_hotfixes', False):
+            selected.append(package)
+        elif identity in allowed:
+            selected.append(package)
+        elif identity not in all_modular and not getattr(package, 'modularity_label', ''):
+            names = {package.name} | {requirement.name for requirement in package.provides}
+            if not names.intersection(active_names):
+                selected.append(package)
+    return selected
 
 
 def emit_supplemental(output, packages, reporter):

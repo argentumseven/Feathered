@@ -1,0 +1,35 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/workspace/scratch/bf1886667624/review/Feathered-main/native_conformance.py", line 441, in run_dnf_conformance
+    run_oracle(_native_file_url(bundle), "file")
+  File "/workspace/scratch/bf1886667624/review/Feathered-main/native_conformance.py", line 430, in run_oracle
+    raise RuntimeError(
+RuntimeError: [transitive depth] Native DNF could not solve/test Feathered's COMPLETE bundle over file:
+Added feathered repo from file:///workspace/scratch/bf1886667624/tmp/feathered-native-dnf-zgfyd_b7/bundle-0
+feathered                                       753 kB/s | 771  B     00:00    
+Dependencies resolved.
+================================================================================
+ Package            Architecture     Version          Repository           Size
+================================================================================
+Installing:
+ fnc-deep           noarch           1.0-1            feathered           6.0 k
+Installing dependencies:
+ fnc-leaf           noarch           1.0-1            feathered           6.0 k
+ fnc-mid            noarch           1.0-1            feathered           6.0 k
+
+Transaction Summary
+================================================================================
+Install  3 Packages
+
+Total size: 18 k
+Installed size: 0  
+DNF will only download packages, install gpg keys, and check the transaction.
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+RPM: error: Unable to change root directory: Operation not permitted
+Error: Transaction test error:
+  Errors occurred during test transaction.
+
+

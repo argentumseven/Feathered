@@ -2,6 +2,12 @@
 
 ## Fixed
 
+- Include module runtime dependency streams in RPM plans and resolve contexts against captured streams and platform state.
+- Preserve required module metadata from repositories that contribute no selected RPMs.
+- Apply active module filtering to nonmodular virtual providers and honor demodularized package names.
+- Match RPM dependencies without a release against all releases of the required version.
+- Keep package-only RPM acquisition independent of module context solving.
+
 - Keep both Windows interpreter checks aligned with the CPython installer pin.
 
 - Show HTTP transport warnings on Repositories and Provenance and Keying, including Devuan's default sources. Recommend a trusted archive keyring without requiring one or changing acquisition defaults.
@@ -9,6 +15,8 @@
 - Distinguish gpgv signature verification from gpg bundle signing in GUI controls and setup help.
 
 ## Changed
+
+- Add real modular RPM scenarios to the required native DNF gate. Keep receiver-side DNF transaction validation and existing provenance defaults.
 
 - Update staged GnuPG to 2.5.22, PyInstaller to 6.22.3, and the Windows build interpreter to CPython 3.13.15, with matching SHA-256 pins.
 - Document the completed internal split, retained compatibility interfaces, and current release checks. Historical validation reports remain historical evidence.

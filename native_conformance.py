@@ -110,7 +110,7 @@ def _make_deb(root: Path, upstream: Path, name: str, depends: str = "",
 
 
 def _make_rpm(root: Path, upstream: Path, name: str, requires: str = "",
-              version: str = "1.0", provides: str = "") -> None:
+              version: str = "1.0", provides: str = "", modularity_label: str = "") -> None:
     """Build a tiny noarch RPM with optional controlled dependency metadata."""
     top = root / "rpmbuild"
     for leaf in ("BUILD", "BUILDROOT", "RPMS", "SOURCES", "SPECS", "SRPMS"):
@@ -143,8 +143,11 @@ printf '%s\\n' '{name}' > %{{buildroot}}/usr/share/feathered-native/{name}.txt
 """,
         encoding="utf-8",
     )
+    command = ["rpmbuild", "-bb", "--define", f"_topdir {top}"]
+    if modularity_label:
+        command += ["--define", f"modularitylabel {modularity_label}"]
     built = subprocess.run(
-        ["rpmbuild", "-bb", "--define", f"_topdir {top}", str(spec)],
+        command + [str(spec)],
         check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     rpms = sorted((top / "RPMS").rglob(f"{name}-{version}-1*.rpm"))
     if len(rpms) != 1:
@@ -443,10 +446,13 @@ def run_dnf_conformance() -> str:
                 with _http_repository(bundle) as http_url:
                     run_oracle(http_url, "http")
 
+        from native_dnf_modules import run_modular_conformance
+        modular = run_modular_conformance(root, _make_rpm)
+
     return ("PASS DNF: native dnf accepted and transaction-tested "
             f"{len(scenarios)} generated Feathered bundles over canonical file URLs, "
             "plus loopback HTTP transfer validation "
-            f"({', '.join(label for label, _, _ in scenarios)})")
+            f"({', '.join(label for label, _, _ in scenarios)}); {modular}")
 
 
 # --------------------------------------------------------------------------
