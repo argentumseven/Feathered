@@ -117,7 +117,7 @@ $env:TK_LIBRARY = $TkTcl.Directory.FullName
 Write-Host "TCL_LIBRARY=$env:TCL_LIBRARY"
 Write-Host "TK_LIBRARY=$env:TK_LIBRARY"
 Write-Host "Validating interpreter and Tcl/Tk before running Feathered tests..."
-& $Python -c "import struct,sys,tkinter as tk; assert sys.version.split()[0] == '$Version'; assert struct.calcsize('P')*8 == 64; r=tk.Tk(); print('CPython',sys.version.split()[0],'Tcl',r.tk.call('info','patchlevel')); r.destroy()"
+& $Python -c "import struct,sys,tkinter as tk; assert sys.version_info[:3] == (3,13,15); assert struct.calcsize('P')*8 == 64; r=tk.Tk(); print('CPython',sys.version.split()[0],'Tcl',r.tk.call('info','patchlevel')); r.destroy()"
 if ($LASTEXITCODE -ne 0) {
     throw 'Official CPython Tcl/Tk startup validation failed.'
 }
