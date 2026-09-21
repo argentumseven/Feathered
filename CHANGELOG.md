@@ -2,6 +2,8 @@
 
 ## Fixed
 
+- Keep both Windows interpreter checks aligned with the CPython installer pin.
+
 - Show HTTP transport warnings on Repositories and Provenance and Keying, including Devuan's default sources. Recommend a trusted archive keyring without requiring one or changing acquisition defaults.
 - Label archive keyrings as configured or bypassed instead of claiming a completed signature check.
 - Distinguish gpgv signature verification from gpg bundle signing in GUI controls and setup help.

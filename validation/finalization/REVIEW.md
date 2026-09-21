@@ -5,9 +5,11 @@ Finalized 2026-09-21 against the supplied source for commit
 
 ## Results
 
-- Full pytest corpus: **1706 passed, 2 failed, 0 skipped, 0 errors**
-  out of 1708 collected tests. No tests were deselected.
+- Full pytest corpus: **1707 passed, 2 failed, 0 skipped, 0 errors**
+  out of 1709 collected tests. No tests were deselected.
 - The 17 new advisory/signing tests passed, including four real GUI cases.
+- The Windows interpreter-pin consistency regression passed. It first failed
+  against the first finalization zip and now covers both exact version checks.
 - Ruff passed. Mypy passed for 81 configured source files.
 - Host contracts accepted the valid fixture and rejected 53 malformed capabilities.
 - Python compilation passed for 215 in-scope source files.

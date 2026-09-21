@@ -76,6 +76,14 @@ The local environment cannot execute Windows installers, a frozen Windows build,
 Authenticode signing, or the full native APT/DNF/pacman conformance matrix.
 Download/hash checks establish the installer pins, not runtime behavior on Windows.
 
+## Release follow-up correction
+
+The first finalization zip updated the Python installer pin but missed two
+hard-coded `(3,13,14)` checks in the bootstrap and builder. The bootstrap would
+reject Python 3.13.15. Both checks now match the installer, and a regression test
+compares them with the declared version and lock-file contract. Use the revised
+zip; it contains the complete update and supersedes the first one.
+
 ## Applying the update
 
 The delivered zip contains repository-relative replacement and new files. Extract

@@ -1,7 +1,7 @@
 {
   "base_commit": "6f409f2a84a927bd7bafbfeebaff8c1e7fecee93",
-  "tests": 1708,
-  "passed": 1706,
+  "tests": 1709,
+  "passed": 1707,
   "failed": 2,
   "errors": 0,
   "skipped": 0,

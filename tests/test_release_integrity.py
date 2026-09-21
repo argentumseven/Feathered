@@ -516,3 +516,17 @@ def test_source_tree_carries_no_superseded_working_copies():
     # pytest imports test modules by basename, so a repeated basename aborts
     # collection and takes the whole release gate with it.
     assert not collisions, f"duplicate test module basenames: {collisions}"
+
+
+def test_windows_interpreter_checks_match_the_bootstrap_pin():
+    import re
+
+    bootstrap = (ROOT / "install_windows_python.ps1").read_text(encoding="utf-8")
+    version = re.search(r"\$Version = '([0-9.]+)'", bootstrap).group(1)
+    expected = tuple(map(int, version.split('.')))
+    pattern = r"sys\.version_info\[:3\]\s*==\s*\((\d+),\s*(\d+),\s*(\d+)\)"
+    for name in ("install_windows_python.ps1", "build_exe.bat"):
+        checks = re.findall(pattern, (ROOT / name).read_text(encoding="utf-8"))
+        assert checks, f"{name}: missing exact interpreter check"
+        assert all(tuple(map(int, parts)) == expected for parts in checks), name
+    assert f"CPython {version}" in (ROOT / "requirements-build.lock").read_text(encoding="utf-8")

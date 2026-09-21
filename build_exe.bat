@@ -2,7 +2,7 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
-REM Feathered 1.2.4 Windows builder.
+REM Feathered Windows builder.
 REM   build_exe.bat           -> practical local unsigned EXE build
 REM   build_exe.bat --release -> fail-closed production release gate
 REM Local mode deliberately does not run the entire release certification
@@ -28,7 +28,7 @@ if "%RELEASE_MODE%"=="1" (
   REM python.org installer and proving that its Tcl/Tk runtime starts.
   if defined FEATHERED_RELEASE_PYTHON (
     if exist "%FEATHERED_RELEASE_PYTHON%" (
-      "%FEATHERED_RELEASE_PYTHON%" -c "import struct,sys; raise SystemExit(0 if sys.version_info[:3]==(3,13,14) and struct.calcsize('P')*8==64 else 1)" >nul 2>nul
+      "%FEATHERED_RELEASE_PYTHON%" -c "import struct,sys; raise SystemExit(0 if sys.version_info[:3]==(3,13,15) and struct.calcsize('P')*8==64 else 1)" >nul 2>nul
       if not errorlevel 1 set "BASE_PY=%FEATHERED_RELEASE_PYTHON%"
     )
   )
@@ -287,9 +287,9 @@ if defined BUILD_VENV rmdir /S /Q "%BUILD_VENV%" 2>nul
 echo.
 echo ERROR: build stopped during: %BUILD_STEP%
 if "%RELEASE_MODE%"=="1" (
-  echo ERROR: Feathered 1.2.4 production build failed a mandatory release gate.
+  echo ERROR: Feathered production build failed a mandatory release gate.
 ) else (
-  echo ERROR: Feathered 1.2.4 local EXE build failed.
+  echo ERROR: Feathered local EXE build failed.
 )
 echo ERROR: Re-run build_exe_debug.bat to keep a complete build-exe.log on screen and on disk.
 exit /b %RC%
