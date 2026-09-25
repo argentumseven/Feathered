@@ -19,7 +19,7 @@ from acquisition_model import (AcquisitionCapability, AcquisitionIntent, Acquisi
                                derive_acquisition_state, intent_from_selection_mode,
                                mirror_layout_from_label)
 from mirror_unification import MergePolicy, merge_policy_from_label
-from feathered_app.build_request import BuildRequestMixin
+from feathered_app.build_request import build_snapshot_value, live_value
 from profiles import profile_by_label
 from source_readiness import evaluate_source_readiness
 from workloads import workload_by_label
@@ -151,7 +151,7 @@ class BuildIntentMixin:
             # __dict__ read, not attribute access: tkinter.Misc.__getattr__
             # recurses on a partially constructed instance, which is how this
             # surfaced as a RecursionError rather than an AttributeError.
-            label = BuildRequestMixin._live_value(self, "workload_var")
+            label = live_value(self, "workload_var")
         # Reach the catalogue without attribute access: tkinter.Misc.__getattr__
         # recurses on a partially constructed instance. A host that has not
         # loaded workloads yet has no preset to return, which is not the same as
@@ -168,7 +168,7 @@ class BuildIntentMixin:
 
     def _mirror_repo_selected(self, repo) -> bool:
         source_id = getattr(repo, "source_identity", getattr(repo, "name", ""))
-        pinned = BuildRequestMixin._build_snapshot_value(self, "mirror", "selected_repositories")
+        pinned = build_snapshot_value(self, "mirror", "selected_repositories")
         selected = pinned if pinned is not None else self.__dict__.get("mirror_repos", set())
         return source_id in selected
 
@@ -176,12 +176,12 @@ class BuildIntentMixin:
         mirror = self._mirror_mode()
         field = "mirror_method" if mirror else "method"
         variable = "mirror_source_method_var" if mirror else "source_method_var"
-        pinned = BuildRequestMixin._build_snapshot_value(self, "sources", field)
+        pinned = build_snapshot_value(self, "sources", field)
         if pinned is not None:
             return str(pinned)
         if mirror and self.__dict__.get(variable) is None:
             variable = "source_method_var"
-        return BuildRequestMixin._live_value(self, variable)
+        return live_value(self, variable)
 
     def _pick_mode(self) -> bool:
         """Package selection is always reviewable after an analysis.

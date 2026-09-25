@@ -4,8 +4,6 @@ from __future__ import annotations
 import hashlib
 import io
 import json
-import shutil
-import subprocess
 import tarfile
 import urllib.error
 from pathlib import Path
@@ -22,9 +20,6 @@ import provenance
 import repository_tools
 import repository_transport
 from core import BuildOptions, Package, RepoSpec, Reporter
-
-BASH = shutil.which("bash")
-
 
 # ---- fixtures ---------------------------------------------------------------
 
@@ -81,21 +76,6 @@ def test_rpm_installer_enforces_gpgcheck_without_build_side_keyring(tmp_path):
     assert '[ "${FEATHERED_ALLOW_UNSIGNED:-0}" = 1 ]' in script
 
 
-@pytest.mark.skipif(BASH is None, reason="GNU bash is required")
-@pytest.mark.parametrize("override,expected", [("", "1"), ("1", "0")])
-def test_rpm_installer_override_is_the_only_switch(tmp_path, override, expected):
-    script = (_rpm_bundle(tmp_path) / "install-offline.sh").read_text(encoding="utf-8")
-    start = script.index("GPGCHECK=1")
-    end = script.index("\nfi\n", start) + 4
-    env = {"PATH": "/usr/bin:/bin"}
-    if override:
-        env["FEATHERED_ALLOW_UNSIGNED"] = override
-    proc = subprocess.run([BASH, "-c", "set -euo pipefail\n" + script[start:end] + 'printf %s "$GPGCHECK"'],
-                          capture_output=True, text=True, env=env)
-    assert proc.returncode == 0, proc.stderr
-    assert proc.stdout == expected
-
-
 # ---- APT installer: unverified archive chains are gated like RPM/pacman ------
 
 def test_apt_installer_gates_an_unauthenticated_release_chain(tmp_path):
@@ -111,28 +91,6 @@ def test_deb_chain_verification_requires_evidence():
     assert not installer._deb_chain_verified([ok, bad])
     assert not installer._deb_chain_verified([])
     assert not installer._deb_chain_verified(None)
-
-
-# ---- pacman installer honours the target's own [options] ---------------------
-
-@pytest.mark.skipif(BASH is None, reason="GNU bash is required")
-def test_pacman_config_inherits_system_options_and_drops_system_repos(tmp_path):
-    script = (_arch_bundle(tmp_path) / "install-offline.sh").read_text(encoding="utf-8")
-    start = script.index('TMP_CONF="$(mktemp)"')
-    end = script.index("# The builder includes")
-    system = tmp_path / "pacman.conf"
-    system.write_text("# header\n[options]\nHoldPkg = pacman glibc\nIgnorePkg = linux\n"
-                      "NoUpgrade = etc/keep.conf\nArchitecture = auto\n\n"
-                      "[core]\nInclude = /etc/pacman.d/mirrorlist\n", encoding="utf-8")
-    fragment = script[start:end].replace("/etc/pacman.conf", str(system))
-    proc = subprocess.run([BASH, "-c", "set -euo pipefail\nHERE_URL=/b\n" + fragment + 'cat "$TMP_CONF"'],
-                          capture_output=True, text=True)
-    assert proc.returncode == 0, proc.stderr
-    conf = proc.stdout
-    for line in ("IgnorePkg = linux", "HoldPkg = pacman glibc", "NoUpgrade = etc/keep.conf"):
-        assert line in conf
-    assert "[core]" not in conf and "mirrorlist" not in conf
-    assert "[feathered]" in conf and "Server = file:///b/packages" in conf
 
 
 # ---- RPM provenance keeps the digest axis on the keyring path ----------------
@@ -255,3 +213,40 @@ def test_incomparable_baseline_digests_are_reported():
         [pkg], {"a-1": "e" * 64}, digest=digest, matches=lambda x, y: x == y,
         incomparable=incomparable)
     assert ship == [pkg] and skip == [] and incomparable == ["a-1"]
+
+
+# ---- module-level request accessors work on any host ------------------------
+
+def test_request_accessors_serve_hosts_without_the_mixin():
+    """Mixins composed beside BuildRequestMixin call these with a foreign self."""
+    from feathered_app import build_request as br
+
+    class Var:
+        def __init__(self, value):
+            self.value = value
+
+        def get(self):
+            return self.value
+
+    class Host:  # deliberately not a BuildRequestMixin
+        pass
+
+    live = Host()
+    live.__dict__.update(arch_var=Var("aarch64"), folder_stamp_var=Var("date"),
+                         mode_var=Var("full"))
+    assert br.selected_arch(live) == "aarch64"
+    assert br.selected_output_option(live, "folder_stamp", "folder_stamp_var") == "date"
+    assert br.selected_content(live, "dependency_mode", "mode_var") == "full"
+    assert br.build_snapshot_value(live, "target", "arch") is None
+
+    frozen = Host()
+    frozen.__dict__.update(
+        arch_var=Var("widget-must-not-be-read"),
+        _build_snapshot=SimpleNamespace(target=SimpleNamespace(arch="x86_64", release=""),
+                                        output=SimpleNamespace(folder_stamp="time"),
+                                        content=SimpleNamespace(dependency_mode="none")))
+    assert br.selected_arch(frozen) == "x86_64"
+    assert br.selected_output_option(frozen, "folder_stamp", "folder_stamp_var") == "time"
+    assert br.selected_content(frozen, "dependency_mode", "mode_var") == "none"
+    # An empty frozen value is a real value, never a cue to read the widget.
+    assert br.build_snapshot_value(frozen, "target", "release") == ""

@@ -27,6 +27,16 @@ from feathered_app.build_services import BuildServices
 from mirror_unification import mirror_sources_record, unified_mirror_note
 
 
+
+def _archive_signature_verified(repo: object) -> bool:
+    """Whether the loader recorded a verified archive signature for ``repo``.
+
+    ``trust`` is attached to RepoSpec instances by the repository loaders at
+    runtime rather than declared on the class, so read it defensively.
+    """
+    trust = getattr(repo, "trust", None)
+    return bool(trust is not None and getattr(trust, "archive_signature_verified", False))
+
 def _indexed_evidence_records(repo, resolver, value_field: str) -> dict:
     """Preserve one provenance record per evidence URL without secret-key collisions."""
     return {
@@ -118,12 +128,9 @@ def run(app, job: PreparedPlan) -> BuildOutcome:
                         + " ".join(blocked[:3])
                         + (" (and others)" if len(blocked) > 3 else ""))
             # Approved catalog candidates were materialized above. Exact
-            # job.requests must never be renamed by spelling heuristics.
-            alias_subs = []
-            for sub in alias_subs:
-                rep.log(f"Workload name resolved dynamically: {sub.requested} → {sub.resolved} ({sub.kind}; {sub.note})")
-            if alias_subs:
-                app.events.put(("workload_aliases", [(s.requested, s.resolved) for s in alias_subs]))
+            # job.requests are never renamed by spelling heuristics, so the
+            # worker emits no workload-alias substitutions (the vestigial
+            # always-empty loop that used to sit here was removed).
             result = app._resolve_backend(runtime_requests, packages, app._selected_arch(), job.opts, rep)
         app.events.put(("warnings", list(rep.warnings)))
         current_unresolved = {app._format_requirement_backend(req) for req in result.unresolved}
@@ -358,9 +365,7 @@ def run(app, job: PreparedPlan) -> BuildOutcome:
                 # Record what was actually trusted, so a bundle can be
                 # audited later without re-running the build.
                 **signature_verification_summary(
-                    bool(getattr(r, "trust", None)
-                         and r.trust.archive_signature_verified)
-                    for r in job.build_repositories),
+                    _archive_signature_verified(r) for r in job.build_repositories),
                 "trust_warnings": list(rep.warnings),
                 "repositories": [{"name": r.name, "url": redact_url(r.url), "role": r.role, "priority": r.priority,
                                   "build_purposes": app._repository_build_purposes(r),
@@ -371,9 +376,7 @@ def run(app, job: PreparedPlan) -> BuildOutcome:
                                       getattr(r, "inheritable_query_credential_keys", []) or []),
                                   # What was verified, not what was configured.
                                   "keyring_configured": bool(r.keyring),
-                                  "signature_verified": bool(
-                                      getattr(r, "trust", None)
-                                      and r.trust.archive_signature_verified),
+                                  "signature_verified": _archive_signature_verified(r),
                                   "allow_unverified_index": r.allow_unverified_index,
                                   # record source-bond intent without
                                   # exposing credentials in evidence URLs.

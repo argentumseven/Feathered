@@ -10,15 +10,26 @@ after them.
 from __future__ import annotations
 
 import re
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Optional
 
-from feathered_app.build_request import BuildRequestMixin
+from feathered_app.build_request import (build_snapshot_value, live_value, selected_arch,
+                                         selected_content)
 from source_model import RootSourcePolicy, SourcePlan
 from workload_materialization import MaterializedWorkload, materialize_source_plan
 
 
 class BuildPlanMixin:
     """Source plan and request construction. No widget access."""
+
+    if TYPE_CHECKING:
+        # Implicit host contract: provided by BuildIntentMixin / BuildBackendMixin
+        # and the host (App or HeadlessHost). Declared here so mypy can check
+        # this mixin in isolation; nothing is defined at runtime.
+        def _profile(self) -> Any: ...
+        def _mirror_mode(self) -> bool: ...
+        def _single_mode(self) -> Any: ...
+        def _workload(self) -> Any: ...
+        def _repo_tier(self, repo: object) -> str: ...
 
     def _source_plan(self):
         """Authoritative package-source contract for the current Packages state.
@@ -38,7 +49,7 @@ class BuildPlanMixin:
                 for package in (self.__dict__.get("selected_packages") or ())
             ])
         if workload.custom:
-            custom = BuildRequestMixin._selected_content(self, "custom_packages", "custom_var")
+            custom = selected_content(self, "custom_packages", "custom_var")
             roots = [x for x in re.split(r"[\s,]+", custom) if x]
             return SourcePlan([RootSourcePolicy(name, "enabled") for name in roots])
         try:
@@ -65,7 +76,7 @@ class BuildPlanMixin:
             plan=self._source_plan(),
             packages=packages,
             # Runs on the worker via _build_request; must not read a widget.
-            preferred_arch=BuildRequestMixin._selected_arch(self),
+            preferred_arch=selected_arch(self),
             tier_getter=self._repo_tier,
             catalog_signature_verified=getattr(workload, "catalog_signature_verified", False),
         )
@@ -115,9 +126,9 @@ class BuildPlanMixin:
         # Frozen request first. This is a worker-thread read, and it escaped
         # the isolation tripwire only because every fixture used a profile with
         # no selectable init systems, so the branch never ran.
-        chosen = BuildRequestMixin._build_snapshot_value(self, "target", "init_system")
+        chosen = build_snapshot_value(self, "target", "init_system")
         if chosen is None:
-            chosen = BuildRequestMixin._live_value(self, "init_system_var")
+            chosen = live_value(self, "init_system_var")
         return chosen if chosen in inits else inits[0]
 
     def _known_workload_repository_roles(self):

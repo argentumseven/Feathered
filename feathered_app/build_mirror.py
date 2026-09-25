@@ -8,6 +8,8 @@ Imports no Tk, enforced by tests/test_build_request_module.py.
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import apt_core
 import arch_core
 import core
@@ -15,9 +17,16 @@ from acquisition_model import MirrorLayout
 from core import ResolutionResult, Reporter, human_size
 from mirror_unification import MergePolicy, conflict_report, unify_mirror_packages
 
+if TYPE_CHECKING:
+    from feathered_app.build_host_contracts import EventSink
+
 
 class BuildMirrorMixin:
     """Mirror inventory and unification. No widget access."""
+
+    if TYPE_CHECKING:
+        # Provided by the host (App or HeadlessHost): the worker-to-UI queue.
+        events: EventSink
 
     def _format_requirement_backend(self, req):
         if self._is_arch():

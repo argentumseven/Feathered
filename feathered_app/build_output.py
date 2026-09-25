@@ -10,9 +10,10 @@ from __future__ import annotations
 import re
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from acquisition_model import MirrorLayout
-from feathered_app.build_request import BuildRequestMixin
+from feathered_app.build_request import selected_arch, selected_output_option
 
 FOLDER_SCHEMES = [
     "System and contents",
@@ -77,6 +78,17 @@ def _frozen(host, accessor: str, variable: str) -> str:
 class BuildOutputMixin:
     """Output directory resolution and folder naming. No widget access."""
 
+    if TYPE_CHECKING:
+        # Implicit host contract: provided by BuildIntentMixin / BuildBackendMixin
+        # and the host (App or HeadlessHost). Declared here so mypy can check
+        # this mixin in isolation; nothing is defined at runtime.
+        selected_packages: list[Any]
+
+        def _profile(self) -> Any: ...
+        def _mirror_mode(self) -> bool: ...
+        def _single_mode(self) -> Any: ...
+        def _workload(self) -> Any: ...
+
     def _folder_name(self, mirror_repo=None, naming_time=None) -> str:
         """Build one bundle folder name from the chosen naming scheme.
 
@@ -86,7 +98,7 @@ class BuildOutputMixin:
         all forks rather than a reason to merge their payloads.
         """
         release = _frozen(self, "_selected_release", "release_var")
-        arch = BuildRequestMixin._selected_arch(self)
+        arch = selected_arch(self)
         target = f"{self._profile().key}-{release}-{arch}"
         # A unified mirror is a single publication, so it never carries a
         # per-repository folder component even when several are selected.
@@ -103,8 +115,8 @@ class BuildOutputMixin:
                 if chosen else "packages"
         else:
             workload = self._workload().key
-        scheme = BuildRequestMixin._selected_output_option(self, "folder_scheme", "folder_scheme_var")
-        custom = BuildRequestMixin._selected_output_option(self, "folder_label", "folder_label_var").strip()
+        scheme = selected_output_option(self, "folder_scheme", "folder_scheme_var")
+        custom = selected_output_option(self, "folder_label", "folder_label_var").strip()
         if scheme == FOLDER_SCHEMES[3]:
             if mirror_fork:
                 # Custom text is shared across all mirror forks, while the repo
@@ -125,7 +137,7 @@ class BuildOutputMixin:
         if scheme != FOLDER_SCHEMES[3]:
             stem = f"{stem}-offline"
         moment = naming_time or _naming_moment(self)
-        stamp = BuildRequestMixin._selected_output_option(self, "folder_stamp", "folder_stamp_var")
+        stamp = selected_output_option(self, "folder_stamp", "folder_stamp_var")
         if stamp == "time":
             prefix = moment.strftime("%Y-%m-%d_%H%M%S")
         elif stamp == "date":

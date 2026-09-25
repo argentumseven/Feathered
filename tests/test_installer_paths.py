@@ -227,3 +227,49 @@ def test_awkward_bundle_directory_still_produces_a_valid_script(tmp_path):
     proc = subprocess.run([BASH, "-n"], input=script.read_text(encoding="utf-8"),
                           capture_output=True, text=True)
     assert proc.returncode == 0, proc.stderr
+
+
+
+# ---- review follow-ups that need a shell ------------------------------------
+# These live here, not in test_review_followups.py, because this module owns the
+# Windows-aware bash discovery (_usable_bash rejects the System32 WSL stub),
+# path translation (_bash_path) and the release gate's permitted skip for a
+# host without GNU bash.
+
+@pytest.mark.skipif(BASH is None, reason="GNU bash is required")
+@pytest.mark.parametrize("override,expected", [("", "1"), ("1", "0")])
+def test_rpm_installer_signature_override_is_the_only_switch(tmp_path, override, expected):
+    """gpgcheck defaults on; only FEATHERED_ALLOW_UNSIGNED=1 turns it off."""
+    script = _script(tmp_path, "rpm")
+    start = script.index("GPGCHECK=1")
+    end = script.index("\nfi\n", start) + 4
+    env = dict(os.environ)
+    env.pop("FEATHERED_ALLOW_UNSIGNED", None)
+    if override:
+        env["FEATHERED_ALLOW_UNSIGNED"] = override
+    proc = subprocess.run([BASH, "-c", "set -euo pipefail\n" + script[start:end] + 'printf %s "$GPGCHECK"'],
+                          capture_output=True, text=True, env=env)
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout == expected
+
+
+@pytest.mark.skipif(BASH is None, reason="GNU bash is required")
+def test_pacman_config_inherits_system_options_and_drops_system_repos(tmp_path):
+    """The temporary pacman.conf keeps IgnorePkg/HoldPkg/NoUpgrade, not repos."""
+    script = _script(tmp_path, "arch")
+    start = script.index('TMP_CONF="$(mktemp)"')
+    end = script.index("# The builder includes")
+    system = tmp_path / "pacman.conf"
+    system.write_bytes(b"# header\n[options]\nHoldPkg = pacman glibc\nIgnorePkg = linux\n"
+                       b"NoUpgrade = etc/keep.conf\nArchitecture = auto\n\n"
+                       b"[core]\nInclude = /etc/pacman.d/mirrorlist\n")
+    # A Windows path pasted raw into bash loses its backslashes; translate and quote.
+    fragment = script[start:end].replace("/etc/pacman.conf", shlex.quote(_bash_path(system)))
+    proc = subprocess.run([BASH, "-c", "set -euo pipefail\nHERE_URL=/b\n" + fragment + 'cat "$TMP_CONF"'],
+                          capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr
+    conf = proc.stdout
+    for line in ("IgnorePkg = linux", "HoldPkg = pacman glibc", "NoUpgrade = etc/keep.conf"):
+        assert line in conf
+    assert "[core]" not in conf and "mirrorlist" not in conf
+    assert "[feathered]" in conf and "Server = file:///b/packages" in conf
