@@ -135,6 +135,8 @@ Important boundaries:
 - Package-only acquisition does not require module dependency resolution. It preserves available module metadata but makes no claim that the downloaded package is an installable transaction.
 - Arch-family installs use full-upgrade semantics. Installed inventory is optional; when it is absent Feathered transfers a complete repository-derived dependency closure and leaves the final transaction to pacman.
 - Unsupported or ambiguous dependency expressions are blocked or surfaced rather than guessed.
+- A bundle installs only on the distribution and release it was built for. The receiver compares `/etc/os-release` with the bundle's target even when no inventory was captured, because installing packages from another release makes APT or DNF upgrade core libraries as dependencies and leaves a system that mixes two releases. `FEATHERED_ALLOW_RELEASE_MISMATCH=1` overrides the check for derivatives whose os-release identity differs from their base.
+- Feathered does not perform release upgrades (for example Debian 12 to 13, or RHEL 9 to 10). For an air-gapped release upgrade, use repository mirror mode to transfer the new release's repositories, then run the vendor's own procedure against that local mirror: the Debian release notes' `apt full-upgrade` sequence, `leapp` on RHEL-family systems, or `dnf system-upgrade` on Fedora. Arch-family installs are always full upgrades, so the rolling-release case is covered by the normal installer.
 
 ## Provenance and verification
 

@@ -147,7 +147,10 @@ def write_installation_contract(directory, result, family, metadata, omitted=())
         "captured_target": dict(getattr(getattr(result, "target_inventory", None), "metadata", {})),
         "arch_full_upgrade": bool(getattr(result, "arch_full_upgrade", False)),
         "module_states": getattr(getattr(result, "target_inventory", None), "metadata", {}).get("module_states"),
-        "target": {k: metadata.get(k, "") for k in ("distribution", "release", "arch")},
+        # profile and codename let the receiver refuse a bundle built for a
+        # different distribution or release even when no inventory was captured.
+        "target": {k: metadata.get(k, "") for k in ("distribution", "release", "arch",
+                                                      "profile", "codename")},
         "roots": [{"name": p.name, "version": p.evr_text, "architecture": p.arch,
                    "package_id": p.nevra, "source_identity": p.repo.source_identity} for p in result.roots],
         "native_arguments": installation_roots(result, family),

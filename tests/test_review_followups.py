@@ -250,3 +250,90 @@ def test_request_accessors_serve_hosts_without_the_mixin():
     assert br.selected_content(frozen, "dependency_mode", "mode_var") == "none"
     # An empty frozen value is a real value, never a cue to read the widget.
     assert br.build_snapshot_value(frozen, "target", "release") == ""
+
+
+# ---- receiver refuses cross-release installs without an inventory -----------
+
+import receiver_preflight as rp  # noqa: E402
+
+
+def _contract(profile, release, codename="", distribution="X", arch=""):
+    return {"schema": 2, "family": "deb", "baseline_required": [],
+            "target": {"profile": profile, "release": release, "codename": codename,
+                       "distribution": distribution, "arch": arch}}
+
+
+@pytest.mark.parametrize("profile,release,codename,os_release", [
+    ("debian", "13", "trixie", {"id": "debian", "version_id": "13", "version_codename": "trixie"}),
+    ("debian", "trixie", "trixie", {"id": "debian", "version_id": "13", "version_codename": "trixie"}),
+    ("debian", "13.6", "13.6", {"id": "debian", "version_id": "13", "version_codename": "trixie"}),
+    ("ubuntu", "24.04.2", "noble", {"id": "ubuntu", "version_id": "24.04", "version_codename": "noble"}),
+    ("rocky", "9.4", "9.4", {"id": "rocky", "version_id": "9.5"}),
+    ("alma", "9.6", "9.6", {"id": "almalinux", "version_id": "9.6"}),
+    ("centos-stream", "9-stream", "", {"id": "centos", "version_id": "9"}),
+    ("fedora", "42", "42", {"id": "fedora", "version_id": "42"}),
+    ("arch", "rolling", "rolling", {"id": "arch"}),
+    ("devuan", "excalibur", "excalibur", {"id": "devuan", "version_codename": "excalibur"}),
+])
+def test_matching_target_release_is_accepted(profile, release, codename, os_release):
+    rp.check_target_release(_contract(profile, release, codename), os_release)
+
+
+@pytest.mark.parametrize("profile,release,codename,os_release,match", [
+    ("debian", "13", "trixie", {"id": "debian", "version_id": "12", "version_codename": "bookworm"},
+     "mix two releases"),
+    ("ubuntu", "24.04", "noble", {"id": "ubuntu", "version_id": "22.04", "version_codename": "jammy"},
+     "mix two releases"),
+    ("rocky", "9.4", "9.4", {"id": "rocky", "version_id": "8.10"}, "mix two releases"),
+    ("fedora", "42", "42", {"id": "fedora", "version_id": "41"}, "mix two releases"),
+    ("debian", "13", "trixie", {"id": "ubuntu", "version_id": "24.04"}, "Rebuild the bundle"),
+    ("rocky", "9.4", "9.4", {"id": "almalinux", "version_id": "9.4"}, "Rebuild the bundle"),
+    ("debian", "13", "trixie", {}, "os-release"),
+])
+def test_other_target_release_is_refused(profile, release, codename, os_release, match):
+    with pytest.raises(RuntimeError, match=match):
+        rp.check_target_release(_contract(profile, release, codename), os_release)
+
+
+@pytest.mark.parametrize("contract", [
+    {"target": {"distribution": "Debian", "release": "13", "arch": "amd64"}},  # pre-profile bundle
+    _contract("custom-apt", "anything"),
+    {"target": {}},
+])
+def test_release_check_does_not_invent_expectations(contract):
+    rp.check_target_release(contract, {"id": "something-else", "version_id": "1"})
+
+
+def test_contract_records_profile_and_codename(tmp_path):
+    import transaction_model
+    result = SimpleNamespace(roots=[], selected=[])
+    contract = transaction_model.write_installation_contract(
+        tmp_path, result, "deb", {"distribution": "Debian", "profile": "debian",
+                                  "release": "13", "codename": "trixie", "arch": "amd64"})
+    assert contract["target"]["profile"] == "debian"
+    assert contract["target"]["codename"] == "trixie"
+
+
+# ---- receiver architecture names --------------------------------------------
+
+@pytest.mark.parametrize("expected,machine", [
+    ("amd64", "x86_64"), ("arm64", "aarch64"), ("i386", "i686"), ("armhf", "armv7l"),
+    ("armel", "armv6l"), ("ppc64el", "ppc64le"), ("riscv64", "riscv64"), ("s390x", "s390x"),
+    ("x86_64", "x86_64"), ("aarch64", "aarch64"), ("ppc64le", "ppc64le"),
+])
+def test_debian_architecture_names_match_kernel_machine_names(expected, machine):
+    contract = {"family": "deb", "target": {"arch": expected}, "baseline_required": []}
+    rp.validate(contract, {}, machine=machine)
+
+
+def test_architecture_mismatch_is_still_refused():
+    contract = {"family": "deb", "target": {"arch": "amd64"}, "baseline_required": []}
+    with pytest.raises(RuntimeError, match="architecture differs"):
+        rp.validate(contract, {}, machine="aarch64")
+
+
+def test_dpkg_native_architecture_is_authoritative():
+    assert rp.arch_matches("armhf", "armhf", "dpkg")
+    # A 32-bit armhf userland on a 64-bit kernel: the kernel says aarch64,
+    # dpkg says armhf, and dpkg is right.
+    assert not rp.arch_matches("arm64", "armhf", "dpkg")

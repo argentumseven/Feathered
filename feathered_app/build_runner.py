@@ -325,7 +325,7 @@ def run(app, job: PreparedPlan) -> BuildOutcome:
             # actual destinations cannot diverge.
             dest = app._resolved_output_path(folder)
             meta = {
-                "distribution": app._profile().label, "release": release, "codename": app._profile().codename(release), "arch": app._selected_arch(),
+                "distribution": app._profile().label, "profile": app._profile().key, "release": release, "codename": app._profile().codename(release), "arch": app._selected_arch(),
                 "package_family": app._profile().package_family,
                 "dependency_mode": dependency_mode, "package_version": package_version,
                 "workload": workload_label, "workload_key": workload_key,
