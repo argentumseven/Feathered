@@ -39,8 +39,16 @@ def digest_map(entries: Iterable[Mapping[str, object]], *, digest: DigestLookup)
 
 
 def partition(selected: Iterable[P], baseline: Mapping[str, str], *,
-              digest: DigestLookup, matches: Callable[[str, str], bool]) -> tuple[list[P], list[P], int]:
-    """Return ship/skip lists and the missing-digest count, preserving objects."""
+              digest: DigestLookup, matches: Callable[[str, str], bool],
+              incomparable: list[str] | None = None) -> tuple[list[P], list[P], int]:
+    """Return ship/skip lists and the missing-digest count, preserving objects.
+
+    ``incomparable`` (when supplied) receives the identities whose baseline and
+    current digests have different lengths, i.e. were produced by different
+    algorithms. Those packages are shipped, which is safe, but a baseline in
+    which every entry is incomparable silently turns a differential build into
+    a full one, so the caller should say so.
+    """
     if not baseline:
         return list(selected), [], 0
     ship: List[P] = []
@@ -75,5 +83,8 @@ def partition(selected: Iterable[P], baseline: Mapping[str, str], *,
         if current and matches(recorded.lower(), current.lower()):
             skip.append(pkg)
         else:
+            if (incomparable is not None and current
+                    and len(current.strip()) != len(recorded)):
+                incomparable.append(str(identity))
             ship.append(pkg)
     return ship, skip, unverifiable

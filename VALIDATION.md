@@ -1,11 +1,9 @@
 # Release verification
 
 Source completion and binary release acceptance are separate decisions. The
-current architecture is described in `feathered_app/ARCHITECTURE.md`. The review
-and local results for this update are in `FINALIZATION.md` and
-`validation/finalization/`. The module follow-up is recorded in
-`validation/module-runtime/`. The subsequent installed-conflict, RPM account,
-and module-scope fixes are recorded in `validation/release-logic/`.
+current architecture is described in `feathered_app/ARCHITECTURE.md`.
+`validation/` is an output directory: gate runs write their evidence there and CI
+publishes it as workflow artifacts. It is not tracked in Git.
 
 ## Required checks
 
@@ -94,11 +92,9 @@ support cannot substitute for this DNF 4 coverage.
 
 ## Historical reports
 
-Other directories under `validation/` contain results from earlier source trees
-and intermediate failed runs. Their recorded source identity determines what
-they establish. They are retained for history, not used as the current gate.
-Old batch names and implementation instructions do not define outstanding work.
-Use a newly generated report for the candidate being released.
+Earlier gate outputs were previously committed under `validation/`. They were
+removed from the tree because they described earlier source revisions and were
+not used as the current gate; they remain available in repository history.
 
 ## Dependency updates
 

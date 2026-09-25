@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import ssl
-import tempfile
 import time
 import urllib.parse
+import urllib.error
 import urllib.request
 import threading
 from typing import Callable, ContextManager, Dict, Optional, Protocol, TypeVar
@@ -355,6 +355,28 @@ def certificate_failure_advice(exc: BaseException, url: str = "") -> str:
     return message
 
 
+class ResponseTooLarge(RuntimeError):
+    """A response exceeded its byte ceiling. Deterministic: never retried."""
+
+
+_RETRYABLE_HTTP_STATUS = frozenset({408, 425, 429, 500, 502, 503, 504})
+
+
+def _is_retryable(exc: BaseException) -> bool:
+    """Retry transient transport failures only.
+
+    A size-limit breach or a definitive HTTP answer (401, 403, 404, 410, ...)
+    will be identical on the next attempt, so retrying only multiplies the
+    transfer -- up to three full metadata ceilings for one oversized index --
+    and delays the real error.
+    """
+    if isinstance(exc, ResponseTooLarge):
+        return False
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code in _RETRYABLE_HTTP_STATUS
+    return True
+
+
 def fetch_bytes(
     url: str,
     reporter: TransportReporter,
@@ -387,26 +409,24 @@ def fetch_bytes(
                     except (TypeError, ValueError):
                         declared_size = None
                     if declared_size is not None and declared_size > max_bytes:
-                        raise RuntimeError(
+                        raise ResponseTooLarge(
                             f"Repository response is {declared_size:,} bytes, above Feathered's "
                             f"{max_bytes:,}-byte metadata limit")
+                # The caller receives one bytes object, so buffer in memory
+                # directly; spooling to disk first saved nothing.
                 total = 0
-                spool_threshold = 64 * 1024 * 1024
-                if max_bytes is not None:
-                    spool_threshold = min(spool_threshold, max_bytes)
-                with tempfile.SpooledTemporaryFile(max_size=max(1, spool_threshold)) as spool:
-                    while True:
-                        reporter.check_cancel()
-                        chunk = response.read(1024 * 1024)
-                        if not chunk:
-                            break
-                        total += len(chunk)
-                        if max_bytes is not None and total > max_bytes:
-                            raise RuntimeError(
-                                f"Repository response exceeded Feathered's {max_bytes:,}-byte metadata limit")
-                        spool.write(chunk)
-                    spool.seek(0)
-                    return spool.read()
+                chunks: list[bytes] = []
+                while True:
+                    reporter.check_cancel()
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if max_bytes is not None and total > max_bytes:
+                        raise ResponseTooLarge(
+                            f"Repository response exceeded Feathered's {max_bytes:,}-byte metadata limit")
+                    chunks.append(chunk)
+                return b"".join(chunks)
         except Exception as exc:
             # A cancellation raised mid-download (reporter.check_cancel inside
             # the chunk loop) must propagate as a cancellation, not be retried
@@ -422,6 +442,8 @@ def fetch_bytes(
                 raise RuntimeError(
                     f"Could not fetch {redact_url_fn(url)}: {advice}") from exc
             last = exc
+            if not _is_retryable(exc):
+                break
             if attempt < retries:
                 reporter.log(f"Fetch failed: {exc}. Healing with retry...")
                 time.sleep(min(2 ** (attempt - 1), 5))

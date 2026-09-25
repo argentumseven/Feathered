@@ -117,3 +117,47 @@ def test_package_acquisition_uses_unc_aware_file_url_conversion(
 
     assert seen_urls == [legacy_unc_url]
     assert destination.read_bytes() == payload
+
+
+def test_bundled_verifier_executes_from_an_authenticated_private_copy(tmp_path: Path) -> None:
+    """Swapping a file in the install dir after staging cannot reach execution."""
+    source = tmp_path / "gnupg"
+    source.mkdir()
+    (source / "gpgv.exe").write_bytes(b"gpgv-original")
+    (source / "lib.dll").write_bytes(b"dll")
+    policy = tmp_path / "verifier-integrity.json"
+    policy.write_text(json.dumps({"files": {
+        "gpgv.exe": hashlib.sha256(b"gpgv-original").hexdigest(),
+        "lib.dll": hashlib.sha256(b"dll").hexdigest(),
+    }}), encoding="utf-8")
+
+    def verify(directory: Path) -> None:
+        openpgp_verifier.verify_bundled_gpg_integrity(directory, policy_path_fn=lambda: policy)
+
+    openpgp_verifier.reset_verifier_integrity_cache()
+    try:
+        backend = openpgp_verifier.gpg_backend(
+            bundled_dir_fn=lambda: source, verify_integrity_fn=verify)
+        assert backend is not None
+        staged = Path(backend)
+        assert staged.parent != source
+        (source / "gpgv.exe").write_bytes(b"gpgv-swapped!")
+        assert staged.read_bytes() == b"gpgv-original"
+    finally:
+        openpgp_verifier.reset_verifier_integrity_cache()
+    assert not staged.parent.exists()
+
+
+def test_tampered_install_dir_is_rejected_at_staging(tmp_path: Path) -> None:
+    source = tmp_path / "gnupg"
+    source.mkdir()
+    (source / "gpgv.exe").write_bytes(b"tampered")
+    policy = tmp_path / "verifier-integrity.json"
+    policy.write_text(json.dumps({"files": {
+        "gpgv.exe": hashlib.sha256(b"original").hexdigest()}}), encoding="utf-8")
+    openpgp_verifier.reset_verifier_integrity_cache()
+    with pytest.raises(openpgp_verifier.VerifierIntegrityError):
+        openpgp_verifier.gpg_backend(
+            bundled_dir_fn=lambda: source,
+            verify_integrity_fn=lambda d: openpgp_verifier.verify_bundled_gpg_integrity(
+                d, policy_path_fn=lambda: policy))

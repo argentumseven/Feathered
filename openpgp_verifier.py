@@ -6,6 +6,7 @@ small number of lookup hooks so the legacy ``core`` façade remains monkeypatch
 compatible while new code can use this module directly.
 """
 from __future__ import annotations
+import atexit
 import base64
 import binascii
 import hmac
@@ -61,8 +62,15 @@ def verifier_policy_path() -> Optional[Path]:
 def sha256_file(path: Path) -> str:
     return file_hashing.stream_digest(path, hashlib.sha256())
 
+# Verified private copies of the bundled verifier, keyed by source directory.
+# Hashing the install directory and then executing from it leaves a window in
+# which anyone able to write there can swap a file after the check. Instead the
+# verifier is copied once into a freshly created per-process directory that only
+# this user can write, the *copies* are authenticated, and only the copies are
+# executed. Reusing a staged copy is safe because nothing outside this process's
+# own account can modify it.
 _VERIFIER_CACHE_LOCK = threading.Lock()
-_VERIFIER_VERIFIED: Dict[str, frozenset[tuple[str, int, int]]] = {}
+_STAGED_VERIFIERS: Dict[str, Path] = {}
 
 
 def verifier_fingerprint(files: Dict[str, Path]) -> frozenset[tuple[str, int, int]]:
@@ -129,17 +137,7 @@ def verify_bundled_gpg_integrity(
             + (" (" + "; ".join(detail) + ")" if detail else "")
             + "."
         )
-    key = str(directory.resolve())
-    try:
-        fingerprint = verifier_fingerprint(actual)
-    except OSError as exc:
-        raise VerifierIntegrityError(
-            "Unable to stat bundled OpenPGP verifier files."
-        ) from exc
-
-    with _VERIFIER_CACHE_LOCK:
-        cached = _VERIFIER_VERIFIED.get(key) == fingerprint
-    def check(rel: str, path: Path) -> None:
+    for rel, path in actual.items():
         wanted = str(expected[rel]).lower()
         if len(wanted) != 64 or any(c not in "0123456789abcdef" for c in wanted):
             raise VerifierIntegrityError(
@@ -150,25 +148,57 @@ def verify_bundled_gpg_integrity(
                 f"Bundled OpenPGP verifier integrity check failed for {rel}. "
                 "Refusing to execute it."
             )
-    if cached:
-        # Size and mtime are useful cache metadata, but they are not a trust
-        # boundary: an attacker with write access can replace a sidecar and
-        # restore both values.  Re-hash the complete authenticated file set even
-        # when its metadata fingerprint matches a prior verification.
-        for rel, path in actual.items():
-            check(rel, path)
-        return
 
-    for rel, path in actual.items():
-        check(rel, path)
 
+def _remove_staged(path: Path) -> None:
+    shutil.rmtree(path, ignore_errors=True)
+
+
+def stage_bundled_gpg(
+    directory: Path,
+    *,
+    verify_integrity_fn: Callable[[Path], None] = verify_bundled_gpg_integrity,
+) -> Path:
+    """Return a private, authenticated copy of the bundled verifier directory."""
+    key = str(Path(directory).resolve())
     with _VERIFIER_CACHE_LOCK:
-        _VERIFIER_VERIFIED[key] = fingerprint
+        staged = _STAGED_VERIFIERS.get(key)
+        if staged is not None and staged.is_dir():
+            return staged
+    files = enumerate_verifier_files(Path(directory))
+    # mkdtemp creates the directory with mode 0700 (a per-user ACL on Windows).
+    staged = Path(tempfile.mkdtemp(prefix="feathered-gpgv-"))
+    try:
+        for rel, source in files.items():
+            target = staged / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+            shutil.copymode(source, target)
+        verify_integrity_fn(staged)
+    except OSError as exc:
+        _remove_staged(staged)
+        raise VerifierIntegrityError(
+            "Unable to stage the bundled OpenPGP verifier into a private directory."
+        ) from exc
+    except BaseException:
+        _remove_staged(staged)
+        raise
+    with _VERIFIER_CACHE_LOCK:
+        existing = _STAGED_VERIFIERS.get(key)
+        if existing is not None and existing.is_dir():
+            _remove_staged(staged)
+            return existing
+        _STAGED_VERIFIERS[key] = staged
+    atexit.register(_remove_staged, staged)
+    return staged
 
 
 def reset_verifier_integrity_cache() -> None:
     with _VERIFIER_CACHE_LOCK:
-        _VERIFIER_VERIFIED.clear()
+        staged = list(_STAGED_VERIFIERS.values())
+        _STAGED_VERIFIERS.clear()
+    for path in staged:
+        _remove_staged(path)
 
 def gpg_backend_name(backend: Optional[str]) -> str:
     if not backend:
@@ -213,7 +243,7 @@ def gpg_backend(
     bundled = bundled_dir_fn()
     frozen = bool(getattr(sys, "frozen", False))
     if bundled is not None:
-        verify_integrity_fn(bundled)
+        bundled = stage_bundled_gpg(bundled, verify_integrity_fn=verify_integrity_fn)
         for candidate in ("gpgv.exe", "gpgv"):
             tool = bundled / candidate
             if tool.is_file():

@@ -37,18 +37,30 @@ class _Job(Generic[T]):
 
 
 class BackgroundJobs(Generic[T]):
-    """At most two active queries and one pending replacement per named lane.
+    """At most two live queries and one pending replacement per named lane.
 
     Deliver is a thread-safe queue sink, never a Tk callback. Every accepted job
     gets one completion, including jobs replaced before starting. The receiver
     must call accepts() immediately before applying a completion.
+
+    Cancellation is cooperative, so a cancelled worker may keep running (for
+    example inside a network timeout) after its result became obsolete. Those
+    workers no longer count against ``max_workers``; otherwise two stale queries
+    would block every lane until they returned. They are bounded separately by
+    ``max_cancelled`` so a stuck worker cannot cause unbounded thread growth.
     """
     def __init__(self, deliver: Callable[[JobCompletion[T]], None], *,
-                 max_workers: int = 2, max_operations: int = 8) -> None:
+                 max_workers: int = 2, max_operations: int = 8,
+                 max_cancelled: int | None = None) -> None:
         if max_workers < 1 or max_operations < 1:
             raise ValueError('Background job limits must be positive')
+        if max_cancelled is None:
+            max_cancelled = max_workers
+        if max_cancelled < 0:
+            raise ValueError('Background job limits must not be negative')
         self._deliver = deliver
         self._limit = max_workers
+        self._max_cancelled = max_cancelled
         self._max_operations = max_operations
         self._lock = RLock()
         self._generations: dict[str, int] = {}
@@ -79,6 +91,8 @@ class BackgroundJobs(Generic[T]):
             for job in self._active.values():
                 if job.operation == operation:
                     job.cancel.set()
+            if not self._closed:
+                self._start_pending()
 
     def accepts(self, result: JobCompletion[T]) -> bool:
         with self._lock:
@@ -91,8 +105,13 @@ class BackgroundJobs(Generic[T]):
             for operation in tuple(self._generations):
                 self.cancel(operation)
 
+    def _has_capacity(self) -> bool:
+        live = sum(1 for job in self._active.values() if not job.cancel.is_set())
+        return (live < self._limit
+                and len(self._active) < self._limit + self._max_cancelled)
+
     def _start_pending(self) -> None:
-        while self._pending and len(self._active) < self._limit:
+        while self._pending and self._has_capacity():
             _, job = self._pending.popitem(last=False)
             key = (job.operation, job.generation)
             self._active[key] = job

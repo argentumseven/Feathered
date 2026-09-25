@@ -337,6 +337,13 @@ def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Pa
                                                and pkg.verification.evidence_source_lineage_match),
             evidence_peer_package_id=getattr(getattr(pkg, "verification", None), "evidence_peer_package_id", ""),
             evidence_peer_source_rpm=getattr(getattr(pkg, "verification", None), "evidence_peer_source_rpm", ""),
+            # Record the digest check on every path, as the APT and Arch writers
+            # do. Setting it only in the no-keyring branch dropped the
+            # acquisition-digest and archive-chain axes from exactly the
+            # packages that also carried a vendor signature, and let a failed
+            # optional vendor check fall to UNVERIFIED despite a checked digest.
+            digest_checked=bool(getattr(pkg, "verification", None)
+                                and pkg.verification.package_digest_checked),
         )
         if repository_verification_strategy(pkg.repo) == "skip-provenance":
             entry.notes.append("Upstream vendor-signature verification intentionally skipped by operator policy.")
@@ -372,8 +379,6 @@ def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Pa
             else:
                 if dest.exists():
                     entry.notes.append(provenance.rpm_signature_summary(dest))
-                entry.digest_checked = bool(getattr(pkg, "verification", None)
-                                            and pkg.verification.package_digest_checked)
                 entry.assurance = provenance.assurance_from(entry)
         prov_entries.append(entry)
     if options.emit_repository:

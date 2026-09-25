@@ -77,3 +77,61 @@ def _isolate_profile_release_state():
                         setattr(profile, field, copy.deepcopy(value))
                 except Exception:  # pragma: no cover - never fail a teardown
                     pass
+
+
+# ---------------------------------------------------------------------------
+# Tk availability on development hosts
+# ---------------------------------------------------------------------------
+# GUI modules import tkinter at module scope. On a Linux host without python3-tk
+# that surfaced as ten opaque collection errors. Outside the release gate, report
+# those modules as skipped with the remedy instead. The release gate (which runs
+# pytest with --feathered-report) is deliberately untouched: there a missing Tk
+# must remain a collection failure, never a quiet reduction in coverage.
+try:
+    import tkinter as _tkinter  # noqa: F401
+    _TK_MISSING = False
+except ImportError:
+    _TK_MISSING = True
+
+_TK_IMPORT_ERRORS = ("No module named 'tkinter'", "No module named '_tkinter'")
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_make_collect_report(collector):
+    outcome = yield
+    report = outcome.get_result()
+    if not (_TK_MISSING and report.failed):
+        return
+    try:
+        release_gate = collector.config.getoption("--feathered-report", default=None)
+    except ValueError:
+        release_gate = None
+    if release_gate:
+        return
+    if any(marker in str(report.longrepr) for marker in _TK_IMPORT_ERRORS):
+        report.outcome = "skipped"
+        report.longrepr = (str(collector.path), 0,
+                           "Skipped: tkinter is not importable on this host "
+                           "(install python3-tk); Tk-dependent tests were not run")
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    # Same rule for tests that import the GUI lazily inside the test body.
+    outcome = yield
+    report = outcome.get_result()
+    if not (_TK_MISSING and report.failed and call.excinfo is not None):
+        return
+    if not call.excinfo.errisinstance(ImportError):
+        return
+    try:
+        release_gate = item.config.getoption("--feathered-report", default=None)
+    except ValueError:
+        release_gate = None
+    if release_gate:
+        return
+    if any(marker in str(call.excinfo.value) for marker in _TK_IMPORT_ERRORS):
+        report.outcome = "skipped"
+        report.longrepr = (str(item.path), 0,
+                           "Skipped: tkinter is not importable on this host "
+                           "(install python3-tk); Tk-dependent test was not run")

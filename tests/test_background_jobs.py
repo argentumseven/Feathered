@@ -84,3 +84,36 @@ def test_operation_keys_are_bounded():
     jobs.submit('one',lambda cancel:None);done.get(timeout=5)
     with pytest.raises(ValueError):jobs.submit('two',lambda cancel:None)
     jobs.close()
+
+
+
+def test_stale_cancelled_workers_do_not_block_other_lanes():
+    done=Queue();release=Event();started=Event()
+    def stuck(cancel):started.set();assert release.wait(5);return 'stale'
+    jobs=BackgroundJobs(done.put,max_workers=1,max_cancelled=1)
+    jobs.submit('slow',stuck);assert started.wait(5)
+    jobs.cancel('slow')                       # worker is still inside release.wait()
+    jobs.submit('other',lambda cancel:'fresh')
+    result=done.get(timeout=5)                # must arrive while 'slow' is still stuck
+    assert result.operation=='other' and jobs.accepts(result) and result.value=='fresh'
+    release.set()
+    stale=done.get(timeout=5)
+    assert stale.operation=='slow' and not jobs.accepts(stale)
+    jobs.close()
+
+
+def test_cancelled_workers_are_themselves_bounded():
+    done=Queue();release=Event();lock=Lock();running=[0];both=Event();third=Event()
+    def stuck(cancel):
+        with lock:
+            running[0]+=1
+            if running[0]==2:both.set()
+        assert release.wait(5)
+    jobs=BackgroundJobs(done.put,max_workers=1,max_cancelled=1)
+    jobs.submit('a',stuck);jobs.cancel('a')
+    jobs.submit('b',stuck);assert both.wait(5);jobs.cancel('b')
+    jobs.submit('c',lambda cancel:third.set())
+    assert not third.wait(0.3)                # two stale workers fill the bound
+    release.set()
+    assert third.wait(5)
+    jobs.close()

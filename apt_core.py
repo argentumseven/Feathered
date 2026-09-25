@@ -1705,7 +1705,8 @@ def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir:
             (metadata_dir / "REQUESTED-ROOTS.txt").write_text("\n".join(roots) + "\n", encoding="utf-8")
             if options.emit_repository:
                 from installer import write_installer
-                write_installer(output_dir, metadata_dir, result, options, 'deb', metadata)
+                write_installer(output_dir, metadata_dir, result, options, 'deb', metadata,
+                                provenance_entries=prov_entries)
             else:
                 (output_dir / "INSTALL-OFFLINE-NOTE.txt").write_text(
                     "Enable local repository metadata to generate the offline installer.\n", encoding="utf-8")

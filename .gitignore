@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 
+# Generated gate evidence. release_test_runner.py and CI write here; results are
+# published as workflow artifacts, not committed alongside the source.
+validation/
+
 # Build and release output. Generated integrity manifests are derived from the
 # final tree and are not committed, which keeps branch merges free of hash-only conflicts.
 SOURCE-SHA256.json

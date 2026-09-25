@@ -67,13 +67,16 @@ jobs:
           .\.release-venv\Scripts\python.exe -c "import tkinter as tk; r=tk.Tk(); print('release-venv Tcl',r.tk.call('info','patchlevel')); r.destroy()"
           if ($LASTEXITCODE -ne 0) { throw 'Release venv Tcl/Tk startup validation failed.' }
           .\.release-venv\Scripts\python.exe -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-build.lock
-      - name: Generate and verify source manifest
+      # Generate the manifest that ships with this release. Re-verifying it here
+      # against the same tree would be tautological; instead confirm generation
+      # is deterministic. Recipients verify with verify_source_checksums.py.
+      - name: Generate source manifest (deterministic)
         shell: powershell
         run: |
           .\.release-venv\Scripts\python.exe write_source_manifest.py
           if ($LASTEXITCODE -ne 0) { throw 'Could not generate SOURCE-SHA256.json.' }
-          .\.release-venv\Scripts\python.exe verify_source_checksums.py
-          if ($LASTEXITCODE -ne 0) { throw 'Generated SOURCE-SHA256.json does not describe this source tree.' }
+          .\.release-venv\Scripts\python.exe write_source_manifest.py --check
+          if ($LASTEXITCODE -ne 0) { throw 'SOURCE-SHA256.json generation is not deterministic.' }
       - name: Check all Python source and run complete regression corpus
         shell: powershell
         run: |

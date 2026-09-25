@@ -198,8 +198,14 @@ def _read_deb_control(path: Path) -> Dict[str, str]:
     name, payload = _find_ar_member(path, "control.tar")
     tar_bytes = _decompress_control(name, payload)
     with tarfile.open(fileobj=io.BytesIO(tar_bytes), mode="r:") as tf:
+        # Strip "./" prefixes, not the characters "." and "/": lstrip("./")
+        # also turned ".control" and "..control" into "control".
+        def _control_name(name: str) -> str:
+            while name.startswith("./"):
+                name = name[2:]
+            return name
         member = next((m for m in tf.getmembers()
-                       if m.isfile() and m.name.lstrip("./") == "control"), None)
+                       if m.isfile() and _control_name(m.name) == "control"), None)
         if member is None:
             raise RuntimeError(f"{path.name}: control file not found")
         extracted = tf.extractfile(member)

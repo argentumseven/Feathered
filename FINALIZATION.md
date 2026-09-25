@@ -68,11 +68,10 @@ Primary sources checked for this update:
 
 ## Validation
 
-The initial local results are recorded in `validation/finalization/REVIEW.md`.
-The module changes and their results are in `validation/module-runtime/REVIEW.md`.
-The latest follow-up is `validation/release-logic/REVIEW.md`.
-The update does not turn failed or unavailable checks into passes. Earlier
-reports elsewhere in `validation/` describe earlier source trees.
+Gate results are generated into `validation/` by `release_test_runner.py` and
+the CI workflows, and are published as workflow artifacts rather than committed
+to the repository. Earlier local review notes are available in the repository
+history before their removal from the tree.
 
 The local environment cannot execute Windows installers, a frozen Windows build,
 Authenticode signing, or the full native APT/DNF/pacman conformance matrix.

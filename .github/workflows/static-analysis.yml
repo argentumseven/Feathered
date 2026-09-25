@@ -56,11 +56,17 @@ jobs:
         run: mypy
 
       # The source manifest is generated evidence, not a tracked merge input.
-      # Generate it from the checked-out commit, then verify that exact tree.
-      - name: Generate source manifest
-        run: python write_source_manifest.py
-      - name: Verify generated source manifest
-        run: python verify_source_checksums.py
+      # Verifying a manifest against the tree it was just generated from, with
+      # the same walker, cannot fail and proves nothing. What CI can usefully
+      # establish is that generation is deterministic; verification belongs to
+      # whoever receives the source archive (verify_source_checksums.py).
+      - name: Source manifest generation is deterministic
+        run: |
+          python write_source_manifest.py
+          cp SOURCE-SHA256.json "$RUNNER_TEMP/SOURCE-SHA256.first.json"
+          python write_source_manifest.py
+          cmp "$RUNNER_TEMP/SOURCE-SHA256.first.json" SOURCE-SHA256.json
+          python write_source_manifest.py --check
 
       # The generated installer is the one artifact that executes on the
       # air-gapped target, where a shell syntax error is most expensive to

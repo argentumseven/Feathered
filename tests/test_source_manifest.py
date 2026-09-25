@@ -140,17 +140,23 @@ def test_verifier_refuses_a_symlinked_source_tree(tmp_path):
         verify_source_checksums.verify_source(root)
 
 
-def test_windows_source_gate_generates_then_verifies_the_source_manifest():
+def test_windows_source_gate_generates_a_deterministic_source_manifest():
+    """Generation must precede the release gate and be checked for determinism.
+
+    Re-verifying a manifest against the tree it was just generated from, with
+    the same walker, cannot fail; the gate checks determinism instead and
+    leaves verification to recipients of the source archive.
+    """
     workflow = (ROOT / ".github" / "workflows" / "windows-release.yml").read_text(
         encoding="utf-8").lower()
     gate = workflow.split("windows-source-gate:", 1)[1].split("native-conformance:", 1)[0]
-    assert "write_source_manifest.py" in gate
-    assert "verify_source_checksums.py" in gate
-    assert gate.index("write_source_manifest.py") < gate.index("verify_source_checksums.py")
-    assert gate.index("verify_source_checksums.py") < gate.index("release_test_runner.py")
+    generate = gate.index("write_source_manifest.py")
+    check = gate.index("write_source_manifest.py --check")
+    assert generate < check < gate.index("release_test_runner.py")
 
 
-def test_static_analysis_generates_then_verifies_the_source_manifest():
+def test_static_analysis_checks_source_manifest_determinism():
     workflow = (ROOT / ".github" / "workflows" / "static-analysis.yml").read_text(
         encoding="utf-8").lower()
-    assert workflow.index("write_source_manifest.py") < workflow.index("verify_source_checksums.py")
+    assert "write_source_manifest.py --check" in workflow
+    assert "cmp " in workflow

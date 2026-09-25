@@ -8013,8 +8013,12 @@ def test_110_bundled_gpg_verifier_is_preferred_and_name_comparisons_survive_path
     bundled.mkdir()
     (bundled / "gpgv.exe").write_bytes(b"fake")
     monkeypatch.setattr(core_module, "bundled_gpg_dir", lambda: bundled)
+    core_module._reset_verifier_integrity_cache()
     backend = core_module.gpg_backend()
-    assert backend == str(bundled / "gpgv.exe")
+    # The verifier executes from a private staged copy, never the install dir.
+    staged = Path(backend)
+    assert staged.name == "gpgv.exe" and staged.parent != bundled
+    assert staged.read_bytes() == b"fake"
     assert core_module.gpg_backend_name(backend) == "gpgv"
     assert core_module.gpg_backend_name("/usr/bin/gpg") == "gpg"
     assert core_module.gpg_backend_name("gpgv") == "gpgv"

@@ -66,12 +66,21 @@ def split_against_baseline(
     compare_fn: Callable[[str, str], bool] = hmac.compare_digest,
 ) -> Tuple[List[BaselinePackageT], List[BaselinePackageT]]:
     """Partition a closure into ``(to_ship, already_present)`` using a baseline."""
+    incomparable: List[str] = []
     ship, skip, unverifiable = bundle_baseline.partition(
         selected,
         baseline,
         digest=lambda algorithm, value: digest_fn(algorithm, value),
         matches=lambda left, right: compare_fn(left, right),
+        incomparable=incomparable,
     )
+    if incomparable:
+        reporter.warn(
+            f"{len(incomparable)} package(s) present in the baseline were recorded with a "
+            "different digest algorithm than the current repository publishes, so their "
+            "contents could not be compared and they are included in full"
+            + (" (this differential build is effectively a full bundle)" if not skip else "")
+            + ". Rebuild the baseline from the same repositories to restore differential savings.")
     if unverifiable:
         reporter.warn(
             f"{unverifiable} baseline entry/entries record no digest, so their contents "

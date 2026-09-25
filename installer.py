@@ -49,6 +49,25 @@ def _rpm_vendor_signed(result, entries):
     return all(getattr(e, "assurance", "") == VERIFIED_VENDOR for e in entries)
 
 
+def _deb_chain_verified(entries):
+    """True only when every shipped .deb reached a signed Release chain at build time.
+
+    Mirrors ``_rpm_vendor_signed``: ``None`` or an empty list is absence of
+    evidence, not evidence of verification. The generated APT source is always
+    ``[trusted=yes]`` because Feathered's own Release file is unsigned, so this
+    build-time record is the only thing standing between an unauthenticated
+    upstream index and the target.
+    """
+    from provenance import VERIFIED_ARCHIVE, VERIFIED_VENDOR
+    if entries is None:
+        return False
+    entries = list(entries)
+    if not entries:
+        return False
+    return all(getattr(e, "assurance", "") in (VERIFIED_ARCHIVE, VERIFIED_VENDOR)
+               for e in entries)
+
+
 def write_installer(output, directory, result, options, family, metadata,
                     provenance_entries=None):
     import core
@@ -93,6 +112,16 @@ if [ "${{#PLAN[@]}}" -eq 0 ]; then
 fi
 '''
     if family == 'deb':
+        if not _deb_chain_verified(provenance_entries):
+            script += '''
+if [ "${FEATHERED_ALLOW_UNSIGNED:-0}" != 1 ]; then
+  echo 'ERROR: not every package in this bundle was authenticated through a signed' >&2
+  echo '       Release chain at build time, and the bundled APT source is [trusted=yes].' >&2
+  echo '       Review metadata/provenance.json; set FEATHERED_ALLOW_UNSIGNED=1 only if you' >&2
+  echo '       accept installing those artifacts without archive authentication.' >&2
+  exit 1
+fi
+'''
         script += '''
 TMP_APT="$(mktemp -d)"
 trap 'rm -rf "$TMP_APT"' EXIT
@@ -123,16 +152,27 @@ sudo apt-get "${APT_OPTS[@]}" --no-remove install "${PLAN[@]}"
     elif family == 'rpm':
         signed = _rpm_vendor_signed(result, provenance_entries)
         key_ids = _rpm_short_key_ids(provenance_entries) if signed else []
-        if not signed:
-            script += '''
-if [ "${FEATHERED_ALLOW_UNSIGNED:-0}" != 1 ]; then
-  echo 'ERROR: not every package in this bundle verified against a vendor key at build time.' >&2
-  echo '       Review metadata/provenance.json; set FEATHERED_ALLOW_UNSIGNED=1 only if you' >&2
-  echo '       accept installing those artifacts without RPM signature enforcement.' >&2
-  exit 1
+        # The target's rpm enforces signatures against keys already in its own
+        # rpmdb. That check does not depend on whether the build host had a
+        # keyring, so it stays on by default. Only an explicit operator override
+        # disables it; the build-time record decides the wording, not the policy.
+        script += '''
+GPGCHECK=1
+if [ "${FEATHERED_ALLOW_UNSIGNED:-0}" = 1 ]; then
+  GPGCHECK=0
+  echo 'WARNING: FEATHERED_ALLOW_UNSIGNED=1 set; RPM signature checking is disabled for this install.' >&2
 fi
 '''
-        gpgcheck = '1' if signed else '0'
+        if not signed:
+            script += '''
+if [ "$GPGCHECK" = 1 ]; then
+  echo 'NOTE: the build host did not verify vendor signatures for every package.' >&2
+  echo '      The target will enforce them against keys already imported into its rpm' >&2
+  echo '      keyring (e.g. from /etc/pki/rpm-gpg). If installation fails on a missing or' >&2
+  echo '      unknown key, import the vendor key from a trusted source, or set' >&2
+  echo '      FEATHERED_ALLOW_UNSIGNED=1 only if you accept unsigned artifacts.' >&2
+fi
+'''
         if key_ids:
             # The keys must already be in the target's rpmdb. A key shipped inside
             # the bundle could only vouch for the bundle that carried it, which is
@@ -140,19 +180,21 @@ fi
             # keys instead and let the operator import them from the target's own
             # trusted source.
             script += '''
-MISSING_KEYS=""
-for KEYID in ''' + ' '.join(key_ids) + '''; do
-  rpm -q "gpg-pubkey-$KEYID" >/dev/null 2>&1 || MISSING_KEYS="$MISSING_KEYS $KEYID"
-done
-if [ -n "$MISSING_KEYS" ]; then
-  echo "ERROR: vendor signing key(s) not present in the target rpm keyring:$MISSING_KEYS" >&2
-  echo '       See metadata/VENDOR-SIGNING-KEYS.txt for the signer of each key.' >&2
-  echo '       Import them from the target distribution (/etc/pki/rpm-gpg) or another' >&2
-  echo '       trusted channel, then re-run. Do not import a key from this bundle.' >&2
-  exit 1
+if [ "$GPGCHECK" = 1 ]; then
+  MISSING_KEYS=""
+  for KEYID in ''' + ' '.join(key_ids) + '''; do
+    rpm -q "gpg-pubkey-$KEYID" >/dev/null 2>&1 || MISSING_KEYS="$MISSING_KEYS $KEYID"
+  done
+  if [ -n "$MISSING_KEYS" ]; then
+    echo "ERROR: vendor signing key(s) not present in the target rpm keyring:$MISSING_KEYS" >&2
+    echo '       See metadata/VENDOR-SIGNING-KEYS.txt for the signer of each key.' >&2
+    echo '       Import them from the target distribution (/etc/pki/rpm-gpg) or another' >&2
+    echo '       trusted channel, then re-run. Do not import a key from this bundle.' >&2
+    exit 1
+  fi
 fi
 '''
-        script += f'''
+        script += '''
 PM=dnf
 command -v dnf >/dev/null 2>&1 || PM=yum
 TMP_REPOS="$(mktemp -d)"
@@ -162,8 +204,8 @@ cat >"$TMP_REPOS/feathered.repo" <<EOF
 name=Feathered offline bundle
 baseurl=file://$HERE_URL
 enabled=1
-gpgcheck={gpgcheck}
-localpkg_gpgcheck={gpgcheck}
+gpgcheck=$GPGCHECK
+localpkg_gpgcheck=$GPGCHECK
 # Feathered's generated repomd.xml is not OpenPGP-signed, so repository-level
 # metadata verification cannot be enabled here. Repository integrity for this
 # bundle comes from SHA256SUMS.txt and, when sealed, the operator-signed
@@ -191,12 +233,18 @@ fi
         script += f'''
 TMP_CONF="$(mktemp)"
 trap 'rm -f "$TMP_CONF"' EXIT
-cat >"$TMP_CONF" <<EOF
-[options]
-Architecture = auto
-SigLevel = {level}
-LocalFileSigLevel = {level}
+# Inherit the target's own [options] (IgnorePkg, HoldPkg, NoUpgrade, NoExtract,
+# GPGDir, CacheDir, ...) so this -Syu honours the administrator's pins and
+# exclusions, then replace every repository with the bundle alone.
+if [ -r /etc/pacman.conf ]; then
+  awk '/^[[:space:]]*\\[/ {{ inopt = ($0 ~ /^[[:space:]]*\\[options\\][[:space:]]*$/) }} inopt' /etc/pacman.conf >"$TMP_CONF"
+fi
+if ! grep -q '^[[:space:]]*\\[options\\]' "$TMP_CONF"; then
+  printf '[options]\\nArchitecture = auto\\n' >"$TMP_CONF"
+fi
+cat >>"$TMP_CONF" <<EOF
 [feathered]
+SigLevel = {level}
 Server = file://$HERE_URL/packages
 EOF
 # The builder includes every repository-managed installed package in the plan.
