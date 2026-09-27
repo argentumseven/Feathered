@@ -221,6 +221,10 @@ def test_platform_skip_policy_is_scoped_and_has_required_linux_coverage():
     node = "tests/test_headless_execution.py::test_prepared_build_publishes_with_tk_blocked[workload]"
     assert permitted_skip(node, "requires dpkg fixture tools", "win32")
     assert not permitted_skip(node, "requires dpkg fixture tools", "linux")
+    # Init-system preflight has no native package-tool dependency: a skip here
+    # is a coverage loss, not an allowable Windows capability exemption.
+    preflight = "tests/test_init_source_preflight.py::test_devuan_docker_is_blocked_before_metadata_fetch"
+    assert not permitted_skip(preflight, "requires dpkg fixture tools", "win32")
     assert not permitted_skip(node, "no display", "win32")
     assert not permitted_skip("tests/test_other.py::test_case", "requires dpkg fixture tools", "win32")
     cache_node = "tests/test_security_review_fixes.py::test_artifact_cache_rejects_group_or_world_writable_root"

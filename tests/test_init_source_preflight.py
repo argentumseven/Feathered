@@ -14,10 +14,18 @@ from feathered_app.build_preparation import PreparationRejected
 from feathered_app.build_services import BuildServices
 from feathered_app.headless_host import HeadlessHost
 from feathered_app.source_scope import init_blocked_required_roles
-from tests import test_headless_execution as fixture_source
 from tests.test_cli_replay import spec_for
 
-local_repository = fixture_source.local_repository
+@pytest.fixture
+def local_repository(tmp_path):
+    """Path-only repository: preflight must not require dpkg or metadata I/O.
+
+    The original shared fixture built real .deb files and skipped on Windows,
+    removing coverage of this platform-independent policy code in release CI.
+    """
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    return repository
 
 
 def test_all_required_role_sources_must_be_init_compatible():
