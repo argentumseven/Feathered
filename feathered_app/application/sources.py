@@ -2173,10 +2173,12 @@ class SourcesMixin(SourceSelectionMixin, BuildIntentMixin, BuildBackendMixin, Bu
                     for pkg in roots)
             return derive_acquisition_state(
                 intent, exact_root_count=len(roots), exact_root_sources_ready=ready)
-        # Compatibility: tests that inject the old package-only predicate are
-        # describing a derived state directly rather than a full App model.
+        # Compatibility: lightweight hosts may inject the old package-only
+        # predicate directly on the instance. Reading __dict__ distinguishes
+        # those overrides from the inherited method without invoking it (which
+        # calls _acquisition_state and would recurse).
         package_only_override = self.__dict__.get("_package_only_acquisition_mode")
-        if callable(package_only_override) and package_only_override is not BuildIntentMixin._package_only_acquisition_mode:
+        if callable(package_only_override):
             try:
                 if package_only_override():
                     return AcquisitionState(

@@ -105,6 +105,10 @@ class RepositoriesMixin:
             ("provenance_transport_warning", getattr(
                 self.__dict__.get("prov_checksum_card"), "_feather_card_holder", None)),
         )
+        # Source-status updates also run on lightweight, non-GUI App hosts.
+        # They have no warning widgets; avoid deriving a UI-only scope there.
+        if not any(self.__dict__.get(name) is not None for name, _ in placements):
+            return
         text = http_repository_advice(self._build_repository_scope())
         for name, before in placements:
             label = self.__dict__.get(name)
