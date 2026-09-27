@@ -320,6 +320,18 @@ python verify_source_checksums.py
 it after merges or source edits, then verify the same tree. Do not resolve branch
 merges by choosing one side's checksum manifest.
 
+The root `SHA256SUMS.txt` in the source ZIP covers only four named legacy review
+artifacts; it is **not** a complete source manifest. Verify it with
+`sha256sum -c SHA256SUMS.txt` from the source root. Use `SOURCE-SHA256.json` for
+whole-tree source integrity. The separate `dist/SHA256SUMS.txt`, written by
+`write_release_manifest.py` during the signed executable build, covers the
+staged release distribution and must be regenerated for each release build.
+
+The historical `APPLY.sh` filename is retained, but the script now performs
+verification only. The source ZIP is already patched; it does not need the
+adjacent historical patch reapplied. Commits and remote pushes are always
+explicit maintainer actions.
+
 The release test runner executes the full pytest corpus in bounded batches and
 reconciles each test with its setup/call/teardown outcomes:
 

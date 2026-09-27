@@ -1,16 +1,23 @@
 #!/usr/bin/env bash
-# Run from the root of your Feathered clone, after copying the files in this
-# folder over the repository (or after `git apply feathered-review-fixes.patch`).
+# Historical filename: this 1.4.0 source archive ALREADY contains the fixes.
+# This command validates the archive. It deliberately does not modify Git,
+# reapply a historical patch, commit, or push changes to any remote.
 set -euo pipefail
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 
-# Files that are obsolete or misleading (the patch they describe is already applied).
-git rm -q --ignore-unmatch MERGE_NOTES.md SHA256SUMS.txt feathered-security-fixes.patch
+if command -v python3 >/dev/null 2>&1; then
+    py=python3
+elif command -v python >/dev/null 2>&1; then
+    py=python
+else
+    printf '%s\n' 'Python is required to verify the source manifest.' >&2
+    exit 1
+fi
+if ! command -v sha256sum >/dev/null 2>&1; then
+    printf '%s\n' 'sha256sum (GNU coreutils) is required to verify the legacy checksum list.' >&2
+    exit 1
+fi
 
-# Stop tracking generated gate evidence. Your local copy is left on disk;
-# validation/ is now in .gitignore and CI publishes it as workflow artifacts.
-git rm -r -q --cached --ignore-unmatch validation
-
-git add -A
-python -m pytest -q
-git commit -m "Review follow-ups: installer signature policy, verifier staging, transport retries, provenance digest axis, job pool starvation, repo hygiene"
-git push origin HEAD
+"$py" verify_source_checksums.py
+sha256sum -c SHA256SUMS.txt
+printf '%s\n' 'Checksums match. No files were applied, committed, or pushed.'

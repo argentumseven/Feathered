@@ -27,6 +27,9 @@ EXCLUDED_DIRECTORIES = frozenset({
     "__pycache__",
     ".git",
     ".github/.cache",
+    # rsync --temp-dir and some release/test runners create short-lived files
+    # here while source-integrity checks are in progress. They are not source.
+    ".rsync-tmp",
     ".pytest_cache",
     ".mypy_cache",
     ".ruff_cache",

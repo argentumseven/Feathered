@@ -58,6 +58,16 @@ def test_manifest_excludes_derived_and_cache_artifacts():
         assert not path.startswith("validation/"), path
     assert source_manifest.MANIFEST_NAME not in manifest
     assert source_manifest.is_excluded("validation/pytest.txt")
+    assert source_manifest.is_excluded(".rsync-tmp/staged-partial-file.txt")
+
+
+def test_rsync_staging_files_do_not_change_source_identity(tmp_path):
+    root = _tree(tmp_path / "source")
+    staging = root / ".rsync-tmp"
+    staging.mkdir()
+    (staging / "partial-file.txt").write_text("incomplete transfer", encoding="utf-8")
+    assert ".rsync-tmp/partial-file.txt" not in write_source_manifest.build_manifest(root)
+    assert verify_source_checksums.verify_source(root) == 0
 
 
 def test_writer_is_idempotent_and_check_mode_detects_drift(tmp_path):
