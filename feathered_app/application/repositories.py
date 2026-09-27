@@ -97,16 +97,28 @@ class RepositoriesMixin:
             threading.Thread(target=work, daemon=True).start()
 
     def _refresh_repository_transport_warning(self):
-        labels = [self.__dict__.get(name) for name in (
-            "repository_transport_warning", "provenance_transport_warning")]
-        labels = [label for label in labels if label is not None]
-        if not labels:
-            return
+        # The warning is a direct child of its pane, not a permanently packed
+        # empty frame. Insert it before the first section when it has text,
+        # then remove it entirely when the participating sources are safe.
+        placements = (
+            ("repository_transport_warning", self.__dict__.get("repository_workflow_host")),
+            ("provenance_transport_warning", getattr(
+                self.__dict__.get("prov_checksum_card"), "_feather_card_holder", None)),
+        )
         text = http_repository_advice(self._build_repository_scope())
-        for label in labels:
+        for name, before in placements:
+            label = self.__dict__.get(name)
+            if label is None:
+                continue
+            exists = getattr(label, "winfo_exists", None)
+            if callable(exists) and not exists():
+                continue
             label.configure(text=text)
             if text:
-                label.pack(fill="x", pady=(0, 12))
+                options = {"fill": "x", "pady": (0, 8)}
+                if before is not None and before.winfo_exists():
+                    options["before"] = before
+                label.pack(**options)
             else:
                 label.pack_forget()
 

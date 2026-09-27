@@ -331,11 +331,11 @@ class PaneMixin(KubernetesWorkloadMixin):
         ttk.Label(pane, textvariable=self.repositories_title_var,
                   style="PaneTitle.TLabel").pack(anchor="w")
         ttk.Label(pane, textvariable=self.repositories_hint_var, style="Hint.TLabel",
-                  wraplength=740).pack(anchor="w", pady=(4, 16))
-        warning_host = ttk.Frame(pane)
-        warning_host.pack(fill="x")
+                  wraplength=740).pack(anchor="w", pady=(4, 6))
+        # Pack the warning itself only when it has content. An always-packed
+        # host reserves space even when there is no transport warning.
         self.repository_transport_warning = ttk.Label(
-            warning_host, style="Hint.TLabel", foreground=WARN_FG,
+            pane, style="Hint.TLabel", foreground=WARN_FG,
             wraplength=740, justify="left")
         self.repository_workflow_host = ttk.Frame(pane)
         self.repository_workflow_host.pack(fill="x")
@@ -1359,12 +1359,14 @@ class PaneMixin(KubernetesWorkloadMixin):
         """
         self._pane_heading(
             pane, "Provenance and Keying",
-            "Feathered inherits the repositories that can participate in the current build. In normal dependency analysis that is the enabled set; package-only acquisition is restricted to the selected root sources. Inspect their checksum support, choose a minimum strength, then choose one verification strategy. Independent evidence is configured only for strategies that use it.")
+            "Feathered inherits the repositories that can participate in the current build. In normal dependency analysis that is the enabled set; package-only acquisition is restricted to the selected root sources. Inspect their checksum support, choose a minimum strength, then choose one verification strategy. Independent evidence is configured only for strategies that use it.",
+            bottom_gap=6)
 
-        warning_host = ttk.Frame(pane)
-        warning_host.pack(fill="x")
+        # Avoid a permanent spacer between the explanation and the first card.
+        # Transport advice is inserted here only when a participating source
+        # requires it; see _refresh_repository_transport_warning.
         self.provenance_transport_warning = ttk.Label(
-            warning_host, style="Hint.TLabel", foreground=WARN_FG,
+            pane, style="Hint.TLabel", foreground=WARN_FG,
             wraplength=740, justify="left")
 
         checksum = self._card(pane, "Package verification")

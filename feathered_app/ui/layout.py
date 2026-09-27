@@ -955,9 +955,10 @@ class LayoutMixin:
         if index > 0:
             self.show_pane(self.stage_order[index - 1])
 
-    def _pane_heading(self, parent, title, hint):
+    def _pane_heading(self, parent, title, hint, *, bottom_gap=16):
         ttk.Label(parent, text=title, style="PaneTitle.TLabel").pack(anchor="w")
-        ttk.Label(parent, text=hint, style="Hint.TLabel", wraplength=740).pack(anchor="w", pady=(4, 16))
+        ttk.Label(parent, text=hint, style="Hint.TLabel", wraplength=740).pack(
+            anchor="w", pady=(4, bottom_gap))
 
     def _card(self, parent, title, pady=(0, 0)):
         """A titled panel; the title sits above the card in the accent colour."""
