@@ -120,10 +120,10 @@ def test_explicit_test_runs_for_unknown_required_and_optional_sources(monkeypatc
         calls.append((repo, url))
         return {"status": result_status, "relationship": relationship}
     ui._preflight_evidence_pair_with_curated_failover = probe
-    class InlineThread:
-        def __init__(self, target, **kwargs): self.target = target
-        def start(self): self.target()
-    monkeypatch.setattr(app.threading, "Thread", InlineThread)
+    # This partial host deliberately stubs operation claiming. Test provenance
+    # behavior with an inline worker, rather than invoking OperationRuntime
+    # without the real operation lease (a different integration contract).
+    ui._start_operation_worker = lambda *, target, **_kwargs: target()
     ui._test_evidence_sources()
     assert calls == [(repo, repo.evidence_urls[0])]
     kind, results = ui.events.get_nowait()

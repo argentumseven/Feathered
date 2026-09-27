@@ -24,6 +24,7 @@ from feathered_app.build_request import BuildRequestMixin
 from feathered_app.build_outcome import BuildOutcome
 from feathered_app.execution_feedback import bind_execution_feedback, complete, mirror_reporter
 from feathered_app.build_services import BuildServices
+from feathered_app.dependency_ports import ports_for
 from mirror_unification import mirror_sources_record, unified_mirror_note
 
 
@@ -182,6 +183,9 @@ def run(app, job: PreparedPlan) -> BuildOutcome:
             # package bytes are fetched. The worker waits only until
             # the UI has rendered this plan; there is no extra prompt.
             feedback.publish_download_plan(len(result.selected), result.total_size)
+            # Shutdown may release a worker blocked on the GUI handshake.
+            # Check cancellation before creating output or fetching payloads.
+            rep.check_cancel()
             app.events.put(("transfer_begin", len(result.selected), result.total_size))
             release = BuildRequestMixin._selected_release(app)
             if app._unified_mirror_mode():
@@ -193,7 +197,7 @@ def run(app, job: PreparedPlan) -> BuildOutcome:
                 folder = job.locked_output_folder_name or app._folder_name()
                 dest = app._resolved_output_path(folder)
                 repo_records = [
-                    app._mirror_repository_record(repo, evidence_relationship,
+                    app._mirror_repository_record(repo, ports_for(app).evidence_relationship,
                                                    evidence_authority_relationship)
                     for repo in mirrored]
                 job.opts.unified_mirror_note = unified_mirror_note(plan)
@@ -244,7 +248,7 @@ def run(app, job: PreparedPlan) -> BuildOutcome:
                     folder, repo_opts = publication_by_source[source_id]
                     dest = app._resolved_output_path(folder)
                     repo_record = app._mirror_repository_record(
-                        mirror_repo, evidence_relationship, evidence_authority_relationship)
+                        mirror_repo, ports_for(app).evidence_relationship, evidence_authority_relationship)
                     meta = app._mirror_bundle_metadata(job.state, release, rep, [repo_record])
                     meta.update({
                         "workload": f"Repository mirror: {mirror_repo.name}",
@@ -383,7 +387,7 @@ def run(app, job: PreparedPlan) -> BuildOutcome:
                                   "evidence_policy": r.evidence_policy,
                                   "evidence_urls": [redact_url(u) for u in r.evidence_urls],
                                   "evidence_relationships": _indexed_evidence_records(
-                                      r, evidence_relationship, "relationship"),
+                                      r, ports_for(app).evidence_relationship, "relationship"),
                                   "evidence_authorities": _indexed_evidence_records(
                                       r, evidence_authority_relationship, "authority"),
                                   "digest_preference": r.digest_preference,

@@ -14,6 +14,8 @@ feathered_app.context, which pulls in the widget toolkit.
 """
 from __future__ import annotations
 
+from feathered_app.source_selection_state import selection_value
+
 from acquisition_model import (AcquisitionCapability, AcquisitionIntent, AcquisitionState,
                                AnalysisType, MirrorLayout, PublicationType, VerificationScope,
                                derive_acquisition_state, intent_from_selection_mode,
@@ -169,7 +171,7 @@ class BuildIntentMixin:
     def _mirror_repo_selected(self, repo) -> bool:
         source_id = getattr(repo, "source_identity", getattr(repo, "name", ""))
         pinned = build_snapshot_value(self, "mirror", "selected_repositories")
-        selected = pinned if pinned is not None else self.__dict__.get("mirror_repos", set())
+        selected = pinned if pinned is not None else selection_value(self, "mirror_repos", set())
         return source_id in selected
 
     def _active_source_method(self) -> str:

@@ -112,6 +112,11 @@ def test_init_incompatible_transaction_repository_is_logged_and_excluded():
     host.repo_rows = [forbidden, good]
     assert host._build_repository_scope() == [good]
     assert host.logs == ["Excluded from this init-locked target: forbidden - systemd-only"]
+    # GUI refreshes may request the same scope dozens of times. Repeated
+    # evaluation must not flood the activity log with identical warnings.
+    for _ in range(20):
+        assert host._build_repository_scope() == [good]
+    assert host.logs == ["Excluded from this init-locked target: forbidden - systemd-only"]
 
 
 def test_disabled_repository_does_not_read_url_or_host_state():

@@ -40,6 +40,7 @@ class _ThemedMessageBox:
 
     def _dialog(self, title, message, *, kind="info", buttons=("ok",), default="ok", parent=None, button_labels=None):
         root = parent or self._root
+        win = None
         try:
             if root is None or not root.winfo_exists():
                 raise tk.TclError("no live Feathered root")
@@ -116,14 +117,29 @@ class _ThemedMessageBox:
             root.wait_window(win)
             return result["value"] or escape_value
         except tk.TclError:
+            if win is not None:
+                try:
+                    win.destroy()
+                except tk.TclError:
+                    pass
             # Headless/unit-test contexts still have the standard API available.
             method = {
                 ("ok",): "showinfo" if kind == "info" else "showwarning" if kind == "warning" else "showerror",
                 ("yes", "no"): "askyesno",
+                ("ok", "cancel"): "askokcancel",
+                ("retry", "cancel"): "askretrycancel",
             }.get(tuple(buttons))
             if method:
-                return self._fallback(method, title, message, parent=parent) if parent else self._fallback(method, title, message)
-            return default
+                answer = (self._fallback(method, title, message, parent=parent) if parent
+                          else self._fallback(method, title, message))
+                if tuple(buttons) == ("yes", "no"):
+                    return "yes" if answer else "no"
+                if tuple(buttons) in (("ok", "cancel"), ("retry", "cancel")):
+                    return buttons[0] if answer else "cancel"
+                return answer
+            # A policy choice must never silently accept its default when
+            # rendering fails. No affirmative policy value is returned.
+            return None
 
     def showerror(self, title, message, **kwargs):
         self._dialog(title, message, kind="error", buttons=("ok",), default="ok", parent=kwargs.get("parent"))

@@ -76,13 +76,28 @@ def redact_text(text: str) -> str:
     )
     sensitive = active_sensitive_query_keys()
     if sensitive:
+        # Decode field *names* for matching, just as the transport does. A
+        # literal token= regex misses %74oken= and leaks short/unregistered
+        # credentials from exception messages and fetched child URLs.
+        def redact_field(match):
+            key = urllib.parse.unquote_plus(match.group(1)).strip().lower()
+            return (f"{match.group(1)}=REDACTED" if key in sensitive
+                    else match.group(0))
+
+        body = re.sub(
+            r"([A-Za-z0-9_%+.-]+)=([^&\s\"\'<>]+)",
+            redact_field,
+            body,
+        )
+        # Keep support for literal operator-defined names outside the usual
+        # ASCII URL-key alphabet.
         body = re.sub(
             r"(?i)\b(" + "|".join(re.escape(k) for k in sorted(sensitive)) + r")=([^&\s\"\']+)",
             lambda m: f"{m.group(1)}=REDACTED",
             body,
         )
     with _KNOWN_SECRETS_LOCK:
-        secrets = tuple(_KNOWN_SECRETS)
+        secrets = sorted(_KNOWN_SECRETS, key=len, reverse=True)
     for secret in secrets:
         if secret in body:
             body = body.replace(secret, "REDACTED")
@@ -114,7 +129,7 @@ def redact_url(url: str) -> str:
         for raw_field in query.split("&"):
             raw_key, _separator, _raw_value = raw_field.partition("=")
             try:
-                key = urllib.parse.unquote_plus(raw_key).lower()
+                key = urllib.parse.unquote_plus(raw_key).strip().lower()
             except (UnicodeDecodeError, ValueError):
                 key = raw_key.lower()
             if key in sensitive:

@@ -16,12 +16,14 @@ from feathered_app.context import (
     tk,
 )
 from feathered_app.activity_log import open_activity_log
+from feathered_app.activity_animation import ActivityAnimation
 from feathered_app.status_text import condense_status_text
+from feathered_app.operation_runtime import OperationRuntimeMixin
 from feathered_app.ui.theme import messagebox
 from background_jobs import BackgroundJobs, JobCompletion
 
 
-class OperationsMixin:
+class OperationsMixin(OperationRuntimeMixin):
     """Application-wide worker, cancellation, progress, and event-loop coordination."""
 
     @staticmethod
@@ -96,7 +98,7 @@ class OperationsMixin:
         if self.active_operation is None and state not in {"failed"}:
             return
         frame = int(self.__dict__.get("_activity_frame", 0))
-        detail = self.__dict__.get("_operation_detail", "") or self.active_operation_label
+        detail = getattr(self, "_operation_detail", "") or self.active_operation_label
         if state == "waiting":
             prefix = "Review required"
             colour = WARN_FG
@@ -163,41 +165,67 @@ class OperationsMixin:
             except (tk.TclError, AttributeError):
                 pass
 
-    def _cancel_activity_timer(self):
-        job = self.__dict__.get("_activity_job")
-        self.__dict__["_activity_job"] = None
-        if job is not None and self.__dict__.get("tk") is not None:
-            try:
-                self.after_cancel(job)
-            except tk.TclError:
-                pass
+    def _activity_animation_for(self) -> ActivityAnimation:
+        """Lazily compose a headless timeline with the current Tk host.
 
-    def _activity_tick(self):
-        self.__dict__["_activity_job"] = None
-        if self.active_operation is None or self.__dict__.get("_activity_state", "idle") != "active":
-            return
-        self.__dict__["_activity_frame"] = (int(self.__dict__.get("_activity_frame", 0)) + 1) % 24
-        self._render_activity_status()
-        if self.__dict__.get("tk") is not None:
-            # ~9 fps is enough for a tiny status rail and keeps redraw overhead
-            # negligible compared with network/package work.
-            self.__dict__["_activity_job"] = self.after(110, self._activity_tick)
+        The historical ``_activity_*`` fields remain ordinary instance fields
+        for embedders and lightweight tests. The controller owns transitions
+        and timer scheduling; these fields are read-only compatibility mirrors
+        during normal GUI operation.
+        """
+        values = self.__dict__
+        animation = values.get("_activity_animation")
+        if animation is None:
+            animation = ActivityAnimation(
+                schedule=self._schedule_tk_activity_job,
+                cancel=self._cancel_tk_activity_job,
+                available=lambda: self.__dict__.get("tk") is not None,
+                operation_active=lambda: self.active_operation is not None,
+                changed=self._mirror_activity_animation,
+                render=self._render_activity_status,
+                phase=values.get("_activity_state", "idle"),
+                frame=int(values.get("_activity_frame", 0)),
+                job=values.get("_activity_job"),
+            )
+            values["_activity_animation"] = animation
+        return animation
+
+    def _mirror_activity_animation(self, animation: ActivityAnimation) -> None:
+        self.__dict__.update(
+            _activity_state=animation.phase,
+            _activity_frame=animation.frame,
+            _activity_job=animation.job,
+        )
+
+    def _schedule_tk_activity_job(self, delay: int, callback) -> object | None:
+        try:
+            return self.after(delay, callback)
+        except tk.TclError:
+            # A queued callback can race with root destruction; there is no
+            # future event loop in which to animate after that point.
+            return None
+
+    def _cancel_tk_activity_job(self, job: object) -> None:
+        try:
+            self.after_cancel(job)
+        except tk.TclError:
+            # The containing window may already have been destroyed.
+            pass
+
+    def _cancel_activity_timer(self):
+        self._activity_animation_for().cancel_timer()
+
+    def _activity_tick(self, generation: int | None = None):
+        # Public compatibility adapter. Normally the headless controller's
+        # scheduled callback supplies a generation to reject stale timers.
+        self._activity_animation_for().tick(generation)
 
     def _start_activity_animation(self):
-        if self.__dict__.get("_activity_job") is not None:
-            return
-        self.__dict__["_activity_state"] = "active"
-        self.__dict__["_activity_frame"] = 0
-        self._render_activity_status()
-        # Lightweight backend/unit-test instances intentionally do not create
-        # a Tk interpreter. They still get the visible Working state, but no
-        # timer is scheduled until a real GUI exists.
-        if self.__dict__.get("tk") is not None:
-            self.__dict__["_activity_job"] = self.after(110, self._activity_tick)
+        if self._activity_animation_for().start():
+            self._render_activity_status()
 
     def _stop_activity_animation(self, *, state: str = "idle"):
-        self._cancel_activity_timer()
-        self.__dict__["_activity_state"] = state
+        self._activity_animation_for().stop(state=state)
         indicator = self.__dict__.get("activity_indicator")
         if indicator is not None:
             try:
@@ -224,9 +252,8 @@ class OperationsMixin:
         """Pause the visual work state while a worker waits for user input."""
         if self.active_operation is None:
             return
-        self._operation_detail = str(detail)
-        self._cancel_activity_timer()
-        self.__dict__["_activity_state"] = "waiting"
+        self.operation_state.describe(detail)
+        self._activity_animation_for().pause()
         self._render_activity_status()
 
     def _resume_after_operator_wait(self, detail: str | None = None):
@@ -234,19 +261,17 @@ class OperationsMixin:
         if self.active_operation is None:
             return
         if detail is not None:
-            self._operation_detail = str(detail)
-        self.__dict__["_activity_state"] = "active"
+            self.operation_state.describe(detail)
+        self._activity_animation_for().resume()
         self._render_activity_status()
-        if self.__dict__.get("_activity_job") is None and self.__dict__.get("tk") is not None:
-            self.__dict__["_activity_job"] = self.after(110, self._activity_tick)
 
     def _operation_status(self, text: str):
         """Set footer text while preserving the current operation-state semantics."""
         if self.active_operation is not None:
-            self._operation_detail = str(text)
+            self.operation_state.describe(text)
             self._render_activity_status()
         else:
-            self._operation_detail = ""
+            self.operation_state.describe("")
             self._set_footer_status(text)
 
     def _lock_operation_controls(self):
@@ -291,14 +316,10 @@ class OperationsMixin:
                 pass
 
     def _claim_operation(self, key: str, label: str, cancellable: bool = False) -> bool:
-        if self.active_operation is not None or self.worker is not None:
+        if not self.operation_runtime.claim(key, label, cancellable=cancellable):
             current = self.active_operation_label or "another operation"
             self._operation_status(f"{current} is already running. Wait for it to finish before starting another process.")
             return False
-        self.active_operation = key
-        self.active_operation_label = label.rstrip(" .…")
-        self._operation_cancellable = bool(cancellable)
-        self.cancel_event.clear()
         self.progress_var.set(0)
         self._lock_operation_controls()
         if self.__dict__.get("cancel_btn") is not None:
@@ -313,16 +334,12 @@ class OperationsMixin:
         release_inputs = getattr(self, "_release_build_inputs", None)
         if callable(release_inputs):
             release_inputs()
-        self.active_operation = None
-        self.active_operation_label = ""
-        self._operation_detail = str(final_status or "")
-        self._operation_cancellable = False
+        self.operation_runtime.release(final_status)
         if self.__dict__.get("cancel_btn") is not None:
             self.cancel_btn.configure(state="disabled")
         self._unlock_operation_controls()
         if outcome == "failed":
-            self._cancel_activity_timer()
-            self.__dict__["_activity_state"] = "failed"
+            self._activity_animation_for().stop(state="failed")
             self._render_activity_status()
         else:
             self._paint_activity(False)
@@ -331,7 +348,7 @@ class OperationsMixin:
 
     def _busy(self) -> bool:
         """Guard concurrent long-running work with a persistent footer reason."""
-        if self.active_operation is None and self.worker is None:
+        if not self.operation_runtime.busy():
             return False
         current = self.active_operation_label or "Another operation"
         self._operation_status(f"{current} is still running. Wait for it to finish before starting another process.")
@@ -347,6 +364,17 @@ class OperationsMixin:
             self._operation_status(status)
         return True
 
+    def _start_operation_worker(self, target, *, args=(), kwargs=None, name=None):
+        """Single entry point for every tracked application worker."""
+        try:
+            return self.operation_runtime.start_worker(
+                target, args=args, kwargs=kwargs, name=name)
+        except Exception:
+            # Thread creation/start errors must not leave controls locked or an
+            # operation lease stranded, even though they are very uncommon.
+            self._release_operation("Could not start background worker", outcome="failed")
+            raise
+
     def _worker_done(self, ok, message, output_path=None):
         # Typed outcome: workers report ok as True (success), False (failure)
         # or "cancelled".  The string comparison below remains only as a
@@ -355,7 +383,11 @@ class OperationsMixin:
         cancelled = (ok == "cancelled") or (not ok and message in ("Operation cancelled", "Cancelled"))
         succeeded = ok is True
         failed = not succeeded and not cancelled
-        self.worker = None
+        runtime = getattr(self, "operation_runtime", None)
+        if runtime is not None:
+            runtime.finish_worker()
+        else:  # Legacy callers invoke this method on lightweight duck hosts.
+            self.worker = None
         stop_glow = getattr(self, "_stop_review_work_glow", None)
         if callable(stop_glow):
             stop_glow()
@@ -511,18 +543,44 @@ class OperationsMixin:
     def _progress(self, label, value):
         self.events.put(("progress", label, value))
 
+    def _on_app_destroy(self, event) -> None:
+        """Close all desktop work owners once, on destruction of the root.
+
+        Tk sends Destroy for every child; shutdown must run only for the root.
+        Worker cancellation is cooperative. No Tk callbacks or thread joins
+        execute from a worker, and queued events are discarded after closing.
+        """
+        if event.widget is not self or self.__dict__.get("_app_closing", False):
+            return
+        self._app_closing = True
+        # Disarm pending ticks before any window widgets disappear.
+        animation = self.__dict__.get("_activity_animation")
+        if animation is not None:
+            animation.stop()
+        # A partially initialized App may not yet have created either owner.
+        runtime = self.__dict__.get("_operation_runtime")
+        if runtime is not None:
+            runtime.close()
+        jobs = self.__dict__.get("_background_query_jobs")
+        if jobs is not None:
+            jobs.close()
+
     def _query_jobs(self):
+        if self.__dict__.get("_app_closing", False):
+            raise RuntimeError("Application is shutting down")
         jobs = self.__dict__.get('_background_query_jobs')
         if jobs is None:
             jobs = BackgroundJobs(self.events.put)
             self._background_query_jobs = jobs
             bind = getattr(self, 'bind', None)
-            if callable(bind):
+            if callable(bind) and not self.__dict__.get('_unified_shutdown_handler_bound'):
                 bind('<Destroy>', lambda event: jobs.close() if event.widget is self else None, add='+')
         return jobs
 
     def _drain_events(self):
         """Yield after at most 100 dequeues; preserve all non-progress barriers."""
+        if self.__dict__.get("_app_closing", False):
+            return
         try:
             batch = []
             for _ in range(100):
@@ -544,6 +602,8 @@ class OperationsMixin:
                 else:
                     batch.append(event)
             for event in batch:
+                if self.__dict__.get("_app_closing", False):
+                    break
                 kind = 'background_query'
                 try:
                     if isinstance(event, JobCompletion):
@@ -558,9 +618,9 @@ class OperationsMixin:
                         event = event.value
                     kind, *data = event
                     if kind == "progress":
-                        transfer_total = int(self.__dict__.get("transfer_total", 0) or 0)
-                        transfer_finished = (int(self.__dict__.get("transfer_done", 0) or 0) +
-                                             int(self.__dict__.get("transfer_failed", 0) or 0))
+                        transfer_total = int(getattr(self, "transfer_total", 0) or 0)
+                        transfer_finished = (int(getattr(self, "transfer_done", 0) or 0) +
+                                             int(getattr(self, "transfer_failed", 0) or 0))
                         if not (transfer_total and transfer_finished < transfer_total):
                             self._operation_status(data[0])
                             self.progress_var.set(data[1] * 100)
@@ -606,8 +666,8 @@ class OperationsMixin:
                     elif kind == "evidence_preflight": self._apply_evidence_preflight_results(data[0])
                     elif kind == "codenames": self._apply_discovered_codenames(data[0], data[1])
                     elif kind == "workload_aliases": self._record_workload_aliases(data[0])
-                    elif kind == "cache_release_state": self._cache_release_state(data[0], data[1], data[2], data[3], data[4])
-                    elif kind == "auto_release_state": self._apply_auto_release_state(data[0], data[1], data[2], data[3])
+                    elif kind == "cache_release_state": self._cache_release_state(*data[:5], prerelease=(data[5] if len(data) > 5 else None))
+                    elif kind == "auto_release_state": self._apply_auto_release_state(*data[:4], prerelease=(data[4] if len(data) > 4 else None))
                     elif kind == "auto_release_finished": self._finish_auto_release_refresh(data[0] if data else "")
                     elif kind == "result": self._show_result(data[0])
                     elif kind == "tool_progress":
@@ -638,10 +698,12 @@ class OperationsMixin:
         finally:
             # Always preserve liveness.  TclError here normally means the root
             # has been destroyed, in which case there is intentionally no pump.
-            try:
-                self.after(1 if not self.events.empty() else 100, self._drain_events)
-            except tk.TclError:
-                pass
+            if not self.__dict__.get("_app_closing", False):
+                try:
+                    self.after(1 if not self.events.empty() else 100, self._drain_events)
+                except tk.TclError:
+                    pass
 
     def cancel(self):
-        self.cancel_event.set(); self._operation_status("Cancelling…")
+        self.operation_runtime.request_cancel(force=True)
+        self._operation_status("Cancelling…")

@@ -249,6 +249,8 @@ def test_windows_release_plan_isolates_real_tk_root_modules():
     from release_test_runner import WINDOWS_ISOLATED_PREFIXES, _batch_plan
 
     assert set(WINDOWS_ISOLATED_PREFIXES) == {
+        "tests/test_activity_animation.py::",
+        "tests/test_option_advisory_gui.py::",
         "tests/test_application_startup.py::",
         "tests/test_build_spec.py::",
         "tests/test_build_worker_isolation.py::",
@@ -257,11 +259,15 @@ def test_windows_release_plan_isolates_real_tk_root_modules():
         "tests/test_prepared_adapter_parity.py::",
         "tests/test_reported_defects.py::",
         "tests/test_repository_advisory_gui.py::",
+        "tests/test_repository_provenance_gui.py::",
         "tests/test_review_dialog_lock.py::",
+        "tests/test_review_projection.py::",
+        "tests/test_review_state.py::",
         "tests/test_signing_navigation.py::",
         "tests/test_ui_event_budget.py::",
         "tests/test_version_ui_fixes.py::",
         "tests/test_workload_dependency_and_vks_context.py::",
+        "tests/test_wizard_navigation_service.py::",
     }
     isolated_nodes = [prefix + "test_case" for prefix in WINDOWS_ISOLATED_PREFIXES]
     nodes = [
@@ -286,9 +292,15 @@ def test_windows_tk_isolation_inventory_covers_real_application_modules():
     app_constructor = "app." + "App("
     shared_fixture = "startup." + "application"
     for path in sorted((ROOT / "tests").glob("test_*.py")):
+        if path.resolve() == Path(__file__).resolve():
+            continue  # This inventory test contains constructor strings itself.
         text = path.read_text(encoding="utf-8")
-        if app_constructor in text or shared_fixture in text:
+        # A module may construct a root via ``from app import App`` instead of
+        # the qualified ``app.App`` spelling used by older GUI tests.
+        direct_constructor = "from app import App" in text and "App()" in text
+        if app_constructor in text or shared_fixture in text or direct_constructor:
             discovered.add(f"tests/{path.name}::")
+    assert "tests/test_activity_animation.py::" in discovered
     assert discovered <= isolated
 
 

@@ -1,11 +1,11 @@
 """Grouped views over Feathered's established ``App`` instance state.
 
-The desktop shell historically stores mutable workflow state directly on the
-``App`` instance.  These views provide explicit ownership groups without
-changing that storage contract: reads and writes are forwarded to the same
-legacy attributes.  This preserves Tk APIs, ``__dict__`` behaviour, monkeypatch
-behaviour, and partially-constructed test instances while giving new code a
-structured state surface through ``app.app_state``.
+The desktop shell historically stored mutable workflow state directly on
+``App``. These views forward through legacy attributes, some of which now use
+compatibility descriptors backed by independent state owners (repository,
+source selection, review, and operation lease). Tk APIs and partially
+constructed test instances remain compatible while new code adopts the typed
+owners. Unextracted fields still reside directly on ``App``.
 """
 from __future__ import annotations
 
@@ -98,6 +98,14 @@ _ANALYSIS_FIELDS = {
     "selected_packages": "selected_packages",
 }
 
+_SELECTION_FIELDS = {
+    "selected_packages": "selected_packages",
+    "mirror_repos": "mirror_repos",
+    "mirror_seen": "_mirror_seen",
+    "mirror_iid_to_source_identity": "_mirror_iid_to_source_identity",
+    "mirror_iid_to_repo_index": "_mirror_iid_to_repo_index",
+}
+
 _TRANSFER_FIELDS = {
     "last_output_path": "last_output_path",
     "transfer_total": "transfer_total",
@@ -123,12 +131,13 @@ _CATALOG_FIELDS = {
 class ApplicationStateView:
     """Live grouped view over an application's existing mutable attributes."""
 
-    __slots__ = ("operation", "repositories", "analysis", "transfer", "catalog")
+    __slots__ = ("operation", "repositories", "analysis", "selection", "transfer", "catalog")
 
     def __init__(self, owner: Any):
         self.operation = _StateGroupView(owner, _OPERATION_FIELDS)
         self.repositories = _StateGroupView(owner, _REPOSITORY_FIELDS)
         self.analysis = _StateGroupView(owner, _ANALYSIS_FIELDS)
+        self.selection = _StateGroupView(owner, _SELECTION_FIELDS)
         self.transfer = _StateGroupView(owner, _TRANSFER_FIELDS)
         self.catalog = _StateGroupView(owner, _CATALOG_FIELDS)
 

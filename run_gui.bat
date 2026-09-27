@@ -49,7 +49,7 @@ exit /b %FEATHERED_EXIT%
 
 :incomplete
 echo ERROR: The Feathered source folder is incomplete.
-echo Use Extract All on the ZIP, then open the extracted Feathered_1.3.0 folder.
+echo Use Extract All on the ZIP, then open the extracted Feathered_1.4.0 folder.
 echo Keep app.py, run_gui.bat, requirements-runtime.lock and the entire feathered_app folder together.
 pause
 exit /b 1

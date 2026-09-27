@@ -2,6 +2,7 @@
 
 """
 
+from feathered_app.source_selection_state import selection_value
 from feathered_app.context import (
     ACCENT,
     APP_TITLE,
@@ -55,6 +56,12 @@ def _widget_is_live(widget) -> bool:
 from feathered_app.ui.kubernetes import KubernetesWorkloadMixin
 
 
+from feathered_app.dependency_ports import ports_for
+from feathered_app.package_coverage import CoverageTarget, PackageCoverageService
+from feathered_app.repository_workflow import RepositoryWorkflowService
+from feathered_app.ui.option_marking import attach_option_marker
+from feathered_app.option_advisory import classify_package_version
+
 class PaneMixin(KubernetesWorkloadMixin):
     """Pane construction and view composition."""
 
@@ -87,6 +94,13 @@ class PaneMixin(KubernetesWorkloadMixin):
         self.target_note.pack(fill="x", pady=(12, 0))
         self.release_hint = ttk.Label(card, style="PanelHint.TLabel", wraplength=700, text="")
         self.release_hint.pack(fill="x", pady=(6, 0))
+        # Beta/development-series warning; empty for released versions.
+        self.release_advisory = ttk.Label(card, style="PanelHint.TLabel", wraplength=700,
+                                          text="", foreground=WARN_FG)
+        self.release_advisory.pack(fill="x", pady=(6, 0))
+        self._release_option_marker = attach_option_marker(
+            self.release_combo, self._release_option_advice, variable=self.release_var,
+            on_change=self._show_release_advisory)
 
         self.platform_note_var = tk.StringVar(value='')
         note = self._card(pane, 'Platform note (optional)', pady=(12, 0))
@@ -328,13 +342,7 @@ class PaneMixin(KubernetesWorkloadMixin):
         self._render_repository_workflow(force=True)
 
     def _repository_workflow_key_for_target(self) -> str:
-        """Cache key for the rendered Repositories view.
-
-        Keying on acquisition intent alone meant that changing distribution,
-        release or architecture on step 1 left the previously rendered
-        distribution's repository rows on screen: same intent, so the view was
-        considered current and never rebuilt. The target tuple is part of what
-        the view displays, so it belongs in the key."""
+        """Snapshot the visible target before choosing the repository pane key."""
         mode = self._repository_workflow_mode()
         try:
             profile = self._profile().key
@@ -342,7 +350,6 @@ class PaneMixin(KubernetesWorkloadMixin):
             profile = ""
         release = self.__dict__.get("release_var")
         arch = self.__dict__.get("arch_var")
-        init = ""
         try:
             init = self._selected_init_system()
         except Exception:
@@ -351,24 +358,22 @@ class PaneMixin(KubernetesWorkloadMixin):
             workload_key = self._workload().key if mode != "mirror" else ""
         except Exception:
             workload_key = ""
-        return "|".join((
-            mode, workload_key, profile,
-            release.get().strip() if release is not None else "",
-            arch.get().strip() if arch is not None else "",
-            init))
+        service = self.__dict__.get("_repository_workflow_service") or RepositoryWorkflowService()
+        return service.cache_key(
+            mode=mode, workload=workload_key, profile=profile,
+            release=release.get() if release is not None else "",
+            architecture=arch.get() if arch is not None else "", init_system=init)
 
     def _repository_workflow_mode(self) -> str:
         intent = self._acquisition_intent()
-        if intent is AcquisitionIntent.REPOSITORY_MIRROR:
-            return "mirror"
-        if intent is AcquisitionIntent.PACKAGES:
-            return "packages"
-        try:
-            if getattr(self._workload(), "contextual_packages", False):
-                return "contextual-packages"
-        except Exception:
-            pass
-        return "workload"
+        contextual = False
+        if intent is AcquisitionIntent.WORKLOAD:
+            try:
+                contextual = bool(getattr(self._workload(), "contextual_packages", False))
+            except Exception:
+                pass
+        service = self.__dict__.get("_repository_workflow_service") or RepositoryWorkflowService()
+        return service.mode(intent, contextual_packages=contextual)
 
     def _clear_repository_workflow_widgets(self):
         host = getattr(self, "repository_workflow_host", None)
@@ -695,8 +700,7 @@ class PaneMixin(KubernetesWorkloadMixin):
         # Reached only in mirror mode, so this assignment lands in the mirror
         # universe by construction rather than by a follow-up assignment.
         self.repo_rows = list(rows)
-        self.mirror_repos = {r.source_identity for r in self.repo_rows if r.enabled and r.url.strip()}
-        self._mirror_seen = set()
+        self.source_selection.seed_mirror(self.repo_rows)
         self.loaded_signature = None
         self.loaded_packages = []
         self.last_result = None
@@ -802,11 +806,11 @@ class PaneMixin(KubernetesWorkloadMixin):
         if not selection:
             return None
         iid = selection[0]
-        index = self.__dict__.get("_mirror_iid_to_repo_index", {}).get(iid)
+        index = selection_value(self, "_mirror_iid_to_repo_index", {}).get(iid)
         if index is not None:
             return index
         # Compatibility fallback for lightweight tests/older in-memory rows.
-        source_id = self.__dict__.get("_mirror_iid_to_source_identity", {}).get(iid, iid)
+        source_id = selection_value(self, "_mirror_iid_to_source_identity", {}).get(iid, iid)
         return next((i for i, repo in enumerate(self.repo_rows)
                      if getattr(repo, "source_identity", repo.name) == source_id), None)
 
@@ -821,9 +825,9 @@ class PaneMixin(KubernetesWorkloadMixin):
         del self.repo_rows[i]
         # Keep the identity selected if another configured row still represents
         # the same concrete repository slice; otherwise remove it.
-        if not any(r.source_identity == source_id for r in self.repo_rows):
-            self.mirror_repos.discard(source_id)
-            self._mirror_seen.discard(source_id)
+        self.source_selection.remove_mirror_source(
+            source_id, still_configured=any(
+                r.source_identity == source_id for r in self.repo_rows))
         self.loaded_signature = None; self.loaded_packages = []; self.last_result = None
         self._refresh_repo_tree_if_open(); self._update_source_status()
 
@@ -874,6 +878,9 @@ class PaneMixin(KubernetesWorkloadMixin):
                                            state="readonly")
         self.workload_combo.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(3, 0))
         self.workload_combo.bind("<<ComboboxSelected>>", lambda _e: self._workload_changed())
+        self._workload_option_marker = attach_option_marker(
+            self.workload_combo, self._workload_option_advice, variable=self.workload_var,
+            on_change=self._show_workload_advisory)
         pr.columnconfigure(0, weight=1); pr.columnconfigure(1, weight=1); pr.columnconfigure(2, weight=1)
 
         self.package_version_var = tk.StringVar(value="Latest")
@@ -882,6 +889,8 @@ class PaneMixin(KubernetesWorkloadMixin):
         self.package_version_combo = ttk.Combobox(pr, textvariable=self.package_version_var,
                                                   values=["Latest"], state="readonly", width=26)
         self.package_version_combo.grid(row=3, column=0, sticky="ew", pady=(3, 0))
+        self._package_version_option_marker = attach_option_marker(
+            self.package_version_combo, classify_package_version, variable=self.package_version_var)
         self.version_scan_btn = ttk.Button(pr, text="Refresh versions", command=self.scan_package_versions)
         self.version_scan_btn.grid(row=3, column=1, padx=(10, 0), sticky="w")
         self._register_operation_control(self.version_scan_btn)
@@ -1001,7 +1010,7 @@ class PaneMixin(KubernetesWorkloadMixin):
                 root_bytes = sum(int(getattr(p, "size", 0) or 0) for p in self.selected_packages)
                 status.set(
                     f"{len(self.selected_packages)} VKS node OS addition(s) selected "
-                    f"({human_size(root_bytes)} root payload). VKS policy checks wrap the normal package "
+                    f"({ports_for(self).human_size(root_bytes)} root payload). VKS policy checks wrap the normal package "
                     "selection; dependency handling follows the selected Dependencies mode.")
             else:
                 tree.insert("", "end", values=(
@@ -1019,7 +1028,7 @@ class PaneMixin(KubernetesWorkloadMixin):
                 root_bytes = sum(int(getattr(p, "size", 0) or 0) for p in self.selected_packages)
                 status.set(
                     f"{len(self.selected_packages)} exact package root(s) are currently selected "
-                    f"({human_size(root_bytes)} root payload); edit them on Repositories. Full closure size is calculated during analysis.")
+                    f"({ports_for(self).human_size(root_bytes)} root payload); edit them on Repositories. Full closure size is calculated during analysis.")
             else:
                 status.set("Exact package identities are intentionally deferred until Repositories has defined the searchable package universe.")
             return
@@ -1123,20 +1132,33 @@ class PaneMixin(KubernetesWorkloadMixin):
 
     @staticmethod
     def _request_display(request) -> str:
-        name = str(request[0]) if request else ""
-        version = request[1] if len(request) > 1 else None
-        role = request[2] if len(request) > 2 else None
-        repo_name = request[3] if len(request) > 3 else None
-        source_scope = request[5] if len(request) > 5 else None
-        if version and version not in {"Latest", "Follows repositories"}:
-            name += f"  {version}"
-        if role:
-            name += f"  [{role}]"
-        if repo_name:
-            name += f"  @ {repo_name}"
-        if source_scope == "distribution":
-            name += "  [distribution]"
-        return name
+        """Compatibility facade for the GUI's historic coverage formatting API."""
+        return PackageCoverageService.request_display(request)
+
+    def _coverage_target(self, *, check_init_conflicts: bool = False) -> CoverageTarget:
+        """Snapshot target inputs before a repository-coverage worker starts."""
+        # Uncomposed historical hosts still invoke the public adapter directly.
+        # They need only arch_var and, optionally, family/role selectors.
+        state = getattr(self, "__dict__", {})
+        # Partial Tk objects have no interpreter, so invoking their inherited
+        # _profile/_is_arch methods would recurse through Tk.__getattr__.
+        initialized = "distro_var" in state
+        profile = getattr(self, "_profile", None)
+        selected = profile() if callable(profile) and (initialized or "_profile" in state) else None
+        family = getattr(selected, "package_family", None)
+        if family is None:
+            is_deb = state.get("_is_deb") or (getattr(self, "_is_deb", None) if initialized else None)
+            is_arch = state.get("_is_arch") or (getattr(self, "_is_arch", None) if initialized else None)
+            family = ("deb" if callable(is_deb) and is_deb() else
+                      "arch" if callable(is_arch) and is_arch() else "rpm")
+        known_roles = getattr(self, "_known_workload_repository_roles", None)
+        roles_available = "workloads" in state or "_known_workload_repository_roles" in state
+        return CoverageTarget(
+            family=family,
+            arch=self.arch_var.get(),
+            workload_roles=frozenset(known_roles() if callable(known_roles) and roles_available else ()),
+            check_init_conflicts=check_init_conflicts,
+        )
 
     def _refresh_package_source_coverage(self):
         tree = getattr(self, "package_source_tree", None)
@@ -1184,75 +1206,16 @@ class PaneMixin(KubernetesWorkloadMixin):
         self.package_source_status.configure(foreground=FG_MUTED)
 
     def _package_matches_request(self, pkg, request) -> bool:
-        name, version, role = request[:3]
-        repo_name = request[3] if len(request) >= 4 else None
-        exact_arch = request[4] if len(request) >= 5 else None
-        source_scope = request[5] if len(request) >= 6 else None
-        repo_identity = request[6] if len(request) >= 7 else None
-        if self._is_deb():
-            if pkg.name != name:
-                return False
-            if version and version not in {"Latest", "Follows repositories"} and pkg.version != version:
-                return False
-            if pkg.arch not in {self.arch_var.get(), "all"}:
-                return False
-        elif getattr(getattr(pkg, "repo", None), "repo_format", "") == "pacman":
-            names = {pkg.name}
-            names.update(getattr(p, "name", "") for p in getattr(pkg, "provides", []) if getattr(p, "name", ""))
-            if name not in names:
-                return False
-            if version and version not in {"Latest", "Follows repositories"} and \
-                    arch_core.compare_versions(pkg.version, version) != 0:
-                return False
-            if pkg.arch not in {self.arch_var.get(), "any"}:
-                return False
-        else:
-            names = {pkg.name}
-            names.update(getattr(p, "name", "") for p in getattr(pkg, "provides", []) if getattr(p, "name", ""))
-            names.update(getattr(pkg, "files", []) or [])
-            if name not in names:
-                return False
-            if version and version not in {"Latest", "Follows repositories"} and \
-                    version not in {pkg.evr_text, pkg.version}:
-                return False
-            if pkg.arch not in {self.arch_var.get(), "noarch"}:
-                return False
-        if source_scope == "distribution" and self._repo_tier(pkg.repo) != "base":
-            return False
-        if role and pkg.repo.role != role:
-            return False
-        if repo_identity:
-            if pkg.repo.source_identity != repo_identity:
-                return False
-        elif repo_name and pkg.repo.name != repo_name:
-            return False
-        if exact_arch and pkg.arch != exact_arch:
-            return False
-        return True
+        """Compatibility facade; new coverage work uses the headless service."""
+        return PackageCoverageService.matches(
+            pkg, request, PaneMixin._coverage_target(self),
+            tier_of=getattr(self, "_repo_tier", None))
 
     def _best_coverage_candidate(self, candidates):
-        if not candidates:
-            return None
-        preferred_arch = self.arch_var.get()
-        from functools import cmp_to_key
-
-        def cmp(a, b):
-            aa = 0 if a.arch == preferred_arch else 1
-            ba = 0 if b.arch == preferred_arch else 1
-            if aa != ba:
-                return -1 if aa < ba else 1
-            ap = getattr(a.repo, "priority", 999)
-            bp = getattr(b.repo, "priority", 999)
-            if ap != bp:
-                return -1 if ap < bp else 1
-            version_cmp = self._compare_package_versions(a, b)
-            if version_cmp:
-                return -version_cmp  # newest candidate first
-            if a.repo.name != b.repo.name:
-                return -1 if a.repo.name < b.repo.name else 1
-            return 0
-
-        return sorted(candidates, key=cmp_to_key(cmp))[0]
+        """Retain the public hook for embedders that override version ordering."""
+        return PackageCoverageService.best_candidate(
+            candidates, PaneMixin._coverage_target(self),
+            compare_versions=self._compare_package_versions)
 
     def check_package_source_coverage(self):
         if self._busy():
@@ -1281,6 +1244,16 @@ class PaneMixin(KubernetesWorkloadMixin):
                 "package-source-coverage", "Checking selected packages against repositories", cancellable=True):
             return
         signature = self._package_source_signature()
+        mirror_mode = self._mirror_mode()
+        single_mode = self._single_mode()
+        workload_custom = not single_mode and not mirror_mode and self._workload().custom
+        target = self._coverage_target(check_init_conflicts=bool(self._selected_init_system()))
+        selected_mirrors = (tuple(r for r in self.repo_rows
+                                  if r.url.strip() and self._mirror_repo_selected(r))
+                            if mirror_mode else ())
+        optional_roots = self._optional_roots() if not mirror_mode else set()
+        learned_aliases = self._aliases_for_target() if not mirror_mode else {}
+        coverage_service = self.__dict__.get("_package_coverage_service") or PackageCoverageService()
         self.package_source_status_var.set("Reading repository indexes for the current selection…")
         self.package_source_status.configure(foreground=FG_MUTED)
 
@@ -1290,70 +1263,25 @@ class PaneMixin(KubernetesWorkloadMixin):
                 packages = self._load_enabled_repos(
                     rep, coverage_repositories,
                     enforce_distribution_plan=coverage_requires_distribution)
-                rows = []
-                if self._mirror_mode():
-                    selected_repos = [r for r in self.repo_rows
-                                      if r.url.strip() and self._mirror_repo_selected(r)]
-                    for repo in sorted(selected_repos, key=lambda r: (r.name.lower(), r.source_identity)):
-                        count = sum(1 for pkg in packages
-                                    if pkg.repo.source_identity == repo.source_identity)
-                        if count:
-                            rows.append((repo.name, "Ready", repo.name,
-                                         f"{count:,} package record(s)", "ok", False))
-                        else:
-                            rows.append((repo.name, "Empty", repo.name,
-                                         "No package records found", "error", False))
+                if mirror_mode:
+                    coverage = coverage_service.evaluate_mirrors(packages, selected_mirrors)
                 else:
                     runtime_requests = requests
                     materialized = None
-                    if not self._single_mode() and not self._workload().custom:
+                    if not single_mode and not workload_custom:
                         materialized = self._materialize_selected_workload(packages)
                         runtime_requests = self._package_requests(materialized)
                     optional = (
                         {root.package for root in materialized.roots if root.optional}
                         | {policy.package for policy in materialized.unresolved if policy.optional}
-                        if materialized is not None else self._optional_roots())
-                    universe_names, universe_provides = workload_resolution.universe_sets(packages)
-                    learned_aliases = self._aliases_for_target()
-                    resolved_pairs = []
-                    for req in runtime_requests:
-                        resolution = workload_resolution.resolve_name(
-                            str(req[0]), universe_names, universe_provides,
-                            getattr(self._profile(), "package_family", "rpm"), learned_aliases)
-                        if resolution.substituted:
-                            resolved_pairs.append((resolution.requested, resolution.resolved))
-                            req = (resolution.resolved,) + tuple(req)[1:]
-                        matches = [pkg for pkg in packages if self._package_matches_request(pkg, req)]
-                        best = self._best_coverage_candidate(matches)
-                        label = self._request_display(req)
-                        if resolution.substituted:
-                            label = f"{resolution.requested} → {resolution.resolved}"
-                        is_optional = str(req[0]) in optional or resolution.requested in optional
-                        init_block = ""
-                        if self._selected_init_system():
-                            init_block = workload_resolution.systemd_conflict(
-                                str(req[0]), {p.name: p for p in packages if p.name == str(req[0])})
-                        if init_block:
-                            rows.append((label, "Blocked (init)", "", init_block, "error", False))
-                            continue
-                        if best is not None:
-                            candidate = getattr(best, "nevra", getattr(best, "name", str(req[0])))
-                            status = "Available" if not resolution.substituted else f"Available ({resolution.kind})"
-                            rows.append((label, status, best.repo.name, candidate, "ok", is_optional))
-                        elif is_optional:
-                            rows.append((label, "Optional gap", "", "No approved candidate is offered by the eligible sources", "warn", True))
-                        else:
-                            rows.append((label, "Missing", "", "No approved workload candidate is offered by the eligible sources", "error", False))
-                    if materialized is not None:
-                        requested_names = {str(req[0]) for req in runtime_requests}
-                        for policy in materialized.unresolved:
-                            if policy.optional or policy.package in requested_names:
-                                continue
-                            candidates = " / ".join(policy.candidates or (policy.package,))
-                            rows.append((policy.component or policy.package, "Missing", "",
-                                         f"No approved candidate found: {candidates}", "error", False))
-                if resolved_pairs:
-                    self.events.put(("workload_aliases", resolved_pairs))
+                        if materialized is not None else optional_roots)
+                    coverage = coverage_service.evaluate_roots(
+                        packages, runtime_requests, target, optional=optional,
+                        aliases=learned_aliases,
+                        unresolved=materialized.unresolved if materialized is not None else ())
+                rows = list(coverage.rows)
+                if coverage.resolved_aliases:
+                    self.events.put(("workload_aliases", list(coverage.resolved_aliases)))
                 self.events.put(("package_coverage", signature, rows))
                 missing = sum(1 for row in rows if row[4] == "error")
                 self.events.put(("done", True,
@@ -1364,8 +1292,7 @@ class PaneMixin(KubernetesWorkloadMixin):
             except Exception as exc:
                 self._log(traceback.format_exc())
                 self.events.put(("done", False, redact_text(str(exc))))
-        self.worker = threading.Thread(target=work, daemon=True)
-        self.worker.start()
+        self._start_operation_worker(target=work)
 
     def _apply_package_source_coverage(self, signature, rows):
         # Results are useful only for the exact repository + package selection

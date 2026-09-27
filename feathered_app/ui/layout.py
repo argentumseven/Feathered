@@ -2,6 +2,7 @@
 
 """
 
+from feathered_app.ui.option_marking import configure_option_styles
 from feathered_app.context import (
     ACCENT,
     ACCENT_DIM,
@@ -32,6 +33,7 @@ from feathered_app.context import (
     ttk,
 )
 from feathered_app.ui.theme import FeatheredActivityPulse, FeatheredMark, draw_feather, messagebox
+from feathered_app.wizard_navigation import WizardNavigationService
 
 
 class LayoutMixin:
@@ -140,6 +142,9 @@ class LayoutMixin:
                   foreground=[("disabled", FG_DIM), ("readonly", FG_TEXT)],
                   arrowcolor=[("disabled", FG_DIM), ("readonly", FG_MUTED)],
                   bordercolor=[("disabled", LINE_DISABLED), ("focus", ACCENT)])
+        # Beta / incompatible option highlighting (see ui/option_marking.py).
+        configure_option_styles(style, field_bg=BG_INPUT, field_fg=FG_TEXT,
+                                disabled_bg=BG_DISABLED, disabled_fg=FG_DIM)
         # The dropdown list is a Tk listbox and is themed through the option DB.
         self.option_add("*TCombobox*Listbox.background", BG_INPUT)
         self.option_add("*TCombobox*Listbox.foreground", FG_TEXT)
@@ -770,110 +775,74 @@ class LayoutMixin:
             self._lock_operation_controls()
 
     def _sync_wizard_nav(self):
-        if self.active_pane not in self.stage_order:
-            self.next_btn.pack_forget()
-            self.back_btn.configure(state="normal", text="‹  Return to build")
-            self.header_state.configure(text="Repository utilities")
-            return
-        self.back_btn.configure(text="‹  Back")
-        index = self.stage_order.index(self.active_pane)
-        self.back_btn.configure(state="normal" if index > 0 else "disabled")
-        if index == len(self.stage_order) - 1:
-            self.next_btn.pack_forget()
-            self.next_btn.configure(text="Next  ›", state="disabled")
-        else:
-            self.next_btn.configure(state="normal")
+        # The service owns navigation state; this adapter only updates widgets.
+        intent = self._acquisition_intent() if self.active_pane == "packages" else None
+        nav = WizardNavigationService.navigation(self.stage_order, self.active_pane, intent=intent)
+        self.back_btn.configure(text=nav.back_label,
+                                state="normal" if nav.back_enabled else "disabled")
+        if nav.next_visible:
+            self.next_btn.configure(text=nav.next_label, state="normal")
             self.next_btn.pack(side="left", padx=(8, 0))
-            if self.active_pane == "packages":
-                intent = self._acquisition_intent()
-                if intent is AcquisitionIntent.PACKAGES:
-                    self.next_btn.configure(text="Next: configure repositories  ›")
-                elif intent is AcquisitionIntent.REPOSITORY_MIRROR:
-                    self.next_btn.configure(text="Next: choose repositories  ›")
-                else:
-                    self.next_btn.configure(text="Next: repositories  ›")
-            else:
-                self.next_btn.configure(text="Next  ›")
-        self.header_state.configure(text=f"Step {index + 1} of {len(self.stage_order)}")
+        else:
+            self.next_btn.pack_forget()
+            if nav.in_wizard:
+                self.next_btn.configure(text=nav.next_label, state="disabled")
+        self.header_state.configure(text=nav.header)
 
     def _validate_wizard_transition(self, pane: str) -> tuple[bool, str, object | None]:
-        """Validate the current stage before allowing forward wizard movement.
+        """Validate local prerequisites before forward wizard movement.
 
-        This is intentionally limited to deterministic local prerequisites. It
-        does not perform network I/O, but it does stop the wizard from reaching
-        Review with an empty contract or a source plan that Build is guaranteed
-        to reject later.
+        The headless service owns deterministic decisions. The existing
+        package, provenance and output validators retain domain ownership;
+        this adapter resolves logical failure targets to actual Tk widgets.
+        Inventory is deliberately not a navigation prerequisite.
         """
         try:
             if pane == "target":
-                if not self.release_var.get().strip():
-                    raise RuntimeError("Choose or enter a Linux release before continuing.")
-                if not self.arch_var.get().strip():
-                    raise RuntimeError("Choose a target architecture before continuing.")
+                WizardNavigationService.validate_target(
+                    release=self.release_var.get(), architecture=self.arch_var.get())
             elif pane == "packages":
                 context = self._selected_workload_context()
                 context.validate()
-                # Workload mode creates semantic roots on this step. Exact
-                # package and mirror modes intentionally choose concrete roots
-                # on Repositories, so they remain valid intents here.
                 if self._acquisition_intent() is AcquisitionIntent.WORKLOAD:
                     self._package_requests()
             elif pane == "repositories":
                 state = self._acquisition_state()
-                if state.blocked:
-                    raise RuntimeError(state.reason or
-                                       "The selected acquisition cannot proceed with the current repositories.")
+                WizardNavigationService.validate_repositories(
+                    blocked=state.blocked, reason=state.reason)
             elif pane == "keyrings":
                 self._validate_provenance_step()
-                # Entitlement and other deterministic source prerequisites are
-                # configured on this page. Do not defer a guaranteed source-plan
-                # failure until Build.
                 self._validate_source_plan()
             elif pane == "transfer":
                 self._validate_output_naming()
                 self._validate_signing()
-                if not self._has_review_contract():
-                    raise RuntimeError(
-                        "Nothing is selected for this build. Return to Content/Repositories and complete the acquisition request before Review.")
+                WizardNavigationService.validate_review_contract(
+                    has_contract=self._has_review_contract())
             return True, "", None
         except (RuntimeError, ValueError) as exc:
             message = redact_text(str(exc))
-            target = None
+            intent = None
+            missing_scopes = ()
             if pane == "repositories":
                 state = self._acquisition_state()
-                if state.intent is AcquisitionIntent.PACKAGES:
-                    target = getattr(self, "exact_package_selection_card", None)
-                elif state.intent is AcquisitionIntent.REPOSITORY_MIRROR:
-                    target = getattr(self, "mirror_selection_card", None)
-                else:
+                intent = state.intent
+                if intent not in (AcquisitionIntent.PACKAGES, AcquisitionIntent.REPOSITORY_MIRROR):
                     readiness = evaluate_source_readiness(
                         self._source_plan(), self.repo_rows, tier_getter=self._repo_tier)
-                    target = (getattr(self, "base_sources_card", None)
-                              if "distribution" in readiness.missing_scopes or "enabled" in readiness.missing_scopes
-                              else getattr(self, "workload_repositories_card", None))
-            elif pane == "keyrings":
-                lower = message.lower()
-                if "entitlement" in lower or "private key" in lower or "repository ca" in lower:
-                    target = getattr(self, "entitlement_tree", None)
-                elif "checksum" in lower:
-                    target = getattr(self, "prov_digest_combo", None) or getattr(self, "prov_checksum_card", None)
-                else:
-                    target = getattr(self, "prov_evidence_card", None)
-            elif pane == "packages":
-                target = getattr(self, "package_selection_card", None)
-            elif pane == "transfer":
-                target = getattr(self, "folder_label_entry", None) or getattr(self, "out_var", None)
+                    missing_scopes = readiness.missing_scopes
+            key = WizardNavigationService.focus_key(
+                pane, intent=intent, missing_scopes=missing_scopes, message=message)
+            target = getattr(self, key, None) if key else None
+            if key == "prov_digest_combo" and target is None:
+                target = getattr(self, "prov_checksum_card", None)
+            elif key == "folder_label_entry" and target is None:
+                target = getattr(self, "out_var", None)
             return False, message, target
 
     def _default_network_source_method(self) -> str:
         profile = self._profile()
-        if profile.key == "rhel":
-            return "Red Hat CDN entitlement (official)"
-        if profile.package_family == "deb":
-            return "Distribution APT repositories"
-        if profile.package_family == "arch":
-            return "Distribution pacman repositories"
-        return "Distribution repositories"
+        return WizardNavigationService.default_network_source_method(
+            profile_key=profile.key, package_family=profile.package_family)
 
     def _recover_wizard_transition(self, pane: str, message: str) -> bool:
         """Offer explicit alternate recovery policies for bifurcated source failures.
@@ -885,11 +854,23 @@ class LayoutMixin:
         """
         method_var = getattr(self, "source_method_var", None)
         method = method_var.get() if method_var is not None else ""
-        lower = (message or "").lower()
         profile = self._profile()
 
-        if (profile.key == "rhel" and method == "Red Hat CDN entitlement (official)"
-                and any(token in lower for token in ("entitlement", "private key", "repository ca"))):
+        # Only local/custom modes need repository inspection; RHEL recovery
+        # works even before the repository pane has been constructed.
+        needs_base = method in {
+            "Installation media / local mirror (ISO, DVD, folder, SMB)",
+            "Custom repositories",
+        } and pane in {"repositories", "keyrings"}
+        has_enabled_base = any(
+            self._repo_tier(repo) == "base" and repo.enabled and str(repo.url or "").strip()
+            for repo in getattr(self, "repo_rows", [])
+        ) if needs_base else False
+        recovery = WizardNavigationService.recovery_policy(
+            pane=pane, profile_key=profile.key, source_method=method,
+            message=message or "", has_enabled_base=has_enabled_base)
+
+        if recovery == "rhel-entitlement":
             choice = messagebox.askchoice(
                 "Red Hat source access required",
                 "The official Red Hat CDN source plan needs RHSM entitlement material before Feathered can use it.\n\n"
@@ -912,10 +893,7 @@ class LayoutMixin:
                     self.after(20, lambda t=target: self._scroll_to_widget(t))
             return True
 
-        enabled_base = [r for r in getattr(self, "repo_rows", [])
-                        if self._repo_tier(r) == "base" and r.enabled and str(r.url or "").strip()]
-        if (method == "Installation media / local mirror (ISO, DVD, folder, SMB)"
-                and not enabled_base and pane in {"repositories", "keyrings"}):
+        if recovery == "local-media":
             choice = messagebox.askchoice(
                 "Local media is not loaded",
                 "This source plan has no loaded installation media or local mirror. Choose whether to return to Repositories and load it, or replace the source plan with the target's default network repositories.",
@@ -931,8 +909,7 @@ class LayoutMixin:
                 self.after(20, lambda t=target: self._scroll_to_widget(t))
             return True
 
-        if (method == "Custom repositories" and not enabled_base
-                and pane in {"repositories", "keyrings"}):
+        if recovery == "custom-base":
             choice = messagebox.askchoice(
                 "Custom base source plan is empty",
                 "Custom source mode has no enabled foundational repository. Choose whether to add the intended custom base repositories or restore the target's distribution defaults.",
@@ -953,8 +930,8 @@ class LayoutMixin:
         """Advance one wizard stage. Returns True only if the stage changed."""
         if self.active_pane not in self.stage_order:
             return False
-        index = self.stage_order.index(self.active_pane)
-        if index >= len(self.stage_order) - 1:
+        next_stage = WizardNavigationService.next_stage(self.stage_order, self.active_pane)
+        if next_stage is None:
             # Review is terminal. There is deliberately no seventh wizard
             # transition; its Analyze/Build controls own the next action.
             self._sync_wizard_nav()
@@ -967,8 +944,7 @@ class LayoutMixin:
                 self._focus_validation(self.active_pane, target, message)
             messagebox.showerror(APP_TITLE, message)
             return False
-        next_index = index + 1
-        self.show_pane(self.stage_order[next_index])
+        self.show_pane(next_stage)
         return True
 
     def go_back(self):

@@ -46,6 +46,30 @@ def target_compatible(target: TargetScope | None, source: RepositoryTarget) -> b
     return True
 
 
+def init_blocked_required_roles(
+    required_roles: Collection[str],
+    participating: Sequence[RepositoryT],
+    conflict: Callable[[RepositoryT], str],
+) -> dict[str, tuple[tuple[RepositoryT, str], ...]]:
+    """Find roles whose *entire* configured source set is init-incompatible.
+
+    Call this on already enabled, target-compatible transaction sources. A
+    blocked source must not count as evidence that a required role is ready,
+    but one init-compatible alternative is sufficient to leave reachability
+    checks to the metadata loader. Do not silently substitute another role.
+    """
+    blocked: dict[str, tuple[tuple[RepositoryT, str], ...]] = {}
+    for role in dict.fromkeys(required_roles):
+        matching = [repo for repo in participating if getattr(repo, "role", None) == role]
+        if not matching:
+            continue
+        exclusions = tuple((repo, reason) for repo in matching
+                           if (reason := conflict(repo)))
+        if len(exclusions) == len(matching):
+            blocked[role] = exclusions
+    return blocked
+
+
 @dataclass(frozen=True)
 class ParticipationContext(Generic[RepositoryT]):
     """Host methods are invoked only on the branches that consume them."""

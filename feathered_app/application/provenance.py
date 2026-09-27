@@ -6,6 +6,9 @@ import apt_core
 
 from checksum_inspection import inspect_checksums
 from feathered_app.repository_advisory import archive_keyring_state
+from feathered_app.provenance_policy import ProvenancePolicyService
+from feathered_app.provenance_validation import (EvidenceSourceCheck, ProvenanceValidationService)
+from feathered_app.repository_policy import RepositoryPolicyService
 from feathered_app.build_sources import BuildSourcesMixin, _SnapshotSelection  # noqa: F401
 from feathered_app.context import (
     APP_TITLE,
@@ -58,24 +61,25 @@ from feathered_app.ui.theme import FeatheredActivityPulse, messagebox
 
 
 
+from feathered_app.dependency_ports import ports_for
+
 class ProvenanceMixin(BuildSourcesMixin):
     """Provenance policy, evidence selection, digest inspection, and keyring policy."""
 
+    def _get_provenance_policy_service(self) -> ProvenancePolicyService:
+        # A headless test host may instantiate only this mixin. The application
+        # composition root normally provides the service explicitly.
+        service = self.__dict__.get("_provenance_policy_service")
+        if service is None:
+            service = ProvenancePolicyService()
+            self._provenance_policy_service = service
+        return service
+
     def _detected_digest_algorithms(self, repo):
-        # retain explicit metadata-inspection
-        # results even when no dependency analysis has been run yet.
-        cached = getattr(self, "_provenance_detected_cache", {}).get(
-            self._provenance_repo_cache_key(repo), [])
-        algorithms = set(cached)
-        for pkg in getattr(self, "loaded_packages", []) or []:
-            pkg_repo = getattr(pkg, "repo", None)
-            same_repo = pkg_repo is repo or (pkg_repo is not None and
-                getattr(pkg_repo, "name", "") == repo.name and
-                getattr(pkg_repo, "normalized_url", "") == repo.normalized_url)
-            if same_repo:
-                algorithms.update(package_digest_map(pkg))
-        order = {"sha512": 0, "sha384": 1, "sha256": 2}
-        return sorted(algorithms, key=lambda a: order.get(a, 99))
+        return self._get_provenance_policy_service().detected_algorithms(
+            repo, self.__dict__.get("_provenance_detected_cache", {}),
+            self.__dict__.get("loaded_packages", []) or [],
+        )
 
     def _evidence_catalog_profile_key(self, repo):
         """Return the mirror-catalog distribution that owns *repo*.
@@ -133,7 +137,7 @@ class ProvenanceMixin(BuildSourcesMixin):
         # classification and must not point back at the acquisition endpoint.
         safe = []
         for candidate in out:
-            if not mirrors_are_distinct(repo.normalized_url, candidate.url)[0]:
+            if not ports_for(self).mirrors_are_distinct(repo.normalized_url, candidate.url)[0]:
                 continue
             if candidate.relationship == REL_EXACT_MIRROR:
                 primary_vendor = infer_vendor_id(getattr(repo, "name", ""), getattr(repo, "url", ""))
@@ -201,7 +205,7 @@ class ProvenanceMixin(BuildSourcesMixin):
             matches.sort(key=lambda pair: pair[0])
             template = matches[0][1]
             peer_url = str(template.url)
-            if not mirrors_are_distinct(repo.normalized_url, peer_url)[0]:
+            if not ports_for(self).mirrors_are_distinct(repo.normalized_url, peer_url)[0]:
                 continue
             out.append(EvidenceCandidate(
                 peer_url, str(template.name), REL_REBUILD_PEER,
@@ -217,7 +221,7 @@ class ProvenanceMixin(BuildSourcesMixin):
                 continue
             if getattr(other, "repo_format", "") != getattr(repo, "repo_format", ""):
                 continue
-            distinct, _ = mirrors_are_distinct(repo.normalized_url, other.normalized_url)
+            distinct, _ = ports_for(self).mirrors_are_distinct(repo.normalized_url, other.normalized_url)
             if not distinct:
                 continue
             if repositories_are_exact_mirror_compatible(repo, other):
@@ -230,7 +234,7 @@ class ProvenanceMixin(BuildSourcesMixin):
                 continue
             # Configured cross-vendor EL repositories may be semantic rebuild
             # peers, but only for the same logical channel (BaseOS↔BaseOS etc.).
-            relation = evidence_relationship(repo, other.normalized_url)
+            relation = ports_for(self).evidence_relationship(repo, other.normalized_url)
             if relation == REL_REBUILD_PEER and primary_channel and repository_channel(other) == primary_channel:
                 out.append(EvidenceCandidate(
                     other.normalized_url, other.name, REL_REBUILD_PEER, AUTH_INDEPENDENT,
@@ -393,53 +397,21 @@ class ProvenanceMixin(BuildSourcesMixin):
 
     @staticmethod
     def _minimum_met_by_algorithms(algorithms, preference):
-        found = set(algorithms or [])
-        if preference == "auto":
-            return bool(found & {"sha256", "sha384", "sha512"})
-        if preference == "sha256":
-            return bool(found & {"sha256", "sha384", "sha512"})
-        if preference == "sha384":
-            return bool(found & {"sha384", "sha512"})
-        if preference == "sha512":
-            return "sha512" in found
-        return False
+        return ProvenancePolicyService.minimum_met_by_algorithms(algorithms, preference)
 
     def _digest_inspection_known(self, repo):
-        key = self._provenance_repo_cache_key(repo)
-        if key in self.__dict__.get("_provenance_detected_cache", {}):
-            return True
-        for pkg in self.__dict__.get("loaded_packages", []) or []:
-            pkg_repo = getattr(pkg, "repo", None)
-            if pkg_repo is repo or (pkg_repo is not None and
-                    getattr(pkg_repo, "name", "") == repo.name and
-                    getattr(pkg_repo, "normalized_url", "") == repo.normalized_url):
-                return True
-        return False
+        return self._get_provenance_policy_service().inspection_known(
+            repo, self.__dict__.get("_provenance_detected_cache", {}),
+            self.__dict__.get("loaded_packages", []) or [],
+        )
 
     def _repo_meets_digest_minimum(self, repo, preference):
-        """Whether all inspected package records in a source meet a minimum.
-
-        The detailed inspection cache wins because it tracks package-record
-        coverage, not merely whether an algorithm appeared somewhere in the
-        index. Loaded analysis metadata is used as a fallback before an explicit
-        inspection has been run.
-        """
-        key = self._provenance_repo_cache_key(repo)
-        detail = self.__dict__.get("_provenance_digest_coverage_cache", {}).get(key)
-        if detail is not None:
-            total = int(detail.get("total", 0) or 0)
-            if total <= 0:
-                return False
-            return int(detail.get(preference, 0) or 0) == total
-        loaded = [pkg for pkg in self.__dict__.get("loaded_packages", []) or []
-                  if getattr(pkg, "repo", None) is repo or (
-                      getattr(pkg, "repo", None) is not None
-                      and pkg.repo.name == repo.name
-                      and pkg.repo.normalized_url == repo.normalized_url)]
-        if loaded:
-            return all(self._minimum_met_by_algorithms(package_digest_map(pkg), preference)
-                       for pkg in loaded)
-        return self._minimum_met_by_algorithms(self._detected_digest_algorithms(repo), preference)
+        return self._get_provenance_policy_service().meets_digest_minimum(
+            repo, preference,
+            coverage=self.__dict__.get("_provenance_digest_coverage_cache", {}),
+            detected=self.__dict__.get("_provenance_detected_cache", {}),
+            packages=self.__dict__.get("loaded_packages", []) or [],
+        )
 
     def _digest_direct_coverage(self, enabled, preference):
         return sum(1 for repo in enabled if self._repo_meets_digest_minimum(repo, preference))
@@ -478,7 +450,7 @@ class ProvenanceMixin(BuildSourcesMixin):
         test_btn = self.__dict__.get("prov_evidence_test_btn")
         if test_btn is not None and test_btn.winfo_exists():
             operation_idle = (
-                self.__dict__.get("active_operation") is None
+                getattr(self, "active_operation", None) is None
                 and self.__dict__.get("worker") is None
             )
             configured = bool(self._evidence_preflight_pairs()) if active and operation_idle else False
@@ -515,7 +487,7 @@ class ProvenanceMixin(BuildSourcesMixin):
                 continue
             selected += 1
             result = cache.get(self._evidence_preflight_key(repo, urls[0]))
-            relationship = evidence_relationship(repo, urls[0])
+            relationship = ports_for(self).evidence_relationship(repo, urls[0])
             if strategy == "evidence-fallback" and relationship == REL_REBUILD_PEER:
                 invalid_peer += 1
                 continue
@@ -563,16 +535,7 @@ class ProvenanceMixin(BuildSourcesMixin):
                     if getattr(r, "enabled", False) and str(getattr(r, "url", "")).strip()]
         return any(bool(getattr(repo, "evidence_urls", None)) for repo in rows)
 
-    def _evidence_required_repos(self, strategy: str | None = None):
-        """Return sources that must have evidence for the current strategy.
-
-        Maximum corroborates every participating source. Enhanced is genuinely a
-        gap-filling policy: a source needs exact evidence only after checksum
-        inspection proves the selected acquisition minimum is not fully covered.
-        Unknown coverage is a separate "inspect first" state; treating it as a
-        failed checksum contract causes Enhanced to test arbitrary evidence before
-        Feathered knows whether any fallback is necessary.
-        """
+    def _evidence_requirements_for_strategy(self, strategy: str | None = None):
         try:
             enabled = list(self._enabled_provenance_repos())
         except Exception:
@@ -581,30 +544,18 @@ class ProvenanceMixin(BuildSourcesMixin):
         if strategy is None:
             var = self.__dict__.get("prov_strategy_var")
             strategy = self._strategy_ui_to_policy(var.get()) if var is not None else "evidence-fallback"
-        if strategy == "full-corroboration":
-            return enabled
-        if strategy != "evidence-fallback":
-            return []
-        required = []
-        for repo in enabled:
-            preference = str(getattr(repo, "digest_preference", "auto") or "auto")
-            if self._digest_inspection_known(repo) and not self._repo_meets_digest_minimum(repo, preference):
-                required.append(repo)
-        return required
+        service = self.__dict__.get("_provenance_policy_service") or ProvenancePolicyService()
+        return service.evidence_requirements(
+            enabled, strategy,
+            inspection_known=self._digest_inspection_known,
+            meets_digest_minimum=self._repo_meets_digest_minimum,
+        )
+
+    def _evidence_required_repos(self, strategy: str | None = None):
+        return list(ProvenanceMixin._evidence_requirements_for_strategy(self, strategy).required)
 
     def _evidence_pending_inspection_repos(self, strategy: str | None = None):
-        """Return Enhanced sources whose fallback requirement is still unknown."""
-        try:
-            enabled = list(self._enabled_provenance_repos())
-        except Exception:
-            enabled = [r for r in self.repository_rows()
-                       if getattr(r, "enabled", False) and str(getattr(r, "url", "")).strip()]
-        if strategy is None:
-            var = self.__dict__.get("prov_strategy_var")
-            strategy = self._strategy_ui_to_policy(var.get()) if var is not None else "evidence-fallback"
-        if strategy != "evidence-fallback":
-            return []
-        return [repo for repo in enabled if not self._digest_inspection_known(repo)]
+        return list(ProvenanceMixin._evidence_requirements_for_strategy(self, strategy).pending_inspection)
 
     def _evidence_preflight_key(self, repo, evidence_url: str):
         # A spot-test result is valid only for the verification inputs it actually
@@ -616,7 +567,7 @@ class ProvenanceMixin(BuildSourcesMixin):
         return (
             self._provenance_repo_cache_key(repo),
             str(evidence_url or "").rstrip("/"),
-            evidence_relationship(repo, evidence_url),
+            ports_for(self).evidence_relationship(repo, evidence_url),
             evidence_authority_relationship(repo, evidence_url),
             digest,
             roots,
@@ -646,12 +597,12 @@ class ProvenanceMixin(BuildSourcesMixin):
         and each artifact is verified against its own repository digest when one
         is published. Binary equality is explicitly not required for that case.
         """
-        distinct, reason = mirrors_are_distinct(repo.normalized_url, evidence_url)
+        distinct, reason = ports_for(self).mirrors_are_distinct(repo.normalized_url, evidence_url)
         if not distinct:
             return {"status": "unusable", "detail": f"Not independent: {reason}"}
 
         relationship = (str(relationship_hint or "").strip()
-                        or evidence_relationship(repo, evidence_url))
+                        or ports_for(self).evidence_relationship(repo, evidence_url))
         authority = (str(authority_hint or "").strip()
                      or evidence_authority_relationship(repo, evidence_url))
         arches = {self.arch_var.get(), "noarch", "all", "any"}
@@ -706,7 +657,7 @@ class ProvenanceMixin(BuildSourcesMixin):
                     attempts.append(redact_text(str(exc)))
                     continue
                 checksum_policy = str(getattr(repo, "digest_preference", "auto") or "auto")
-                ok, detail = spot_compare_peer_artifact_urls(
+                ok, detail = ports_for(self).spot_compare_peer_artifact_urls(
                     primary_pkg, primary_url, primary_repo,
                     evidence_pkg, evidence_artifact_url, evidence_repo,
                     checksum_policy, reporter)
@@ -743,7 +694,7 @@ class ProvenanceMixin(BuildSourcesMixin):
             checksum_policy = str(getattr(repo, "digest_preference", "auto") or "auto")
             for url in evidence_artifact_candidates(
                     evidence_url, getattr(primary_pkg, "location", ""), evidence_location):
-                ok, detail = spot_compare_artifact_urls(
+                ok, detail = ports_for(self).spot_compare_artifact_urls(
                     primary_url, primary_repo, url, evidence_repo, checksum_policy, reporter)
                 attempts.append(f"{redact_url(url)}: {detail}")
                 if ok:
@@ -857,8 +808,7 @@ class ProvenanceMixin(BuildSourcesMixin):
                 self.events.put(("done", "cancelled", "Operation cancelled"))
             except Exception as exc:
                 self.events.put(("done", False, redact_text(str(exc))))
-        self.worker = threading.Thread(target=work, daemon=True)
-        self.worker.start()
+        self._start_operation_worker(target=work)
 
     def _apply_evidence_preflight_results(self, results):
         cache = self.__dict__.setdefault("_evidence_preflight_cache", {})
@@ -917,68 +867,44 @@ class ProvenanceMixin(BuildSourcesMixin):
         self._update_provenance_evidence_state()
 
     def _validate_provenance_step(self) -> None:
-        """Require Step 4 evidence to match the same contract enforced at build time."""
+        """Adapt current GUI selections to the headless evidence navigation gate."""
         if not self._provenance_requires_evidence_selection():
             return
         digest_var = self.__dict__.get("prov_digest_var")
-        if digest_var is None or not str(digest_var.get()).strip():
-            raise RuntimeError(
-                "Enhanced or Maximum verification requires a checksum policy. Choose the Minimum "
-                "checksum strength before configuring independent evidence.")
-
         strategy = self._strategy_ui_to_policy(self.prov_strategy_var.get())
-        pending_inspection = self._evidence_pending_inspection_repos(strategy)
-        if pending_inspection:
-            raise RuntimeError(
-                "Enhanced verification must inspect checksum support before Feathered can determine "
-                "which repositories require fallback evidence. Use Inspect checksum support first. "
-                "Not yet inspected: " + ", ".join(repo.name for repo in pending_inspection[:4]))
+        service = self.__dict__.get("_provenance_validation_service") or ProvenanceValidationService()
+        # Validate before reading required sources: standalone legacy hosts may
+        # deliberately provide only the inspection gate when it is blocking.
+        service.validate_prerequisites(
+            checksum_selected=bool(digest_var is not None and str(digest_var.get()).strip()),
+            pending_inspection=[repo.name for repo in self._evidence_pending_inspection_repos(strategy)],
+        )
         required = self._evidence_required_repos(strategy)
         if not required:
             return
         cache = self.__dict__.get("_evidence_preflight_cache", {})
-        missing = []
-        untested = []
-        failed = []
-        invalid = []
+        snapshots = []
         for repo in required:
             urls = list(getattr(repo, "evidence_urls", []) or [])
             if not urls:
-                missing.append(repo.name)
+                snapshots.append(EvidenceSourceCheck(repository_name=repo.name, has_source=False))
                 continue
             url = urls[0]
-            relationship = evidence_relationship(repo, url)
-            if strategy == "evidence-fallback" and relationship == REL_REBUILD_PEER:
-                invalid.append(repo.name)
-                continue
-            result = cache.get(self._evidence_preflight_key(repo, url))
-            if not result or result.get("status") in {"testing", "untested"}:
-                untested.append(repo.name)
-                continue
-            if result.get("status") not in {"repository", "artifact-only", "peer"}:
-                failed.append((repo.name, result.get("detail", "Evidence source is unusable")))
-                continue
-            if strategy == "evidence-fallback" and result.get("relationship") == REL_REBUILD_PEER:
-                invalid.append(repo.name)
-
-        if not (missing or untested or failed or invalid):
-            return
-        if invalid:
-            raise RuntimeError(
-                "Enhanced verification can fill checksum gaps only with an exact mirror or exact-artifact source whose bytes match the acquisition artifact. "
-                "Semantic rebuild peers are Maximum-only. Replace the evidence source for: " + ", ".join(invalid[:4]))
-        if missing:
-            scope = "every participating package source" if strategy == "full-corroboration" else "every source that may need checksum fallback"
-            raise RuntimeError(
-                f"{self._strategy_policy_to_ui(strategy).split(' (')[0]} requires evidence for {scope}. "
-                "No evidence source is selected for: " + ", ".join(missing[:4]))
-        if untested:
-            raise RuntimeError(
-                "Every required evidence pairing must pass an explicit spot test before continuing. Use Test evidence sources. "
-                "Not yet tested: " + ", ".join(untested[:4]))
-        first_name, first_detail = failed[0]
-        raise RuntimeError(
-            f"Evidence testing failed for {first_name}: {first_detail}")
+            # A key includes the selected URL, relationship, policy and roots.
+            # Never reuse a test performed against an earlier selection.
+            result = cache.get(self._evidence_preflight_key(repo, url)) or {}
+            snapshots.append(EvidenceSourceCheck(
+                repository_name=repo.name,
+                has_source=True,
+                selected_relationship=ports_for(self).evidence_relationship(repo, url),
+                preflight_status=result.get("status", ""),
+                preflight_relationship=result.get("relationship", ""),
+                preflight_detail=result.get("detail", ""),
+            ))
+        service.validate_evidence(
+            strategy=strategy, sources=snapshots,
+            strategy_label=self._strategy_policy_to_ui(strategy).split(" (")[0],
+        )
 
     def _strategy_help_text(self, strategy):
         return {
@@ -1292,7 +1218,7 @@ class ProvenanceMixin(BuildSourcesMixin):
                 error_var.set("The URL must include a host, for example https://mirror.example.org/repo/.")
                 entry.focus_set()
                 return
-            distinct, reason = mirrors_are_distinct(repo.normalized_url, manual)
+            distinct, reason = ports_for(self).mirrors_are_distinct(repo.normalized_url, manual)
             if not distinct:
                 error_var.set(f"Evidence source is not independent: {reason}.")
                 entry.focus_set()
@@ -1388,7 +1314,7 @@ class ProvenanceMixin(BuildSourcesMixin):
             testing_row = False
             result = None
             if selected_urls:
-                relationship = evidence_relationship(repo, selected_urls[0])
+                relationship = ports_for(self).evidence_relationship(repo, selected_urls[0])
                 result = self.__dict__.get("_evidence_preflight_cache", {}).get(
                     self._evidence_preflight_key(repo, selected_urls[0]))
                 state_text, testing_row = self._evidence_row_status(
@@ -1479,10 +1405,10 @@ class ProvenanceMixin(BuildSourcesMixin):
         elif choice in candidate_map:
             urls = [candidate_map[choice]]
             selected_spec = EvidenceCandidate(
-                urls[0], choice, evidence_relationship(repo, urls[0]), AUTH_UNKNOWN, "configured")
+                urls[0], choice, ports_for(self).evidence_relationship(repo, urls[0]), AUTH_UNKNOWN, "configured")
 
         for url in urls:
-            distinct, reason = mirrors_are_distinct(repo.normalized_url, url)
+            distinct, reason = ports_for(self).mirrors_are_distinct(repo.normalized_url, url)
             if not distinct:
                 messagebox.showerror(APP_TITLE, f"Evidence repository is not distinct: {reason}.")
                 self._refresh_provenance_evidence_rows()
@@ -1540,36 +1466,17 @@ class ProvenanceMixin(BuildSourcesMixin):
 
         # Programmatic policy changes must not leave a stale diagnostic running.
         if (strategy is not None and strategy not in {"evidence-fallback", "full-corroboration"}
-                and self.__dict__.get("active_operation") == "evidence-preflight"):
-            self.cancel_event.set()
+                and getattr(self, "active_operation", None) == "evidence-preflight"):
+            self.operation_runtime.request_cancel(force=True)
         # Mixed values are retained per source. Skip keeps the inactive minimum.
         digest = (None if strategy == "skip-provenance" or
                   digest_label.startswith(("Mixed", "Inspect", "No common"))
                   else self._digest_ui_to_policy(digest_label))
 
-        changed = False
-        for repo in enabled:
-            effective_strategy = strategy or repository_verification_strategy(repo)
-            requirement, evidence_policy = {
-                "checksum-required": ("required", "off"),
-                "checksum-available": ("preferred", "off"),
-                "evidence-fallback": ("preferred", "fallback"),
-                "full-corroboration": ("required", "required"),
-                "skip-provenance": ("preferred", "off"),
-            }[effective_strategy]
-            if digest is not None and getattr(repo, "digest_preference", "auto") != digest:
-                repo.digest_preference = digest
-                changed = True
-            if getattr(repo, "verification_strategy", "") != effective_strategy:
-                repo.verification_strategy = effective_strategy
-                changed = True
-            # Keep legacy fields synchronized for older callers and saved data.
-            if getattr(repo, "digest_requirement", "preferred") != requirement:
-                repo.digest_requirement = requirement
-                changed = True
-            if getattr(repo, "evidence_policy", "off") != evidence_policy:
-                repo.evidence_policy = evidence_policy
-                changed = True
+        service = self.__dict__.get("_repository_policy_service") or RepositoryPolicyService()
+        changed = service.apply_common_policy(
+            enabled, strategy=strategy, digest_preference=digest,
+        )
         if changed:
             self._invalidate_provenance_analysis()
             self._log(
@@ -1639,6 +1546,9 @@ class ProvenanceMixin(BuildSourcesMixin):
                     self.events.put(("checksum_inspection_progress", show_complete))
 
             def finish():
+                runtime = getattr(self, "operation_runtime", None)
+                if runtime is not None:
+                    runtime.finish_worker()
                 final = (f"Checksum inspection complete with {len(errors)} error(s)"
                          if errors else "Checksum inspection complete")
                 self._release_operation(final, outcome=("failed" if errors else "idle"))
@@ -1664,7 +1574,11 @@ class ProvenanceMixin(BuildSourcesMixin):
                         f"Inspection complete. {len(results)} of {len(enabled)} repositories read successfully.")
             self.events.put(("checksum_inspection_finished", finish))
 
-        threading.Thread(target=worker, daemon=True).start()
+        starter = getattr(self, "_start_operation_worker", None)
+        if callable(starter):
+            starter(target=worker)
+        else:  # Historical standalone mixin hosts in integration tests.
+            threading.Thread(target=worker, daemon=True).start()
 
     def _refresh_provenance_tree(self):
         self._refresh_repository_transport_warning()

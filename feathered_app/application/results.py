@@ -25,6 +25,7 @@ from feathered_app.context import (
     ttk,
 )
 from feathered_app.ui.theme import human_size, messagebox
+from feathered_app.review_state import ReviewStateMixin
 
 
 RESULT_REVIEW_PAGE_SIZE = 1000
@@ -45,6 +46,8 @@ def _paginate_packages(packages, *, page: int = 0, page_size: int = RESULT_REVIE
     start = page * page_size
     return items[start:start + page_size], page, page_count, start
 
+
+from feathered_app.dependency_ports import ports_for
 
 class ResultsMixin(BuildPreparationMixin):
     """Inventory/output interaction, result rendering, warning confirmation, and trust options."""
@@ -419,29 +422,30 @@ class ResultsMixin(BuildPreparationMixin):
         # the right moment to remember a hand-typed one.
         if result.selected:
             self._remember_release(self.release_var.get())
-        same_result = result is getattr(self, "last_result", None)
-        self.last_result = result
-        # Bind the result to the parameters it was computed from.
-        self.analysis_signature = self._parameter_signature()
-        current_unresolved_keys = {self._format_requirement_backend(req) for req in result.unresolved}
-        self.ignored_unresolved.intersection_update(current_unresolved_keys)
-        result.ignored_unresolved = sorted(self.ignored_unresolved)
         pick = self._pick_mode()
-        # Everything starts included, so the operator removes rather than adds.
-        # But a build re-runs the analysis, and unconditionally resetting here
-        # discarded a selection the operator had just made - deselecting
-        # everything and pressing Build silently downloaded the whole closure.
-        # Keep the previous choice when the closure itself has not changed.
-        current = {p.nevra for p in result.selected}
-        previous = getattr(self, "picked_closure", None)
-        if pick and previous == current and getattr(self, "picked", None) is not None:
-            self.picked = {n for n in self.picked if n in current}
+        signature = self._parameter_signature()
+        current_unresolved_keys = {self._format_requirement_backend(req) for req in result.unresolved}
+        if isinstance(self, ReviewStateMixin):
+            self.review_state.accept_result(
+                result, signature=signature, pick_mode=pick,
+                unresolved_keys=current_unresolved_keys)
         else:
-            self.picked = set(current) if pick else set()
-        self.picked_closure = current if pick else None
-        if not same_result:
-            self.result_page = 0
-            self._result_item_states = {}
+            # ResultsMixin-only hosts remain compatible during migration.
+            same_result = result is getattr(self, "last_result", None)
+            self.last_result = result
+            self.analysis_signature = signature
+            self.ignored_unresolved.intersection_update(current_unresolved_keys)
+            result.ignored_unresolved = sorted(self.ignored_unresolved)
+            current = {p.nevra for p in result.selected}
+            previous = getattr(self, "picked_closure", None)
+            if pick and previous == current and getattr(self, "picked", None) is not None:
+                self.picked = {n for n in self.picked if n in current}
+            else:
+                self.picked = set(current) if pick else set()
+            self.picked_closure = current if pick else None
+            if not same_result:
+                self.result_page = 0
+                self._result_item_states = {}
         self._render_result_page(result)
 
         if pick:
@@ -488,14 +492,14 @@ class ResultsMixin(BuildPreparationMixin):
                 f"{status}",
                 f"{len(mirror_summaries)} repository mirror(s)",
                 f"{len(result.selected)} package record(s)",
-                human_size(result.total_size),
+                ports_for(self).human_size(result.total_size),
                 f"{len(blocking)} blocking unresolved",
             ]
         else:
             parts = [
                 f"{status}",
                 f"{len(result.selected)} {noun}",
-                human_size(result.total_size),
+                ports_for(self).human_size(result.total_size),
                 f"{len(blocking)} blocking unresolved",
             ]
         if ignored_count:
@@ -548,8 +552,14 @@ class ResultsMixin(BuildPreparationMixin):
         """
         answered = threading.Event()
         decision = {"ok": False}
+        runtime = self.__dict__.get("_operation_runtime")
+        if runtime is not None and not runtime.register_ui_wait(answered):
+            return False
 
         def ask():
+            if runtime is not None and runtime.closed:
+                answered.set()
+                return
             enter_wait = getattr(self, "_set_operator_wait", None)
             resume_wait = getattr(self, "_resume_after_operator_wait", None)
             if callable(enter_wait):
@@ -568,9 +578,13 @@ class ResultsMixin(BuildPreparationMixin):
                     resume_wait("Continuing build" if decision["ok"] else "Cancelling build")
                 answered.set()
 
-        self.after(0, ask)
-        answered.wait()
-        return decision["ok"]
+        try:
+            self.after(0, ask)
+            answered.wait()
+            return decision["ok"] and not (runtime is not None and runtime.closed)
+        finally:
+            if runtime is not None:
+                runtime.unregister_ui_wait(answered)
 
     def _confirm_conflicts(self, conflicts) -> bool:
         preview = "\n".join(f"  • {c}" for c in conflicts[:8])
@@ -617,8 +631,14 @@ class ResultsMixin(BuildPreparationMixin):
         """
         answered = threading.Event()
         decision = {"ok": False}
+        runtime = self.__dict__.get("_operation_runtime")
+        if runtime is not None and not runtime.register_ui_wait(answered):
+            return False
 
         def record(value: bool):
+            if runtime is not None and runtime.closed:
+                answered.set()
+                return
             decision["ok"] = bool(value)
             resume_wait = getattr(self, "_resume_after_operator_wait", None)
             if callable(resume_wait):
@@ -626,6 +646,9 @@ class ResultsMixin(BuildPreparationMixin):
             answered.set()
 
         def open_review():
+            if runtime is not None and runtime.closed:
+                answered.set()
+                return
             enter_wait = getattr(self, "_set_operator_wait", None)
             if callable(enter_wait):
                 enter_wait("Build paused pending your decision in Activity log")
@@ -646,8 +669,12 @@ class ResultsMixin(BuildPreparationMixin):
                 answered.set()
                 raise
 
-        self.after(0, open_review)
-        answered.wait()
-        return decision["ok"]
+        try:
+            self.after(0, open_review)
+            answered.wait()
+            return decision["ok"] and not (runtime is not None and runtime.closed)
+        finally:
+            if runtime is not None:
+                runtime.unregister_ui_wait(answered)
 
 

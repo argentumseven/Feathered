@@ -3,7 +3,9 @@
 The GUI supplies live accessors and dialogs; a spec host supplies frozen values
 and explicit policies. This module imports neither App nor the UI context.
 """
+
 from __future__ import annotations
+from feathered_app.dependency_ports import ports_for
 
 import copy
 from datetime import datetime
@@ -19,7 +21,8 @@ from feathered_app.prepared_plan import PreparedPlan
 from source_readiness import evaluate_source_readiness
 from feathered_app.source_scope import (
     BuildScopeContext, ParticipationContext,
-    RepositoryTarget, TargetScope, participates, select_build_scope, target_compatible,
+    RepositoryTarget, TargetScope, init_blocked_required_roles,
+    participates, select_build_scope, target_compatible,
 )
 import workload_resolution
 
@@ -100,9 +103,10 @@ class BuildPreparationMixin:
         roots still require the enabled base set, and free-form selections may
         use the whole enabled repository set.
         """
-        enabled = self._participating_transaction_repositories()
         if self._mirror_mode():
             return [r for r in self.repo_rows if r.url.strip() and self._mirror_repo_selected(r)]
+        enabled = [repo for repo in self._participating_transaction_repositories()
+                   if not self._init_repository_conflict(repo)]
         try:
             contextual_packages = bool(
                 not self._mirror_mode()
@@ -130,7 +134,15 @@ class BuildPreparationMixin:
                     "No repositories are ticked, so there is nothing to mirror. Tick the "
                     "repositories you want on the Repositories step - 'All' selects "
                     "every enabled repository.")
+            mismatch = self._mirror_format_conflict(selected)
+            if mismatch:
+                raise RuntimeError(mismatch)
             return
+        target_issue = self._workload_target_conflict()
+        if target_issue:
+            raise RuntimeError(target_issue)
+        eligible = [repo for repo in self._participating_transaction_repositories()
+                    if not self._init_repository_conflict(repo)]
         workload = self._workload()
         contextual_packages = bool(getattr(workload, "contextual_packages", False))
         if self._single_mode() or contextual_packages:
@@ -140,24 +152,35 @@ class BuildPreparationMixin:
                     if contextual_packages else
                     "Choose at least one exact package + version first")
                 raise RuntimeError(message)
-            enabled_ids = {r.source_identity for r in self.repo_rows if r.enabled and r.url}
+            enabled_ids = {r.source_identity for r in eligible}
             missing_sources = sorted({p.repo.name for p in self.selected_packages
                                       if p.repo.source_identity not in enabled_ids})
             if missing_sources:
                 raise RuntimeError(
-                    "Repository/repositories containing selected exact packages are no longer enabled: "
-                    + ", ".join(missing_sources) + ". Choose the affected package(s) again or re-enable the exact source.")
+                    "Repository/repositories containing selected exact packages are no longer eligible "
+                    "for this target or init system: " + ", ".join(missing_sources)
+                    + ". Choose the affected package(s) again or enable a compatible exact source.")
         else:
             if self._workload_uses_distribution_sources() and not any(
-                    r.enabled and r.url.strip() and self._repo_tier(r) == "base" for r in self.repo_rows):
+                    self._repo_tier(r) == "base" for r in eligible):
                 raise RuntimeError(
                     f"{workload.label} includes distribution-native root packages, but no distribution "
-                    "repository is enabled. Enable the required distribution sources on Repositories.")
+                    "repository is eligible for this target or init system. Enable compatible "
+                    "distribution sources on Repositories.")
             for role in self._workload_required_repository_roles():
-                if not any(r.enabled and r.role == role and r.url for r in self.repo_rows):
+                if not any(r.role == role for r in eligible):
+                    blocked = self._init_blocked_workload_source_message()
+                    if blocked:
+                        raise RuntimeError(blocked)
                     raise RuntimeError(
-                        f"{workload.label} requires a workload repository for role '{role}'. "
-                        "Add or enable its recommended source on Repositories.")
+                        f"{workload.label} requires a target-compatible workload repository for role '{role}'. "
+                        "Add or enable a compatible source on Repositories.")
+            # Presence in the configured list is not readiness. An enabled
+            # Docker source, for example, can still be excluded by the target
+            # init lock; reject that contradiction before loading OS indexes.
+            blocked = self._init_blocked_workload_source_message()
+            if blocked:
+                raise RuntimeError(blocked)
         # Do not require a repository whose *label* is role="dependency" here.
         # The resolver can satisfy transitive dependencies from any enabled
         # repository; only requested workload roots are role-constrained.  A
@@ -190,9 +213,120 @@ class BuildPreparationMixin:
             url=lambda repo: repo.url,
             name=lambda repo: getattr(repo, "name", "?"),
             init_conflict=lambda repo: self._init_repository_conflict(repo),
-            log=lambda message: self._log(message),
+            log=lambda message: self._log_init_exclusion_once(message),
         )
         return select_build_scope(context, package_only=package_only)
+
+    def _log_init_exclusion_once(self, message: str) -> None:
+        """Do not flood the activity log on every GUI readiness refresh."""
+        seen = self.__dict__.setdefault("_reported_init_exclusions", set())
+        if message not in seen:
+            seen.add(message)
+            self._log(message)
+
+    def _init_blocked_workload_source_message(self, participating=None) -> str:
+        """Explain an impossible workload/source combination without network I/O."""
+        if self._mirror_mode() or self._single_mode():
+            return ""
+        plan = self._source_plan()
+        if not plan.required_roles:
+            return ""
+        rows = (self._participating_transaction_repositories()
+                if participating is None else participating)
+        blocked = init_blocked_required_roles(
+            plan.required_roles, rows, self._init_repository_conflict)
+        if not blocked:
+            return ""
+        problems = []
+        for role, excluded in blocked.items():
+            names = ", ".join(str(getattr(repo, "name", "repository")) for repo, _ in excluded)
+            reasons = "; ".join(dict.fromkeys(reason for _, reason in excluded))
+            problems.append(f"role '{role}' ({names}): {reasons}")
+        message = (
+            f"{self._workload().label} cannot be built for the selected init system: "
+            "all enabled, target-compatible sources for required workload " + "; ".join(problems)
+            + ". Select an init-compatible source or choose a different workload/target."
+        )
+        if self._profile().key == "devuan" and "docker" in blocked:
+            message += (
+                " On Devuan, an alternative is Choose packages, then select "
+                "docker.io from Devuan's own repositories; verify availability "
+                "and init-service support for the selected release."
+            )
+        return message
+
+
+    def _workload_target_conflict(self) -> str:
+        """Enforce the workload catalog in GUI, CLI and saved-spec replay alike."""
+        if self._mirror_mode() or self._single_mode():
+            return ""
+        # Legacy tests construct an App using __new__, without Tk or target
+        # controls. Those partial hosts can validate repository-role topology
+        # but have no selected target against which to validate the catalog.
+        # A prepared CLI host has _build_snapshot; a live GUI has distro_var.
+        if not (self.__dict__.get("_build_snapshot") is not None
+                or "distro_var" in self.__dict__
+                or "_profile" in self.__dict__):
+            return ""
+        workload = self._workload()
+        supports = getattr(workload, "supports_target", None)
+        if not callable(supports):
+            return ""  # Legacy partial-host compatibility.
+        profile = self._profile()
+        if not getattr(profile, "key", ""):
+            return ""  # An uninitialized target cannot have a catalog conflict.
+        release = BuildRequestMixin._selected_release(self)
+        if not supports(profile.key, release):
+            return (f"{workload.label} is not offered for {profile.label} {release or '(unspecified release)'}. "
+                    "Choose a supported workload or target before reading repository metadata.")
+        family = getattr(profile, "package_family", "")
+        if (family and not getattr(workload, "custom", False)
+                and not workload.packages_for(family)):
+            return (f"{workload.label} has no package mapping for {profile.package_family} targets. "
+                    "Choose a supported workload or supply an explicit package catalog.")
+        return ""
+
+
+    def _configured_source_conflict(self, plan, eligible) -> str:
+        """Explain when a configured source is unusable rather than absent."""
+        enabled = [repo for repo in self.repo_rows
+                   if repo.enabled and str(repo.url or "").strip()]
+        scopes = []
+        if plan.distribution_required:
+            scopes.append(("distribution roots", lambda repo: self._repo_tier(repo) == "base"))
+        scopes.extend((f"role '{role}'", lambda repo, role=role: repo.role == role)
+                      for role in plan.required_roles)
+        for label, matches in scopes:
+            relevant = [repo for repo in enabled if matches(repo)]
+            if not relevant or any(repo in eligible for repo in relevant):
+                continue
+            # Only explain explicit target incompatibility here. Init-blocked
+            # roles have their own more detailed diagnostic and alternatives.
+            if all(not self._repository_target_compatible(repo) for repo in relevant):
+                return (f"Configured repositories for {label} belong to a different target "
+                        "distribution, release, architecture or package format. Select a compatible source.")
+        return ""
+
+
+    def _mirror_format_conflict(self, selected=None) -> str:
+        """Publication uses the target's backend even when indexes load per source.
+
+        A foreign distribution is mirrorable when it uses the same package
+        format. Mixing APT, RPM and pacman would otherwise load successfully
+        but pass the wrong package objects to the publication backend.
+        """
+        profile = self._profile()
+        expected = {"deb": "apt", "rpm": "rpm", "arch": "pacman"}[profile.package_family]
+        if selected is None:
+            selected = [repo for repo in self.repo_rows
+                        if str(repo.url or "").strip() and self._mirror_repo_selected(repo)]
+        foreign = [repo for repo in selected if (repo.repo_format or expected) != expected]
+        if foreign:
+            names = ", ".join(dict.fromkeys(repo.name for repo in foreign))
+            return (f"Selected mirror source(s) have a different package format from the "
+                    f"{expected} target: {names}. Mirror these repositories in a matching "
+                    "target profile, or unselect them before building.")
+        return ""
 
 
     def _build_options(self, package_only: bool = False):
@@ -415,29 +549,69 @@ class BuildPreparationMixin:
         return self._source_plan().distribution_required
 
     def _init_repository_conflict(self, repo):
+        # The same partial-host contract as _repository_target_compatible:
+        # no target/init policy exists until either a frozen request or the
+        # initialized GUI target controls are present.
+        if not (self.__dict__.get("_build_snapshot") is not None
+                or "distro_var" in self.__dict__
+                or "_profile" in self.__dict__):
+            return ""
+        profile = self._profile()
+        if not getattr(profile, "key", ""):
+            return ""
         return workload_resolution.repository_init_conflict(
-            repo.name, repo.url, self._profile().key, self._selected_init_system())
+            repo.name, repo.url, profile.key, self._selected_init_system())
 
     def _acquisition_state(self):
         intent = self._acquisition_intent()
         if intent is AcquisitionIntent.REPOSITORY_MIRROR:
-            return derive_acquisition_state(intent, mirror_repository_count=len(self._selected_mirror_repositories()))
+            selected = self._selected_mirror_repositories()
+            return derive_acquisition_state(
+                intent, mirror_repository_count=len(selected),
+                blocked_mirror_reason=self._mirror_format_conflict(selected))
         rows = self._participating_transaction_repositories()
+        # Readiness must describe the same init-safe universe that execution
+        # will load, not merely the enabled checkboxes in the repository table.
+        safe_rows = [row for row in rows if not self._init_repository_conflict(row)]
         if intent is AcquisitionIntent.PACKAGES:
-            enabled = {r.source_identity for r in rows}
+            enabled = {r.source_identity for r in safe_rows}
+            unavailable = [p.repo for p in self.selected_packages
+                           if p.repo.source_identity not in enabled]
+            exact_issue = ""
+            for source in unavailable:
+                configured = [r for r in self.repo_rows
+                              if r.source_identity == source.source_identity
+                              and r.enabled and str(r.url or "").strip()]
+                if not configured:
+                    continue
+                if all(not self._repository_target_compatible(r) for r in configured):
+                    exact_issue = ("A selected exact package comes from a repository configured for a "
+                                   "different target distribution, release, architecture or package format.")
+                    break
+                conflicts = [self._init_repository_conflict(r) for r in configured]
+                if conflicts and all(conflicts):
+                    exact_issue = ("A selected exact package comes from a repository incompatible "
+                                   "with the selected init system: " + conflicts[0])
+                    break
             return derive_acquisition_state(intent, exact_root_count=len(self.selected_packages),
                 exact_root_sources_ready=bool(self.selected_packages) and
-                all(p.repo.source_identity in enabled for p in self.selected_packages))
+                all(p.repo.source_identity in enabled for p in self.selected_packages),
+                blocked_exact_reason=exact_issue)
         plan = self._source_plan()
+        safe_readiness = evaluate_source_readiness(
+            plan, safe_rows, tier_getter=self._repo_tier)
+        preflight_issue = (self._workload_target_conflict()
+                           or self._init_blocked_workload_source_message(rows)
+                           or self._configured_source_conflict(plan, safe_rows))
         package_only_requested = (
             BuildRequestMixin._selected_content(self, "dependency_mode", "mode_var")
             == WORKLOAD_PACKAGE_ONLY_MODE)
         return derive_acquisition_state(
             intent,
-            workload_readiness=evaluate_source_readiness(
-                plan, rows, tier_getter=self._repo_tier),
+            workload_readiness=safe_readiness,
             workload_root_count=len(plan.roots),
-            workload_package_only_requested=package_only_requested)
+            workload_package_only_requested=package_only_requested,
+            blocked_workload_reason=preflight_issue)
 
     def _package_only_acquisition_mode(self):
         return self._acquisition_state().capability is AcquisitionCapability.PACKAGE_ONLY
@@ -494,7 +668,7 @@ def prepare_job(host, *, do_download=True, state=None, picked_at_start=None,
     host._validate_output_naming()
     host._validate_sources(opts.include_dependencies)
     # Freeze the clock before any confirmation; GUI snapshot capture preserves it.
-    host.__dict__['_build_naming_time'] = datetime.now()
+    host.__dict__['_build_naming_time'] = ports_for(host).datetime.now()
     locked_name = None
     forks = []
     if do_download:

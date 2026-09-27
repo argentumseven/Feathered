@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from feathered_app.build_host_contracts import EventSink
 
 
+from feathered_app.dependency_ports import ports_for
+
 class BuildMirrorMixin:
     """Mirror inventory and unification. No widget access."""
 
@@ -86,7 +88,7 @@ class BuildMirrorMixin:
         } for repo in repos]
         for row in result.mirror_repository_summaries:
             reporter.log(f"Mirror inventory: {row['name']}: {row['package_count']:,} "
-                         f"package record(s), {human_size(row['total_size'])}")
+                         f"package record(s), {ports_for(self).human_size(row['total_size'])}")
         reporter.log(plan.summary())
         if plan.deduplicated:
             reporter.log(
@@ -156,7 +158,7 @@ class BuildMirrorMixin:
             })
             reporter.log(
                 f"Mirror inventory: {repo.name}: {len(repo_packages):,} package record(s), "
-                f"{human_size(summaries[-1]['total_size'])}")
+                f"{ports_for(self).human_size(summaries[-1]['total_size'])}")
 
         result = BuildMirrorMixin._mirror_resolution_result(self, aggregate)
         # Runtime-only publication plan used by BuildMixin; result classes are
@@ -167,7 +169,7 @@ class BuildMirrorMixin:
         total = sum(row["total_size"] for row in summaries)
         reporter.log(
             f"Mirror aggregate: {len(repos)} repositories, {len(aggregate):,} package record(s), "
-            f"{human_size(total)}; no cross-repository de-duplication applied")
+            f"{ports_for(self).human_size(total)}; no cross-repository de-duplication applied")
         return result
 
     def _on_item_event(self, identity: str, state: str, info: dict) -> None:

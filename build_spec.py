@@ -8,6 +8,8 @@ JSON round-trip fidelity does not promise byte-identical repository contents.
 """
 from __future__ import annotations
 
+from feathered_app.source_selection_state import selection_value
+
 import json
 from dataclasses import asdict, dataclass, field, fields, replace, is_dataclass
 from typing import Any, Dict, Mapping, Optional, Tuple, Union, get_args, get_origin, get_type_hints
@@ -330,7 +332,7 @@ def capture(host) -> BuildSpec:
 
             exact_packages=tuple(
                 ExactPackageRecord.capture(package)
-                for package in (host.__dict__.get("selected_packages") or ())),
+                for package in (selection_value(host, "selected_packages") or ())),
         ),
         sources=SourceSpec(
             method=_var(host, "source_method_var"),

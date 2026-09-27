@@ -13,7 +13,9 @@ widgets to reach for.
 They are a mixin rather than a standalone class only because the rest of the
 build path still lives on `App`. As more of A2 lands, this is where it lands.
 """
+
 from __future__ import annotations
+from feathered_app.dependency_ports import ports_for
 
 from datetime import datetime
 from typing import Any
@@ -187,7 +189,7 @@ class BuildRequestMixin:
         # as well as the settings. Without this, a build confirmed at 23:59:59
         # and written at 00:00:01 produces two different folder names from the
         # same request, which is what locked_output_folder_name exists to catch.
-        self.__dict__.setdefault("_build_naming_time", datetime.now())
+        self.__dict__.setdefault("_build_naming_time", ports_for(self).datetime.now())
         return arch
 
     def _release_build_inputs(self):

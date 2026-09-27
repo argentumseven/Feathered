@@ -7,7 +7,9 @@ import arch_core
 import core
 from checksum_inspection import inspect_checksums
 from feathered_app.repository_advisory import archive_keyring_state, http_repository_advice
-from repository_transport import normalize_query_key_names
+from feathered_app.repository_policy import (
+    EvidenceSelection, RepositoryOverride, RepositoryPolicyService,
+)
 
 from feathered_app.context import (
     APP_TITLE,
@@ -37,8 +39,17 @@ from feathered_app.context import (
 from feathered_app.ui.theme import messagebox
 
 
+from feathered_app.dependency_ports import ports_for
+
 class RepositoriesMixin:
     """Repository editor workflows and repository trust configuration."""
+
+    def _get_repository_policy_service(self) -> RepositoryPolicyService:
+        service = self.__dict__.get("_repository_policy_service")
+        if service is None:
+            service = RepositoryPolicyService()
+            self._repository_policy_service = service
+        return service
 
     def _checksum_inspection_loader(self, repo):
         """Resolve the backend while distribution controls belong to the UI thread."""
@@ -53,6 +64,13 @@ class RepositoriesMixin:
         snapshot = copy.deepcopy(repo)
         arches = {self.arch_var.get()}
         loader = self._checksum_inspection_loader(repo)
+
+        starter = getattr(self, "_start_operation_worker", None)
+        if callable(starter):
+            previous_finish = finish
+            def finish(*args):
+                self.operation_runtime.finish_worker()
+                return previous_finish(*args)
 
         def work():
             try:
@@ -73,7 +91,10 @@ class RepositoriesMixin:
                 self._log(f"{snapshot.name}: checksum inspection failed: {error}")
             self.events.put(("checksum_inspection_finished", finish, result, error))
 
-        threading.Thread(target=work, daemon=True).start()
+        if callable(starter):
+            starter(target=work)
+        else:  # Standalone repository-editor hosts retain their old API.
+            threading.Thread(target=work, daemon=True).start()
 
     def _refresh_repository_transport_warning(self):
         labels = [self.__dict__.get(name) for name in (
@@ -116,7 +137,7 @@ class RepositoriesMixin:
             trust, _tag = archive_keyring_state(r)
             strategy = repository_verification_strategy(r)
             if self._strategy_uses_evidence(strategy) and r.evidence_urls:
-                rel = evidence_relationship(r, r.evidence_urls[0])
+                rel = ports_for(self).evidence_relationship(r, r.evidence_urls[0])
                 rel_label = "rebuild peer" if rel == REL_REBUILD_PEER else "exact evidence"
                 evidence = f"{self._strategy_policy_to_ui(strategy)} ({rel_label})"
             elif self._strategy_uses_evidence(strategy):
@@ -514,8 +535,6 @@ class RepositoriesMixin:
             "Signed or resource-bound query fields should not be inherited.",
             pady=(0, 0))
 
-        def query_names(text):
-            return sorted(normalize_query_key_names(text.replace(",", " ").split()))
         # Never let a verifier-integrity failure abort dialog construction and
         # leave a half-built Toplevel on screen.
         try:
@@ -545,62 +564,37 @@ class RepositoriesMixin:
             strategy_help_var.set(self._strategy_help_text(strategy))
 
         def sync_settings(_event=None):
-            old = (
-                repo.digest_preference, repo.digest_requirement, repo.evidence_policy,
-                getattr(repo, "verification_strategy", ""), tuple(repo.evidence_urls),
-                repo.keyring, repo.allow_unverified_index,
-                tuple(getattr(repo, "sensitive_query_keys", []) or []),
-                tuple(getattr(repo, "inheritable_query_credential_keys", []) or []))
-            repo.digest_preference = reverse_digest.get(digest_var.get(), "auto")
-            strategy = reverse_strategy.get(strategy_var.get(), "checksum-available")
-            repo.verification_strategy = strategy
-            repo.digest_requirement, repo.evidence_policy = {
-                "checksum-required": ("required", "off"),
-                "checksum-available": ("preferred", "off"),
-                "evidence-fallback": ("preferred", "fallback"),
-                "full-corroboration": ("required", "required"),
-                "skip-provenance": ("preferred", "off"),
-            }[strategy]
-            repo.keyring = keyring_var.get().strip()
-            repo.allow_unverified_index = unverified_var.get().startswith("Permit")
-            repo.sensitive_query_keys = query_names(sensitive_query_var.get())
-            repo.inheritable_query_credential_keys = query_names(inheritable_query_var.get())
-
             choice = source_var.get()
-            urls = list(repo.evidence_urls or [])
-            selected_spec = None
+            selection = None  # Unknown label: retain the existing selection.
             if choice == none_label:
-                urls = []
+                selection = EvidenceSelection()
             elif choice == manual_label:
                 manual = manual_url_var.get().strip()
-                urls = [manual] if manual else []
-                if urls:
-                    selected_spec = EvidenceCandidate(urls[0], "Manual evidence source",
-                                                      REL_EXACT_ARTIFACT, AUTH_UNKNOWN, "manual")
+                selection = EvidenceSelection(
+                    manual,
+                    EvidenceCandidate(manual, "Manual evidence source",
+                                      REL_EXACT_ARTIFACT, AUTH_UNKNOWN, "manual")
+                    if manual else None,
+                )
             elif choice in candidate_specs:
-                selected_spec = candidate_specs[choice]
-                urls = [selected_spec.url]
+                candidate = candidate_specs[choice]
+                selection = EvidenceSelection(candidate.url, candidate)
             elif choice in candidate_map:
-                urls = [candidate_map[choice]]
-            if urls:
-                distinct, _reason = mirrors_are_distinct(repo.normalized_url, urls[0])
-                if not distinct:
-                    urls = []
-                    selected_spec = None
-            repo.evidence_urls = urls
-            repo.evidence_relationship_hints = {}
-            repo.evidence_authority_hints = {}
-            if urls and selected_spec is not None:
-                repo.evidence_relationship_hints[urls[0]] = selected_spec.relationship
-                repo.evidence_authority_hints[urls[0]] = selected_spec.authority
-
-            new = (
-                repo.digest_preference, repo.digest_requirement, repo.evidence_policy,
-                repo.verification_strategy, tuple(repo.evidence_urls), repo.keyring,
-                repo.allow_unverified_index,
-                tuple(repo.sensitive_query_keys),
-                tuple(repo.inheritable_query_credential_keys))
-            if new != old:
+                selection = EvidenceSelection(candidate_map[choice])
+            strategy = reverse_strategy.get(strategy_var.get(), "checksum-available")
+            updated = self._get_repository_policy_service().apply_override(
+                repo,
+                RepositoryOverride(
+                    digest_preference=reverse_digest.get(digest_var.get(), "auto"),
+                    verification_strategy=strategy,
+                    keyring=keyring_var.get(),
+                    allow_unverified_index=unverified_var.get().startswith("Permit"),
+                    sensitive_query_keys=sensitive_query_var.get(),
+                    inheritable_query_credential_keys=inheritable_query_var.get(),
+                    evidence=selection,
+                ),
+            )
+            if updated:
                 self._invalidate_provenance_analysis()
                 self._refresh_repo_tree_if_open()
                 self._log(

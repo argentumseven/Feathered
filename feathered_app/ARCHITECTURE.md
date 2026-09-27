@@ -9,6 +9,11 @@
 - `ui/panes.py` - wizard pane construction.
 - `application/tools.py` - repository-maintenance tools and transfer UI coordination.
 - `application/selection.py` - package selection and review-state coordination.
+- `review_state.py` - Tk-independent ownership of review results, selections,
+  unresolved-requirement waivers, pagination, and transfer-row status. The
+  desktop shell exposes its historical attribute names through compatibility
+  descriptors; analysis reconciliation and bulk selection run on the state
+  object without widget dependencies.
 - `persistence/user_state.py` - aliases, key/trust references, vendor signature profiles, and entitlement persistence.
 - `application/provenance.py` - evidence, digest, signature, provenance, and keyring policy.
 - `application/output.py` - output naming and publication-path interaction.
@@ -18,7 +23,12 @@
 - `application/discovery.py` - release discovery, probes, reports, and version scans.
 - `application/repositories.py` - repository editing and trust configuration.
 - `application/results.py` - result rendering, trust/conflict decisions, and output actions.
-- `application/operations.py` - worker ownership, cancellation, progress, and event dispatch.
+- `operation_state.py` - headless exclusive-operation lease and legacy field adapters.
+- `operation_runtime.py` - one headless owner for the lease, tracked worker and
+  cancellation event; all exclusive desktop workers use its start/completion
+  boundary, while Tk updates remain on the main-thread event queue.
+- `application/operations.py` - GUI operation controls, visual activity timer,
+  worker-completion dispatch and the main-thread event queue.
 
 ## Build core
 
@@ -40,15 +50,96 @@ The headless build path is based on explicit request/state objects rather than T
 
 `source_scope.py` owns target compatibility, repository participation, and final source-scope selection. `repository_universe.py`, `metadata_loading.py`, and the package-family core modules provide the repository data used by preparation and resolution.
 
+`repository_selection.py` owns the independent source-selection policies used by
+the desktop wizard. `WorkloadRepositoryService` enables or materializes required
+workload-role sources and disables obsolete profile-managed sources without
+overriding manually configured rows. `MirrorSelectionService` calculates
+selectable mirror candidates and reconciles explicit source-identity selections
+across refreshes. Both receive repository lists and callbacks as explicit inputs
+and require neither Tk nor an `App` reference. The GUI adapters retain the
+existing public methods, logging, widget updates, and derived-state invalidation.
+`RepositoryUniverse` remains the sole storage for the separate transaction and
+mirror repository lists; this extraction does not migrate every wizard attribute
+out of the legacy `App` object.
+
+## Wizard navigation boundary
+
+`wizard_navigation.py` holds the deterministic stage map, Next/Back labels,
+local target/repository/review prerequisites, logical validation-focus targets,
+and alternate source-recovery policy. It accepts plain values, not Tk widgets,
+`App`, or mutable repository objects. `ui/layout.py` retains widget updates,
+domain-specific validator adapters, dialogs, scroll/focus,
+and main-thread pane transitions. Public navigation methods are preserved as
+adapters, including free rail navigation and a terminal Review page. Recovery
+choices are only *offered* by the service: applying a choice remains an explicit
+user action in the GUI.
+
+`repository_status.py` now projects workload-role, distribution, exact-package
+and mirror-source requirements from explicit source snapshots. It does not read
+widgets or the ambient `App` object, distinguishes identical repository labels
+by concrete source identity, and redacts repository credentials in displayed
+locations. `repository_workflow.py` selects the Repositories pane mode and its
+full-target cache identity without constructing widgets. The existing
+`SourcesMixin` and `PaneMixin` methods collect inputs and render the returned
+state, keeping the public desktop integration stable.
+
+## Option advisories
+
+`option_advisory.py` classifies dropdown values as stable, pre-release,
+end-of-life or init-incompatible from explicit inputs (release identities known
+to be development series, Kubernetes lifecycle rows, init conflicts). It owns
+`preferred_default`, which selects the newest stable option for fresh targets.
+It imports neither Tk nor `App`. `ui/option_marking.py` renders the result:
+it recolours and tags rows of ttk's popdown listbox after Tk refills it, while
+selection still maps by index to the unchanged `-values`, and it switches the
+closed field to `Prerelease.TCombobox` / `Incompatible.TCombobox` without
+replacing validation's `Attention.TCombobox`. Beta release identities are
+learned by release discovery and persisted in the release cache (`prerelease`).
+
+## Package-source coverage
+
+`package_coverage.py` owns eligibility, package-family version comparisons,
+repository priority ordering, optional gaps, workload-name substitution and
+source-identity-safe mirror counts. The GUI acquires metadata, freezes its target
+inputs before launching the worker and renders the service result. The existing
+`PaneMixin` matching/selection methods remain compatibility adapters. Coverage
+does not certify dependencies or artifact integrity. Tests exercise all three
+package families and execute both root and mirror checks on a real background
+thread with live-GUI-variable access prohibited.
+
+## Wizard validation boundary
+
+`provenance_validation.py` enforces the evidence navigation gate from explicit
+checksum/inspection prerequisites and immutable snapshots of current evidence
+selection plus keyed spot-test outcomes. It does not access Tk, App, the network,
+or repository caches. The GUI retains responsibility for constructing those
+snapshots, particularly the full preflight cache key: selection, checksum policy,
+root set and evidence relationship must all match a prior successful test.
+Semantic rebuild peers cannot fill acquisition checksum gaps under Enhanced.
+
+`package_name_validation.py` checks free-form package roots against the loaded
+package index, including virtual provides and near-name suggestions, without
+controlling GUI prompts. This is an advisory check, not a substitute for final
+resolver output; an empty or stale index cannot establish package availability.
+Both existing wizard methods remain compatibility adapters to these services.
+
 ## Compatibility surface
 
-The public `App` class remains a composition of responsibility-oriented mixins so existing callers and tests can continue to override application methods. `app.py` also preserves dependency propagation for callers that monkeypatch exported dependencies through the public module.
+The public `App` class remains a composition of responsibility-oriented mixins so existing callers and tests can continue to override application methods. `app.py` retains a narrow six-port legacy facade for older monkeypatching
+callers; independently configured instances use `ApplicationDependencyPorts`.
 
 New non-UI work should prefer the explicit build API and service interfaces rather than adding additional GUI state dependencies.
 
 ## Threading boundary
 
-Tk state is captured on the main thread before build execution. Worker execution consumes frozen request/preparation state and communicates through service/event interfaces. Mid-build trust, conflict, waiver, and publication decisions are policy calls rather than direct message-box dependencies.
+Tk state is captured on the main thread before build execution. The shared
+`OperationRuntime` registers each exclusive operation's worker before starting
+it, rejects overlap, and retains the previous worker until it actually exits
+even if its completion event is consumed early. UI cancellation uses the
+runtime's cooperative cancellation event. Unrelated best-effort background
+queries remain under their existing non-exclusive `BackgroundJobs` scheduler.
+Worker execution consumes frozen request/preparation state and communicates
+through service/event interfaces. Mid-build trust, conflict, waiver, and publication decisions are policy calls rather than direct message-box dependencies.
 
 ## Package-manager boundary
 

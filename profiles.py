@@ -67,6 +67,10 @@ class DistroProfile:
     release_observed_at: float = 0.0
     release_source: str = ""
     archive_discovery_url: str = ""
+    # Release identities (versions and/or codenames) known to be development,
+    # testing or beta series. They stay selectable but are flagged in the UI
+    # and are never chosen automatically as the default.
+    prerelease_versions: List[str] = field(default_factory=list)
 
     def known_versions(self) -> List[str]:
         """Every release this profile can offer, newest first.
@@ -111,7 +115,8 @@ def resolve_codename(release: str, table: Dict[str, str]) -> str:
     return release
 
 
-def discover_apt_releases(base_url: str, reporter=None, limit: int = 40, timeout: int = 45, workers: int = 1) -> Dict[str, str]:
+def discover_apt_releases(base_url: str, reporter=None, limit: int = 40, timeout: int = 45, workers: int = 1,
+                          prerelease_out: Optional[set] = None) -> Dict[str, str]:
     """Learn version -> codename by reading the archive itself.
 
     Release tables go stale the moment a distribution ships or promotes a new
@@ -191,6 +196,18 @@ def discover_apt_releases(base_url: str, reporter=None, limit: int = 40, timeout
             # Index the major series too, so "13" resolves as well as "13.2".
             major = version.split(".")[0]
             discovered.setdefault(major, codename)
+    if prerelease_out is not None:
+        # Rolling development aliases identify the beta series precisely:
+        # Ubuntu's dists/devel, Debian/Devuan testing and unstable. Their
+        # codenames (and any versions mapped to them) are pre-release.
+        seen_by_suite = {suite: codename for suite, _version, codename in observations if codename}
+        for alias in ("devel", "testing", "unstable"):
+            codename = seen_by_suite.get(alias)
+            if codename is None:
+                _suite, _version, codename = read_suite(alias)
+            if codename:
+                prerelease_out.add(codename)
+                prerelease_out.update(v for v, c in discovered.items() if c == codename and "." in v)
     if codenames_seen:
         reporter.log("Release discovery: "
                      + ", ".join(f"{k}={v}" for k, v in sorted(codenames_seen.items())))
@@ -268,6 +285,32 @@ def extract_versions(text: str, pattern: str, mode: str = "href") -> List[str]:
         for m in rx.finditer(visible):
             found.add(m.group(1) if m.groups() else m.group(0))
     return sorted(found, key=version_key, reverse=True)
+
+
+_BETA_CONTEXT = re.compile(
+    # Only a qualifier directly after the version counts ("10.3 Beta",
+    # "10 Public Beta"); a following row's text must never qualify it.
+    r"^[\s:(\-]{0,3}(?:(?:public|limited|early)\s+)?(?:beta|alpha|rc\d*|preview|pre-release|prerelease|"
+    r"release\s+candidate|development)\b", re.IGNORECASE)
+
+
+def extract_prerelease_versions(text: str, pattern: str, mode: str = "href") -> set:
+    """Versions whose every visible mention is qualified as beta/preview.
+
+    Vendor release pages list "RHEL 10.3 Beta" beside GA rows. The version
+    regex alone cannot tell them apart, so inspect the words that follow each
+    match. A version with at least one unqualified mention is treated as GA.
+    """
+    if mode == "href":
+        return set()
+    rx = re.compile(pattern, re.IGNORECASE)
+    visible = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", text or ""))
+    flagged: Dict[str, bool] = {}
+    for match in rx.finditer(visible):
+        version = match.group(1) if match.groups() else match.group(0)
+        beta = bool(_BETA_CONTEXT.match(visible[match.end():match.end() + 40]))
+        flagged[version] = flagged.get(version, True) and beta
+    return {version for version, beta in flagged.items() if beta}
 
 
 def _major(version: str) -> str:

@@ -1,6 +1,6 @@
 <img width="2172" height="724" alt="473458245872458" src="https://github.com/user-attachments/assets/b3b9d422-2540-471e-9814-e636100a0a4b" />
 
-# Feathered 1.3.0
+# Feathered 1.4.0
 
 Feathered downloads Linux workloads, individual packages, and complete repositories for use offline. Choose what to collect, select the sources, and build a bundle. Archive keyrings, independent evidence, vendor signature requirements, and bundle signing are optional.
 
@@ -212,7 +212,7 @@ For Kubernetes-specific behavior, see [KUBERNETES.md](KUBERNETES.md).
 
 1. Extract the complete release archive into a normal directory. Do not run it from the ZIP preview.
 2. Install Python 3 with Tk support.
-3. Double-click `run_gui.bat` from the extracted `Feathered_1.3.0` directory.
+3. Double-click `run_gui.bat` from the extracted `Feathered_1.4.0` directory.
 
 When dependencies are missing, the launcher installs them from `requirements-runtime.lock` with hash verification and binary wheels only. `requirements.txt` remains the direct dependency specification. The complete `feathered_app` package must remain beside the launcher and top-level source files.
 

@@ -22,6 +22,8 @@ import uuid
 
 BATCH_SIZE = 20
 WINDOWS_ISOLATED_PREFIXES = (
+    "tests/test_activity_animation.py::",
+    "tests/test_option_advisory_gui.py::",
     "tests/test_application_startup.py::",
     "tests/test_build_spec.py::",
     "tests/test_build_worker_isolation.py::",
@@ -30,11 +32,15 @@ WINDOWS_ISOLATED_PREFIXES = (
     "tests/test_prepared_adapter_parity.py::",
     "tests/test_reported_defects.py::",
     "tests/test_repository_advisory_gui.py::",
+    "tests/test_repository_provenance_gui.py::",
     "tests/test_review_dialog_lock.py::",
+    "tests/test_review_state.py::",
     "tests/test_signing_navigation.py::",
     "tests/test_ui_event_budget.py::",
     "tests/test_version_ui_fixes.py::",
     "tests/test_workload_dependency_and_vks_context.py::",
+    "tests/test_wizard_navigation_service.py::",
+    "tests/test_review_projection.py::",
 )
 REPORT_PLUGIN = "release_pytest_exit"
 DEFAULT_TIMEOUT = 300.0

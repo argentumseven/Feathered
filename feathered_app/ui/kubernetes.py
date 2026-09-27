@@ -1,4 +1,7 @@
 """Small workload-specific adapters for existing Content/Repository/Review stages."""
+from feathered_app.option_advisory import classify_kubernetes_minor, preferred_default
+from feathered_app.ui.option_marking import attach_option_marker
+from feathered_app.source_selection_state import selection_value
 from copy import deepcopy
 from dataclasses import replace
 from urllib.error import HTTPError
@@ -41,6 +44,8 @@ class KubernetesWorkloadMixin:
         ttk.Label(self.k8s_minor_controls, text='Kubernetes minor repository', style='Panel.TLabel').grid(row=0, column=0, sticky='w')
         self.k8s_minor_combo = ttk.Combobox(self.k8s_minor_controls, textvariable=self.k8s_minor_var, state='normal')
         self.k8s_minor_combo.grid(row=1, column=0, sticky='ew')
+        self._k8s_minor_option_marker = attach_option_marker(
+            self.k8s_minor_combo, self._k8s_minor_option_advice, variable=self.k8s_minor_var)
         refresh = ttk.Button(self.k8s_minor_controls, text='Refresh minors', command=lambda: self._discover_kubernetes_minors(force=True))
         refresh.grid(row=1, column=1, padx=(10, 0))
         self._register_operation_control(refresh)
@@ -110,7 +115,7 @@ class KubernetesWorkloadMixin:
         if not active:
             var.set('VKS customization is not active.')
             return
-        packages = list(self.__dict__.get('selected_packages', []) or [])
+        packages = list(selection_value(self, 'selected_packages', []) or [])
         mode_var = self.__dict__.get('mode_var')
         mode = mode_var.get() if mode_var is not None else 'Complete bundle (recommended)'
         pin_var = self.__dict__.get('pin_to_inventory_baseline_var')
@@ -182,13 +187,18 @@ class KubernetesWorkloadMixin:
             self.k8s_observation_var.set(('Observed ' + observation.observed_at + ' from ' + observation.source + '. ' + observation.error)
                 if observation else 'Published minors from bundled/cached upstream data; repository availability is being checked. You can type a minor.')
             if choices and not self.k8s_minor_var.get():
-                self.k8s_minor_var.set(choices[0])
+                # Default to the newest *released*, supported minor.
+                self.k8s_minor_var.set(preferred_default(list(choices), self._k8s_minor_option_advice))
             self._update_k8s_knowledge_note()
             if discover and family not in self.__dict__.setdefault('_k8s_observed_session', set()):
                 self._discover_kubernetes_minors()
             if discover and self.k8s_minor_var.get():
                 self._queue_k8s_patch_scan()
         self._apply_vks_baseline_sources()
+
+    def _k8s_minor_option_advice(self, value):
+        knowledge = self.__dict__.get('_k8s_knowledge')
+        return classify_kubernetes_minor(value, getattr(knowledge, 'releases', ()) or ())
 
     def _discover_kubernetes_minors(self, force=False):
         family = self._profile().package_family
@@ -423,7 +433,7 @@ class KubernetesWorkloadMixin:
         try:
             context.validate()
             result = self.__dict__.get('last_result')
-            packages = result.selected if result else self.__dict__.get('selected_packages', [])
+            packages = result.selected if result else selection_value(self, 'selected_packages', [])
             data = report(context, packages)
             rows = data['findings'] + data['platform_advisories']
             text = '\n'.join(f"{f['severity'].upper()} · {f['package']} {f['version']}: {f['message']}" for f in rows)
@@ -457,7 +467,7 @@ class KubernetesWorkloadMixin:
         try:
             context.validate()
             result = self.__dict__.get('last_result')
-            data = report(context, result.selected if result else self.__dict__.get('selected_packages', []))
+            data = report(context, result.selected if result else selection_value(self, 'selected_packages', []))
             return context.acknowledged or not any(f['severity'] == 'conflict' for f in data['findings'])
         except ValueError:
             return False

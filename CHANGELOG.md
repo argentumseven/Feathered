@@ -1,6 +1,23 @@
-# Unreleased
+# 1.4.0 - 2026-09-27
+
+## Added
+
+- Native dark Windows title bars for the main window and Tk dialogs, matching the app header on Windows 11 and using the dark frame on supported Windows 10 versions.
+
+- Flag beta and development-series options in dropdowns. Release, workload package version and Kubernetes minor lists show pre-release rows highlighted yellow and tagged "· beta"; end-of-life Kubernetes minors are dimmed; workloads that the selected init system precludes are tagged "· incompatible". The closed field turns yellow when a beta is selected and the Distribution page explains why and names the newest released alternative. Stored values are unchanged.
+- Learn beta identities from the same live observation that lists releases: the archive's devel/testing/unstable aliases for APT targets, and "Beta"/"Preview" qualifiers on vendor release pages. Ubuntu series whose release month has not arrived are flagged offline. Beta identities persist in the release cache.
 
 ## Fixed
+
+- Redact encoded credential query names in logs and error text, and remove overlapping registered secrets longest-first.
+- Confine redirects when the current request URL or headers carry credentials, even if the configured repository URL is public.
+- Correct the repository-selection sort-key typing so the pinned static-analysis gate accepts the release.
+- Preserve native confirmation answers when themed dialogs cannot render; failed custom choices cancel instead of accepting their default.
+
+- Default the release, workload and Kubernetes minor selectors to the newest stable option instead of the first list entry, which could be a development series or an init-incompatible workload. Explicit operator choices are still kept.
+- Refresh workload versions only from sources the build would accept; init-incompatible or foreign-target sources no longer supply versions that preparation later rejects.
+- Accept Arch epoch package filenames with a decimal pkgrel (e.g. foo-2:3.0-1.1). They were truncated and rejected as absolute URLs.
+- Apply refreshed release state on the Tk thread before repopulating the release list, and update the in-memory profile even if the release cache cannot be written.
 
 - Check selected packages against retained installed conflicts in both directions, including Debian Breaks. Preserve conflict metadata during target capture and loading.
 - Resolve RPM user() and group() requirements through package or installed providers instead of ignoring them.

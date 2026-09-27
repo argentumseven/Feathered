@@ -14,6 +14,7 @@ if not getattr(_sys, "frozen", False):
 from feathered_app.context import *  # noqa: F401,F403
 from feathered_app.ui.theme import *  # noqa: F401,F403
 from feathered_app.ui.theme import _ThemedMessageBox
+from feathered_app.ui.window_chrome import install_dark_titlebars
 from feathered_app.ui.layout import LayoutMixin
 from feathered_app.ui.panes import PaneMixin
 from feathered_app.application.tools import ToolsMixin
@@ -30,12 +31,27 @@ from feathered_app.application.results import ResultsMixin
 from feathered_app.application.operations import OperationsMixin
 from feathered_app.repository_universe import RepositoryUniverseMixin
 from feathered_app.state import _ApplicationStateDescriptor
+from feathered_app.persistence.store import UserStateStore
+from feathered_app.repository_policy import RepositoryPolicyService
+from feathered_app.provenance_policy import ProvenancePolicyService
+from feathered_app.provenance_validation import ProvenanceValidationService
+from feathered_app.package_name_validation import PackageNameValidationService
+from feathered_app.repository_selection import MirrorSelectionService, WorkloadRepositoryService
+from feathered_app.source_selection_state import SourceSelectionState
+from feathered_app.review_state import ReviewState, ReviewStateMixin
+from feathered_app.operation_runtime import OperationRuntime
+from feathered_app.transfer_state import TransferProgressState
+from feathered_app.dependency_ports import ApplicationDependencyPorts, legacy_facade_ports
+from feathered_app.package_coverage import PackageCoverageService
+from feathered_app.repository_status import RepositoryStatusService
+from feathered_app.repository_workflow import RepositoryWorkflowService
+from feathered_app.target_transition import TargetTransitionService
 
 class App(
     LayoutMixin, PaneMixin, ToolsMixin, SelectionMixin, PersistenceMixin,
     ProvenanceMixin, OutputMixin, SourcesMixin, MediaMixin, BuildMixin,
     DiscoveryMixin, RepositoriesMixin, ResultsMixin, OperationsMixin,
-    RepositoryUniverseMixin, tk.Tk,
+    RepositoryUniverseMixin, ReviewStateMixin, tk.Tk,
 ):
     """Feathered desktop composition root.
 
@@ -47,28 +63,32 @@ class App(
     # additive state-view API with an instance attribute of the same name.
     app_state = _ApplicationStateDescriptor()
 
-    def __init__(self):
+    def __init__(self, *, dependencies: ApplicationDependencyPorts | None = None):
         super().__init__()
+        install_dark_titlebars(self, BG_HEADER, FG_TEXT)
+        self._app_dependencies = dependencies if dependencies is not None else legacy_facade_ports
         messagebox.bind_root(self)
         self.title(APP_TITLE)
         self.geometry("1120x760")
         self.minsize(900, 620)
         self.events: queue.Queue = queue.Queue()
-        self.cancel_event = threading.Event()
-        self.worker: threading.Thread | None = None
+        # One headless owner for the operation lease, worker and cancel signal.
+        self._operation_runtime = OperationRuntime()
+        self._operation_state = self._operation_runtime.operation_state
         # 1.0.43 gives every long-running
         # action one application-wide activity lease.  The lease is separate
         # from ``self.worker`` because checksum inspection also runs in a
         # background thread but historically bypassed the worker guard.
-        self.active_operation: str | None = None
-        self.active_operation_label = ""
         self._operation_controls: set = set()
         self._operation_saved_states: dict = {}
-        self._operation_cancellable = False
         self._activity_job = None
         self._activity_frame = 0
         self._activity_state = "idle"
-        self._operation_detail = ""
+        # One root-level teardown coordinates exclusive workers, replaceable
+        # queries and GUI animation. Child Destroy events do not close the app.
+        self._app_closing = False
+        self._unified_shutdown_handler_bound = True
+        self.bind("<Destroy>", self._on_app_destroy, add="+")
         # Wheel gestures retain their original scroll owner briefly.  This
         # prevents a fast page scroll from suddenly freezing when the pointer
         # crosses a nested table/combobox, while still letting a deliberate new
@@ -93,6 +113,18 @@ class App(
         # repo_rows/transaction_repo_rows/mirror_repo_rows are mode-scoped views
         # over one RepositoryUniverse. Assigning any of them lands in the right
         # slot on its own; there is nothing left to keep in step by hand.
+        self._repository_policy_service = RepositoryPolicyService()
+        self._provenance_policy_service = ProvenancePolicyService()
+        self._provenance_validation_service = ProvenanceValidationService()
+        self._package_name_validation_service = PackageNameValidationService()
+        self._workload_repository_service = WorkloadRepositoryService()
+        self._mirror_selection_service = MirrorSelectionService()
+        self._package_coverage_service = PackageCoverageService()
+        self._repository_status_service = RepositoryStatusService()
+        self._repository_workflow_service = RepositoryWorkflowService()
+        self._target_transition_service = TargetTransitionService()
+        self._source_selection_state = SourceSelectionState()
+        self._review_state = ReviewState()
         self.repo_rows = []
         self.loaded_signature = None
         self.loaded_packages = []
@@ -135,13 +167,9 @@ class App(
         self.mirror_source_method_var = None
         self._mirror_seen: set = set()
         self._repository_workflow_key = None
-        self.transfer_total = 0
-        self.transfer_done = 0
-        self.transfer_failed = 0
-        self.transfer_reused = 0
-        self.transfer_bytes = 0
-        self.transfer_expected_bytes = 0
-        self.transfer_started = 0.0
+        # Progress accounting is owned by one headless object. Historical
+        # transfer_* attributes now adapt to its fields via ToolsMixin.
+        self._transfer_progress_state = TransferProgressState()
         self.log_lines: list[str] = []
         self.repo_window = None
         self.repo_tree = None
@@ -154,6 +182,14 @@ class App(
         self.workload_notes: list[str] = []
         self.workloads = load_workloads(self.workload_notes)
         self.selected_packages = []
+        # Explicit application composition: persistence is a headless service,
+        # not a second source of truth inside the Tk/mixin object.
+        self._user_state_store = UserStateStore(
+            self._user_state_dir(),
+            write_json=lambda path, payload: self._secure_write_json(path, payload),
+            log=self._log,
+            vendor_label=vendor_display_name,
+        )
         self.keystore = self._load_keystore()
         self.vendor_signature_profiles = self._load_vendor_signature_profiles()
         self.entitlement_profiles = {}
@@ -173,26 +209,32 @@ class App(
         self.after(250, self._preflight)
 
 
-# Keep monkeypatching `app.<dependency>` compatible with the pre-1.2 module.
-# Extracted method bodies have module-local references to the same dependencies;
-# tests and embedders historically patch the facade module, so propagate such
-# assignments to each responsibility module that owns that name.
-import sys as _sys
+# Compatibility is deliberately limited to the six historical facade
+# overrides. AppDependencyPorts is the supported per-instance injection API.
+# Other module assignments are ordinary assignments: the entire MRO no longer
+# receives silent process-wide mutations of identically named globals.
 import types as _types
 
-_COMPONENT_MODULES = tuple({
+# Retain read-only diagnostic introspection for existing architectural tests;
+# this list is never traversed to perform dependency mutation.
+_COMPONENT_MODULES = tuple(dict.fromkeys(
     _sys.modules[base.__module__]
     for base in App.__mro__
     if base is not App and base.__module__.startswith("feathered_app.")
-})
+))
+
+_FACADE_PORTS = frozenset((
+    "human_size", "datetime", "evidence_relationship", "mirrors_are_distinct",
+    "spot_compare_artifact_urls", "spot_compare_peer_artifact_urls",
+))
 
 
 class _AppFacadeModule(_types.ModuleType):
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
-        for module in _COMPONENT_MODULES:
-            if name in module.__dict__:
-                module.__dict__[name] = value
+        if name in _FACADE_PORTS:
+            setattr(legacy_facade_ports, name, value)
+
 
 _sys.modules[__name__].__class__ = _AppFacadeModule
 

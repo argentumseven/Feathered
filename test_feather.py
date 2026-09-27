@@ -5642,7 +5642,10 @@ def test_1060_evidence_ui_exposes_test_and_artifact_only_state():
     assert feather_app.App._evidence_row_status(
         "evidence-fallback", True, False, feather_app.REL_EXACT_ARTIFACT,
         {"status": "artifact-only"})[0] == "Byte match passed · required"
-    assert '"repository", "artifact-only"' in validate
+    from feathered_app.provenance_validation import ProvenanceValidationService
+    assert "artifact-only" in ProvenanceValidationService.PASSING_STATUSES
+    assert "repository" in ProvenanceValidationService.PASSING_STATUSES
+    assert "ProvenanceValidationService" in validate
 
 
 def test_1060_preflight_warns_but_accepts_artifact_only_evidence(monkeypatch):
@@ -6416,9 +6419,15 @@ def test_1070_content_rail_expresses_intent_not_premature_package_identity():
     import app, inspect
     source = inspect.getsource(app.App._build_ui)
     assert '"packages": "Content"' in source
-    nav = inspect.getsource(app.App._sync_wizard_nav)
-    assert "Next: configure repositories" in nav
-    assert "Next: choose repositories" in nav
+    # Labels are now owned by the headless navigation service, not Tk code.
+    from feathered_app.wizard_navigation import WizardNavigationService
+    from acquisition_model import AcquisitionIntent
+    assert "Next: configure repositories" in WizardNavigationService.navigation(
+        ("target", "packages", "repositories", "review"), "packages",
+        intent=AcquisitionIntent.PACKAGES).next_label
+    assert "Next: choose repositories" in WizardNavigationService.navigation(
+        ("target", "packages", "repositories", "review"), "packages",
+        intent=AcquisitionIntent.REPOSITORY_MIRROR).next_label
 
 
 def test_1070_rpm_repository_mirror_never_generates_root_transaction_installer(tmp_path):
@@ -7063,14 +7072,17 @@ def test_1080_activity_indicator_is_low_cost_event_loop_driven_rail():
     # rectangular segment.  It does not create particles/curves every frame.
     render = inspect.getsource(feather_app.FeatheredActivityPulse.render_frame)
     init = inspect.getsource(feather_app.FeatheredActivityPulse.__init__)
-    tick = inspect.getsource(feather_app.App._activity_tick)
+    from feathered_app.activity_animation import ActivityAnimation
+    tick = inspect.getsource(ActivityAnimation.tick)
+    schedule = inspect.getsource(ActivityAnimation._schedule_next)
     assert "create_rectangle" in init
     assert "self.coords(self._segment" in render
     assert "delete(" not in render
     assert "create_oval" not in render
     assert "create_line" not in render
-    assert "after(110, self._activity_tick)" in tick
-    assert "% 24" in tick
+    assert ActivityAnimation.__dataclass_fields__["interval_ms"].default == 110
+    assert "self.schedule(" in schedule
+    assert "% self.frame_count" in tick
     source = inspect.getsource(feather_app.App._render_activity_status)
     for glyph in ("◐", "◓", "◑", "◒"):
         assert glyph not in source
@@ -7096,7 +7108,9 @@ def test_1078_wizard_forward_transition_enforces_source_plan_and_terminal_review
     assert "self.next_btn.pack_forget()" in nav
     assert 'state="disabled"' in nav
     next_source = inspect.getsource(feather_app.App.go_next)
-    assert "index >= len(self.stage_order) - 1" in next_source
+    assert "WizardNavigationService.next_stage" in next_source
+    from feathered_app.wizard_navigation import WizardNavigationService
+    assert WizardNavigationService.next_stage(("target", "review"), "review") is None
 
 
 def test_1078_future_rail_steps_do_not_bypass_next_validation():
@@ -9768,7 +9782,7 @@ def test_123_background_release_refresh_is_bounded_and_does_not_take_global_oper
         release_url="", release_pattern="", release_mode="text")
 
     calls = {}
-    def fake_discover(root, reporter, limit=40, timeout=45, workers=1):
+    def fake_discover(root, reporter, limit=40, timeout=45, workers=1, prerelease_out=None):
         calls.update(root=root, limit=limit, timeout=timeout, workers=workers)
         return {"24.04": "noble", "24": "noble"}
 

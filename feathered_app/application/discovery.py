@@ -41,6 +41,7 @@ from feathered_app.context import (
     version_key,
 )
 from feathered_app.ui.theme import messagebox
+from profiles import extract_prerelease_versions
 
 
 _RELEASE_CACHE_SCHEMA = 2
@@ -91,7 +92,7 @@ def _validated_release_cache(data, *, now=None) -> dict:
         if not isinstance(raw_bucket, dict):
             raise ValueError(f"invalid release cache bucket for {key}")
         bucket = {}
-        for field in ("releases", "verified"):
+        for field in ("releases", "verified", "prerelease"):
             raw_values = raw_bucket.get(field, [])
             if not isinstance(raw_values, list) or len(raw_values) > _RELEASE_CACHE_MAX_ITEMS:
                 raise ValueError(f"invalid {field} list for {key}")
@@ -171,18 +172,29 @@ class DiscoveryMixin:
         self._apply_source_method()
         self._update_source_status()
 
-    def _cache_release_state(self, profile_key: str, releases, verified, source: str, observed: bool) -> None:
-        """Persist discovered release state as the offline last-known-good view."""
+    def _cache_release_state(self, profile_key: str, releases, verified, source: str, observed: bool,
+                             prerelease=None) -> None:
+        """Persist discovered release state as the offline last-known-good view.
+
+        The in-memory profile is updated first (on the Tk thread), so a cache
+        write failure can no longer leave the dropdown on stale releases.
+        ``prerelease=None`` keeps the profile's existing beta identities.
+        """
         profile = PROFILES.get(profile_key)
         if profile is None:
             return
         releases = [str(v) for v in releases if str(v).strip()]
         verified = [str(v) for v in verified if str(v).strip()]
+        profile.discovered_versions = list(releases)
+        profile.verified_versions = list(verified)
+        if prerelease is not None:
+            profile.prerelease_versions = sorted({str(v) for v in prerelease if str(v).strip()})
         try:
             data = self._read_release_cache()
             bucket = data.setdefault("profiles", {}).setdefault(profile_key, {})
             bucket["releases"] = releases
             bucket["verified"] = verified
+            bucket["prerelease"] = list(profile.prerelease_versions)
             bucket["codenames"] = dict(sorted(profile.release_codenames.items()))
             if profile_key == "devuan":
                 import profiles as profiles_module
@@ -191,8 +203,6 @@ class DiscoveryMixin:
                 bucket["observed_at"] = time.time()
                 bucket["source"] = source
             self._write_release_cache(data)
-            profile.discovered_versions = list(releases)
-            profile.verified_versions = list(verified)
             if observed:
                 profile.release_observed_at = float(bucket["observed_at"])
                 profile.release_source = source
@@ -213,6 +223,9 @@ class DiscoveryMixin:
                 prof.discovered_versions = [str(v) for v in releases if str(v).strip()]
             if isinstance(verified, list):
                 prof.verified_versions = [str(v) for v in verified if str(v).strip()]
+            prerelease = bucket.get("prerelease") or []
+            if isinstance(prerelease, list):
+                prof.prerelease_versions = [str(v) for v in prerelease if str(v).strip()]
             if isinstance(codenames, dict):
                 prof.release_codenames.update({str(k): str(v) for k, v in codenames.items()})
             if key == "devuan" and isinstance(bucket.get("vendor_suites"), dict):
@@ -249,7 +262,8 @@ class DiscoveryMixin:
                 return repo.url
         return ""
 
-    def _apply_auto_release_state(self, profile_key: str, releases, codenames, source: str) -> None:
+    def _apply_auto_release_state(self, profile_key: str, releases, codenames, source: str,
+                                  prerelease=None) -> None:
         """Apply a bounded background listing refresh on the Tk thread."""
         profile = PROFILES.get(profile_key)
         if profile is None:
@@ -257,7 +271,7 @@ class DiscoveryMixin:
         changed = {k: v for k, v in codenames.items() if profile.release_codenames.get(k) != v}
         profile.release_codenames.update(codenames)
         self._cache_release_state(
-            profile_key, releases, profile.verified_versions, source, True)
+            profile_key, releases, profile.verified_versions, source, True, prerelease=prerelease)
         self._apply_auto_release_ui(profile_key, list(releases), bool(changed))
         if changed:
             self._log("Background codename table updated: " + ", ".join(
@@ -317,11 +331,13 @@ class DiscoveryMixin:
                 rep = Reporter()
                 codenames = {}
                 source = ""
+                prerelease = set()
                 if profile.package_family == "deb":
                     root = (getattr(profile, "archive_discovery_url", "") or "").strip()
                     if not root:
                         return
-                    codenames = discover_apt_releases(root, rep, limit=40, timeout=4, workers=6)
+                    codenames = discover_apt_releases(root, rep, limit=40, timeout=4, workers=6,
+                                                      prerelease_out=prerelease)
                     if not codenames:
                         return
                     if profile.release_style == "codename":
@@ -340,8 +356,11 @@ class DiscoveryMixin:
                     releases = extract_versions(text, profile.release_pattern, profile.release_mode)
                     if not releases:
                         return
+                    prerelease = extract_prerelease_versions(
+                        text, profile.release_pattern, profile.release_mode)
                     source = f"background release listing at {profile.release_url}"
-                self.events.put(("auto_release_state", profile_key, releases, codenames, source))
+                self.events.put(("auto_release_state", profile_key, releases, codenames, source,
+                                 sorted(prerelease)))
             except Exception:
                 # Automatic healing is best-effort. The explicit refresh path
                 # remains the diagnostic surface and preserves detailed errors.
@@ -383,7 +402,9 @@ class DiscoveryMixin:
         def work():
             try:
                 rep = Reporter(self._log, self._progress, self.cancel_event)
-                candidates, source_note, listing_fresh = self._gather_release_candidates(profile, rep)
+                prerelease = set()
+                candidates, source_note, listing_fresh = self._gather_release_candidates(
+                    profile, rep, prerelease_out=prerelease)
                 if not candidates:
                     cached = profile.known_versions()
                     self.events.put(("profile_versions", profile.key, cached))
@@ -406,17 +427,19 @@ class DiscoveryMixin:
                 # probe failed, preserve the candidate set rather than destroying
                 # the last-known-good selection on a transient network outage.
                 offer = [r["version"] for r in results if r["state"] != "failed"] or candidates
-                profile.discovered_versions = list(offer)
-                profile.verified_versions = list(verified)
-                if interactive:
-                    self.events.put(("release_report", {"profile": profile.label, "arch": arch,
-                                                        "source": source_note, "results": results}))
-                self.events.put(("profile_versions", profile.key, offer))
+                # Profile state is applied by the cache event on the Tk thread,
+                # *before* the dropdown is repopulated so its default choice
+                # already knows which entries are beta.
                 # A fresh listing is authoritative even for entitlement-gated
                 # targets; successful repository probes are also a fresh online
                 # observation when the listing endpoint itself was unavailable.
                 observed = bool(listing_fresh or verified)
-                self.events.put(("cache_release_state", profile.key, offer, verified, source_note, observed))
+                self.events.put(("cache_release_state", profile.key, offer, verified, source_note, observed,
+                                 sorted(prerelease) if listing_fresh else None))
+                if interactive:
+                    self.events.put(("release_report", {"profile": profile.label, "arch": arch,
+                                                        "source": source_note, "results": results}))
+                self.events.put(("profile_versions", profile.key, offer))
                 if unchecked and not verified and not failed:
                     note = (f"{len(unchecked)} release(s) listed; none could be checked from here "
                             "(this target's repositories are not public)")
@@ -432,16 +455,19 @@ class DiscoveryMixin:
                 self._log(traceback.format_exc())
                 self.events.put(("done", False, redact_text(str(exc))))
 
-        self.worker = threading.Thread(target=work, daemon=True)
-        self.worker.start()
+        self._start_operation_worker(target=work)
 
-    def _gather_release_candidates(self, profile, rep):
-        """Collect release candidates from live upstream metadata or cached state."""
+    def _gather_release_candidates(self, profile, rep, prerelease_out=None):
+        """Collect release candidates from live upstream metadata or cached state.
+
+        ``prerelease_out`` (optional set) receives identities found to be
+        development/beta series by the same live observation.
+        """
         if profile.package_family == "arch":
             return ["rolling"], "rolling repository model", True
         if profile.package_family == "deb":
             root = self._archive_root_for_discovery(profile)
-            discovered = discover_apt_releases(root, rep) if root else {}
+            discovered = discover_apt_releases(root, rep, prerelease_out=prerelease_out) if root else {}
             if discovered:
                 profile.release_codenames.update(discovered)
                 self.events.put(("codenames", profile.key, discovered))
@@ -470,6 +496,9 @@ class DiscoveryMixin:
         try:
             text = fetch_text(profile.release_url, rep)
             scraped = extract_versions(text, profile.release_pattern, profile.release_mode)
+            if prerelease_out is not None:
+                prerelease_out.update(extract_prerelease_versions(
+                    text, profile.release_pattern, profile.release_mode))
         except Exception as exc:
             rep.log(f"Release listing unavailable ({exc}); using cached last-known-good state.")
             cached = profile.known_versions()
@@ -737,7 +766,7 @@ class DiscoveryMixin:
                 self.events.put(("done", "cancelled", redact_text(str(exc) or "Operation cancelled")))
             except Exception as exc:
                 self._log(traceback.format_exc()); self.events.put(("done", False, redact_text(str(exc))))
-        self.worker = threading.Thread(target=work, daemon=True); self.worker.start()
+        self._start_operation_worker(target=work)
 
     def _package_version_scan_context(self):
         return (self._profile().key, self.release_var.get(), self.arch_var.get(), self._workload().key,
@@ -750,7 +779,21 @@ class DiscoveryMixin:
         if self.package_version_var.get() not in versions:
             self.package_version_var.set('Latest')
 
+    def _version_scan_eligible(self, repo) -> str:
+        """Reason a source cannot participate for this target, or ''."""
+        compatible = getattr(self, "_repository_target_compatible", None)
+        if callable(compatible) and not compatible(repo):
+            return "configured for a different distribution, release, architecture or package format"
+        conflict = getattr(self, "_init_repository_conflict", None)
+        return (conflict(repo) or "") if callable(conflict) else ""
+
     def _version_scan_repositories(self, workload):
+        """Scan only sources the build would accept.
+
+        Offering versions from a source that preparation later rejects (for
+        example Docker CE on a sysvinit Devuan target) invites a choice that
+        can never be built.
+        """
         role = workload.repository_role_for(workload.version_package or "")
         if role:
             repos = [r for r in self.repo_rows if r.enabled and r.role == role and r.url]
@@ -758,14 +801,25 @@ class DiscoveryMixin:
                 raise RuntimeError(
                     f"No enabled workload repository satisfies role '{role}' for {workload.label}. "
                     "Continue to Repositories to add or enable it first.")
-            return repos, role
+            eligible = [r for r in repos if not self._version_scan_eligible(r)]
+            if not eligible:
+                raise RuntimeError(
+                    f"Every enabled '{role}' source is unusable for this target: "
+                    f"{repos[0].name}: {self._version_scan_eligible(repos[0])}. "
+                    "Add a compatible source on Repositories or choose a different target.")
+            return eligible, role
         repos = [r for r in self.repo_rows
                  if r.enabled and r.url and self._repo_tier(r) == "base"]
         if not repos:
             raise RuntimeError(
                 "No enabled distribution repository is available for version discovery. "
                 "Continue to Repositories and enable the distribution source set first.")
-        return repos, None
+        eligible = [r for r in repos if not self._version_scan_eligible(r)]
+        if not eligible:
+            raise RuntimeError(
+                "Every enabled distribution repository is unusable for this target: "
+                f"{repos[0].name}: {self._version_scan_eligible(repos[0])}.")
+        return eligible, None
 
     def _probe_source_context(self):
         """Snapshot source-plan semantics for an asynchronous broad probe."""
@@ -855,7 +909,7 @@ class DiscoveryMixin:
                 self.events.put(("done", "cancelled", redact_text(str(exc) or "Operation cancelled")))
             except Exception as exc:
                 self.events.put(("done", False, redact_text(str(exc))))
-        self.worker = threading.Thread(target=work, daemon=True); self.worker.start()
+        self._start_operation_worker(target=work)
 
     @staticmethod
     def _probe_verdict_lines(results, context):

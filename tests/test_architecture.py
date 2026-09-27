@@ -72,23 +72,27 @@ def test_refactor_does_not_shadow_tk_state_api():
 def test_legacy_state_fields_are_not_replaced_by_class_descriptors():
     """Instance storage stays instance storage, except where scoping demands it.
 
-    ``repo_rows``/``transaction_repo_rows``/``mirror_repo_rows`` are deliberately
-    excluded as of 1.2.6. They were three attributes aliasing one list whose
-    isolation depended on every rebinding site remembering to update the matching
-    mode slot by hand; they are now mode-scoped descriptors over a single
-    RepositoryUniverse, which is the point of that change. Their replacement
-    contract is pinned by test_repository_universe.py rather than left untested.
+    Repository collections, the operation lease, and the operation runtime's
+    worker/cancel signal deliberately use descriptors over independent owners.
+    Their replacement contracts are pinned by test_repository_universe.py,
+    test_operation_state.py and test_operation_runtime.py. Other fields listed
+    here are still plain instance attributes on App.
     """
     import app
 
     names = {
-        "active_operation", "transfer_done", "single_browser_tree",
-        "_activity_state", "worker", "loaded_packages", "last_output_path",
+        "single_browser_tree", "_activity_state",
+        "loaded_packages", "last_output_path",
     }
     for name in names:
         assert not any(name in cls.__dict__ for cls in app.App.__mro__[:-1]), name
 
-    scoped = {"repo_rows", "transaction_repo_rows", "mirror_repo_rows"}
+    scoped = {
+        "repo_rows", "transaction_repo_rows", "mirror_repo_rows",
+        "active_operation", "active_operation_label", "_operation_cancellable",
+        "_operation_detail", "transfer_done", "transfer_bytes",
+        "worker", "cancel_event",
+    }
     for name in scoped:
         assert any(name in cls.__dict__ for cls in app.App.__mro__[:-1]), name
 

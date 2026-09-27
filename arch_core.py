@@ -44,6 +44,7 @@ from core import (
     split_against_baseline, url_join, write_bundle_archive, write_bundle_index,
 )
 from evidence_model import AUTH_UNKNOWN, REL_EXACT_ARTIFACT, REL_EXACT_MIRROR
+from repository_paths import arch_package_basename, is_arch_epoch_filename, repo_relative_url
 
 
 @dataclass(frozen=True)
@@ -992,8 +993,14 @@ def emit_arch_repository(repo_dir: Path, packages: Sequence[ArchPackage], report
     buffer = io.BytesIO()
     with tarfile.open(fileobj=buffer, mode="w:gz", format=tarfile.GNU_FORMAT) as tf:
         for pkg in sorted(packages, key=lambda p: (p.name, p.version, p.arch)):
-            filename = (pkg.location.replace("\\", "/").lstrip("./") if preserve_package_locations
-                        else posixpath.basename(urllib.parse.urlsplit(pkg.location).path))
+            if preserve_package_locations and "/" in pkg.location.replace("\\", "/").lstrip("./"):
+                raise RuntimeError(f"{pkg.nevra}: pacman repository payload is nested ({pkg.location!r}). "
+                                   "Place package files in one repository directory before rebuilding metadata.")
+            # Maintenance of an existing repository must retain the filenames
+            # actually present on disk (including colons on Linux). Bundle
+            # publication uses the separate Windows-safe destination mapping.
+            filename = (arch_package_basename(pkg.location) if preserve_package_locations
+                        else _arch_bundle_payload_name(pkg.location))
             if "/" in filename:
                 # ALPM %FILENAME% is a package filename, not an arbitrary nested
                 # repository-relative path. Refuse a repair that pacman could not
@@ -1020,6 +1027,24 @@ def _copy_or_download(pkg: ArchPackage, dest: Path, options: BuildOptions, repor
     core._copy_or_download(pkg, dest, options, reporter)
 
 
+def _arch_bundle_payload_name(location: str) -> str:
+    """Map a published ALPM filename to a deterministic, Windows-safe name.
+
+    Epoch package names contain `:`, illegal in Win32 filenames. The local
+    repository's %FILENAME% refers to this renamed file; %VERSION% and the
+    archive's .PKGINFO retain the original, epoch-bearing package version.
+    The original repository filename remains unchanged in the download URL.
+    """
+    name = arch_package_basename(location)
+    if ":" in name:
+        if not is_arch_epoch_filename(name):
+            raise RuntimeError(f"Invalid colon in Arch package filename: {name!r}")
+        name = name.replace(":", "_epoch_", 1)
+    if any(char in name for char in "\\<>\"|?*") or name.rstrip(" .") != name:
+        raise RuntimeError(f"Arch package filename is not Windows-safe: {name!r}")
+    return name
+
+
 def _safe_payload_names(packages: Sequence[ArchPackage]) -> Dict[int, str]:
     # Object identity distinguishes equal package names/versions from different
     # repositories. Callers retain the original package objects through writing;
@@ -1027,7 +1052,7 @@ def _safe_payload_names(packages: Sequence[ArchPackage]) -> Dict[int, str]:
     seen: Dict[str, str] = {}
     result: Dict[int, str] = {}
     for pkg in packages:
-        name = posixpath.basename(urllib.parse.urlsplit(pkg.location).path)
+        name = _arch_bundle_payload_name(pkg.location)
         if not re.search(r"\.pkg\.tar\.(?:zst|xz|gz|bz2|lz4|lrz|lzo|Z)$", name, re.IGNORECASE):
             raise RuntimeError(f"{pkg.nevra}: repository location is not an Arch package filename: {name!r}")
         key = core._windows_payload_key(name)
@@ -1076,7 +1101,7 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
     shipped_ids = {id(p) for p in to_ship}
     manifest = []
     for pkg in result.selected:
-        filename = filename_map.get(id(pkg), posixpath.basename(urllib.parse.urlsplit(pkg.location).path))
+        filename = filename_map.get(id(pkg), _arch_bundle_payload_name(pkg.location))
         dest = pkg_dir / filename
         record = pkg.verification
         manifest.append({
@@ -1085,7 +1110,7 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
             "sha256": artifact_digests.payload_sha256(dest, sha256_file) if id(pkg) in shipped_ids and dest.exists() else "",
             "source_digest_type": pkg.checksum_type or "", "source_digest": pkg.checksum or "",
             "repo": pkg.repo.name, "repo_url": redact_url(pkg.repo.normalized_url), "suite": pkg.repo.suite,
-            "source": redact_url(url_join(pkg.repo.normalized_url, pkg.location, pkg.repo)), "size": pkg.size,
+            "source": redact_url(repo_relative_url(pkg.repo.normalized_url, pkg.location, pkg.repo)), "size": pkg.size,
             "reason": result.reasons.get(pkg.nevra, "dependency"),
             "shipped": id(pkg) in shipped_ids,
             "package_signature_published": bool(pkg.pgpsig),
@@ -1126,7 +1151,7 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
         filename = filename_map[id(pkg)]; dest = pkg_dir / filename; record = pkg.verification
         entry = provenance.PackageProvenance(
             package_id=pkg.nevra, filename=filename, sha256=artifact_digests.payload_sha256(dest, sha256_file),
-            size=dest.stat().st_size, source_url=redact_url(url_join(pkg.repo.normalized_url, pkg.location, pkg.repo)),
+            size=dest.stat().st_size, source_url=redact_url(repo_relative_url(pkg.repo.normalized_url, pkg.location, pkg.repo)),
             repository=pkg.repo.name, assurance=provenance.UNVERIFIED,
             digest_checked=bool(record and record.package_digest_checked),
             index_digest_verified=False, archive_signature_verified=False,

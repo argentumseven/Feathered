@@ -167,8 +167,6 @@ class BuildMixin(BuildRequestMixin, BuildSourcesMixin, BuildPreparationMixin):
         self._snapshot_build_inputs()
         # The orchestration is a named function with declared inputs, not a
         # closure over this scope. See feathered_app/build_runner.py.
-        self.worker = threading.Thread(
-            target=build_runner.run, args=(self, job), daemon=True)
-        self.worker.start()
+        self._start_operation_worker(target=build_runner.run, args=(self, job))
 
 

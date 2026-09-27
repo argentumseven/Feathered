@@ -150,12 +150,17 @@ def derive_acquisition_state(
     exact_root_count: int = 0,
     exact_root_sources_ready: bool = False,
     mirror_repository_count: int = 0,
+    blocked_mirror_reason: str = "",
+    blocked_exact_reason: str = "",
     workload_root_count: Optional[int] = None,
     workload_package_only_requested: bool = False,
+    blocked_workload_reason: str = "",
 ) -> AcquisitionState:
     """Derive the only valid downstream state for an acquisition intent."""
 
     if intent is AcquisitionIntent.REPOSITORY_MIRROR:
+        if blocked_mirror_reason:
+            return _state(intent, AcquisitionCapability.BLOCKED, blocked_mirror_reason)
         if mirror_repository_count <= 0:
             return _state(intent, AcquisitionCapability.BLOCKED,
                           "Select at least one enabled repository to mirror.")
@@ -167,6 +172,7 @@ def derive_acquisition_state(
                           "Choose at least one package after configuring repositories.")
         if not exact_root_sources_ready:
             return _state(intent, AcquisitionCapability.BLOCKED,
+                          blocked_exact_reason or
                           "A repository containing one or more selected package roots is no longer enabled.")
         # Exact-package mode is a transaction request.  It never silently
         # degrades to package-only acquisition; the resolver must prove the
@@ -176,6 +182,8 @@ def derive_acquisition_state(
     if workload_readiness is None:
         return _state(intent, AcquisitionCapability.BLOCKED,
                       "Workload repository readiness has not been evaluated.")
+    if blocked_workload_reason:
+        return _state(intent, AcquisitionCapability.BLOCKED, blocked_workload_reason)
     if workload_root_count is not None and workload_root_count <= 0:
         return _state(intent, AcquisitionCapability.BLOCKED,
                       "Choose at least one workload package on Repositories before analyzing or building.")

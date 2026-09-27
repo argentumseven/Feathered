@@ -5,7 +5,9 @@ so confirmation and publication compute the same destination deterministically.
 
 Imports no Tk, enforced by tests/test_build_request_module.py.
 """
+
 from __future__ import annotations
+from feathered_app.dependency_ports import ports_for
 
 import re
 from datetime import datetime
@@ -57,7 +59,7 @@ def _naming_moment(host):
     should track the clock.
     """
     frozen = host.__dict__.get("_build_naming_time")
-    return frozen if frozen is not None else datetime.now()
+    return frozen if frozen is not None else ports_for(host).datetime.now()
 
 
 def _frozen(host, accessor: str, variable: str) -> str:
@@ -237,7 +239,7 @@ class BuildOutputMixin:
 
     def _suggest_sibling_output_folder_name(self, base_name: str) -> str:
         """Return a new sibling folder name beside an occupied destination."""
-        stamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        stamp = ports_for(self).datetime.now().strftime("%Y-%m-%d_%H%M%S")
         seed = re.sub(r"[^A-Za-z0-9._-]+", "-", f"{base_name}-refresh-{stamp}").strip("-") or "feathered-bundle-refresh"
         base = Path(_frozen(self, "_selected_output_base", "out_var") or str(Path.cwd())).expanduser()
         candidate = seed

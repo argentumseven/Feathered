@@ -74,10 +74,21 @@ from feathered_app.context import (
     workload_resolution,
     zstd_backend,
 )
+from feathered_app.repository_selection import MirrorSelectionService, WorkloadRepositoryService
+from feathered_app.repository_status import RepositoryStatusService
+from feathered_app.target_transition import TargetTransitionService, WorkloadControls
+from feathered_app.package_name_validation import PackageNameValidationService
+from feathered_app.source_selection_state import SourceSelectionMixin, selection_value
 from feathered_app.ui.theme import human_size, messagebox
+from feathered_app.option_advisory import (
+    STABLE, OptionAdvice, OptionStatus, classify_package_version, classify_release,
+    preferred_default,
+)
 
 
-class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMirrorMixin):
+from feathered_app.dependency_ports import ports_for
+
+class SourcesMixin(SourceSelectionMixin, BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMirrorMixin):
     """Workload/source planning, repository templates, target selection, package browsing, and source configuration."""
 
     def _combo_field(self, parent, label, var, values, col, callback=None, width=22, editable=False):
@@ -367,33 +378,20 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         iid = self.mirror_tree.identify_row(event.y)
         if not iid:
             return
-        source_id = self.__dict__.get("_mirror_iid_to_source_identity", {}).get(iid, iid)
-        selected = source_id not in self.mirror_repos
-        if selected:
-            self.mirror_repos.add(source_id)
-        else:
-            self.mirror_repos.discard(source_id)
+        self.source_selection.toggle_mirror_row(iid)
         self.loaded_signature = None; self.loaded_packages = []; self.last_result = None
         self._paint_mirror_rows()
 
     def _bulk_mirror(self, action: str):
         iids = list(self.mirror_tree.get_children())
-        mapping = self.__dict__.get("_mirror_iid_to_source_identity", {})
-        source_ids = {mapping.get(iid, iid) for iid in iids}
-        if action == "all":
-            selected = source_ids
-        elif action == "none":
-            selected = set()
-        else:
-            selected = {source_id for source_id in source_ids if source_id not in self.mirror_repos}
-        self.mirror_repos = selected
+        self.source_selection.bulk_mirror_rows(iids, action)
         self.loaded_signature = None; self.loaded_packages = []; self.last_result = None
         self._paint_mirror_rows()
 
     def _paint_mirror_rows(self):
         self._refresh_repository_transport_warning()
         off, on = self._checkbox_images()
-        mapping = self.__dict__.get("_mirror_iid_to_source_identity", {})
+        mapping = selection_value(self, "_mirror_iid_to_source_identity", {})
         for iid in self.mirror_tree.get_children():
             source_id = mapping.get(iid, iid)
             self.mirror_tree.item(iid, image=on if source_id in self.mirror_repos else off)
@@ -431,48 +429,27 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         """
         if not getattr(self, "mirror_tree", None):
             return
-        old_seen = set(getattr(self, "_mirror_seen", set()))
-        existing_selection = set(getattr(self, "mirror_repos", set()))
+        service = self.__dict__.get("_mirror_selection_service") or MirrorSelectionService()
+        snapshot = service.reconcile(
+            self.repo_rows, previous_selected=getattr(self, "mirror_repos", set()),
+            previous_seen=getattr(self, "_mirror_seen", set()),
+            tier_of=self._repo_tier)
         self.mirror_tree.delete(*self.mirror_tree.get_children())
-        self._mirror_iid_to_source_identity = {}
-        self._mirror_iid_to_repo_index = {}
-        listed = 0
-        unconfigured = 0
-        current = set()
-        for repo_index, repo in enumerate(self.repo_rows):
-            tier = self._repo_tier(repo)
-            # A repository auto-materialized for a workload selected before the
-            # operator switched to mirror intent is stale workflow state, not a
-            # mirror candidate. Explicit/manual workload repositories remain
-            # eligible because the operator actually configured them.
-            if tier == "workload" and getattr(repo, "workload_profile_managed", False):
-                continue
-            if not repo.url.strip():
-                unconfigured += 1
-                continue
-            source_id = repo.source_identity
-            current.add(source_id)
+        row_ids = []
+        for listed_index, candidate in enumerate(snapshot.candidates):
+            repo = candidate.repository
+            tier = candidate.tier
             origin = {
-                "base": "Distribution",
-                "workload": "Workload",
-                "additional": "Added",
+                "base": "Distribution", "workload": "Workload", "additional": "Added",
             }.get(tier, tier.title() if tier else "Configured")
-            iid = f"mirror-row-{listed}"
-            self._mirror_iid_to_source_identity[iid] = source_id
-            self._mirror_iid_to_repo_index[iid] = repo_index
+            iid = f"mirror-row-{listed_index}"
             self.mirror_tree.insert(
                 "", "end", iid=iid,
                 values=(repo.name, origin, repo.role, repo.priority, redact_url(repo.url)))
-            listed += 1
-
-        # Keep explicit choices for repositories that still exist. New rows use
-        # their configured enabled default instead of being blindly selected.
-        self.mirror_repos = existing_selection & current
-        for repo in self.repo_rows:
-            source_id = repo.source_identity
-            if source_id in current and source_id not in old_seen and repo.enabled:
-                self.mirror_repos.add(source_id)
-        self._mirror_seen = current
+            row_ids.append(iid)
+        listed = len(snapshot.candidates)
+        unconfigured = snapshot.unconfigured
+        self.source_selection.commit_mirror_refresh(snapshot, row_ids)
 
         if listed:
             detail = (f"{listed} configured repository/repositories for "
@@ -510,7 +487,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         self._package_selection_context = current
         if previous is None or previous == current:
             return False
-        had_selection = bool(self.__dict__.get("selected_packages"))
+        had_selection = bool(selection_value(self, "selected_packages"))
         self.selected_packages = []
         self.single_browser_rows = {}
         self.loaded_signature = None
@@ -615,7 +592,99 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             for label in labels:
                 if workload_by_label(self.workloads, label).custom:
                     return label
-        return labels[0] if labels else ""
+        # Never default to a workload the selected init system precludes.
+        return preferred_default(labels, self._workload_option_advice) if labels else ""
+
+    # -- Option advisories (beta / end-of-life / init-incompatible) --------
+    def _release_option_advice(self, value, profile=None) -> OptionAdvice:
+        profile = profile or self._profile()
+        return classify_release(
+            profile.key, value,
+            prerelease=getattr(profile, "prerelease_versions", ()) or (),
+            codenames=getattr(profile, "release_codenames", None))
+
+    def _show_release_advisory(self, advice: OptionAdvice) -> None:
+        label = self.__dict__.get("release_advisory")
+        if label is None:
+            return
+        if advice.status is not OptionStatus.PRERELEASE:
+            label.configure(text="")
+            return
+        combo = self.__dict__.get("release_combo")
+        values = list(combo.tk.splitlist(combo.cget("values"))) if combo is not None else []
+        stable = preferred_default(values, self._release_option_advice)
+        current = self.release_var.get().strip()
+        extra = (f" The newest released option is {stable}."
+                 if stable and stable != current and self._release_option_advice(stable).stable else "")
+        label.configure(text="\u26a0 Beta / pre-release selected. " + advice.reason + extra)
+
+    def _workload_option_advice(self, label) -> OptionAdvice:
+        """Flag a workload whose every source for a required role is init-blocked.
+
+        Operator-configured sources count: adding an init-compatible source for
+        the role clears the flag immediately.
+        """
+        workloads = self.__dict__.get("workloads")
+        if not workloads:
+            return STABLE
+        workload = workload_by_label(workloads, label)
+        if workload is None or workload.label != label or getattr(workload, "custom", False):
+            return STABLE
+        init = self._selected_init_system()
+        if not init:
+            return STABLE
+        profile = self._profile()
+        family = getattr(profile, "package_family", "rpm")
+        roles = sorted({workload.repository_role_for(name) or ""
+                        for name in workload.packages_for(family)} - {""})
+        if not roles:
+            return STABLE
+        release_var = self.__dict__.get("release_var")
+        arch_var = self.__dict__.get("arch_var")
+        try:
+            templates = profile.repos_factory(
+                release_var.get().strip() if release_var is not None else "",
+                arch_var.get() if arch_var is not None else "")
+        except Exception:
+            templates = []
+        for role in roles:
+            candidates = [(t.name, t.url) for t in templates
+                          if t.role == role and str(t.url or "").strip()]
+            candidates += [(r.name, r.url) for r in (self._advisory_repository_rows())
+                           if r.role == role and str(r.url or "").strip()]
+            if not candidates:
+                continue
+            reasons = [workload_resolution.repository_init_conflict(name, url, profile.key, init)
+                       for name, url in candidates]
+            if all(reasons):
+                return OptionAdvice(
+                    OptionStatus.INCOMPATIBLE,
+                    f"{workload.label} needs a '{role}' repository, and every available one is "
+                    f"incompatible with {init}: {reasons[0]} Add an init-compatible '{role}' "
+                    "source on Repositories to use this workload.")
+        return STABLE
+
+    def _advisory_repository_rows(self):
+        try:
+            return list(self.repo_rows or [])
+        except Exception:  # Partially constructed hosts have no universe yet.
+            return []
+
+    def _show_workload_advisory(self, advice: OptionAdvice) -> None:
+        if advice.status is not OptionStatus.INCOMPATIBLE:
+            return
+        seen = self.__dict__.setdefault("_reported_workload_advisories", set())
+        if advice.reason not in seen:
+            seen.add(advice.reason)
+            self._log(advice.reason)
+
+    def _refresh_option_markers(self) -> None:
+        """Re-evaluate closed-field styling after target/init/source changes."""
+        for name in ("_release_option_marker", "_workload_option_marker",
+                     "_package_version_option_marker", "_k8s_minor_option_marker"):
+            marker = self.__dict__.get(name)
+            if marker is not None:
+                marker.refresh()
 
     def _workload_labels_for_profile(self):
         distro = self._profile().key
@@ -659,8 +728,11 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         current = self.release_var.get().strip()
         self.release_combo["values"] = values
         if keep_current and current in values:
+            self._refresh_option_markers()
             return
-        self.release_var.set(values[0])
+        # values[0] is the newest entry, which may be a development series.
+        self.release_var.set(preferred_default(
+            values, lambda value: self._release_option_advice(value, profile)))
         self._release_changed()
 
     def _sync_init_system_control(self, profile) -> None:
@@ -685,25 +757,36 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             combo.configure(state="disabled")
 
 
+    def _target_transition(self) -> TargetTransitionService:
+        """Lazily compose target state for legacy and standalone mixin hosts."""
+        state = self.__dict__.get("_target_transition_service")
+        if state is None:
+            state = TargetTransitionService(
+                remembered_releases=self.__dict__.pop("_release_selections", {}),
+                current_profile=self.__dict__.pop("_release_selection_profile", None),
+                workload_versions={
+                    key: value if isinstance(value, WorkloadControls)
+                    else WorkloadControls(value[0], tuple(value[1]), value[2])
+                    for key, value in self.__dict__.pop("_content_version_states", {}).items()
+                },
+                current_workload=self.__dict__.pop("_content_version_context", None),
+                last_workload_key=self.__dict__.pop("_last_workload_key", None),
+            )
+            self.__dict__["_target_transition_service"] = state
+        return state
+
     def _profile_changed(self):
         p = self._profile()
-        selections = self.__dict__.setdefault("_release_selections", {})
-        previous_profile = self.__dict__.get("_release_selection_profile")
-        if previous_profile:
-            selections[previous_profile] = self.release_var.get().strip()
-        self._release_selection_profile = p.key
-        # known_versions() exposes the latest discovered/cached state so switching
-        # targets does not discard validated release knowledge.
+        # Only the target selector determines which remembered release may be
+        # used. Widgets and downstream refreshes remain owned by the GUI.
         known = p.known_versions()
+        choice = self._target_transition().select_profile(
+            profile=p.key, known=known, current=self.release_var.get(),
+            default=lambda values: preferred_default(
+                values, lambda value: self._release_option_advice(value, p)))
         self.release_combo["values"] = known
-        # Startup supplies cached observations or a bundled release snapshot.
-        # Unknown/custom profiles without either must never inherit a release
-        # from another distribution.
-        remembered = selections.get(p.key)
-        if remembered in known:
-            self.release_var.set(remembered)
-        elif self.release_var.get() not in known:
-            self.release_var.set(known[0] if known else "")
+        if self.release_var.get() != choice:
+            self.release_var.set(choice)
         self.arch_combo["values"] = p.arches
         if self.arch_var.get() not in p.arches:
             self.arch_var.set("x86_64" if "x86_64" in p.arches else p.arches[0])
@@ -809,26 +892,8 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
                 self.release_var.get().strip(), self.arch_var.get())
         except Exception:
             templates = []
-        by_role = {}
-        for template in templates:
-            by_role.setdefault(template.role, []).append(template)
-        for repo in self.repo_rows:
-            if self._repo_tier(repo) != "workload" or not getattr(repo, "workload_profile_managed", False):
-                continue
-            choices = by_role.get(repo.role, [])
-            if not choices:
-                repo.enabled = False
-                continue
-            template = sorted(choices, key=lambda x: (not x.enabled, x.priority, x.name))[0]
-            repo.name = template.name
-            repo.url = template.url
-            repo.priority = template.priority
-            repo.target_release = template.target_release
-            repo.repo_format = getattr(template, "repo_format", repo.repo_format)
-            repo.suite = getattr(template, "suite", repo.suite)
-            repo.components = getattr(template, "components", repo.components)
-            repo.expected_release_version = getattr(template, "expected_release_version", "")
-            repo.evidence_suggestions = list(getattr(template, "evidence_suggestions", []) or [])
+        self._target_transition().retarget_managed_workload_rows(
+            self.repo_rows, templates=templates, tier_of=self._repo_tier)
 
     def _release_changed(self):
         workload_replaced = False
@@ -862,13 +927,11 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         mirror_active = self._repository_universe_mode == "mirror"
         self.activate_repository_universe("transaction")
 
-        self.repo_rows = [r for r in self.repo_rows if self._repo_tier(r) != "base"]
+        self.repo_rows = self._target_transition().transaction_rows_for_target(
+            self.repo_rows, has_release=bool(release), tier_of=self._repo_tier)
         if release:
             self._refresh_profile_managed_workload_repositories()
-        else:
-            self.repo_rows = [r for r in self.repo_rows
-                             if not getattr(r, "workload_profile_managed", False)]
-        self.selected_packages = []
+        self.source_selection.replace_packages(())
         self._refresh_selected_packages()
         self.single_catalog_packages = []; self.single_catalog_signature = None
         self._apply_source_method()
@@ -877,8 +940,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         # A mirror created for the old target is never silently reused for the
         # new release/distribution. Preserve only the selected mirror preset.
         self.mirror_repo_rows = []
-        self.mirror_repos.clear()
-        self._mirror_seen.clear()
+        self.source_selection.reset_mirror_for_target()
         choices = self._source_choices()
         if self.mirror_source_method_var is not None:
             current = self.mirror_source_method_var.get()
@@ -913,6 +975,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             self._render_repository_workflow(force=True)
         self._update_source_status()
         self._refresh_repo_tree_if_open()
+        self._refresh_option_markers()
 
     def _default_transaction_source_method(self) -> str:
         """Target-derived default for the transaction repository universe.
@@ -1250,62 +1313,19 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         self.rhsm_last_folder = str(profile.get("last_folder", ""))
 
     def _load_entitlement_paths(self) -> None:
-        """Restore vendor-scoped credential file references.
-
-        entitlement material is not a
-        global application credential.  Each vendor gets its own reference set;
-        Feathered persists only those paths in the OS user configuration area.
-        The private-key bytes are never copied into Feathered state or bundles.
-        """
-        path = self._entitlement_store_path()
-        legacy = self._legacy_program_state_path("entitlements.json")
-        source = path if path.is_file() else legacy if legacy.is_file() else None
-        if source is None:
-            self._sync_redhat_entitlement_aliases()
-            return
-        try:
-            data = json.loads(source.read_text(encoding="utf-8"))
-        except Exception as exc:
-            self._log(f"Entitlement reference store could not be read ({exc}); ignoring it.")
-            self._sync_redhat_entitlement_aliases()
-            return
-        if isinstance(data, dict) and isinstance(data.get("vendors"), dict):
-            profiles = data.get("vendors", {})
-        else:
-            # Migrate the legacy global Red Hat tuple to vendor-scoped state.
-            profiles = {"redhat": {k: str(data.get(k, "")) for k in ("cert", "key", "ca", "last_folder")}} if isinstance(data, dict) else {}
-        cleaned = {}
-        for vendor_id, profile in profiles.items():
-            if not isinstance(profile, dict):
-                continue
-            refs = {k: str(profile.get(k, "")) for k in ("cert", "key", "ca", "last_folder")}
-            missing = [refs[k] for k in ("cert", "key", "ca") if refs[k] and not Path(refs[k]).is_file()]
-            if missing:
-                self._log(
-                    f"Remembered {vendor_display_name(vendor_id)} entitlement files are no longer present "
-                    f"({len(missing)} missing); reconfigure that vendor profile when needed.")
-                # Keep the last folder for convenience, but do not activate a
-                # partially missing credential set.
-                cleaned[vendor_id] = {"cert": "", "key": "", "ca": "",
-                                      "last_folder": refs.get("last_folder", "")}
-            else:
-                cleaned[vendor_id] = refs
-        self.entitlement_profiles = cleaned
+        """Restore sanitized vendor credentials through the headless store."""
+        profiles = self._get_user_state_store().load_entitlements(
+            self._legacy_program_state_path("entitlements.json")
+        )
+        if profiles is not None:
+            self.entitlement_profiles = profiles
         self._sync_redhat_entitlement_aliases()
-        if source == legacy:
-            try:
-                self._save_entitlement_paths()
-                legacy.unlink(missing_ok=True)
-                self._log("Migrated entitlement file references to vendor-scoped per-user configuration.")
-            except OSError as exc:
-                self._log(f"Could not migrate the legacy entitlement reference store: {exc}")
         if self.rhsm_cert and self.rhsm_key and self.rhsm_ca:
             self._log("Restored Red Hat entitlement file references from the previous session.")
 
     def _save_entitlement_paths(self) -> None:
         try:
-            self._secure_write_json(self._entitlement_store_path(),
-                                    {"vendors": self.entitlement_profiles})
+            self._get_user_state_store().save_entitlements(self.entitlement_profiles)
         except OSError as exc:
             self._log(f"Entitlement references could not be saved: {exc}")
 
@@ -1381,44 +1401,22 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         return bool(self._workload_required_repository_roles())
 
     def _sync_workload_repo_state(self):
-        """Keep workload-owned sources aligned without overriding manual sources.
-
-        Profile-managed workload repositories follow the workload selected on
-        Packages. Manually added sources are never silently disabled merely
-        because the operator switches presets.
-        """
-        required = set(self._workload_required_repository_roles())
-        if not self._single_mode():
-            for repo in self.repo_rows:
-                # Only sources Feathered materialized from a workload profile are
-                # lifecycle-managed here. Operator-added vendor repositories
-                # remain exactly as configured when the workload changes.
-                if (self._repo_tier(repo) == "workload" and
-                        getattr(repo, "workload_profile_managed", False) and
-                        repo.role not in required and repo.enabled):
-                    repo.enabled = False
-                    self._log(f"Disabled no-longer-required workload repository: {repo.name}")
-        else:
-            source_ids = {p.repo.source_identity for p in self.selected_packages}
-            for repo in self.repo_rows:
-                if (self._repo_tier(repo) == "workload" and
-                        getattr(repo, "workload_profile_managed", False)):
-                    # Profile-managed side channels are discovery candidates in
-                    # Specific packages mode, not inherited participants.  Only
-                    # selecting an exact root from that concrete repository activates it.
-                    repo.enabled = repo.source_identity in source_ids
-                elif repo.source_identity in source_ids:
-                    repo.enabled = True
+        """Apply headless source lifecycle rules, then refresh the GUI views."""
+        service = self.__dict__.get("_workload_repository_service") or WorkloadRepositoryService()
+        exact_ids = ({p.repo.source_identity for p in self.selected_packages}
+                     if self._single_mode() else None)
+        disabled = service.synchronize(
+            self.repo_rows, required_roles=self._workload_required_repository_roles(),
+            tier_of=self._repo_tier, exact_source_ids=exact_ids)
+        for name in disabled:
+            self._log(f"Disabled no-longer-required workload repository: {name}")
         self._refresh_workload_repository_views()
         self._refresh_keyring_tree()
 
     def _workload_repository_for_role(self, role):
         """Return the concrete enabled repository chosen for one workload role."""
-        if not role:
-            return None
-        candidates = [r for r in self.repo_rows
-                      if r.enabled and r.url.strip() and r.role == role]
-        return sorted(candidates, key=lambda r: (r.priority, r.name, r.url))[0] if candidates else None
+        service = self.__dict__.get("_workload_repository_service") or WorkloadRepositoryService()
+        return service.enabled_for_role(self.repo_rows, role)
 
     def _activate_workload_repository_selection(self):
         """Materialize the repository implied by the current workload selection.
@@ -1445,27 +1443,11 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
                 # it must not abort a UI transition halfway through.
                 return
             synchronize_repository(self.repo_rows, self._profile().package_family, minor, self._repo_from_template)
-        roles = list(self._workload_required_repository_roles())
-        changed = []
-        for role in roles:
-            if self._workload_repository_for_role(role) is not None:
-                continue
-            configured = [r for r in self.repo_rows if r.role == role and r.url.strip()]
-            if configured:
-                best = sorted(configured, key=lambda r: (r.priority, r.name, r.url))[0]
-                if not best.enabled:
-                    best.enabled = True
-                    changed.append(f"enabled {best.name}")
-                continue
-            templates = self._workload_repo_templates([role])
-            if not templates:
-                continue
-            template = sorted(templates, key=lambda r: (not r.enabled, r.priority, r.name))[0]
-            repo = self._repo_from_template(template, "workload")
-            repo.enabled = True
-            repo.workload_profile_managed = True
-            self.repo_rows.append(repo)
-            changed.append(f"selected {repo.name}")
+        service = self.__dict__.get("_workload_repository_service") or WorkloadRepositoryService()
+        changed = service.materialize_required(
+            self.repo_rows, list(self._workload_required_repository_roles()),
+            templates_for_role=self._workload_repo_templates,
+            make_repository=self._repo_from_template)
         if changed:
             self.loaded_signature = None; self.loaded_packages = []; self.last_result = None
             self.package_source_coverage_signature = None
@@ -1493,62 +1475,41 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         return [t for t in templates if t.role in wanted]
 
     def _workload_repo_state_rows(self):
-        """Return presentation rows for source requirements from Packages."""
-        rows = []
+        """Adapt the current source snapshot to the headless status projector."""
+        service = self.__dict__.get("_repository_status_service") or RepositoryStatusService()
         if self._mirror_mode():
-            for repo in self.repo_rows:
-                if repo.url.strip() and self._mirror_repo_selected(repo):
-                    rows.append((f"mirror:{repo.name}", "Ready", repo.name,
-                                 redact_url(repo.url), "ready"))
-            return rows
+            # _mirror_repo_selected also handles a build's pinned selection;
+            # do not read changing live checkboxes on a worker thread.
+            selected = {r.source_identity for r in self.repo_rows
+                        if self._mirror_repo_selected(r)}
+            profile = getattr(self, "_profile", None)
+            family = profile().package_family if callable(profile) else "rpm"
+            expected = {"deb": "apt", "rpm": "rpm", "arch": "pacman"}[family]
+            return service.rows(
+                tuple(self.repo_rows), mode="mirror", selected_mirror_ids=selected,
+                mirror_incompatibility=lambda repo: (
+                    f"This {getattr(repo, 'repo_format', '')} source cannot be published by "
+                    f"the selected {expected} backend. Select a matching target."
+                    if (getattr(repo, "repo_format", "") or expected) != expected else ""))
+        def incompatibility(repo):
+            compatible = getattr(self, "_repository_target_compatible", None)
+            if callable(compatible) and not compatible(repo):
+                return "Repository is configured for a different distribution, release, architecture or package format."
+            init_conflict = getattr(self, "_init_repository_conflict", None)
+            return init_conflict(repo) if callable(init_conflict) else ""
         if self._single_mode():
-            for pkg in self.selected_packages:
-                enabled = any(r.enabled and r.name == pkg.repo.name and r.url.strip() for r in self.repo_rows)
-                rows.append((f"exact:{pkg.repo.name}", "Ready" if enabled else "Disabled",
-                             pkg.repo.name, redact_url(pkg.repo.url) if pkg.repo.url else "<not configured>",
-                             "ready" if enabled else "disabled"))
-            return rows
-        plan = self._workload_root_source_plan()
-
-        # Put explicit side-channel sources first: they are the workload-owned
-        # additions the operator most needs to see/override on this page.
-        for role in self._workload_required_repository_roles():
-            configured = [r for r in self.repo_rows if r.role == role]
-            enabled = [r for r in configured if r.enabled and r.url.strip()]
-            templates = self._workload_repo_templates([role])
-            key = f"role:{role}"
-            if enabled:
-                best = sorted(enabled, key=lambda r: (r.priority, r.name))[0]
-                rows.append((key, "Ready", best.name, best.url, "ready"))
-            elif configured:
-                best = sorted(configured, key=lambda r: (r.priority, r.name))[0]
-                rows.append((key, "Disabled", best.name, best.url or "<not configured>", "disabled"))
-            elif templates:
-                best = sorted(templates, key=lambda r: (not r.enabled, r.priority, r.name))[0]
-                rows.append((key, "Available to add", best.name, best.url or "<manual setup>", "available"))
-            else:
-                rows.append((key, "Source needed", "No profile source defined", "Configure manually", "missing"))
-
-        if any(kind == "distribution" for _name, kind, _role in plan):
-            enabled_base = [r for r in self.repo_rows
-                            if self._repo_tier(r) == "base" and r.enabled and r.url.strip()]
-            if enabled_base:
-                names = ", ".join(r.name for r in sorted(enabled_base, key=lambda r: (r.priority, r.name))[:4])
-                more = len(enabled_base) - 4
-                if more > 0:
-                    names += f" + {more} more"
-                rows.append(("distribution", "Ready", names,
-                             "All enabled distribution repositories are eligible", "ready"))
-            else:
-                rows.append(("distribution", "Source needed", "No distribution repository enabled",
-                             "Enable at least one base distribution source", "missing"))
-        if any(kind == "enabled" for _name, kind, _role in plan):
-            enabled = [r for r in self.repo_rows if r.enabled and r.url.strip()]
-            rows.append(("enabled", "Ready" if enabled else "Source needed",
-                         f"{len(enabled)} enabled repository/repositories" if enabled else "None",
-                         "Operator-defined roots may use any enabled repository",
-                         "ready" if enabled else "missing"))
-        return rows
+            return service.rows(tuple(self.repo_rows), mode="exact",
+                                exact_packages=tuple(self.selected_packages),
+                                incompatibility=incompatibility)
+        roles = tuple(dict.fromkeys(self._workload_required_repository_roles()))
+        templates = {role: tuple(self._workload_repo_templates([role])) for role in roles}
+        return service.rows(
+            tuple(self.repo_rows), mode="workload",
+            required_roles=roles, source_plan=tuple(self._workload_root_source_plan()),
+            templates_by_role=templates, tier_of=self._repo_tier,
+            incompatibility=incompatibility,
+            workload_target_issue=(self._workload_target_conflict()
+                                   if callable(getattr(self, "_workload_target_conflict", None)) else ""))
 
     def _refresh_workload_repository_views(self):
         """Refresh the Repositories-stage requirements derived from Content intent."""
@@ -1589,26 +1550,12 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         roles = self._workload_required_repository_roles()
         if not roles:
             return
-        changed = []
-        for role in roles:
-            existing = [r for r in self.repo_rows if r.role == role]
-            if existing:
-                # Preserve operator-edited URLs; only re-enable the best existing
-                # source instead of replacing it with profile defaults.
-                best = sorted(existing, key=lambda r: (r.priority, r.name))[0]
-                if not best.enabled:
-                    best.enabled = True
-                    changed.append(f"enabled {best.name}")
-                continue
-            templates = self._workload_repo_templates([role])
-            if not templates:
-                continue
-            template = sorted(templates, key=lambda r: (not r.enabled, r.priority, r.name))[0]
-            repo = self._repo_from_template(template, "workload")
-            repo.enabled = True
-            repo.workload_profile_managed = True
-            self.repo_rows.append(repo)
-            changed.append(f"added {repo.name}")
+        service = self.__dict__.get("_workload_repository_service") or WorkloadRepositoryService()
+        changed = service.materialize_required(
+            self.repo_rows, roles,
+            templates_for_role=self._workload_repo_templates,
+            make_repository=self._repo_from_template,
+            recommended=True)
         if changed:
             self.loaded_signature = None; self.loaded_packages = []; self.last_result = None
             self.package_source_coverage_signature = None
@@ -1678,28 +1625,31 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         workload = self._workload()
         self._sync_package_selection_context()
         context = (self._profile().key, self.release_var.get(), self.arch_var.get(), workload.key)
-        previous = self.__dict__.get('_content_version_context')
-        states = self.__dict__.setdefault('_content_version_states', {})
-        if previous != context:
-            if previous is not None:
-                states[previous] = (self.package_version_var.get(), tuple(self.package_version_combo['values']), self.k8s_minor_var.get())
-            self._content_version_context = context
-            version, values, minor = states.get(context, ('Latest', ('Latest',), self.k8s_minor_var.get()))
+        state = self._target_transition()
+        restored = state.switch_workload(
+            context,
+            current=WorkloadControls(
+                self.package_version_var.get(),
+                tuple(self.package_version_combo['values']),
+                self.k8s_minor_var.get()),
+            has_version_axis=workload.has_version_axis,
+        )
+        if restored is not None:
             self._restoring_workload_controls = True
             try:
-                self.package_version_var.set(version if workload.has_version_axis else 'Follows repositories')
-                self.package_version_combo['values'] = values if workload.has_version_axis else ()
-                self.k8s_minor_var.set(minor)
+                self.package_version_var.set(restored.version)
+                self.package_version_combo['values'] = restored.versions
+                self.k8s_minor_var.set(restored.kubernetes_minor)
             finally:
                 self._restoring_workload_controls = False
-        previous_workload_key = self.__dict__.get("_last_workload_key")
+        previous_workload_key = state.last_workload_key
         if previous_workload_key != workload.key and (
                 previous_workload_key == "vks-node-additions"
                 or workload.key == "vks-node-additions"):
             self._reset_vks_context()
         if workload.key == "vks-node-additions" and previous_workload_key != workload.key:
             self.custom_var.set("")
-        self._last_workload_key = workload.key
+        state.last_workload_key = workload.key
         custom = workload.custom
         self._sync_dependency_mode_choices()
         # Custom packages IS exact-package acquisition: the identities are
@@ -1788,7 +1738,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         configured = [r for r in self.repo_rows if r.enabled and r.url.strip()]
         contextual = bool(getattr(self._workload(), "contextual_packages", False))
         if contextual:
-            count = len(self.__dict__.get("selected_packages", []) or [])
+            count = len(selection_value(self, "selected_packages", []) or [])
             if count:
                 self.custom_status.configure(
                     text=f"{count} VKS OS addition(s) selected. Use Repositories to add, change, or remove "
@@ -1811,42 +1761,16 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
                      "packages in the chooser on Repositories.", foreground=FG_MUTED)
 
     def _validate_custom_names(self, quiet: bool = False) -> None:
-        """Check typed package names against the configured repositories.
-
-        Freehand entry with nothing behind it meant a typo surfaced as an
-        unresolved requirement after a full index load. This answers the same
-        question up front, and suggests near matches for anything unknown.
-        """
-        names = [x for x in re.split(r"[\s,]+", self.custom_var.get()) if x]
-        if not names:
-            self.custom_status.configure(text="No package names entered.", foreground=FG_MUTED)
-            return
-        catalog = self.single_catalog_packages
-        if not catalog:
-            self.custom_status.configure(
-                text=f"{len(names)} name(s) entered. Use 'Search repositories…' to load the "
-                     "package index and confirm they exist.", foreground=FG_MUTED)
-            if not quiet:
-                self.open_package_search("names")
-            return
-        known = {p.name for p in catalog}
-        provided = {prov.name for p in catalog for prov in getattr(p, "provides", [])}
-        missing = [n for n in names if n not in known and n not in provided]
-        if not missing:
-            self.custom_status.configure(
-                text=f"All {len(names)} package name(s) exist in the configured repositories.",
-                foreground=OK_FG)
-            return
-        import difflib
-        hints = []
-        for name in missing[:4]:
-            close = difflib.get_close_matches(name, sorted(known), n=2, cutoff=0.7)
-            hints.append(f"{name}" + (f" (did you mean {', '.join(close)}?)" if close else ""))
-        more = f" and {len(missing) - 4} more" if len(missing) > 4 else ""
-        self.custom_status.configure(
-            text=f"{len(missing)} name(s) not found: " + "; ".join(hints) + more +
-                 ". They will be reported as unresolved unless another repository provides them.",
-            foreground=WARN_FG)
+        """Render the headless package-name validation result in the source editor."""
+        service = self.__dict__.get("_package_name_validation_service") or PackageNameValidationService()
+        result = service.check(self.custom_var.get(), self.single_catalog_packages)
+        foreground = {
+            "valid": OK_FG,
+            "missing": WARN_FG,
+        }.get(result.status, FG_MUTED)
+        self.custom_status.configure(text=result.message, foreground=foreground)
+        if result.status == "index-required" and not quiet:
+            self.open_package_search("names")
 
     def open_package_search(self, mode: str = "exact"):
         """Route a search request to the inline chooser.
@@ -1973,7 +1897,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
                 self.events.put(("done", "cancelled", redact_text(str(exc) or "Operation cancelled")))
             except Exception as exc:
                 self._log(traceback.format_exc()); self.events.put(("done", False, redact_text(str(exc))))
-        self.worker = threading.Thread(target=work, daemon=True); self.worker.start()
+        self._start_operation_worker(target=work)
 
     def _receive_single_catalog(self, packages, signature, query, failures):
         if signature != self._browser_signature():
@@ -2030,7 +1954,7 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
             others = len(seen_identity[(pkg.name, pkg.evr_text, pkg.arch)]) - 1
             source = pkg.repo.name + (f"  (+{others} more)" if others else "")
             tree.insert("", "end", iid=iid,
-                        values=(pkg.name, pkg.evr_text, pkg.arch, source, human_size(pkg.size)))
+                        values=(pkg.name, pkg.evr_text, pkg.arch, source, ports_for(self).human_size(pkg.size)))
         extra = f" Showing first {limit:,}." if len(deduped) > limit else ""
         dupe_note = (f" {duplicates:,} duplicate copy/copies across repositories collapsed; "
                      "the highest-priority source is shown." if duplicates else "")
@@ -2228,14 +2152,14 @@ class SourcesMixin(BuildIntentMixin, BuildBackendMixin, BuildPlanMixin, BuildMir
         """Derive the one valid downstream operation from current wizard state."""
         intent = self._acquisition_intent()
         if intent is AcquisitionIntent.REPOSITORY_MIRROR:
-            selected_ids = self.__dict__.get("mirror_repos", set())
+            selected_ids = selection_value(self, "mirror_repos", set())
             selected = [r for r in self.repository_rows()
                         if str(getattr(r, "url", "") or "").strip()
                         and getattr(r, "source_identity", getattr(r, "name", "")) in selected_ids]
             return derive_acquisition_state(
                 intent, mirror_repository_count=len(selected))
         if intent is AcquisitionIntent.PACKAGES:
-            roots = list(self.__dict__.get("selected_packages", []) or [])
+            roots = list(selection_value(self, "selected_packages", []) or [])
             rows = self.repository_rows(default=None)
             if rows is None:
                 # Lightweight review-contract tests do not construct repository

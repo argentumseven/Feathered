@@ -25,6 +25,11 @@ from feathered_app.context import (
     ttk,
 )
 from feathered_app.ui.theme import human_size
+from feathered_app.review_state import ReviewStateMixin
+from feathered_app.review_projection import (
+    ReviewMirrorSource, ReviewProjectionService, ReviewRepository,
+    ReviewRequestedPackage, ReviewSummaryInput, ReviewWorkload,
+)
 
 
 def _pinned(host, field: str, variable: str) -> str:
@@ -40,6 +45,8 @@ def _pinned(host, field: str, variable: str) -> str:
     var = host.__dict__.get(variable)
     return var.get() if var is not None else ""
 
+
+from feathered_app.dependency_ports import ports_for
 
 class SelectionMixin(BuildIntentMixin):
     """Result selection, unresolved requirements, and review-state coordination."""
@@ -81,6 +88,8 @@ class SelectionMixin(BuildIntentMixin):
         result = result or self.last_result
         if result is None:
             return []
+        if isinstance(self, ReviewStateMixin):
+            return self.review_state.blocking(result, requirement_key=self._unresolved_key)
         return [req for req in result.unresolved
                 if self._unresolved_key(req) not in self.ignored_unresolved]
 
@@ -102,20 +111,30 @@ class SelectionMixin(BuildIntentMixin):
         resolver/provenance output.
         """
         selected = list(self.result_tree.selection())
-        keys = [self.unresolved_rows[iid] for iid in selected
-                if iid in getattr(self, "unresolved_rows", {})]
-        if not keys:
+        if isinstance(self, ReviewStateMixin):
+            changed = self.review_state.waive_rows(selected)
+        else:
+            keys = [self.unresolved_rows[iid] for iid in selected
+                    if iid in getattr(self, "unresolved_rows", {})]
+            changed = bool(keys)
+            if changed:
+                self.ignored_unresolved.update(keys)
+                if self.last_result is not None:
+                    self.last_result.ignored_unresolved = sorted(self.ignored_unresolved)
+        if not changed:
             self.summary_var.set("Select one or more unresolved rows first.")
             return
-        self.ignored_unresolved.update(keys)
         if self.last_result is not None:
-            self.last_result.ignored_unresolved = sorted(self.ignored_unresolved)
             self._show_result(self.last_result)
 
     def _restore_ignored_unresolved(self):
-        self.ignored_unresolved.clear()
+        if isinstance(self, ReviewStateMixin):
+            self.review_state.restore_waivers()
+        else:
+            self.ignored_unresolved.clear()
+            if self.last_result is not None:
+                self.last_result.ignored_unresolved = []
         if self.last_result is not None:
-            self.last_result.ignored_unresolved = []
             self._show_result(self.last_result)
 
     def _retry_unresolved(self):
@@ -145,7 +164,10 @@ class SelectionMixin(BuildIntentMixin):
             self.summary_var.set("Highlight one or more rows first, then press Highlighted. "
                                  "Use All or None to change everything.")
             return
-        if action == "all":
+        if isinstance(self, ReviewStateMixin):
+            self.review_state.bulk_pick(
+                action, available=all_identities, roots=roots, highlighted=highlighted)
+        elif action == "all":
             self.picked = set(all_identities)
         elif action == "none":
             self.picked = set()
@@ -172,8 +194,11 @@ class SelectionMixin(BuildIntentMixin):
             identity = next((k for k, v in self.result_rows.items() if v == iid), None)
             if identity is None:
                 continue
-            checked = identity not in self.picked
-            self.picked.add(identity) if checked else self.picked.discard(identity)
+            if isinstance(self, ReviewStateMixin):
+                checked = self.review_state.toggle(identity)
+            else:
+                checked = identity not in self.picked
+                self.picked.add(identity) if checked else self.picked.discard(identity)
             self._set_row_checked(iid, checked)
         self._update_pick_summary()
 
@@ -187,8 +212,11 @@ class SelectionMixin(BuildIntentMixin):
         identity = next((k for k, v in self.result_rows.items() if v == iid), None)
         if identity is None:
             return
-        checked = identity not in self.picked
-        self.picked.add(identity) if checked else self.picked.discard(identity)
+        if isinstance(self, ReviewStateMixin):
+            checked = self.review_state.toggle(identity)
+        else:
+            checked = identity not in self.picked
+            self.picked.add(identity) if checked else self.picked.discard(identity)
         self._set_row_checked(iid, checked)
         self._update_pick_summary()
 
@@ -198,7 +226,7 @@ class SelectionMixin(BuildIntentMixin):
         total = len(self.last_result.selected)
         chosen = len(self.picked)
         size = sum(p.size for p in self.last_result.selected if p.nevra in self.picked)
-        note = (f"{chosen} of {total} packages selected, {human_size(size)}. "
+        note = (f"{chosen} of {total} packages selected, {ports_for(self).human_size(size)}. "
                 "Click a row to include or exclude it.")
         if chosen < total:
             note += ("  Excluding dependencies can produce a bundle the target cannot install; "
@@ -268,13 +296,16 @@ class SelectionMixin(BuildIntentMixin):
             return
         if self._parameter_signature() == getattr(self, "analysis_signature", None):
             return
-        self.last_result = None
-        self.analysis_signature = None
-        self.last_warnings = []
+        if isinstance(self, ReviewStateMixin):
+            self.review_state.discard_stale_result()
+        else:
+            self.last_result = None
+            self.analysis_signature = None
+            self.last_warnings = []
+            self.result_rows = {}
+            self._result_item_states = {}
+            self.result_page = 0
         self._refresh_trust_review_bar()
-        self.result_rows = {}
-        self._result_item_states = {}
-        self.result_page = 0
         if getattr(self, "result_page_bar", None):
             self.result_page_bar.grid_remove()
         if getattr(self, "result_tree", None):
@@ -296,87 +327,57 @@ class SelectionMixin(BuildIntentMixin):
         """Restate every decision so the last stage is a real confirmation."""
         if not getattr(self, "review_labels", None):
             return
+        # Capture a complete, explicit snapshot before the GUI projection. The
+        # service receives no App, Tk variables or mutable repository records.
         state = self._ui_acquisition_state()
         package_only = state.capability is AcquisitionCapability.PACKAGE_ONLY
         enabled = self._build_repository_scope(package_only=package_only)
-        base = [r for r in enabled if r.url.strip() and self._repo_tier(r) == "base"]
-        signed = sum(1 for r in enabled if r.keyring)
-        if state.intent is AcquisitionIntent.REPOSITORY_MIRROR:
-            chosen = [r for r in enabled if self._mirror_repo_selected(r)]
-            selection = f"Mirror {len(chosen)} repository/repositories"
-        elif state.intent is AcquisitionIntent.PACKAGES:
-            selection = (f"{len(self.selected_packages)} exact package(s)"
-                         if self.selected_packages else "no packages chosen")
-        else:
-            selection = f"{self.workload_var.get()} · {self.package_version_var.get()}"
-        verification = f"{signed}/{len(enabled)} sources with archive keys"
-        strategies = {repository_verification_strategy(r) for r in enabled}
-        if len(strategies) == 1:
-            verification += f" | {self._strategy_policy_to_ui(next(iter(strategies)))}"
-        else:
-            verification += " | mixed verification strategies"
-        bonds = sum(1 for r in enabled
-                    if self._strategy_uses_evidence(repository_verification_strategy(r)) and r.evidence_urls)
-        if bonds:
-            verification += f" | {bonds} evidence source(s) configured"
-        vendor_ids = {getattr(r, "vendor_id", "") or infer_vendor_id(r.name, r.url)
-                      for r in enabled if r.repo_format == "rpm"}
-        configured_vendor_keys = [v for v in vendor_ids
-                                  if str(self.vendor_signature_profiles.get(v, {}).get("keyring", "")).strip()]
-        required_vendor_keys = [v for v in vendor_ids
-                                if self.vendor_signature_profiles.get(v, {}).get("policy") == "require"]
-        if configured_vendor_keys:
-            verification += f" | {len(configured_vendor_keys)} vendor keyring profile(s)"
-        if required_vendor_keys:
-            verification += f" | signatures required for {len(required_vendor_keys)} vendor(s)"
-        if self.signing_key_var.get().strip():
-            verification += " · bundle signed"
-        if state.capability is AcquisitionCapability.PACKAGE_ONLY:
-            transfer = "Package-only artifacts; dependency completeness not derived"
-            sources_text = (f"{len(enabled)} root source(s) participating · "
-                            + (state.reason or "dependency closure not requested"))
-            selection_text = f"{selection} · package-only acquisition"
-        elif state.capability is AcquisitionCapability.REPOSITORY_MIRROR:
-            transfer = "Repository mirror; package-root dependency closure does not apply"
-            sources_text = f"{len(enabled)} repository/repositories selected for mirroring"
-            selection_text = selection
-        elif state.capability is AcquisitionCapability.BLOCKED:
-            transfer = "Blocked until the acquisition/source requirements are satisfied"
-            sources_text = state.reason or "Source requirements incomplete"
-            selection_text = selection
-        else:
-            transfer = ("Differential against a baseline" if self.baseline_var.get().strip()
-                        else "Full transaction bundle")
-            sources_text = (f"{len(enabled)} enabled, {len(base)} distribution/base source(s)"
-                            + ("  |  add a base source" if not base and self._workload_uses_distribution_sources() else ""))
-            selection_text = f"{selection} · {self.mode_var.get()}"
+        repositories = []
+        for repo in enabled:
+            strategy = repository_verification_strategy(repo)
+            repositories.append(ReviewRepository(
+                tier=self._repo_tier(repo), has_url=bool(repo.url.strip()),
+                has_archive_key=bool(repo.keyring), verification_strategy=strategy,
+                verification_label=self._strategy_policy_to_ui(strategy),
+                has_evidence=bool(self._strategy_uses_evidence(strategy) and repo.evidence_urls),
+                vendor_id=(getattr(repo, "vendor_id", "") or infer_vendor_id(repo.name, repo.url))
+                if repo.repo_format == "rpm" else "",
+                mirror_selected=(self._mirror_repo_selected(repo)
+                                 if state.intent is AcquisitionIntent.REPOSITORY_MIRROR else False),
+            ))
+        mirror_paths = ()
         if state.capability is AcquisitionCapability.REPOSITORY_MIRROR:
-            mirror_folders = list(getattr(self, "_mirror_output_folder_names", lambda: [])())
-            bundle_path_text = ("\n".join(str(self._resolved_output_path(name))
-                                           for _repo, name in mirror_folders)
-                                if mirror_folders else "-")
-        else:
-            bundle_path_text = str(self._resolved_output_path()) if self._folder_name() else "-"
-        values = {
-            "Linux Distribution": f"{self.distro_var.get()} {self.release_var.get()} ({self.arch_var.get()})",
-            "Sources": sources_text,
-            "Selection": selection_text,
-            "Verification": verification,
-            "Bundle path": bundle_path_text,
-            "Output": transfer,
-        }
-        note = BuildRequestMixin._selected_workload_context(self).platform_note
-        if note:
-            values['Linux Distribution'] += '\nPlatform note: ' + note
+            mirror_folders = getattr(self, "_mirror_output_folder_names", lambda: [])()
+            mirror_paths = tuple(str(self._resolved_output_path(name))
+                                 for _repo, name in mirror_folders)
+        path = ""
+        if state.capability is not AcquisitionCapability.REPOSITORY_MIRROR and self._folder_name():
+            path = str(self._resolved_output_path())
+        summary = ReviewProjectionService.summary(ReviewSummaryInput(
+            intent=state.intent, capability=state.capability, reason=state.reason,
+            distribution=self.distro_var.get(), release=self.release_var.get(),
+            architecture=self.arch_var.get(), repositories=tuple(repositories),
+            selected_package_count=len(self.selected_packages),
+            workload_label=self.workload_var.get(), package_version=self.package_version_var.get(),
+            vendor_signature_profiles={vendor: {
+                "keyring": profile.get("keyring", ""), "policy": profile.get("policy", ""),
+            } for vendor, profile in self.vendor_signature_profiles.items()},
+            signing_key_configured=bool(self.signing_key_var.get().strip()),
+            baseline_configured=bool(self.baseline_var.get().strip()),
+            mode=self.mode_var.get(),
+            requires_distribution_sources=(self._workload_uses_distribution_sources()
+                if not package_only and not any(r.has_url and r.tier == "base" for r in repositories)
+                else False),
+            output_path=path, mirror_output_paths=mirror_paths,
+            platform_note=BuildRequestMixin._selected_workload_context(self).platform_note,
+        ))
         self._render_kubernetes_advice()
-        for key, text in values.items():
-            self.review_labels[key].configure(text=text or "-")
-        # Colour the two fields that can silently invalidate a build.
+        for key, label in summary.labels.items():
+            self.review_labels[key].configure(text=label or "-")
         self.review_labels["Sources"].configure(
-            foreground=(WARN_FG if package_only else
-                        (FG_TEXT if base or not self._workload_uses_distribution_sources() else ERR_FG)))
+            foreground=WARN_FG if package_only else (ERR_FG if summary.source_warning else FG_TEXT))
         self.review_labels["Output"].configure(
-            foreground=WARN_FG if package_only or self.baseline_var.get().strip() else FG_TEXT)
+            foreground=WARN_FG if summary.output_warning else FG_TEXT)
 
     def _show_review_source_urls(self):
         """Show the exact network/local endpoints analysis is configured to use.
@@ -474,41 +475,27 @@ class SelectionMixin(BuildIntentMixin):
                     pass
 
     def _review_contract_rows(self):
-        """Return the operator's requested build roots before analysis.
-
-        The rows are deliberately independent of repository loading. Analysis
-        enriches this contract with dependencies; it does not create the
-        contract itself. Mirror mode uses the selected repositories as its
-        equivalent build roots.
-        """
+        """Requested build roots before analysis, projected from explicit inputs."""
         state = self._ui_acquisition_state()
         if state.intent is AcquisitionIntent.REPOSITORY_MIRROR:
-            rows = []
-            for repo in self.repo_rows:
-                if repo.url.strip() and self._mirror_repo_selected(repo):
-                    rows.append((repo.name, "selected", redact_url(repo.url) if repo.url else "location not configured",
-                                 "repository selected for mirroring"))
-            return rows
+            mirrors = [ReviewMirrorSource(repo.name, redact_url(repo.url))
+                       for repo in self.repo_rows
+                       if repo.url.strip() and self._mirror_repo_selected(repo)]
+            return ReviewProjectionService.requested_roots(intent=state.intent, mirrors=mirrors)
         if state.intent is AcquisitionIntent.PACKAGES:
-            return [(pkg.nevra, "requested", pkg.repo.name, "explicit package selection")
-                    for pkg in self.selected_packages]
+            packages = [ReviewRequestedPackage(pkg.nevra, pkg.repo.name)
+                        for pkg in self.selected_packages]
+            return ReviewProjectionService.requested_roots(intent=state.intent, exact_packages=packages)
         try:
             requests = self._package_requests()
         except Exception:
             return []
         workload = self._workload()
-        rows = []
-        for request in requests:
-            name = str(request[0])
-            version = request[1] if len(request) > 1 else None
-            package = f"{name} {version}" if version else name
-            reason = (
-                "VKS node OS package addition"
-                if getattr(workload, "contextual_packages", False) else
-                "custom package request" if workload.custom else
-                f"requested by {workload.label}")
-            rows.append((package, "requested", "enabled repositories", reason))
-        return rows
+        return ReviewProjectionService.requested_roots(
+            intent=state.intent, requests=requests,
+            workload=ReviewWorkload(workload.label, bool(workload.custom),
+                                    bool(getattr(workload, "contextual_packages", False))),
+        )
 
     def _has_review_contract(self) -> bool:
         """True when Review contains at least one explicit build root."""

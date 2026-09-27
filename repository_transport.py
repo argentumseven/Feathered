@@ -237,7 +237,12 @@ class RepositoryRedirectHandler(urllib.request.HTTPRedirectHandler):
             raise RuntimeError(
                 f"Repository redirect from HTTPS to {target_scheme or 'a non-HTTP(S) URL'} is not allowed. "
                 "Configure an HTTP repository explicitly if plaintext transport is intended.")
-        if repo_has_endpoint_credentials(self.repo):
+        # Child metadata URLs and later redirect hops may carry credentials
+        # even when the configured repository URL itself is public.
+        if (repo_has_endpoint_credentials(self.repo)
+                or url_has_endpoint_credentials(req.full_url, self.repo)
+                or req.has_header("Authorization")
+                or req.has_header("Cookie")):
             current_origin = effective_origin(req.full_url)
             target_origin = effective_origin(target)
             allow = credential_redirect_allow_origins(self.repo)

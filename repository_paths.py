@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import posixpath
+import re
 from pathlib import Path
 from typing import Optional
 import urllib.parse
@@ -10,6 +11,29 @@ import urllib.request
 from credential_redaction import redact_url
 from repository_config import RepoSpec
 import repository_transport as _transport
+
+
+# ALPM %FILENAME% may contain the version epoch delimiter `:` in a bare
+# repository filename, e.g. lz4-1:1.10.0-2-x86_64.pkg.tar.zst. urlsplit()
+# mistakes the preceding text for a URI scheme. Only recognize the narrow
+# package-filename shape; arbitrary URI schemes must still be rejected.
+_ARCH_EPOCH_FILENAME = re.compile(
+    r"[A-Za-z0-9@._+~-]+-[0-9]+:[A-Za-z0-9][A-Za-z0-9._+~-]*-"
+    r"[0-9]+(?:\.[0-9]+)?-[A-Za-z0-9_]+\.pkg\.tar\.(?:zst|xz|gz|bz2|lz4|lrz|lzo|Z)",
+    re.IGNORECASE,
+)
+
+
+def is_arch_epoch_filename(text: str) -> bool:
+    """True only for a bare ALPM package filename with a version epoch."""
+    return bool(_ARCH_EPOCH_FILENAME.fullmatch(text))
+
+
+def arch_package_basename(location: str) -> str:
+    """Extract an ALPM filename without dropping a leading epoch segment."""
+    if is_arch_epoch_filename(location):
+        return location
+    return posixpath.basename(urllib.parse.urlsplit(location).path)
 
 
 def repo_relative_url(base: str, location: str, repo: Optional[RepoSpec] = None) -> str:
@@ -25,7 +49,11 @@ def repo_relative_url(base: str, location: str, repo: Optional[RepoSpec] = None)
     text = (location or "").strip()
     if not text:
         raise RuntimeError("Repository metadata supplied an empty package location")
-    parsed = urllib.parse.urlsplit(text)
+    # Prefix `./` solely for the recognized bare ALPM epoch-filename form.
+    # It defeats urlsplit/urljoin's scheme heuristic without allowing any
+    # externally supplied scheme, protocol-relative URL, or parent traversal.
+    relative = "./" + text if is_arch_epoch_filename(text) else text
+    parsed = urllib.parse.urlsplit(relative)
     if parsed.scheme or parsed.netloc or text.startswith("//"):
         raise RuntimeError(
             f"Repository metadata supplies an absolute package location ({redact_url(text)}). "
@@ -37,7 +65,7 @@ def repo_relative_url(base: str, location: str, repo: Optional[RepoSpec] = None)
     root_path = (base_parts.path or "/").rstrip("/") + "/"
     root = urllib.parse.urlunsplit(
         (base_parts.scheme, base_parts.netloc, root_path, base_parts.query, base_parts.fragment))
-    joined = urllib.parse.urljoin(root, text)
+    joined = urllib.parse.urljoin(root, relative)
     # Compare on the normalised path so ../ traversal cannot climb out.
     root_parts = urllib.parse.urlsplit(root)
     joined_parts = urllib.parse.urlsplit(joined)
@@ -113,6 +141,8 @@ def human_size(value: float) -> str:
     return f"{size:.1f} TB"
 
 __all__ = [
+    "arch_package_basename",
+    "is_arch_epoch_filename",
     "file_url_to_path",
     "human_size",
     "path_to_file_url",

@@ -104,7 +104,7 @@ except (ImportError, ModuleNotFoundError):
     zstd = None
 
 
-FEATHERED_VERSION = "1.3.0"
+FEATHERED_VERSION = "1.4.0"
 USER_AGENT = f"Feathered-Airgap-Sideloader/{FEATHERED_VERSION}"
 RPM_NS = _rpm_metadata.RPM_NS
 

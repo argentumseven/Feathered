@@ -35,7 +35,7 @@ _VOLATILE_FIELDS = (
     "discovered_versions",
     "verified_versions",
     "release_codenames",
-    "release_observed_at",
+    "release_observed_at", "prerelease_versions",
 )
 
 

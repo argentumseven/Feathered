@@ -3,6 +3,8 @@
 """
 
 from feathered_app.build_mirror import BuildMirrorMixin
+from feathered_app.transfer_state import (TransferStateMixin, transfer_state_for,
+                                         sync_legacy_transfer_host)
 from core import SEAL_PHASE_START
 from feathered_app.context import (
     APP_TITLE,
@@ -20,7 +22,9 @@ from feathered_app.context import (
 from feathered_app.ui.theme import human_size, messagebox
 
 
-class ToolsMixin(BuildMirrorMixin):
+from feathered_app.dependency_ports import ports_for
+
+class ToolsMixin(TransferStateMixin, BuildMirrorMixin):
     """Repository tools and transfer-view coordination."""
 
     def _open_mirror_catalog_folder(self):
@@ -118,8 +122,7 @@ class ToolsMixin(BuildMirrorMixin):
             except Exception as exc:
                 self.events.put(("tool_rebuild_done", False, str(exc)))
 
-        self.worker = threading.Thread(target=work, daemon=True)
-        self.worker.start()
+        self._start_operation_worker(target=work)
 
     def _choose_bundle_check_folder(self):
         chosen = filedialog.askdirectory(title="Choose an existing Feathered bundle")
@@ -152,11 +155,10 @@ class ToolsMixin(BuildMirrorMixin):
             except Exception as exc:
                 self.events.put(("tool_bundle_done", False, str(exc)))
 
-        self.worker = threading.Thread(target=work, daemon=True)
-        self.worker.start()
+        self._start_operation_worker(target=work)
 
     def _apply_tool_rebuild_done(self, ok: bool, payload):
-        self.worker = None
+        self.operation_runtime.finish_worker()
         if not ok:
             self._release_operation("Repository rebuild failed", outcome="failed")
             self.repo_tool_progress_var.set(0)
@@ -180,7 +182,7 @@ class ToolsMixin(BuildMirrorMixin):
             f"Local-content-only: {report.local_only}")
 
     def _apply_tool_bundle_done(self, ok: bool, payload):
-        self.worker = None
+        self.operation_runtime.finish_worker()
         if not ok:
             self._release_operation("Bundle file check failed", outcome="failed")
             self.bundle_check_status_var.set(str(payload))
@@ -212,16 +214,16 @@ class ToolsMixin(BuildMirrorMixin):
             mirror_summaries = list(getattr(result, "mirror_repository_summaries", []) or [])
             if self._mirror_mode() and mirror_summaries:
                 var.set(
-                    f"Planned mirror payload: {human_size(total)} across {len(selected)} package record(s) "
+                    f"Planned mirror payload: {ports_for(self).human_size(total)} across {len(selected)} package record(s) "
                     f"in {len(mirror_summaries)} repository mirror(s); no cross-repository de-duplication.")
             else:
-                var.set(f"Planned package payload: {human_size(total)} across {len(selected)} package(s).")
+                var.set(f"Planned package payload: {ports_for(self).human_size(total)} across {len(selected)} package(s).")
             return
         if self._single_mode() and getattr(self, "selected_packages", None):
             roots = list(self.selected_packages)
             root_size = sum(int(getattr(p, "size", 0) or 0) for p in roots)
             var.set(
-                f"Selected root payload: {human_size(root_size)} across {len(roots)} package(s); "
+                f"Selected root payload: {ports_for(self).human_size(root_size)} across {len(roots)} package(s); "
                 "analyze to calculate the full dependency-closure total before download.")
             return
         if self._mirror_mode():
@@ -261,31 +263,38 @@ class ToolsMixin(BuildMirrorMixin):
     def _gui_publish_download_plan(self, count: int, expected_bytes: int) -> None:
         """Hand the plan to the UI and wait, briefly, for it to be shown."""
         acknowledged = threading.Event()
-        self.events.put(("download_plan", int(count), int(expected_bytes), acknowledged))
-        if not acknowledged.wait(self.DOWNLOAD_PLAN_ACK_TIMEOUT_S):
-            self._log(
-                "The interface did not acknowledge the transfer plan within "
-                f"{self.DOWNLOAD_PLAN_ACK_TIMEOUT_S:.0f}s; continuing without it. "
-                "The planned total may not be shown, but the build is unaffected.")
+        runtime = self.__dict__.get("_operation_runtime")
+        if runtime is not None and not runtime.register_ui_wait(acknowledged):
+            return
+        try:
+            self.events.put(("download_plan", int(count), int(expected_bytes), acknowledged))
+            if not acknowledged.wait(self.DOWNLOAD_PLAN_ACK_TIMEOUT_S):
+                self._log(
+                    "The interface did not acknowledge the transfer plan within "
+                    f"{self.DOWNLOAD_PLAN_ACK_TIMEOUT_S:.0f}s; continuing without it. "
+                    "The planned total may not be shown, but the build is unaffected.")
+        finally:
+            if runtime is not None:
+                runtime.unregister_ui_wait(acknowledged)
 
     def _apply_download_plan(self, count: int, expected_bytes: int) -> None:
         if getattr(self, "download_size_var", None) is not None:
             if self._mirror_mode():
                 repo_count = len(getattr(self, "_selected_mirror_repositories", lambda: [])())
                 self.download_size_var.set(
-                    f"Planned mirror payload: {human_size(expected_bytes)} across {count} package record(s) "
+                    f"Planned mirror payload: {ports_for(self).human_size(expected_bytes)} across {count} package record(s) "
                     f"in {repo_count} repository mirror(s).")
             else:
                 self.download_size_var.set(
-                    f"Planned package payload: {human_size(expected_bytes)} across {count} package(s).")
+                    f"Planned package payload: {ports_for(self).human_size(expected_bytes)} across {count} package(s).")
         if self._mirror_mode():
             repo_count = len(getattr(self, "_selected_mirror_repositories", lambda: [])())
             self._operation_status(
                 f"Ready to mirror {repo_count} repository/repositories: {count} package record(s), "
-                f"{human_size(expected_bytes)} total")
+                f"{ports_for(self).human_size(expected_bytes)} total")
         else:
             self._operation_status(
-                f"Ready to transfer {count} package(s), {human_size(expected_bytes)} total")
+                f"Ready to transfer {count} package(s), {ports_for(self).human_size(expected_bytes)} total")
         try:
             self.update_idletasks()
         except tk.TclError:
@@ -296,62 +305,39 @@ class ToolsMixin(BuildMirrorMixin):
         # progress, so return Review to the normal border before downloading.
         self._stop_review_work_glow()
         self._operation_status(f"Downloading {count} package(s)")
-        self.transfer_total = count
-        self.transfer_done = 0
-        self.transfer_failed = 0
-        self.transfer_reused = 0
-        self.transfer_bytes = 0
-        self.transfer_expected_bytes = expected_bytes
-        self._transfer_item_bytes = {}
-        self._transfer_item_sizes = {}
-        self._transfer_terminal_items = set()
         try:
             signing = bool(self.sign_index_var.get())
-        except Exception:
+        except (AttributeError, TypeError, ValueError, tk.TclError):
             signing = False
-        self._transfer_progress_span = SEAL_PHASE_START if signing else 1.0
-        self.transfer_started = time.monotonic()
+        transfer = transfer_state_for(self)
+        transfer.begin(count, expected_bytes,
+                       progress_span=SEAL_PHASE_START if signing else 1.0)
+        sync_legacy_transfer_host(self, transfer)
         if getattr(self, "download_size_var", None) is not None:
             if self._mirror_mode():
                 repo_count = len(getattr(self, "_selected_mirror_repositories", lambda: [])())
                 self.download_size_var.set(
-                    f"Mirror payload transfer: {human_size(0)} / {human_size(expected_bytes)} "
+                    f"Mirror payload transfer: {ports_for(self).human_size(0)} / {ports_for(self).human_size(expected_bytes)} "
                     f"across {count} package record(s) in {repo_count} repository mirror(s)")
             else:
                 self.download_size_var.set(
-                    f"Package payload transfer: {human_size(0)} / {human_size(expected_bytes)} "
+                    f"Package payload transfer: {ports_for(self).human_size(0)} / {ports_for(self).human_size(expected_bytes)} "
                     f"across {count} package(s)")
         self._log(
             (f"Mirroring {count} package record(s) across "
              f"{len(getattr(self, '_selected_mirror_repositories', lambda: [])())} repository/repositories, "
-             f"{human_size(expected_bytes)} expected")
+             f"{ports_for(self).human_size(expected_bytes)} expected")
             if self._mirror_mode() else
-            f"Transferring {count} package(s), {human_size(expected_bytes)} expected")
+            f"Transferring {count} package(s), {ports_for(self).human_size(expected_bytes)} expected")
 
 
     def _apply_item_event(self, identity: str, state: str, info: dict) -> None:
         """Annotate one row and keep terminal transfer counts consistent."""
-        announced = max(0, int(info.get("size") or 0))
-        item_bytes = self.__dict__.setdefault("_transfer_item_bytes", {})
-        item_sizes = self.__dict__.setdefault("_transfer_item_sizes", {})
-        terminal = self.__dict__.setdefault("_transfer_terminal_items", set())
-        if announced:
-            item_sizes[identity] = announced
-
-        if state in ("done", "reused"):
-            item_bytes[identity] = announced
-            if identity not in terminal:
-                self.transfer_done += 1
-                if state == "reused":
-                    self.transfer_reused += 1
-                terminal.add(identity)
-        elif state == "failed":
-            item_bytes[identity] = 0
-            if identity not in terminal:
-                self.transfer_failed += 1
-                terminal.add(identity)
-
-        self.transfer_bytes = sum(max(0, int(value or 0)) for value in item_bytes.values())
+        transfer = transfer_state_for(self)
+        accepted = transfer.record_item(identity, state, info.get("size") or 0)
+        if not accepted:
+            return
+        sync_legacy_transfer_host(self, transfer)
         labels = {"active": ("downloading", "active"), "done": ("downloaded", "done"),
                   "reused": ("already present", "done"), "failed": ("FAILED", "failed"),
                   "pending": ("queued", "pending"),
@@ -376,18 +362,14 @@ class ToolsMixin(BuildMirrorMixin):
 
     def _apply_transfer_event(self, identity: str, transferred: int, total: int) -> None:
         """Apply byte progress for one artifact without changing its lifecycle state."""
-        current = max(0, int(transferred or 0))
-        expected = max(0, int(total or 0))
-        item_bytes = self.__dict__.setdefault("_transfer_item_bytes", {})
-        item_sizes = self.__dict__.setdefault("_transfer_item_sizes", {})
-        item_bytes[identity] = current
-        if expected:
-            item_sizes[identity] = expected
-        self.transfer_bytes = sum(max(0, int(value or 0)) for value in item_bytes.values())
+        transfer = transfer_state_for(self)
+        current, expected, accepted = transfer.record_bytes(identity, transferred, total)
+        if not accepted:
+            return
+        sync_legacy_transfer_host(self, transfer)
 
-        expected = item_sizes.get(identity, 0)
-        text = (f"downloading {human_size(current)} / {human_size(expected)}"
-                if expected else f"downloading {human_size(current)}")
+        text = (f"downloading {ports_for(self).human_size(current)} / {ports_for(self).human_size(expected)}"
+                if expected else f"downloading {ports_for(self).human_size(current)}")
         states = getattr(self, "_result_item_states", None)
         if states is None:
             self._result_item_states = states = {}
@@ -402,36 +384,24 @@ class ToolsMixin(BuildMirrorMixin):
 
     def _update_transfer_status(self) -> None:
         """Show count, volume, speed and estimated time remaining."""
-        if not self.transfer_total:
+        transfer = transfer_state_for(self)
+        if not transfer.total:
             return
-        elapsed = max(0.001, time.monotonic() - self.transfer_started)
-        rate = self.transfer_bytes / elapsed
-        done = self.transfer_done + self.transfer_failed
-        volume = (f"{human_size(self.transfer_bytes)} / {human_size(self.transfer_expected_bytes)}"
-                  if self.transfer_expected_bytes else human_size(self.transfer_bytes))
-        unit = "package records" if self._mirror_mode() else "packages"
-        parts = [f"{done}/{self.transfer_total} {unit}", volume]
-        if rate > 1024:
-            parts.append(f"{human_size(rate)}/s")
-        if self.transfer_expected_bytes and rate > 1024 and done < self.transfer_total:
-            remaining = max(0, self.transfer_expected_bytes - self.transfer_bytes)
-            eta = int(remaining / rate)
-            parts.append(f"~{eta // 60}m {eta % 60:02d}s left" if eta >= 60 else f"~{eta}s left")
-        if self.transfer_reused:
-            parts.append(f"{self.transfer_reused} already present")
-        if self.transfer_failed:
-            parts.append(f"{self.transfer_failed} failed")
-        if self.transfer_expected_bytes and getattr(self, "progress_var", None) is not None:
-            fraction = min(1.0, self.transfer_bytes / self.transfer_expected_bytes)
-            self.progress_var.set(fraction * float(self.__dict__.get("_transfer_progress_span", 1.0)) * 100)
+        snapshot = transfer.snapshot()
+        mirror = self._mirror_mode()
+        parts = transfer.status_parts(ports_for(self).human_size, mirror=mirror)
+        volume = (f"{ports_for(self).human_size(snapshot.transferred)} / {ports_for(self).human_size(snapshot.expected)}"
+                  if snapshot.expected else ports_for(self).human_size(snapshot.transferred))
+        if snapshot.progress_percent is not None and getattr(self, "progress_var", None) is not None:
+            self.progress_var.set(snapshot.progress_percent)
         if getattr(self, "download_size_var", None) is not None:
             if self._mirror_mode():
                 repo_count = len(getattr(self, "_selected_mirror_repositories", lambda: [])())
                 self.download_size_var.set("Mirror payload transfer: " + volume +
-                                           f" across {self.transfer_total} package record(s) in "
+                                           f" across {transfer.total} package record(s) in "
                                            f"{repo_count} repository mirror(s)")
             else:
                 self.download_size_var.set("Package payload transfer: " + volume +
-                                           f" across {self.transfer_total} package(s)")
-        self._operation_status(("Mirroring   " if self._mirror_mode() else "Transferring   ") +
+                                           f" across {transfer.total} package(s)")
+        self._operation_status(("Mirroring   " if mirror else "Transferring   ") +
                                "   ".join(parts))

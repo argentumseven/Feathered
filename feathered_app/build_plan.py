@@ -9,6 +9,8 @@ after them.
 """
 from __future__ import annotations
 
+from feathered_app.source_selection_state import selection_value
+
 import re
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -46,7 +48,7 @@ class BuildPlanMixin:
                 RootSourcePolicy(
                     package.name, "enabled", component=package.name,
                     candidates=(package.name,))
-                for package in (self.__dict__.get("selected_packages") or ())
+                for package in (selection_value(self, "selected_packages") or ())
             ])
         if workload.custom:
             custom = selected_content(self, "custom_packages", "custom_var")

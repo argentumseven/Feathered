@@ -21,6 +21,7 @@ from feathered_app.build_output import confirm_publication
 from feathered_app.build_services import BuildServices
 from feathered_app.build_service_host import BuildServiceHost, _BuildCancelEvent
 from feathered_app.build_sources import BuildSourcesMixin
+from feathered_app.dependency_ports import ApplicationDependencyPorts, ports_for
 from feathered_app.repository_universe import RepositoryUniverseMixin
 
 
@@ -30,7 +31,9 @@ class HeadlessHost(BuildServiceHost, BuildRequestMixin, BuildIntentMixin, BuildB
     """Everything `build_runner.run` reaches for, without a widget behind it."""
 
     def __init__(self, spec: BuildSpec, services: BuildServices,
-                 repositories=(), selected_packages=(), *, workloads=None):
+                 repositories=(), selected_packages=(), *, workloads=None,
+                 dependencies: ApplicationDependencyPorts | None = None):
+        self._app_dependencies = dependencies if dependencies is not None else ApplicationDependencyPorts()
         self._build_snapshot = spec
         BuildServiceHost.__init__(self, services)
         #  The five pieces of state a host holds rather than derives.
@@ -43,8 +46,7 @@ class HeadlessHost(BuildServiceHost, BuildRequestMixin, BuildIntentMixin, BuildB
         self.loaded_packages = []
         #  Frozen naming instant, the same guarantee start_build gives: the name
         #  computed at confirmation and at write time must be identical.
-        from datetime import datetime
-        self._build_naming_time = datetime.now()
+        self._build_naming_time = ports_for(self).datetime.now()
         #  The workload catalogue, loaded rather than inherited from a wizard
         #  that populated it during UI construction.
         from workloads import load_workloads

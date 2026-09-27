@@ -2,8 +2,6 @@
 
 """
 
-import tempfile
-
 from feathered_app.context import (
     APP_TITLE,
     BG_APP,
@@ -24,118 +22,64 @@ from feathered_app.context import (
     vendor_display_name,
 )
 from feathered_app.ui.theme import human_size, messagebox
+from feathered_app.persistence.store import UserStateStore
 
+
+from feathered_app.dependency_ports import ports_for
 
 class PersistenceMixin:
     """Persistent aliases, keystore data, signature profiles, and entitlement state."""
 
     def _user_state_dir(self) -> Path:
-        """Per-user Feathered state, deliberately outside the program tree.
+        """OS-specific per-user configuration root (legacy public adapter)."""
+        return UserStateStore.system_root()
 
-        remembered trust/credential
-        settings contain references only, never key/certificate bytes.  Keeping
-        even those references beside the executable made portable builds look
-        self-contained when they were not and risked copying local paths with
-        the application.  Use the OS user configuration area instead.
-        """
-        if sys.platform.startswith("win"):
-            base = Path(os.environ.get("APPDATA") or (Path.home() / "AppData" / "Roaming"))
-            root, legacy = base / "Feathered", base / "Feather"
-        elif sys.platform == "darwin":
-            base = Path.home() / "Library" / "Application Support"
-            root, legacy = base / "Feathered", base / "Feather"
-        else:
-            base = Path(os.environ.get("XDG_CONFIG_HOME") or (Path.home() / ".config"))
-            root, legacy = base / "feathered", base / "feather"
-        # One-time migration from the pre-rename configuration directory so the
-        # Feathered rename does not silently discard saved profiles/settings.
-        if not root.exists() and legacy.is_dir():
-            try:
-                legacy.rename(root)
-            except OSError:
-                pass  # e.g. cross-device or permission issue; start fresh
-        root.mkdir(parents=True, exist_ok=True)
-        try:
-            root.chmod(0o700)
-        except OSError:
-            pass
-        return root
+    def _get_user_state_store(self) -> UserStateStore:
+        """Use the app's injected store; also support partial legacy test hosts."""
+        store = self.__dict__.get("_user_state_store")
+        if store is None:
+            store = UserStateStore(
+                self._user_state_dir(),
+                write_json=lambda path, payload: self._secure_write_json(path, payload),
+                log=getattr(self, "_log", None),
+                vendor_label=vendor_display_name,
+            )
+            self._user_state_store = store
+        return store
 
     def _workload_alias_store_path(self) -> Path:
         return self._user_state_dir() / "workload-aliases.json"
 
     def _learned_workload_aliases(self) -> dict:
-        cache = self.__dict__.get("_workload_alias_cache")
-        if cache is not None:
-            return cache
-        try:
-            data = json.loads(self._workload_alias_store_path().read_text(encoding="utf-8"))
-        except Exception:
-            data = {}
-        self._workload_alias_cache = data if isinstance(data, dict) else {}
-        return self._workload_alias_cache
+        store = self._get_user_state_store()
+        existing = self.__dict__.get("_workload_alias_cache")
+        if existing is not None:
+            store.adopt_aliases(existing)
+        aliases = store.aliases()
+        self._workload_alias_cache = aliases
+        return aliases
 
     def _aliases_for_target(self) -> dict:
         profile = self._profile()
-        per_profile = self._learned_workload_aliases().get(profile.key, {})
-        family = getattr(profile, "package_family", "rpm")
-        return dict(per_profile.get(family, {})) if isinstance(per_profile, dict) else {}
+        # Keep compatibility with callers injecting _workload_alias_cache.
+        self._learned_workload_aliases()
+        return self._get_user_state_store().aliases_for(
+            profile.key, getattr(profile, "package_family", "rpm")
+        )
 
     def _record_workload_aliases(self, resolutions) -> None:
-        """Persist derived name mappings for this profile+family.
-
-        Substitutions discovered by workers arrive as events, so this runs on
-        the Tk thread and file writes never race."""
+        """Persist worker-derived aliases on the Tk thread."""
         if not resolutions:
             return
         profile = self._profile()
-        family = getattr(profile, "package_family", "rpm")
-        store = self._learned_workload_aliases()
-        bucket = store.setdefault(profile.key, {}).setdefault(family, {})
-        changed = False
-        for requested, resolved in resolutions:
-            if bucket.get(requested) != resolved:
-                bucket[requested] = resolved
-                changed = True
-        if changed:
-            self._secure_write_json(self._workload_alias_store_path(), store)
+        self._learned_workload_aliases()
+        self._get_user_state_store().record_aliases(
+            profile.key, getattr(profile, "package_family", "rpm"), resolutions
+        )
 
     def _secure_write_json(self, path: Path, payload: dict) -> None:
-        """Atomically replace per-user JSON without a world-readable temp window."""
-        path.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp_name = tempfile.mkstemp(
-            prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
-        tmp = Path(tmp_name)
-        try:
-            # mkstemp creates the file mode 0600 on POSIX before it is exposed.
-            # Flush file contents before publication so os.replace never points
-            # the canonical path at data that only exists in a userspace buffer.
-            with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as stream:
-                fd = -1
-                json.dump(payload, stream, indent=2, sort_keys=True)
-                stream.write("\n")
-                stream.flush()
-                os.fsync(stream.fileno())
-            os.replace(tmp, path)
-            # On filesystems that support directory fsync, persist the rename as
-            # well.  Windows and some network filesystems do not permit this.
-            dir_fd = -1
-            try:
-                flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-                dir_fd = os.open(str(path.parent), flags)
-                os.fsync(dir_fd)
-            except OSError:
-                pass
-            finally:
-                if dir_fd >= 0:
-                    os.close(dir_fd)
-        finally:
-            if fd >= 0:
-                os.close(fd)
-            try:
-                tmp.unlink(missing_ok=True)
-            except OSError:
-                pass
+        """Legacy interception point; implementation belongs to UserStateStore."""
+        UserStateStore.write_json(path, payload)
 
     def _legacy_program_state_path(self, name: str) -> Path:
         base = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) \
@@ -146,50 +90,16 @@ class PersistenceMixin:
         return self._user_state_dir() / "archive-keyrings.json"
 
     def _keystore_key(self, repo) -> str:
-        """Identify an archive independently of credentials used to reach it."""
-        try:
-            parsed = urllib.parse.urlparse(repo.url)
-            hostname = parsed.hostname
-            port = parsed.port
-        except (TypeError, ValueError):
-            return repo.name
-        if hostname:
-            # urlparse().hostname deliberately excludes userinfo.  Re-bracket an
-            # IPv6 literal before appending a port so the archive identity stays
-            # unambiguous without ever persisting a password.
-            host = f"[{hostname}]" if ":" in hostname else hostname
-            if port is not None:
-                host += f":{port}"
-        else:
-            host = "local"
-        root = (parsed.path or "/").rstrip("/").split("/")
-        prefix = "/".join(root[:3])
-        return f"{host}{prefix}"
+        return UserStateStore.archive_identity(repo)
 
     def _load_keystore(self) -> dict:
-        path = self._keystore_path()
-        legacy = self._legacy_program_state_path("keyrings.json")
-        source = path if path.is_file() else legacy if legacy.is_file() else None
-        if source is None:
-            return {}
-        try:
-            data = json.loads(source.read_text(encoding="utf-8"))
-            values = data.get("keyrings", {}) if isinstance(data, dict) else {}
-        except Exception as exc:
-            self._log(f"Keyring store could not be read ({exc}); starting empty.")
-            return {}
-        if source == legacy and values:
-            try:
-                self._secure_write_json(path, {"keyrings": values})
-                legacy.unlink(missing_ok=True)
-                self._log("Migrated remembered archive-keyring references to the per-user Feathered configuration directory.")
-            except OSError as exc:
-                self._log(f"Could not migrate the legacy keyring reference store: {exc}")
-        return values
+        return self._get_user_state_store().load_keystore(
+            self._legacy_program_state_path("keyrings.json")
+        )
 
     def _save_keystore(self) -> None:
         try:
-            self._secure_write_json(self._keystore_path(), {"keyrings": self.keystore})
+            self._get_user_state_store().save_keystore(self.keystore)
         except OSError as exc:
             self._log(f"Keyring store could not be saved: {exc}")
 
@@ -197,24 +107,11 @@ class PersistenceMixin:
         return self._user_state_dir() / "vendor-signatures.json"
 
     def _load_vendor_signature_profiles(self) -> dict:
-        path = self._vendor_signature_store_path()
-        if not path.is_file():
-            return {}
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            profiles = data.get("vendors", {}) if isinstance(data, dict) else {}
-            return profiles if isinstance(profiles, dict) else {}
-        except Exception as exc:
-            self._log(f"Vendor keyring reference store could not be read ({exc}); starting empty.")
-            return {}
+        return self._get_user_state_store().load_vendor_signatures()
 
     def _save_vendor_signature_profiles(self) -> None:
-        # Only paths and non-secret policy labels are persisted.  Key material
-        # remains in the operator-selected files and is passed through to GPG.
         try:
-            self._secure_write_json(
-                self._vendor_signature_store_path(),
-                {"vendors": self.vendor_signature_profiles})
+            self._get_user_state_store().save_vendor_signatures(self.vendor_signature_profiles)
         except OSError as exc:
             self._log(f"Vendor keyring references could not be saved: {exc}")
 
@@ -347,7 +244,7 @@ class PersistenceMixin:
         for i, pkg in enumerate(ordered):
             tree.insert("", "end", iid=str(i),
                         values=(pkg.evr_text if not deb else pkg.version,
-                                pkg.repo.name, human_size(pkg.size)))
+                                pkg.repo.name, ports_for(self).human_size(pkg.size)))
         tree.pack(fill="both", expand=True)
         tree.selection_set(str(next((i for i, p in enumerate(ordered)
                                      if p.nevra == current.nevra), 0)))
