@@ -24,6 +24,7 @@ BATCH_SIZE = 20
 WINDOWS_ISOLATED_PREFIXES = (
     "tests/test_activity_animation.py::",
     "tests/test_option_advisory_gui.py::",
+    "tests/test_pane_header_spacing_gui.py::",
     "tests/test_application_startup.py::",
     "tests/test_build_spec.py::",
     "tests/test_build_worker_isolation.py::",
