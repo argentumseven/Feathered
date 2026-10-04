@@ -1,0 +1,461 @@
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,39 @@
+-# Feathered 1.4.0
++# Feathered 1.4.0 — Offline Linux Package Downloader & Air-Gap Repository Builder
+ 
+-Feathered downloads Linux workloads, individual packages, and complete repositories for use offline. Choose what to collect, select the sources, and build a bundle. Archive keyrings, independent evidence, vendor signature requirements, and bundle signing are optional.
+-From a connected Windows workstation, Feathered can acquire, verify, curate, and mirror RPM, APT, and pacman content, then publish native repositories for transfer into a disconnected network. Those repositories can be consumed directly by native package managers or staged into downstream repository-management infrastructure such as Red Hat Satellite or Pulp.
++**Feathered downloads Linux packages, dependency-complete workloads, and complete repositories for offline and air-gapped systems.** From a connected Windows workstation, it can acquire, verify, curate, and mirror **APT, RPM/DNF/YUM, and pacman** content, then publish native repositories for transfer into a disconnected network.
++
++Use Feathered when you need to:
++
++- download RPM packages and their dependencies for an offline RHEL, Rocky Linux, AlmaLinux, CentOS Stream, Fedora, or Photon system;
++- download DEB packages and dependency-complete content for an offline Ubuntu, Debian, or Devuan system;
++- prepare native pacman repositories for disconnected Arch Linux or Artix Linux systems;
++- mirror complete APT, RPM, or pacman repositories across an air gap;
++- build differential offline updates against a previous Feathered baseline;
++- stage generated repositories into Red Hat Satellite, Pulp, internal package servers, or standalone Linux targets.
++
++Feathered supports three primary acquisition modes: **Workload**, **Choose packages**, and **Entire repository (mirror)**. Archive keyrings, independent evidence, vendor signature requirements, target inventory, and bundle signing are optional controls.
++
+ Feathered is not a replacement for APT, DNF, or pacman. Its connected-side resolver determines the content that must cross the air gap. The native package manager remains authoritative for the final transaction on the target system.
++
++## Offline package guides
++
++For task-oriented workflows, see:
++
++- [Download RPM packages and dependencies for offline RHEL-family systems](docs/OFFLINE-RPM-DNF-YUM.md)
++- [Download DEB packages and dependencies for offline Debian or Ubuntu](docs/OFFLINE-APT-DEBIAN-UBUNTU.md)
++- [Build an offline pacman repository for Arch Linux or Artix Linux](docs/OFFLINE-PACMAN-ARCH.md)
++- [Download Linux packages on Windows for an air-gapped Linux system](docs/AIRGAP-WINDOWS-WORKSTATION.md)
++
++### Capability map
++
++| Need | Feathered output |
++| --- | --- |
++| Offline RPM packages with dependency closure | Native RPM/YUM/DNF repository |
++| Offline DEB packages with dependency closure | Native APT repository |
++| Offline Arch/Artix packages | Native pacman repository |
++| Complete upstream repository | Repository mirror |
++| Smaller repeat transfer | Differential bundle against a Feathered baseline |
++| Direct target consumption | Offline installer where the selected workflow supports it |
++| Internal repository staging | Standard repository content suitable for downstream infrastructure |
++
+ ## What Feathered does
+diff --git a/docs/README.md b/docs/README.md
+new file mode 100644
+--- /dev/null
++++ b/docs/README.md
+@@ -0,0 +1,29 @@
++# Feathered offline package and air-gap guides
++
++Feathered downloads Linux packages, dependency-complete workloads, and complete repositories for transfer into offline and air-gapped Linux environments.
++
++These guides organize the same Feathered capabilities by the problem an operator is trying to solve.
++
++## Common tasks
++
++- [Download RPM packages and dependencies for offline RHEL-family systems](OFFLINE-RPM-DNF-YUM.md)
++- [Download DEB packages and dependencies for offline Debian or Ubuntu](OFFLINE-APT-DEBIAN-UBUNTU.md)
++- [Build an offline pacman repository for Arch Linux or Artix Linux](OFFLINE-PACMAN-ARCH.md)
++- [Download Linux packages from a connected Windows workstation for an air-gapped Linux system](AIRGAP-WINDOWS-WORKSTATION.md)
++
++## What Feathered produces
++
++Depending on the selected acquisition mode and target, Feathered can produce:
++
++- native RPM/YUM/DNF repositories;
++- native APT repositories;
++- native pacman repositories;
++- dependency-complete workload or exact-package publications;
++- complete repository mirrors;
++- differential bundles against a previous Feathered baseline;
++- manifests, checksums, provenance, and receiver-side verification material;
++- an offline installer when the selected workflow supports direct target consumption.
++
++Feathered performs connected-side package analysis so the required content can cross the air gap, but the target system's native package manager remains authoritative for the final transaction.
++
++For the complete behavior and security model, see the project [README](../README.md), [CLI documentation](../CLI.md), [validation documentation](../VALIDATION.md), and [security policy](../SECURITY.md).
+diff --git a/docs/OFFLINE-RPM-DNF-YUM.md b/docs/OFFLINE-RPM-DNF-YUM.md
+new file mode 100644
+--- /dev/null
++++ b/docs/OFFLINE-RPM-DNF-YUM.md
+@@ -0,0 +1,87 @@
++# Download RPM packages and dependencies for offline RHEL, Rocky Linux, AlmaLinux, CentOS Stream, or Fedora
++
++Feathered can collect RPM packages and their dependency closure on a connected workstation, publish the result as a native RPM/YUM/DNF repository, and transfer that repository into a disconnected or air-gapped Linux environment.
++
++This workflow is intended for operators who would otherwise need to combine `dnf download`, `repoquery`, `reposync`, repository metadata generation, and manual transfer steps.
++
++## Supported RPM-family targets
++
++Built-in Feathered profiles include:
++
++- Red Hat Enterprise Linux (RHEL);
++- Rocky Linux;
++- AlmaLinux;
++- CentOS Stream;
++- Fedora;
++- VMware Photon OS;
++- custom RPM repositories.
++
++Target architecture choices depend on the selected profile.
++
++## Typical offline RPM workflow
++
++1. On the connected Feathered workstation, choose the target distribution, release, and architecture.
++2. Select one of Feathered's acquisition modes:
++   - **Workload** for a dependency-complete predefined or organization-defined package set;
++   - **Choose packages** for selected package identities and versions;
++   - **Entire repository (mirror)** when the full upstream repository must cross the air gap.
++3. Enable the repositories that are allowed to satisfy transitive dependencies.
++4. Optionally load a target inventory captured from the disconnected system so planning can account for installed packages and package-manager state.
++5. Select the required provenance and keying policy.
++6. Build the bundle.
++7. Transfer the generated repository across the air gap.
++8. Consume the repository with the target system's native DNF/YUM tooling or stage it into repository-management infrastructure such as Red Hat Satellite or Pulp.
++
++For headless builds, a saved Feathered build specification can be executed with:
++
++```bash
++python feathered_cli.py build --spec build.json --out ./bundles
++```
++
++Runtime credentials and local trust material can be supplied separately through the runtime configuration described in [CLI.md](../CLI.md).
++
++## Dependency handling
++
++Feathered performs connected-side analysis so the package content required by the requested workload can be transported before DNF/YUM is available on the disconnected side.
++
++RPM planning includes package providers, version relationships, architecture rules, installed-state reconciliation, conflicts, and module metadata where required. Feathered deliberately does not replace DNF's final transaction solver. The generated direct-install workflow runs the native package manager against the emitted offline repository.
++
++If a modular RPM would require module metadata that cannot be safely established, Feathered refuses to publish it as an orphan modular package rather than silently constructing an incomplete repository.
++
++## RHEL CDN repositories
++
++RHEL CDN access requires operator-supplied entitlement material. Private entitlement keys are runtime inputs and are not intended to become part of the portable build specification or published bundle.
++
++Selecting RHEL CDN BaseOS/AppStream establishes those repositories as dependency providers. Missing entitlement material blocks authenticated access rather than silently degrading a dependency-complete request into a package-only result.
++
++## Full repository mirroring
++
++Use **Entire repository (mirror)** when you need every published package record from the selected source rather than a dependency closure.
++
++Feathered can preserve each upstream source as a separate output repository or create an explicitly unified publication. When two repositories contain the same package identity, Feathered does not assume the artifacts are equal merely because their NEVRA matches; available content-digest evidence is used to establish equality.
++
++## Differential offline updates
++
++A later Feathered build can be compared with a previous Feathered baseline. Strong content digests are preferred over package-name/version identity, so a package republished under the same NEVRA with different bytes is not incorrectly omitted.
++
++The differential bundle records the baseline package identities expected on the receiving side, and receiver-side checks validate those prerequisites.
++
++## Verification and trust
++
++Depending on policy and source capabilities, Feathered can record:
++
++- repository metadata digest coverage;
++- RPM/vendor package signatures;
++- package SHA-256 or stronger digest evidence;
++- corroboration from a second endpoint;
++- independent Enterprise Linux peer evidence;
++- operator signing of the completed bundle.
++
++These are recorded as separate evidence claims rather than collapsed into a single generic "verified" status.
++
++## Related documentation
++
++- [Main README](../README.md)
++- [CLI](../CLI.md)
++- [Validation](../VALIDATION.md)
++- [Security](../SECURITY.md)
+diff --git a/docs/OFFLINE-APT-DEBIAN-UBUNTU.md b/docs/OFFLINE-APT-DEBIAN-UBUNTU.md
+new file mode 100644
+--- /dev/null
++++ b/docs/OFFLINE-APT-DEBIAN-UBUNTU.md
+@@ -0,0 +1,72 @@
++# Download DEB packages and dependencies for offline Debian, Ubuntu, or Devuan
++
++Feathered can collect Debian-family packages and their dependency closure on a connected workstation, generate a native APT repository, and transfer that repository to a disconnected or air-gapped Linux system.
++
++The result is intended to be consumed by APT on the target rather than installed as an unordered directory of `.deb` files.
++
++## Supported APT-family targets
++
++Built-in Feathered profiles include:
++
++- Ubuntu;
++- Debian;
++- Devuan;
++- custom APT repositories.
++
++Target architecture choices depend on the selected profile.
++
++## Typical offline APT workflow
++
++1. Choose the target distribution, release, and architecture.
++2. Choose **Workload**, **Choose packages**, or **Entire repository (mirror)**.
++3. Enable the target-compatible repositories allowed to satisfy dependencies.
++4. Optionally import a target inventory from the disconnected system.
++5. Configure the desired provenance and keying policy.
++6. Build the Feathered bundle.
++7. Transfer the generated APT repository to the offline environment.
++8. Install through APT using the generated repository configuration or import the repository into your normal disconnected repository infrastructure.
++
++A saved build specification can also be executed without the GUI:
++
++```bash
++python feathered_cli.py build --spec build.json --out ./bundles
++```
++
++See [CLI.md](../CLI.md) for runtime credentials, trust material, output reuse, and exit-code behavior.
++
++## Dependency semantics
++
++Feathered performs connected-side package analysis so required content is available before the target system runs APT.
++
++Planning accounts for Debian-family dependency relationships including providers, versions, alternatives, architecture rules, installed-state reconciliation, and retained-package conflicts. Fresh target inventories also preserve installed `Conflicts` and `Breaks` declarations so selected packages can be checked against packages that will remain installed.
++
++Unsupported or ambiguous dependency expressions are surfaced rather than guessed.
++
++The final transaction still belongs to APT. Generated direct-install workflows isolate the transferred Feathered repository from unrelated network repositories and invoke `apt-get` against the offline content.
++
++## Signed repository metadata
++
++Where source policy and trust material permit it, Feathered can verify signed APT Release/InRelease metadata and the package checksums authenticated by that metadata.
++
++A configured keyring is not treated as proof by itself. Feathered records OpenPGP coverage from signatures that were actually verified.
++
++Devuan's built-in sources may use upstream HTTP defaults. In that case, use a trusted Devuan archive keyring to authenticate signed metadata and package checksums. Signature verification authenticates repository content; it does not encrypt HTTP transport.
++
++## Complete APT mirrors
++
++Choose **Entire repository (mirror)** when the goal is to transfer the full repository rather than only the packages required by a workload or selected roots.
++
++The default output preserves source boundaries. Unified publication is explicit, and artifact equivalence is not inferred merely from matching package name/version metadata when stronger content identity is unavailable.
++
++## Release boundaries
++
++A Feathered bundle is built for a specific distribution and release. The receiver compares the target's `/etc/os-release` information with the bundle target even when no inventory was captured.
++
++Feathered does not perform Debian-family release upgrades. For an air-gapped release upgrade, mirror the new release repositories with Feathered and then run the distribution's documented upgrade procedure against those local repositories.
++
++## Related documentation
++
++- [Main README](../README.md)
++- [CLI](../CLI.md)
++- [Validation](../VALIDATION.md)
++- [Security](../SECURITY.md)
+diff --git a/docs/OFFLINE-PACMAN-ARCH.md b/docs/OFFLINE-PACMAN-ARCH.md
+new file mode 100644
+--- /dev/null
++++ b/docs/OFFLINE-PACMAN-ARCH.md
+@@ -0,0 +1,46 @@
++# Build an offline pacman repository for Arch Linux or Artix Linux
++
++Feathered can collect packages for Arch-family targets, transfer the required content across an air gap, and publish a native pacman repository for the disconnected system.
++
++Built-in profiles currently cover Arch Linux and Artix Linux.
++
++## Typical workflow
++
++1. Choose the Arch Linux or Artix Linux target profile and architecture.
++2. Select a workload, exact packages, or a complete repository mirror.
++3. Enable the repositories allowed to participate in dependency planning.
++4. Optionally load a target inventory.
++5. Build the Feathered bundle.
++6. Transfer the generated pacman repository into the disconnected environment.
++7. Use the generated repository configuration and native pacman transaction on the target.
++
++Saved build specifications can be executed headlessly:
++
++```bash
++python feathered_cli.py build --spec build.json --out ./bundles
++```
++
++## Full-upgrade semantics
++
++Arch-family package management is a rolling-release system. Feathered therefore treats direct Arch-family installation with full-upgrade transaction semantics rather than presenting partial upgrade behavior as safe.
++
++Installed inventory is optional. Without it, Feathered transfers a complete repository-derived dependency closure and leaves final transaction evaluation to pacman.
++
++The native target package manager remains authoritative.
++
++## Repository mirrors
++
++Use **Entire repository (mirror)** when the goal is to move a complete selected repository rather than construct a package dependency closure.
++
++Feathered can preserve repository boundaries or explicitly construct a unified publication. Artifact conflicts are not silently discarded when available metadata cannot establish that two matching package identities contain the same bytes.
++
++## Differential bundles
++
++Differential builds compare a new package set with a previous Feathered baseline. Content digests are preferred to package identity alone when deciding whether an artifact can be omitted from the transfer.
++
++## Related documentation
++
++- [Main README](../README.md)
++- [CLI](../CLI.md)
++- [Validation](../VALIDATION.md)
++- [Security](../SECURITY.md)
+diff --git a/docs/AIRGAP-WINDOWS-WORKSTATION.md b/docs/AIRGAP-WINDOWS-WORKSTATION.md
+new file mode 100644
+--- /dev/null
++++ b/docs/AIRGAP-WINDOWS-WORKSTATION.md
+@@ -0,0 +1,86 @@
++# Download Linux packages on Windows for an offline or air-gapped Linux system
++
++Feathered is designed to let a connected workstation acquire Linux package content before that content crosses into a disconnected network.
++
++A common deployment model is a connected Windows workstation that prepares native Linux package repositories for RHEL-family, Debian-family, or Arch-family targets.
++
++## What the Windows workstation can prepare
++
++Depending on the selected Feathered target and acquisition mode, the connected workstation can prepare:
++
++- RPM/YUM/DNF repositories;
++- APT repositories;
++- pacman repositories;
++- dependency-complete workload bundles;
++- selected package/version bundles;
++- complete repository mirrors;
++- differential bundles against a previous Feathered baseline;
++- provenance, checksums, manifests, and receiver-side verification material.
++
++The generated repository is then transferred by whatever controlled media or transfer process the environment permits.
++
++## Choose the target before downloading
++
++Linux package artifacts are distribution-, release-, and architecture-specific. Feathered therefore builds for an explicit target profile rather than treating an RPM or DEB as universally portable.
++
++Built-in target families include:
++
++- RHEL, Rocky Linux, AlmaLinux, CentOS Stream, Fedora, and VMware Photon OS;
++- Ubuntu, Debian, and Devuan;
++- Arch Linux and Artix Linux;
++- custom RPM and APT repositories.
++
++The receiver verifies the target release before a direct-install workflow proceeds. Feathered is not intended to mix packages from different operating-system releases.
++
++## Optional target inventory
++
++For tighter planning, Feathered can consume an inventory captured from the disconnected target.
++
++Copy the inventory collector files to the target, run:
++
++```bash
++bash target_inventory.sh target-inventory.txt
++```
++
++and move the resulting inventory back to the connected Feathered workstation.
++
++The inventory can let planning account for installed packages, package relationships, architecture, and relevant package-manager state. Inventory is optional; it is not required for every workflow.
++
++## GUI workflow
++
++From the Feathered application:
++
++1. Select the target distribution, release, and architecture.
++2. Choose **Workload**, **Choose packages**, or **Entire repository (mirror)**.
++3. Select the allowed package sources.
++4. Optionally load target inventory.
++5. Select the provenance/keying policy appropriate for the environment.
++6. Build the bundle.
++7. Transfer the output to the disconnected network.
++8. Consume it with the target's native package manager or stage it into an internal repository server.
++
++## Headless workflow
++
++Saved build specifications can be inspected and executed without Tk:
++
++```bash
++python feathered_cli.py show --spec build.json
++python feathered_cli.py build --spec build.json --out ./bundles
++```
++
++Portable build specifications exclude local private-key paths. Runtime credentials and local trust material can be supplied separately.
++
++See [CLI.md](../CLI.md) for the complete headless interface.
++
++## Windows release security model
++
++Frozen Windows releases use a staged GnuPG `gpgv` verifier. Bundle signing separately requires `gpg` and an operator secret key. Production build tooling authenticates the staged verifier inputs and prevents a frozen build from silently falling back to an arbitrary verifier on `PATH`.
++
++For receiver-side trust, the strongest workflow distributes `trusted_receiver.py` and the operator public keyring through a trusted channel separate from the transferred bundle.
++
++## Related guides
++
++- [Offline RPM / DNF / YUM](OFFLINE-RPM-DNF-YUM.md)
++- [Offline APT / Debian / Ubuntu](OFFLINE-APT-DEBIAN-UBUNTU.md)
++- [Offline pacman / Arch](OFFLINE-PACMAN-ARCH.md)
++- [Main README](../README.md)
+diff --git a/GITHUB_METADATA.md b/GITHUB_METADATA.md
+new file mode 100644
+--- /dev/null
++++ b/GITHUB_METADATA.md
+@@ -0,0 +1,65 @@
++# GitHub discoverability metadata for Feathered
++
++This file records repository settings that cannot be changed through a source-code merge.
++
++## Recommended repository description
++
++Use:
++
++> Offline Linux package downloader and repository builder for air-gapped systems. Resolve dependencies and mirror APT, RPM/DNF/YUM, and pacman repositories from Windows.
++
++This description is intentionally literal. It supplements, rather than replaces, Feathered's more precise internal terminology.
++
++## Recommended GitHub topics
++
++Keep relevant existing topics and use the available topic slots for high-intent discovery terms.
++
++Recommended set:
++
++```text
++airgap
++air-gapped
++offline
++offline-installer
++package-downloader
++package-management
++repository
++repository-mirror
++apt
++debian
++ubuntu
++rpm
++dnf
++yum
++rhel
++pacman
++pulp
++satellite
++supply-chain
++linux
++```
++
++If a topic proves misleading or inactive, remove it rather than retaining it for keyword density.
++
++## Recommended release title
++
++For the current release:
++
++```text
++Feathered v1.4.0 — Offline Linux Package & Air-Gap Repository Builder
++```
++
++The first paragraph of the release notes should identify APT, RPM/DNF/YUM, pacman, dependency-complete acquisition, repository mirroring, and disconnected/air-gapped use in plain language.
++
++## Suggested social-preview text
++
++```text
++FEATHERED
++
++Offline Linux Package Downloader
++& Air-Gap Repository Builder
++
++APT • RPM / DNF / YUM • pacman
++```
++
++Keep the visual simple and readable at small card sizes.
