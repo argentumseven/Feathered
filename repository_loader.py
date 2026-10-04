@@ -156,6 +156,7 @@ def load_repository_once(
 ) -> List[Package]:
     reporter.log(f"Loading repository: {repo.name}")
     refs = get_repo_data(repo, reporter, services, retries=retries)
+    trust = services.repo_trust(repo)
     primary = refs.get("primary")
     if primary is None:
         raise RuntimeError(f"{repo.name}: repomd.xml contains no primary metadata")
@@ -196,7 +197,10 @@ def load_repository_once(
         from module_policy import load_supplemental
 
         load_supplemental(repo, refs, reporter, retries)
-        return services.parse_primary(xml_stream, repo, arches, reporter)
+        packages = services.parse_primary(xml_stream, repo, arches, reporter)
+        for package in packages:
+            services.artifact_verification(package).archive_signature_verified = trust.archive_signature_verified
+        return packages
 
 
 def load_repository(

@@ -1641,6 +1641,7 @@ class ProvenanceMixin(BuildSourcesMixin):
         if repo is None:
             return
         repo.keyring = ""
+        setattr(repo, "trust", None)
         self._remember_keyring(repo)
         self.loaded_signature = None
         self._refresh_keyring_tree(); self._refresh_repo_tree_if_open()

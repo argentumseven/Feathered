@@ -1156,7 +1156,8 @@ def test_failed_finalisation_leaves_no_bundle():
             if shutil_which("gpg"):
                 raise AssertionError("signing with an unusable key must fail the build")
         assert not out.exists(), "a failed build must not publish a bundle"
-        leftovers = [p.name for p in base.iterdir() if p.name.startswith(".") and p.name != ".feathered-cache"]
+        leftovers = [p.name for p in base.iterdir() if p.name.startswith(".")
+                     and p.name not in {".feathered-cache", f".{out.name}.feathered-lock"}]
         assert not leftovers, f"staging left behind: {leftovers}"
 
 

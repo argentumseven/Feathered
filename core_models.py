@@ -153,6 +153,8 @@ class ArtifactVerification:
     evidence_peer_package_id: str = ""
     evidence_peer_source_rpm: str = ""
     notes: List[str] = field(default_factory=list)
+    # None is reserved for caller-created records without a metadata snapshot.
+    archive_signature_verified: Optional[bool] = None
 
 @dataclass
 class TargetInventory:

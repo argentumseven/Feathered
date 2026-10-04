@@ -9,10 +9,14 @@ from typing import Callable, Dict, Optional, Tuple
 
 import artifact_digests
 import provenance
+from artifact_verification import artifact_archive_signature_verified
 from core_models import BuildOptions, ResolutionResult
 from evidence_model import AUTH_UNKNOWN, vendor_display_name
 from execution_reporter import Reporter
-from publication_staging import abandon_staging, commit_staging, invalidate_bundle_seal, open_staging
+from publication_staging import (
+    abandon_staging, commit_staging, invalidate_bundle_seal, open_staging,
+    prepare_publication, reset_installation_outputs,
+)
 
 SEAL_PHASE_START = 0.8
 
@@ -173,10 +177,10 @@ def write_bundle(result: ResolutionResult, output_dir: Path, options: BuildOptio
     reporter.phase(0.0, SEAL_PHASE_START if options.sign_bundle_index else 1.0)
     final_dir = output_dir
     output_dir = open_staging(final_dir, reporter)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    if not options.sign_bundle_index:
-        invalidate_bundle_seal(output_dir, reporter)
     try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        if not options.sign_bundle_index:
+            invalidate_bundle_seal(output_dir, reporter)
         with artifact_digests.digest_scope():
             return _write_bundle_body(result, output_dir, final_dir, options, reporter, metadata, services)
     except BaseException:
@@ -210,6 +214,7 @@ def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Pa
     metadata_dir = rpm_dir  # Payload-scoped records travel with this RPM set.
     from transaction_model import validate_retained_payloads, write_installation_contract, installation_roots
     validate_retained_payloads(metadata_dir, result.selected, 'rpm', reporter, options)
+    reset_installation_outputs(output_dir, metadata_dir)
 
     # Keep rebuilt bundles deterministic. If the same output folder was used
     # for an earlier analysis/build with a different closure, remove RPMs that
@@ -296,7 +301,7 @@ def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Pa
     # report; when a vendor keyring is configured it is enforced here.
     prov_entries = []
     for pkg in to_ship:
-        archive_trust = getattr(pkg.repo, "trust", None)
+        archive_verified = artifact_archive_signature_verified(pkg)
         filename = filename_map[id(pkg)]
         dest = rpm_dir / filename
         entry = provenance.PackageProvenance(
@@ -310,8 +315,7 @@ def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Pa
             # that a signature was checked or that it passed.
             index_digest_verified=bool(getattr(pkg, "verification", None)
                                        and pkg.verification.index_digest_verified),
-            archive_signature_verified=bool(
-                archive_trust and archive_trust.archive_signature_verified),
+            archive_signature_verified=archive_verified,
             # source-bond facts are recorded separately from the
             # acquisition archive's trust chain.
             evidence_status=getattr(getattr(pkg, "verification", None), "evidence_status", "not-configured"),
@@ -434,6 +438,7 @@ def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Pa
     # Seal and publish. The index is computed from the finished files on disk,
     # so the operator signature attests to the bundle that actually exists.
     _write_workload_artifacts(output_dir, metadata_dir, metadata, result)
+    prepare_publication(output_dir, final_dir, reporter, will_seal=options.sign_bundle_index)
     if options.sign_bundle_index:
         # Sealing owns the last slice of the same bar the transfer advanced.
         reporter.phase(SEAL_PHASE_START, 1.0 - SEAL_PHASE_START)
@@ -463,4 +468,3 @@ def _write_workload_artifacts(output_dir, metadata_dir, metadata, result):
     if data.get('image_draft_context'):
         from kubernetes_workflow import WorkloadContext, write_image_draft
         write_image_draft(output_dir, WorkloadContext(**data['image_draft_context']), result)
-

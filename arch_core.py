@@ -1068,10 +1068,10 @@ def write_bundle(result: ArchResolutionResult, output_dir: Path, options: BuildO
     reporter.phase(0.0, core.SEAL_PHASE_START if options.sign_bundle_index else 1.0)
     final_dir = output_dir
     staging = open_staging(final_dir, reporter)
-    staging.mkdir(parents=True, exist_ok=True)
-    if not options.sign_bundle_index:
-        core.invalidate_bundle_seal(staging, reporter)
     try:
+        staging.mkdir(parents=True, exist_ok=True)
+        if not options.sign_bundle_index:
+            core.invalidate_bundle_seal(staging, reporter)
         with artifact_digests.digest_scope():
             return _write_bundle_body(result, staging, final_dir, options, reporter, metadata)
     except BaseException:
@@ -1085,6 +1085,7 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
     metadata_dir = pkg_dir  # Payload-scoped records travel with this pacman set.
     from transaction_model import validate_retained_payloads, write_installation_contract, installation_roots
     validate_retained_payloads(metadata_dir, result.selected, 'arch', reporter, options)
+    core.reset_installation_outputs(output_dir, metadata_dir)
     baseline = load_baseline(options.baseline_manifest, reporter)
     to_ship, already_present = split_against_baseline(result.selected, baseline, reporter)
     filename_map = _safe_payload_names(to_ship)
@@ -1220,6 +1221,7 @@ def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir
             "Conditions recorded while building this bundle. Review before installing.\n\n" +
             "\n".join(f"- {w}" for w in reporter.warnings) + "\n", encoding="utf-8")
     __import__("core")._write_workload_artifacts(output_dir, metadata_dir, metadata, result)
+    core.prepare_publication(output_dir, final_dir, reporter, will_seal=options.sign_bundle_index)
     if options.sign_bundle_index:
         reporter.phase(core.SEAL_PHASE_START, 1.0 - core.SEAL_PHASE_START)
         write_bundle_index(output_dir, reporter, {

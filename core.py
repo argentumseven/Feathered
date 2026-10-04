@@ -77,6 +77,8 @@ from publication_staging import (
     commit_staging,
     invalidate_bundle_seal,
     open_staging,
+    prepare_publication,
+    reset_installation_outputs,
 )
 from repository_config import RepoSpec
 from root_requests import RootInput

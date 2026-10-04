@@ -32,6 +32,7 @@ RPM_NS = {
 
 
 def get_repo_data(repo: RepoSpec, reporter: Reporter, retries: int = 3, *, url_join_fn, fetch_bytes_fn, verification_strategy_fn, verify_openpgp_fn, repo_trust_fn, repo_relative_url_fn) -> Dict[str, RepoDataRef]:
+    repo.trust = RepoTrust(repo=repo.name)
     if not repo.normalized_url:
         raise RuntimeError(f"{repo.name}: no repository URL/path configured")
     repomd_url = url_join_fn(repo.normalized_url, "repodata/repomd.xml", repo)
@@ -261,6 +262,7 @@ def parse_primary(xml: Union[bytes, IO[bytes]], repo: RepoSpec, arches: Set[str]
             source_rpm=source_rpm,
         )
         package.verification = ArtifactVerification(
+            archive_signature_verified=repo_trust_fn(repo).archive_signature_verified,
             index_digest_verified=repo_trust_fn(repo).metadata_digest_verified,
             package_digest_declared=bool(package.digests),
         )

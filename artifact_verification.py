@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 import artifact_digests
-from core_models import ArtifactVerification, BuildOptions, RepoTrust
+from core_models import ArtifactVerification, BuildOptions
 from credential_redaction import redact_text, redact_url
 from evidence_model import REL_EXACT_ARTIFACT, REL_REBUILD_PEER, AUTH_UNKNOWN, classify_relationship, infer_vendor_id
 from execution_reporter import Reporter
@@ -155,6 +155,16 @@ def mirrors_are_distinct(primary_url: str, evidence_url: str) -> Tuple[bool, str
     if primary_url.rstrip("/") == evidence_url.rstrip("/"):
         return False, "same repository endpoint"
     return True, "different hostnames"
+
+
+def artifact_archive_signature_verified(pkg: PackageArtifact) -> bool:
+    """Use the signature fact captured with this artifact's metadata generation."""
+    record = getattr(pkg, "verification", None)
+    captured = getattr(record, "archive_signature_verified", None)
+    if captured is not None:
+        return bool(captured)
+    trust = getattr(pkg.repo, "trust", None)
+    return bool(trust and trust.archive_signature_verified)
 
 
 def _artifact_verification(pkg: PackageArtifact) -> ArtifactVerification:
@@ -631,9 +641,7 @@ def apply_mirror_evidence(primary_packages, evidence_packages, evidence_repo: Re
             record.evidence_peer_identity_match = True
             record.evidence_source_lineage_match = lineage_match
             record.evidence_metadata_match = True
-            evidence_trust: Optional[RepoTrust] = getattr(evidence_repo, "trust", None)
-            record.evidence_archive_signature_verified = bool(
-                evidence_trust and evidence_trust.archive_signature_verified)
+            record.evidence_archive_signature_verified = artifact_archive_signature_verified(other)
             if evidence_digest:
                 stats["digest"] += 1
             else:
@@ -658,9 +666,7 @@ def apply_mirror_evidence(primary_packages, evidence_packages, evidence_repo: Re
         record.evidence_authority_relationship = authority
         record.evidence_source = redact_url(evidence_repo.normalized_url)
         record.evidence_location = str(getattr(other, "location", "") or "")
-        evidence_trust = getattr(evidence_repo, "trust", None)
-        record.evidence_archive_signature_verified = bool(
-            evidence_trust and evidence_trust.archive_signature_verified)
+        record.evidence_archive_signature_verified = artifact_archive_signature_verified(other)
         evidence_digest = selected_package_digest(other)
         if evidence_digest:
             record.evidence_digest_type, record.evidence_digest = evidence_digest
@@ -836,4 +842,3 @@ def verify_package_artifact(
 
     artifact_digests.remember_verified(path, before, computed)
     return True
-

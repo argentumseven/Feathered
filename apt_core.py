@@ -47,6 +47,7 @@ from runtime_limits import (
 )
 
 import provenance
+from artifact_verification import artifact_archive_signature_verified
 
 from core import FEATHERED_VERSION
 
@@ -624,7 +625,8 @@ def _repo_trust(repo: RepoSpec) -> RepoTrust:
 
 def verify_release_signature(repo: RepoSpec, leaf: str, raw: bytes, reporter: Reporter) -> None:
     """Verify InRelease/Release signatures when a keyring is configured."""
-    trust = _repo_trust(repo)
+    trust = RepoTrust(repo=repo.name)
+    setattr(repo, "trust", trust)
     if repository_verification_strategy(repo) == "skip-provenance":
         # explicit upstream-provenance opt-out.
         reporter.warn(f"{repo.name}: APT Release signature/keyring verification intentionally skipped by policy.")
@@ -698,6 +700,7 @@ def _missing_apt_suite_message(repo: RepoSpec, reporter: Reporter, errors: Seque
 
 
 def _fetch_release(repo: RepoSpec, reporter: Reporter) -> Tuple[Dict[str, str], Dict[str, Tuple[str, str, int]]]:
+    setattr(repo, "trust", RepoTrust(repo=repo.name))
     suite = repo.suite.strip()
     if not suite and not repo.flat_repo:
         raise RuntimeError(f"{repo.name}: APT suite/codename is not configured")
@@ -853,6 +856,7 @@ def empty_repository_explanation(repo: RepoSpec) -> str:
 
 def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) -> List[DebPackage]:
     fields, checksums = _fetch_release(repo, reporter)
+    archive_verified = _repo_trust(repo).archive_signature_verified
     arch = target_arch(arches)
     configured_components = [x for x in (repo.components or "main").split() if x]
     advertised = set(fields.get("Components", "").split())
@@ -873,9 +877,6 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
     metadata_record_count = 0
     relationship_count = 0
     retained_metadata_chars = 0
-    # Called for its side effect: _repo_trust lazily attaches the verification
-    # record to the repository, and later stages read repo.trust directly.
-    _repo_trust(repo)
     skip_provenance = repository_verification_strategy(repo) == "skip-provenance"
     index_verified = False
     for component, semantic_component in bindings:
@@ -993,6 +994,7 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
                     raw_fields=dict(rec),
                 ))
                 packages[-1].verification = ArtifactVerification(
+                    archive_signature_verified=archive_verified,
                     index_digest_verified=index_verified,
                     package_digest_declared=bool(packages[-1].digests),
                 )
@@ -1515,10 +1517,10 @@ def write_bundle(result: DebResolutionResult, output_dir: Path, options: BuildOp
     reporter.phase(0.0, SEAL_PHASE_START if options.sign_bundle_index else 1.0)
     final_dir = output_dir
     output_dir = open_staging(final_dir, reporter)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    if not options.sign_bundle_index:
-        core.invalidate_bundle_seal(output_dir, reporter)
     try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        if not options.sign_bundle_index:
+            core.invalidate_bundle_seal(output_dir, reporter)
         with artifact_digests.digest_scope():
             return _write_bundle_body(result, output_dir, final_dir, options, reporter, metadata)
     except BaseException:
@@ -1535,6 +1537,7 @@ def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir:
     metadata_dir = deb_dir  # Payload-scoped records travel with this DEB set.
     from transaction_model import validate_retained_payloads, write_installation_contract, installation_roots
     validate_retained_payloads(metadata_dir, result.selected, 'deb', reporter, options)
+    core.reset_installation_outputs(output_dir, metadata_dir)
     # Differential bundles: drop anything the baseline says the target already has.
     baseline = load_baseline(options.baseline_manifest, reporter)
     to_ship, already_present = split_against_baseline(result.selected, baseline, reporter)
@@ -1612,14 +1615,14 @@ def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir:
     # vendor signature that does not exist.
     prov_entries = []
     for pkg in to_ship:
-        archive_trust = getattr(pkg.repo, "trust", None)
+        archive_verified = artifact_archive_signature_verified(pkg)
         filename = filename_map[id(pkg)]
         dest = deb_dir / filename
         record = getattr(pkg, "verification", None)
         # The recorded chain, not the configured intent.
         chain_intact = bool(
             record and record.index_digest_verified and record.package_digest_checked
-            and archive_trust and archive_trust.archive_signature_verified)
+            and archive_verified)
         entry = provenance.PackageProvenance(
             package_id=pkg.nevra, filename=filename,
             sha256=artifact_digests.payload_sha256(dest, sha256_file) if dest.exists() else "",
@@ -1631,8 +1634,7 @@ def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir:
             # that a signature was checked or that it passed.
             index_digest_verified=bool(getattr(pkg, "verification", None)
                                        and pkg.verification.index_digest_verified),
-            archive_signature_verified=bool(
-                archive_trust and archive_trust.archive_signature_verified),
+            archive_signature_verified=archive_verified,
             assurance=provenance.UNVERIFIED,
             digest_checked=bool(record and record.package_digest_checked),
             # preserve mirror-bond evidence independently from archive
@@ -1675,7 +1677,8 @@ def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir:
             preserve_locations = True
             reporter.log(f"Regenerating APT repository metadata over {len(repo_packages)} total package(s) in the additive folder.")
         emit_apt_repository(output_dir, repo_packages, reporter,
-                            preserve_package_locations=preserve_locations)
+                            preserve_package_locations=preserve_locations,
+                            target_arches=[str(metadata.get("arch") or target_arch({p.arch for p in result.selected}))])
     _write_provenance(output_dir, metadata_dir, prov_entries, already_present, options, reporter, metadata)
 
     package_only = bool(metadata.get("package_only_acquisition"))
@@ -1716,6 +1719,7 @@ def _write_bundle_body(result: DebResolutionResult, output_dir: Path, final_dir:
             "Conditions recorded while building this bundle. Review before installing.\n\n"
             + "\n".join(f"- {w}" for w in reporter.warnings) + "\n", encoding="utf-8")
     __import__("core")._write_workload_artifacts(output_dir, metadata_dir, metadata, result)
+    core.prepare_publication(output_dir, final_dir, reporter, will_seal=options.sign_bundle_index)
     if options.sign_bundle_index:
         # Sealing owns the last slice of the same bar the transfer advanced.
         reporter.phase(SEAL_PHASE_START, 1.0 - SEAL_PHASE_START)
@@ -1747,7 +1751,9 @@ def _fold_field(key: str, value: str) -> str:
     return "\n".join(out)
 
 
-def emit_apt_repository(output_dir: Path, packages, reporter: RepositoryWriterReporter, preserve_package_locations: bool = False) -> None:
+def emit_apt_repository(output_dir: Path, packages, reporter: RepositoryWriterReporter,
+                        preserve_package_locations: bool = False, *,
+                        target_arches: Optional[Iterable[str]] = None) -> None:
     """Write dists/ metadata so the bundle is itself a usable APT repository.
 
     The stanzas are the ones the upstream archive published, with only Filename
@@ -1758,7 +1764,10 @@ def emit_apt_repository(output_dir: Path, packages, reporter: RepositoryWriterRe
     """
     suite = "feathered"
     component = "main"
-    arches = sorted({p.arch for p in packages if p.arch != "all"}) or ["amd64"]
+    arches = sorted({p.arch for p in packages if p.arch != "all"}
+                    | {arch for arch in (target_arches or ()) if arch != "all"}) or ["amd64"]
+    if any(not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", arch) for arch in arches):
+        raise RuntimeError("APT repository architecture is not a valid path component.")
     field_order = ["Package", "Source", "Version", "Architecture", "Essential", "Priority",
                    "Section", "Origin", "Maintainer", "Original-Maintainer", "Bugs",
                    "Installed-Size", "Provides", "Pre-Depends", "Depends", "Recommends",
