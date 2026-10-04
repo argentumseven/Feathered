@@ -57,11 +57,8 @@ def package_fixture(tmp_path, family, name="demo", arch=None):
 @contextmanager
 def staging_session(destination):
     reporter = core.Reporter()
-    staging = publication_staging.open_staging(destination, reporter)
-    try:
+    with publication_staging.staging_scope(destination, reporter) as staging:
         yield staging, reporter
-    finally:
-        publication_staging.abandon_staging(staging, reporter)
 
 
 @pytest.mark.parametrize("family", ("rpm", "deb"))
@@ -390,3 +387,80 @@ def test_sealed_staging_is_not_extended_during_commit(tmp_path):
         assert not (output / "bundle-index.json").exists()
         assert repository_tools.verify_bundle_files(staging).ok
 
+
+def _track_destination_locks(monkeypatch):
+    descriptors = []
+    acquire = publication_staging._acquire_destination_lock
+
+    def tracked(destination):
+        descriptor = acquire(destination)
+        descriptors.append(descriptor)
+        return descriptor
+
+    monkeypatch.setattr(publication_staging, "_acquire_destination_lock", tracked)
+    return descriptors
+
+
+def _assert_descriptors_closed(descriptors):
+    import os
+    assert descriptors
+    for descriptor in descriptors:
+        with pytest.raises(OSError):
+            os.fstat(descriptor)
+
+
+@pytest.mark.parametrize("name", (
+    "test_staging_cannot_mutate_the_previous_bundle",
+    "test_1082_staging_reuses_arch_payload_but_not_generated_companions",
+    "test_117_commit_staging_preflights_conflicts_before_publication",
+    "test_117_commit_staging_rolls_back_if_final_directory_swap_fails",
+    "test_117_open_staging_recovers_interrupted_directory_swap",
+))
+def test_staging_workflows_close_the_lock_before_cleanup(tmp_path, monkeypatch, name):
+    import inspect
+    import test_feather
+    descriptors = _track_destination_locks(monkeypatch)
+    function = getattr(test_feather, name)
+    fixtures = {"tmp_path": tmp_path, "monkeypatch": monkeypatch}
+    function(**{key: fixtures[key] for key in inspect.signature(function).parameters})
+    _assert_descriptors_closed(descriptors)
+
+
+@pytest.mark.parametrize("failure", (OSError("build failed"), core.Cancelled("cancelled")))
+def test_staging_scope_releases_the_lock_when_the_body_raises(tmp_path, monkeypatch, failure):
+    output = tmp_path / "bundle"
+    output.mkdir()
+    (output / "published.txt").write_text("published")
+    descriptors = _track_destination_locks(monkeypatch)
+    with pytest.raises(type(failure)) as caught:
+        with publication_staging.staging_scope(output, core.Reporter()) as staging:
+            (staging / "unfinished.txt").write_text("unfinished")
+            raise failure
+    assert caught.value is failure
+    _assert_descriptors_closed(descriptors)
+    assert (output / "published.txt").read_text() == "published"
+    assert not staging.exists()
+    with staging_session(output):
+        pass
+
+
+def test_staging_scope_does_not_abandon_a_later_session(tmp_path, monkeypatch):
+    import os
+    output = tmp_path / "bundle"
+    reporter = core.Reporter()
+    descriptors = _track_destination_locks(monkeypatch)
+    successor = None
+    try:
+        with publication_staging.staging_scope(output, reporter) as staging:
+            (staging / "published.txt").write_text("published")
+            publication_staging.commit_staging(staging, output, reporter)
+            _assert_descriptors_closed(descriptors)
+            successor = publication_staging.open_staging(output, reporter)
+            (successor / "successor.txt").write_text("successor")
+        assert (successor / "successor.txt").read_text() == "successor"
+        assert (output / "published.txt").read_text() == "published"
+        os.fstat(descriptors[-1])
+    finally:
+        if successor is not None:
+            publication_staging.abandon_staging(successor, reporter)
+    _assert_descriptors_closed(descriptors)

@@ -1101,7 +1101,7 @@ def test_staging_cannot_mutate_the_previous_bundle():
     were the same inode, so writing the new one destroyed the previous
     bundle - the exact thing staging exists to protect.
     """
-    from core import open_staging, Reporter
+    from core import staging_scope, Reporter
     with tempfile.TemporaryDirectory() as td:
         dest = Path(td) / "bundle"
         (dest / "debs").mkdir(parents=True)
@@ -1110,26 +1110,26 @@ def test_staging_cannot_mutate_the_previous_bundle():
         (dest / "debs" / "SHA256SUMS.txt").write_text("OLD SUMS")
         (dest / "debs" / "pkg.deb").write_bytes(b"PACKAGE")
 
-        staging = open_staging(dest, Reporter())
-        # Payloads are reused, while generated files are copied (not linked) so
-        # the staging tree represents the complete additive folder without
-        # letting rewrites mutate the published destination before commit.
-        assert (staging / "debs" / "pkg.deb").exists()
-        for generated in ("manifest.json", "SHA256SUMS.txt"):
-            assert (staging / "debs" / generated).read_text().startswith("OLD")
-        assert (staging / "install-offline.sh").read_text() == "OLD SCRIPT"
+        with staging_scope(dest, Reporter()) as staging:
+            # Payloads are reused, while generated files are copied (not linked) so
+            # the staging tree represents the complete additive folder without
+            # letting rewrites mutate the published destination before commit.
+            assert (staging / "debs" / "pkg.deb").exists()
+            for generated in ("manifest.json", "SHA256SUMS.txt"):
+                assert (staging / "debs" / generated).read_text().startswith("OLD")
+            assert (staging / "install-offline.sh").read_text() == "OLD SCRIPT"
 
-        for generated, body in (("manifest.json", "NEW"), ("SHA256SUMS.txt", "NEW")):
-            (staging / "debs" / generated).write_text(body)
-        (staging / "install-offline.sh").write_text("NEW")
-        assert (dest / "debs" / "manifest.json").read_text() == "OLD MANIFEST"
-        assert (dest / "install-offline.sh").read_text() == "OLD SCRIPT"
-        assert (dest / "debs" / "SHA256SUMS.txt").read_text() == "OLD SUMS"
+            for generated, body in (("manifest.json", "NEW"), ("SHA256SUMS.txt", "NEW")):
+                (staging / "debs" / generated).write_text(body)
+            (staging / "install-offline.sh").write_text("NEW")
+            assert (dest / "debs" / "manifest.json").read_text() == "OLD MANIFEST"
+            assert (dest / "install-offline.sh").read_text() == "OLD SCRIPT"
+            assert (dest / "debs" / "SHA256SUMS.txt").read_text() == "OLD SUMS"
 
-        # Replacing a payload unlinks first, so the old inode is untouched.
-        (staging / "debs" / "pkg.deb").unlink()
-        (staging / "debs" / "pkg.deb").write_bytes(b"REPLACED")
-        assert (dest / "debs" / "pkg.deb").read_bytes() == b"PACKAGE"
+            # Replacing a payload unlinks first, so the old inode is untouched.
+            (staging / "debs" / "pkg.deb").unlink()
+            (staging / "debs" / "pkg.deb").write_bytes(b"REPLACED")
+            assert (dest / "debs" / "pkg.deb").read_bytes() == b"PACKAGE"
 
 
 def test_failed_finalisation_leaves_no_bundle():
@@ -7609,7 +7609,7 @@ def test_1082_waiting_footer_deduplicates_state_prefix():
 
 
 def test_1082_staging_reuses_arch_payload_but_not_generated_companions(tmp_path):
-    from core import Reporter, open_staging
+    from core import Reporter, staging_scope
 
     dest = tmp_path / "bundle"
     packages = dest / "packages"
@@ -7620,13 +7620,13 @@ def test_1082_staging_reuses_arch_payload_but_not_generated_companions(tmp_path)
     (packages / "SHA256SUMS.txt").write_text("OLD SUMS", encoding="utf-8")
     (packages / "feathered.db").write_bytes(b"GENERATED DB")
 
-    staging = open_staging(dest, Reporter())
-    assert (staging / "packages" / payload.name).is_file()
-    # Additive staging keeps a complete copied snapshot of generated companion
-    # files so later bundle indexes/repository regeneration see the whole folder.
-    assert (staging / "packages" / "manifest.json").read_text() == "OLD MANIFEST"
-    assert (staging / "packages" / "SHA256SUMS.txt").read_text() == "OLD SUMS"
-    assert (staging / "packages" / "feathered.db").read_bytes() == b"GENERATED DB"
+    with staging_scope(dest, Reporter()) as staging:
+        assert (staging / "packages" / payload.name).is_file()
+        # Additive staging keeps a complete copied snapshot of generated companion
+        # files so later bundle indexes/repository regeneration see the whole folder.
+        assert (staging / "packages" / "manifest.json").read_text() == "OLD MANIFEST"
+        assert (staging / "packages" / "SHA256SUMS.txt").read_text() == "OLD SUMS"
+        assert (staging / "packages" / "feathered.db").read_bytes() == b"GENERATED DB"
 
 
 def test_1082_rpm_bundle_companion_files_live_with_payload_and_report_shipped_size(tmp_path):
@@ -8986,29 +8986,29 @@ def test_116_ui_added_override_exposes_country_for_plain_text_policy_edit(tmp_pa
 #  1.1.7: additive output publication and repository metadata refresh
 
 def test_117_commit_staging_merges_without_deleting_destination_only_files(tmp_path):
-    from core import Reporter, commit_staging, open_staging
+    from core import Reporter, commit_staging, staging_scope
 
     dest = tmp_path / "bundle"
     dest.mkdir()
     (dest / "keep-manually.txt").write_text("KEEP", encoding="utf-8")
     (dest / "same.txt").write_text("OLD", encoding="utf-8")
 
-    staging = open_staging(dest, Reporter())
-    # Simulate a generated view that no longer contains one pre-existing file.
-    (staging / "keep-manually.txt").unlink()
-    (staging / "same.txt").write_text("NEW", encoding="utf-8")
-    (staging / "added.txt").write_text("ADDED", encoding="utf-8")
+    with staging_scope(dest, Reporter()) as staging:
+        # Simulate a generated view that no longer contains one pre-existing file.
+        (staging / "keep-manually.txt").unlink()
+        (staging / "same.txt").write_text("NEW", encoding="utf-8")
+        (staging / "added.txt").write_text("ADDED", encoding="utf-8")
 
-    commit_staging(staging, dest, Reporter())
-    assert (dest / "keep-manually.txt").read_text(encoding="utf-8") == "KEEP"
-    assert (dest / "same.txt").read_text(encoding="utf-8") == "NEW"
-    assert (dest / "added.txt").read_text(encoding="utf-8") == "ADDED"
+        commit_staging(staging, dest, Reporter())
+        assert (dest / "keep-manually.txt").read_text(encoding="utf-8") == "KEEP"
+        assert (dest / "same.txt").read_text(encoding="utf-8") == "NEW"
+        assert (dest / "added.txt").read_text(encoding="utf-8") == "ADDED"
 
 
 
 def test_117_commit_staging_preflights_conflicts_before_publication(tmp_path):
     import pytest
-    from core import Reporter, commit_staging, open_staging
+    from core import Reporter, commit_staging, staging_scope
 
     dest = tmp_path / "bundle"
     dest.mkdir()
@@ -9016,50 +9016,50 @@ def test_117_commit_staging_preflights_conflicts_before_publication(tmp_path):
     (dest / "z-conflict").mkdir()
     (dest / "z-conflict" / "keep.txt").write_text("KEEP", encoding="utf-8")
 
-    staging = open_staging(dest, Reporter())
-    (staging / "a.txt").write_text("NEW", encoding="utf-8")
-    import shutil
-    shutil.rmtree(staging / "z-conflict")
-    (staging / "z-conflict").write_text("FILE", encoding="utf-8")
+    with staging_scope(dest, Reporter()) as staging:
+        (staging / "a.txt").write_text("NEW", encoding="utf-8")
+        import shutil
+        shutil.rmtree(staging / "z-conflict")
+        (staging / "z-conflict").write_text("FILE", encoding="utf-8")
 
-    with pytest.raises(RuntimeError, match="directory already exists"):
-        commit_staging(staging, dest, Reporter())
+        with pytest.raises(RuntimeError, match="directory already exists"):
+            commit_staging(staging, dest, Reporter())
 
-    assert (dest / "a.txt").read_text(encoding="utf-8") == "OLD"
-    assert (dest / "z-conflict" / "keep.txt").read_text(encoding="utf-8") == "KEEP"
+        assert (dest / "a.txt").read_text(encoding="utf-8") == "OLD"
+        assert (dest / "z-conflict" / "keep.txt").read_text(encoding="utf-8") == "KEEP"
 
 
 def test_117_commit_staging_rolls_back_if_final_directory_swap_fails(tmp_path, monkeypatch):
     import core
     import pytest
-    from core import Reporter, commit_staging, open_staging
+    from core import Reporter, commit_staging, staging_scope
 
     dest = tmp_path / "bundle"
     dest.mkdir()
     (dest / "state.txt").write_text("OLD", encoding="utf-8")
-    staging = open_staging(dest, Reporter())
-    (staging / "state.txt").write_text("NEW", encoding="utf-8")
+    with staging_scope(dest, Reporter()) as staging:
+        (staging / "state.txt").write_text("NEW", encoding="utf-8")
 
-    real_replace = core.os.replace
+        real_replace = core.os.replace
 
-    def fail_new_directory_move(source, target):
-        if Path(source) == staging and Path(target) == dest:
-            raise OSError("simulated final swap failure")
-        return real_replace(source, target)
+        def fail_new_directory_move(source, target):
+            if Path(source) == staging and Path(target) == dest:
+                raise OSError("simulated final swap failure")
+            return real_replace(source, target)
 
-    monkeypatch.setattr(core.os, "replace", fail_new_directory_move)
-    with pytest.raises(OSError, match="simulated final swap failure"):
-        commit_staging(staging, dest, Reporter())
+        monkeypatch.setattr(core.os, "replace", fail_new_directory_move)
+        with pytest.raises(OSError, match="simulated final swap failure"):
+            commit_staging(staging, dest, Reporter())
 
-    assert dest.is_dir()
-    assert (dest / "state.txt").read_text(encoding="utf-8") == "OLD"
-    assert staging.is_dir()
-    assert (staging / "state.txt").read_text(encoding="utf-8") == "NEW"
-    assert not core._publication_backup_path(dest).exists()
+        assert dest.is_dir()
+        assert (dest / "state.txt").read_text(encoding="utf-8") == "OLD"
+        assert staging.is_dir()
+        assert (staging / "state.txt").read_text(encoding="utf-8") == "NEW"
+        assert not core._publication_backup_path(dest).exists()
 
 
 def test_117_unsealed_additive_publication_drops_inherited_whole_bundle_seal(tmp_path):
-    from core import Reporter, commit_staging, invalidate_bundle_seal, open_staging
+    from core import Reporter, commit_staging, invalidate_bundle_seal, staging_scope
 
     dest = tmp_path / "bundle"
     dest.mkdir()
@@ -9067,22 +9067,22 @@ def test_117_unsealed_additive_publication_drops_inherited_whole_bundle_seal(tmp
     for name in ("bundle-index.json", "bundle-index.json.asc", "verify-bundle.py", "verify-bundle.py.asc"):
         (dest / name).write_text("STALE", encoding="utf-8")
 
-    staging = open_staging(dest, Reporter())
-    invalidate_bundle_seal(staging, Reporter())
-    (staging / "payload.txt").write_text("NEW", encoding="utf-8")
-    (staging / "new.txt").write_text("ADDED", encoding="utf-8")
-    commit_staging(staging, dest, Reporter())
+    with staging_scope(dest, Reporter()) as staging:
+        invalidate_bundle_seal(staging, Reporter())
+        (staging / "payload.txt").write_text("NEW", encoding="utf-8")
+        (staging / "new.txt").write_text("ADDED", encoding="utf-8")
+        commit_staging(staging, dest, Reporter())
 
-    assert (dest / "payload.txt").read_text(encoding="utf-8") == "NEW"
-    assert (dest / "new.txt").read_text(encoding="utf-8") == "ADDED"
-    for name in ("bundle-index.json", "bundle-index.json.asc", "verify-bundle.py", "verify-bundle.py.asc"):
-        assert not (dest / name).exists(), name
+        assert (dest / "payload.txt").read_text(encoding="utf-8") == "NEW"
+        assert (dest / "new.txt").read_text(encoding="utf-8") == "ADDED"
+        for name in ("bundle-index.json", "bundle-index.json.asc", "verify-bundle.py", "verify-bundle.py.asc"):
+            assert not (dest / name).exists(), name
 
 
 def test_117_open_staging_recovers_interrupted_directory_swap(tmp_path):
     import os
     import core
-    from core import Reporter, open_staging
+    from core import Reporter, staging_scope
 
     dest = tmp_path / "bundle"
     dest.mkdir()
@@ -9091,10 +9091,10 @@ def test_117_open_staging_recovers_interrupted_directory_swap(tmp_path):
     os.replace(dest, backup)
     assert not dest.exists() and backup.exists()
 
-    staging = open_staging(dest, Reporter())
-    assert (dest / "state.txt").read_text(encoding="utf-8") == "OLD"
-    assert (staging / "state.txt").read_text(encoding="utf-8") == "OLD"
-    assert not backup.exists()
+    with staging_scope(dest, Reporter()) as staging:
+        assert (dest / "state.txt").read_text(encoding="utf-8") == "OLD"
+        assert (staging / "state.txt").read_text(encoding="utf-8") == "OLD"
+        assert not backup.exists()
 
 
 def test_117_existing_folder_defaults_to_addendum_and_repo_regeneration(tmp_path, monkeypatch):

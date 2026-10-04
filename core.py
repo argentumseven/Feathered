@@ -79,6 +79,7 @@ from publication_staging import (
     open_staging,
     prepare_publication,
     reset_installation_outputs,
+    staging_scope,
 )
 from repository_config import RepoSpec
 from root_requests import RootInput

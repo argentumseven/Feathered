@@ -16,6 +16,7 @@ from execution_reporter import Reporter
 from publication_staging import (
     abandon_staging, commit_staging, invalidate_bundle_seal, open_staging,
     prepare_publication, reset_installation_outputs,
+    staging_scope,
 )
 
 SEAL_PHASE_START = 0.8
@@ -176,18 +177,12 @@ def write_bundle(result: ResolutionResult, output_dir: Path, options: BuildOptio
     # Transfer occupies the first part of the bar when sealing will follow it.
     reporter.phase(0.0, SEAL_PHASE_START if options.sign_bundle_index else 1.0)
     final_dir = output_dir
-    output_dir = open_staging(final_dir, reporter)
-    try:
+    with staging_scope(final_dir, reporter) as output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
         if not options.sign_bundle_index:
             invalidate_bundle_seal(output_dir, reporter)
         with artifact_digests.digest_scope():
             return _write_bundle_body(result, output_dir, final_dir, options, reporter, metadata, services)
-    except BaseException:
-        # Anything short of success leaves the previous bundle untouched and
-        # removes the half-built one, so nothing can be mistaken for finished.
-        abandon_staging(output_dir, reporter)
-        raise
 
 
 def _write_bundle_body(result: ResolutionResult, output_dir: Path, final_dir: Path, options: BuildOptions,

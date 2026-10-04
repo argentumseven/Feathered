@@ -6,6 +6,8 @@ the previously published bundle is restored if the final swap fails.
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 import shutil
@@ -181,6 +183,19 @@ def open_staging(dest: Path, reporter: Reporter) -> Path:
         finally:
             _release_session(staging)
         raise
+
+
+@contextmanager
+def staging_scope(dest: Path, reporter: Reporter) -> Iterator[Path]:
+    """Keep staging and its destination lock within one build's lifetime."""
+    staging = open_staging(dest, reporter)
+    key = _session_key(staging)
+    owner = _SESSIONS[key]
+    try:
+        yield staging
+    finally:
+        if _SESSIONS.get(key) is owner:
+            abandon_staging(staging, reporter)
 
 
 def _open_staging_snapshot(dest: Path, reporter: Reporter) -> Path:
@@ -441,4 +456,5 @@ __all__ = [
     "open_staging",
     "prepare_publication",
     "reset_installation_outputs",
+    "staging_scope",
 ]

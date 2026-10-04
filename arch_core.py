@@ -1067,16 +1067,12 @@ def write_bundle(result: ArchResolutionResult, output_dir: Path, options: BuildO
                  metadata: Dict[str, object]) -> Path:
     reporter.phase(0.0, core.SEAL_PHASE_START if options.sign_bundle_index else 1.0)
     final_dir = output_dir
-    staging = open_staging(final_dir, reporter)
-    try:
+    with core.staging_scope(final_dir, reporter) as staging:
         staging.mkdir(parents=True, exist_ok=True)
         if not options.sign_bundle_index:
             core.invalidate_bundle_seal(staging, reporter)
         with artifact_digests.digest_scope():
             return _write_bundle_body(result, staging, final_dir, options, reporter, metadata)
-    except BaseException:
-        abandon_staging(staging, reporter)
-        raise
 
 
 def _write_bundle_body(result: ArchResolutionResult, output_dir: Path, final_dir: Path,
