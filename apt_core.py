@@ -148,6 +148,12 @@ class DebResolutionResult:
     # internal so conflict-driven backtracking can reject the branch that
     # introduced the conflicting provider without perturbing unrelated choices.
     conflict_participants: List[str] = field(default_factory=list, compare=False, repr=False)
+    # Package identities on a dependency chain that ended in an unresolved
+    # requirement: the package that asked, the packages that pulled it in, and
+    # any already-selected build that could not satisfy it. Internal, like the
+    # conflict attribution above, so a failed closure is blamed only on choices
+    # that could have caused it.
+    unresolved_participants: List[str] = field(default_factory=list, compare=False, repr=False)
 
     @property
     def total_size(self) -> int:
@@ -1231,6 +1237,10 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
     # perfectly good solution behind the second alternative.
     rejected: Set[Tuple[str, str]] = set()
     seen: Set[Tuple[str, Tuple[object, ...]]] = set()
+    # The most-preferred failing closure, kept once backtracking begins. When no
+    # alternative completes, a failure should describe what was asked for (the
+    # newest candidates), not whichever fallback happened to be tried last.
+    preferred_failure: Optional[DebResolutionResult] = None
     # The loop below always runs at least once, so `result` is bound before use.
     result: DebResolutionResult = DebResolutionResult([], [], [], [], [], {}, [], {})
     for attempt in range(1, max(1, options.max_resolution_passes) + 1):
@@ -1251,7 +1261,9 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
                 conflict_only=conflict_only,
             )
             if not retry:
-                return result
+                return result if preferred_failure is None else preferred_failure
+            if preferred_failure is None:
+                preferred_failure = result
             # Version floors are derived from the selections a branch made, so
             # they belong to that branch. Carrying them past a rejection let a
             # constraint discovered under the abandoned alternative forbid the
@@ -1265,7 +1277,7 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
             constraints[name].append(atom)
             reporter.log(f"Re-resolving with version floor {format_atom(atom)} (pass {attempt + 1})")
     reporter.warn("DEB dependency resolution hit the pass limit; review conflicts.txt before installing.")
-    return result
+    return result if preferred_failure is None else preferred_failure
 
 
 def _reject_failed_alternative(
@@ -1277,16 +1289,21 @@ def _reject_failed_alternative(
 ) -> bool:
     """Blame a failed closure on the alternative that introduced it.
 
-    Walks from each unresolved requirement back through the chain that pulled
-    it in, looking for a package chosen from a list of alternatives that still
-    has an untried option. Returns True when a choice was rejected, meaning
-    another pass is worth running.
+    Only a choice whose package sits on the failing branch is a suspect: the
+    package that could not be completed, or one that pulled it in. A choice
+    elsewhere in the closure cannot have caused the failure, so retrying it
+    would only walk unrelated packages back to older builds, one full pass at
+    a time. Returns True when a choice was rejected, meaning another pass is
+    worth running; False when nothing on the failing branch has an untried
+    option, which ends the search.
     """
-    conflict_participants = set(getattr(result, "conflict_participants", ()))
+    conflicting = set(getattr(result, "conflict_participants", ()))
+    failing = conflicting if conflict_only else (
+        conflicting | set(getattr(result, "unresolved_participants", ())))
     for choice in reversed(result.alternative_choices):
         requirement_key, chosen, others = choice
         chosen_package = chosen.rsplit(" -> ", 1)[-1]
-        if conflict_only and chosen_package not in conflict_participants:
+        if chosen_package not in failing:
             continue
         if (requirement_key, chosen) in rejected:
             continue
@@ -1355,6 +1372,31 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
         q.append(root)
 
     inv = options.target_inventory if isinstance(options.target_inventory, AptTargetInventory) else None
+    conflict_participants: Set[str] = set()
+    unresolved_participants: Set[str] = set()
+
+    def blame_branch(package_name: str, into: Set[str]) -> None:
+        """Record a package and every dependency ancestor that selected it.
+
+        Backtracking only reconsiders choices on a failing branch; a choice
+        elsewhere in the closure did not cause the failure.
+        """
+        seen: Set[str] = set()
+        current = package_name
+        while current and current not in seen:
+            seen.add(current)
+            member = selected_by_name.get(current)
+            if member is not None:
+                into.add(member.nevra)
+            current = dependency_parent.get(current, "")
+
+    def unresolved_at(requirer: DebPackage, *also: Optional[DebPackage]) -> None:
+        """Attribute an unresolved requirement to its requirer's branch and to
+        any already-selected build that could not satisfy it."""
+        blame_branch(requirer.name, unresolved_participants)
+        for other in also:
+            if other is not None:
+                blame_branch(other.name, unresolved_participants)
 
     while q:
         reporter.check_cancel()
@@ -1367,6 +1409,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
                 reqs.extend(pkg.recommends)
         for req in reqs:
             if not req.alternatives:
+                unresolved_at(pkg)
                 if req not in unresolved:
                     unresolved.append(req)
                     unresolved_notes[format_requirement(req)] = "Unsupported/ambiguous Debian dependency expression"
@@ -1412,6 +1455,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
             else:
                 provider = None
             if provider is None:
+                unresolved_at(pkg)
                 if req not in unresolved:
                     unresolved.append(req)
                     names = sorted({a.name for a in req.alternatives})
@@ -1441,6 +1485,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
                     # as an advisory "conflict" allowed a bundle that the
                     # target package manager will reject to be labelled
                     # COMPLETE and shipped across the air gap.
+                    unresolved_at(pkg, existing)
                     for atom in req.alternatives:
                         if atom.name == provider.name:
                             discovered.append((provider.name, atom))
@@ -1463,18 +1508,9 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
 
     # Surface direct package Conflicts/Breaks among the selected set.
     chosen = list(selected_by_name.values())
-    chosen_by_name = {candidate.name: candidate for candidate in chosen}
-    conflict_participants: Set[str] = set()
 
     def mark_conflict_branch(package: DebPackage) -> None:
-        seen: Set[str] = set()
-        current = package.name
-        while current and current not in seen:
-            seen.add(current)
-            candidate = chosen_by_name.get(current)
-            if candidate is not None:
-                conflict_participants.add(candidate.nevra)
-            current = dependency_parent.get(current, "")
+        blame_branch(package.name, conflict_participants)
 
     for pkg in chosen:
         for req in pkg.conflicts + pkg.breaks:
@@ -1499,6 +1535,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
                                   sorted(set(installed_satisfied)), unresolved_notes)
     outcome.alternative_choices = alternative_choices
     outcome.conflict_participants = sorted(conflict_participants)
+    outcome.unresolved_participants = sorted(unresolved_participants)
     return outcome, discovered
 
 
