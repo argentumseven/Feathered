@@ -58,6 +58,10 @@ Choose **Entire repository (mirror)** when the goal is to transfer the full repo
 
 The default output preserves source boundaries. Unified publication is explicit, and artifact equivalence is not inferred merely from matching package name/version metadata when stronger content identity is unavailable.
 
+## Architecture boundaries
+
+A bundle targets one architecture, plus `all`. Dependencies are resolved within that architecture, so a transaction that needs native and foreign-architecture packages installed together (for example `amd64` with `i386` libraries on a multiarch host) is outside what one bundle can express. When a dependency is available only for another architecture, the unresolved entry says so. Build a separate bundle for the foreign architecture instead.
+
 ## Release boundaries
 
 A Feathered bundle is built for a specific distribution and release. The receiver compares the target's `/etc/os-release` information with the bundle target even when no inventory was captured.

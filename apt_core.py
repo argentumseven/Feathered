@@ -1415,7 +1415,17 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[DebPackage]
                 if req not in unresolved:
                     unresolved.append(req)
                     names = sorted({a.name for a in req.alternatives})
-                    if any(index.get(n) for n in names):
+                    offered = [cand for n in names for cand in index.get(n, ())]
+                    native = {preferred_arch, "all"}
+                    if offered and all(cand.arch not in native for cand in offered):
+                        # Resolution is per target architecture. Say so, rather
+                        # than leaving the operator to guess why a package that
+                        # is plainly in the archive was not found.
+                        foreign = ", ".join(sorted({cand.arch for cand in offered}))
+                        unresolved_notes[format_requirement(req)] = (
+                            f"Providers exist only for other architecture(s) ({foreign}); this bundle "
+                            f"targets one architecture ({preferred_arch}), so they cannot be included")
+                    elif offered:
                         unresolved_notes[format_requirement(req)] = "Providers exist in enabled APT repositories, but none satisfy the requested version/architecture"
                     else:
                         unresolved_notes[format_requirement(req)] = "No matching provider in enabled APT repositories"

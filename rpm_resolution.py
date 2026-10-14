@@ -212,6 +212,25 @@ def choose_provider(matches: Iterable[ProviderMatch], preferred_arch: str, reque
     return best
 
 
+def _choice_label(pkg: Package, sources: Dict[int, str]) -> str:
+    """Exact identity of one provider candidate: NEVRA within one concrete source.
+
+    Backtracking must be able to tell helper-2.0 from helper-1.0, and the same
+    NEVRA offered by two different repositories, so a bare package name is not
+    enough. ``source_identity`` hashes the repository definition, so it is
+    computed once per repository rather than once per candidate.
+    """
+    source = sources.get(id(pkg.repo))
+    if source is None:
+        source = sources[id(pkg.repo)] = pkg.repo.source_identity
+    return f"{pkg.nevra}@{source}"
+
+
+def _choice_text(label: str) -> str:
+    """The readable part of a choice label (the NEVRA), for log lines."""
+    return label.rpartition("@")[0] or label
+
+
 def _detect_default_python_abi(packages: Sequence[Package]) -> Optional[str]:
     """Detect the distro default Python ABI from python3/python3-libs Provides.
 
@@ -589,11 +608,21 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[Package],
     pass carries `X >= 2.0` forward and selects a candidate that satisfies both
     requirements. Resolution stops when a pass discovers no new constraints, or
     when a constraint set is genuinely unsatisfiable (reported as unresolved).
+
+    A provider is normally the best-ranked candidate, which is the newest
+    version. When the closure that choice leads to cannot be completed, the
+    exact candidate is set aside and the next-best one is tried, so a newer
+    build with an unsatisfiable dependency does not hide an older build that
+    installs cleanly. If no candidate completes, the closure built around the
+    most-preferred candidates is reported, so a failure describes what was
+    asked for rather than the last fallback tried.
     """
     constraints: Dict[str, List[Requirement]] = defaultdict(list)
     # Providers proven unworkable for a capability, so another can be tried.
     rejected: Set[Tuple[str, str]] = set()
     seen_keys: Set[Tuple[object, ...]] = set()
+    # The most-preferred failing closure, kept once backtracking begins.
+    preferred_failure: Optional[ResolutionResult] = None
     # The loop below always runs at least once, so `result` is bound before use.
     result: ResolutionResult = ResolutionResult(selected=[], unresolved=[], roots=[])
     for attempt in range(1, max(1, options.max_resolution_passes) + 1):
@@ -614,7 +643,9 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[Package],
                 reporter,
                 conflict_only=conflict_only,
             ):
-                return result
+                return result if preferred_failure is None else preferred_failure
+            if preferred_failure is None:
+                preferred_failure = result
             # Constraints are derived from the abandoned branch's selections,
             # so they are discarded with it and re-derived on the next pass.
             constraints.clear()
@@ -627,7 +658,7 @@ def _resolve_once(root_requests: Sequence[Tuple], packages: Sequence[Package],
                          f"(pass {attempt + 1})")
     reporter.warn("Dependency resolution hit the pass limit; the reported closure may still "
                   "contain version conflicts. Review conflicts.txt before installing.")
-    return result
+    return result if preferred_failure is None else preferred_failure
 
 
 def _reject_failed_provider(
@@ -637,10 +668,20 @@ def _reject_failed_provider(
     *,
     conflict_only: bool = False,
 ) -> bool:
-    """Blame a failed closure on the provider choice that introduced it."""
-    conflict_participants = set(getattr(result, "conflict_participants", ()))
+    """Blame a failed closure on the provider choice that introduced it.
+
+    Only a choice whose package sits on the failing branch is a suspect: the
+    package that could not be completed, or one that pulled it in. A choice
+    elsewhere in the closure cannot have caused the failure, so changing it
+    would only churn unrelated selections (and, with every older version now
+    a candidate, walk them back to ancient builds for no reason). When nothing
+    on the failing branch has an untried alternative the search is over.
+    """
+    conflicting = set(getattr(result, "conflict_participants", ()))
+    failing = conflicting if conflict_only else (
+        conflicting | set(getattr(result, "unresolved_participants", ())))
     for capability, chosen, others in reversed(getattr(result, "provider_choices", [])):
-        if conflict_only and chosen not in conflict_participants:
+        if chosen not in failing:
             continue
         if (capability, chosen) in rejected:
             continue
@@ -649,8 +690,9 @@ def _reject_failed_provider(
             continue
         rejected.add((capability, chosen))
         reason = "a conflicting closure" if conflict_only else "an unresolvable closure"
-        reporter.log(f"Provider '{chosen}' for '{capability}' led to {reason}; "
-                     f"trying {' or '.join(remaining)} instead")
+        untried = ' or '.join(dict.fromkeys(_choice_text(o) for o in remaining))
+        reporter.log(f"Provider '{_choice_text(chosen)}' for '{capability}' led to {reason}; "
+                     f"trying {untried} instead")
         return True
     return False
 
@@ -673,20 +715,42 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
     discovered: List[Tuple[str, Requirement]] = []
     rejected_set = rejected if rejected is not None else set()
     provider_choices: List[Tuple[str, str, List[str]]] = []
+    # Why a candidate other than the best-ranked one was used, by exact identity.
+    fallback_notes: Dict[str, str] = {}
+    source_ids: Dict[int, str] = {}
+
+    def label(pkg: Package) -> str:
+        return _choice_label(pkg, source_ids)
 
     def pick(matches, requested_name: str):
-        """Choose a provider honouring version floors and past rejections."""
+        """Choose a provider honouring version floors and past rejections.
+
+        Candidates are told apart by exact identity, not by package name, so
+        two builds of the same package are separate choices: if the newest
+        build leads somewhere unworkable, the next one can still be tried.
+        """
         matches = list(matches)
         filtered = [m for m in matches
                     if _satisfies_constraints(index, m.package, constraints.get(m.package.name, ()))]
         allowed = [m for m in filtered
-                   if (requested_name, m.package.name) not in rejected_set]
+                   if (requested_name, label(m.package)) not in rejected_set]
         chosen = choose_provider(allowed or filtered or [], preferred_arch, requested_name)
         if chosen is not None:
-            alternatives = sorted({m.package.name for m in filtered} - {chosen.package.name})
+            chosen_label = label(chosen.package)
+            alternatives = sorted({label(m.package) for m in filtered} - {chosen_label})
             if alternatives:
-                provider_choices.append((requested_name, chosen.package.name, alternatives))
+                provider_choices.append((requested_name, chosen_label, alternatives))
+            if allowed and len(allowed) < len(filtered):
+                preferred = choose_provider(filtered, preferred_arch, requested_name)
+                if preferred is not None and label(preferred.package) != chosen_label:
+                    fallback_notes[chosen_label] = (
+                        f"selected instead of {preferred.package.nevra}, which was set aside "
+                        "because it led to an unresolvable or conflicting closure")
         return chosen
+
+    def reason_for(pkg: Package, text: str) -> str:
+        note = fallback_notes.get(label(pkg))
+        return f"{text} ({note})" if note else text
     roots: List[Package] = []
     root_names: Set[str] = set()
     # Declared before the root loop: missing roots are now recorded rather than
@@ -756,6 +820,31 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
     unresolved_keys: Set[Tuple[object, ...]] = set()
     reasons: Dict[str, str] = {p.nevra: "requested package" for p in roots}
     installed_satisfied: Set[str] = set()
+    conflict_participants: Set[str] = set()
+    unresolved_participants: Set[str] = set()
+
+    def blame_branch(package_name: str, into: Set[str]) -> None:
+        """Record a package and every dependency ancestor that selected it.
+
+        Provider backtracking only reconsiders choices on a failing branch;
+        a choice elsewhere in the closure did not cause the failure.
+        """
+        seen: Set[str] = set()
+        current = package_name
+        while current and current not in seen:
+            seen.add(current)
+            member = selected_by_name.get(current) or pending_by_name.get(current)
+            if member is not None:
+                into.add(label(member))
+            current = dependency_parent.get(current, "")
+
+    def unresolved_at(requirer: Package, *also: Optional[Package]) -> None:
+        """Attribute an unresolved requirement to its requirer's branch and to
+        any already-selected package that could not satisfy it."""
+        blame_branch(requirer.name, unresolved_participants)
+        for other in also:
+            if other is not None:
+                blame_branch(other.name, unresolved_participants)
 
     while queue:
         reporter.check_cancel()
@@ -787,6 +876,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                     same_pkg_candidates = _same_package_provider_candidates(index, rich_with)
                     provider = pick(same_pkg_candidates, canonical_capability_name(rich_with[0].name))
                     if provider is None:
+                        unresolved_at(pkg)
                         key = (req.name, req.flags, req.evr, "rich-with")
                         if key not in unresolved_keys:
                             unresolved_keys.add(key); unresolved.append(req)
@@ -797,6 +887,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                     already = selected_by_name.get(chosen.name) or pending_by_name.get(chosen.name)
                     if already is not None:
                         if not _package_satisfies_all(index, already, rich_with):
+                            unresolved_at(pkg, already)
                             for operand in rich_with:
                                 discovered.append((chosen.name, operand))
                             key = (req.name, req.flags, req.evr, "rich-with-version-conflict")
@@ -808,7 +899,8 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                     pending_by_name[chosen.name] = chosen
                     dependency_parent.setdefault(chosen.name, pkg.name)
                     queue.append(chosen)
-                    reasons.setdefault(chosen.nevra, f"required by {pkg.name}: {format_requirement(req)}")
+                    reasons.setdefault(chosen.nevra, reason_for(
+                        chosen, f"required by {pkg.name}: {format_requirement(req)}"))
                     reporter.log(f"RICH WITH -> {chosen.nevra} satisfies all operands of {format_requirement(req)}")
                     continue
 
@@ -836,6 +928,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                             candidates.append(match)
                     provider = pick(candidates, req.name)
                     if provider is None:
+                        unresolved_at(pkg)
                         key = (req.name, req.flags, req.evr, "rich-or")
                         if key not in unresolved_keys:
                             unresolved_keys.add(key); unresolved.append(req)
@@ -854,6 +947,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                         matching_branch = next((branch for branch in rich_or
                                                 if _indexed_package_satisfies(index, already, branch)), None)
                         if matching_branch is None:
+                            unresolved_at(pkg, already)
                             branch = next((branch for branch in rich_or
                                            if _indexed_package_satisfies(index, chosen, branch)), rich_or[0])
                             discovered.append((chosen.name, branch))
@@ -864,13 +958,14 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                     pending_by_name[chosen.name] = chosen
                     dependency_parent.setdefault(chosen.name, pkg.name)
                     queue.append(chosen)
-                    reasons.setdefault(chosen.nevra,
-                                       f"required by {pkg.name}: {format_requirement(req)}")
+                    reasons.setdefault(chosen.nevra, reason_for(
+                        chosen, f"required by {pkg.name}: {format_requirement(req)}"))
                     reporter.log(f"RICH OR -> {chosen.nevra} satisfies {format_requirement(req)}")
                     continue
 
                 parsed_rich = parse_simple_rich_if(req)
                 if parsed_rich is None:
+                    unresolved_at(pkg)
                     key = (req.name, req.flags, req.evr, "rich")
                     if key not in unresolved_keys:
                         unresolved_keys.add(key); unresolved.append(req)
@@ -903,6 +998,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
             candidates = [m for m in all_candidates if evr_satisfies(m.provide, req, m.package)]
             provider = pick(candidates, canonical_capability_name(req.name))
             if provider is None:
+                unresolved_at(pkg)
                 key = (canonical_capability_name(req.name), req.flags, req.evr, req.kind)
                 if key not in unresolved_keys:
                     unresolved_keys.add(key); unresolved.append(req)
@@ -913,6 +1009,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
             already = selected_by_name.get(chosen.name) or pending_by_name.get(chosen.name)
             if already is not None:
                 if not _indexed_package_satisfies(index, already, req):
+                    unresolved_at(pkg, already)
                     # Ask for another pass pinned to this constraint; if no
                     # candidate can satisfy every accumulated floor, the next
                     # pass reports it as unresolved and the build stays blocked.
@@ -927,22 +1024,17 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
             pending_by_name[chosen.name] = chosen
             dependency_parent.setdefault(chosen.name, pkg.name)
             queue.append(chosen)
-            reasons.setdefault(chosen.nevra, reason_override or f"required by {pkg.name}: {format_requirement(req)}")
+            reasons.setdefault(chosen.nevra, reason_for(
+                chosen, reason_override or f"required by {pkg.name}: {format_requirement(req)}"))
 
     selected = sorted(selected_by_name.values(), key=lambda p: (p.repo.priority, p.name, p.nevra))
 
     conflicts: List[str] = []
     conflict_seen: Set[str] = set()
-    conflict_participants: Set[str] = set()
 
     def mark_conflict_branch(package_name: str) -> None:
         """Mark a conflicting package and every dependency ancestor that selected it."""
-        seen: Set[str] = set()
-        current = package_name
-        while current and current not in seen:
-            seen.add(current)
-            conflict_participants.add(current)
-            current = dependency_parent.get(current, "")
+        blame_branch(package_name, conflict_participants)
 
     for pkg in selected:
         for req in pkg.conflicts:
@@ -989,6 +1081,7 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
     )
     outcome.provider_choices = provider_choices
     outcome.conflict_participants = sorted(conflict_participants)
+    outcome.unresolved_participants = sorted(unresolved_participants)
     return outcome, discovered
 
 

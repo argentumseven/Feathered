@@ -20,3 +20,5 @@ Custom repository URLs may use vendor-specific query parameters for bearer crede
 ## Receiver and repository boundaries
 
 `trusted_receiver.py --install` copies a transferred bundle into root-owned read-only staging before verification and installation. Package-manager inputs are consumed only from that staged tree. Repository-maintenance scans reject symbolic links inside the selected repository root.
+
+Running `install-offline.sh` directly from a bundle is supported and is the default. Its checksum and sealed-index verification detect corruption and mistakes, but they run inside a script that travels with the bundle, so they are not a trust anchor against someone who can modify the transfer medium. That threat model is what `trusted_receiver.py` is for: it is distributed separately and verifies the bundle before anything from it is executed. Feathered does not require either path; choose according to who can write to the medium.

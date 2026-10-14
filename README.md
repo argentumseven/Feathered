@@ -289,6 +289,15 @@ python3 trusted_receiver.py /media/bundle /path/operator-keyring.gpg --install
 
 A verifier stored only inside an untrusted bundle cannot independently establish trust in its own contents. With `--install`, the trusted receiver copies the complete bundle into protected temporary staging, removes write access, makes the staged tree root-owned, verifies that staged copy, and executes only from the protected tree.
 
+Both ways of installing are supported, and neither is forced. Pick by who could have touched the transfer medium:
+
+| How you install | What it protects against | What it does not |
+| --- | --- | --- |
+| `bash install-offline.sh` from the bundle (the default; nothing to set up) | Corruption, truncated copies, and mixing up bundles. It checks `SHA256SUMS.txt`, and for a sealed bundle the signed index against your own keyring, before the package manager runs. | Someone who can edit the medium. The checks run from inside `install-offline.sh`, so a modified script can simply omit them. |
+| `python3 trusted_receiver.py … --install` delivered separately from the bundle | A modified bundle, including a modified `install-offline.sh`, because the verifier never came from the bundle. | Nothing about the upstream repositories themselves; that is what build-time signature checking is for. |
+
+For a drive that only you handle, the default is reasonable. Use the trusted receiver when the drive passes through hands or machines you do not control.
+
 ## Application architecture
 
 The desktop application is organized under `feathered_app/` with `app.py` as the Tk composition root. Build specifications, preparation, service contracts, repository/source scoping, and the headless execution path are separated from the GUI.

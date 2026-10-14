@@ -189,11 +189,16 @@ class ResolutionResult:
     # Capabilities where more than one provider could have been chosen, so an
     # unworkable choice can be retried with another.
     provider_choices: List[Tuple[str, str, List[str]]] = field(default_factory=list)
-    # Package names participating in direct transaction conflicts.  Resolver
-    # backtracking uses this internal attribution to reject only a provider
-    # branch that actually caused a conflict rather than discarding unrelated
-    # choices.  It is not part of bundle provenance.
+    # Exact package identities participating in direct transaction conflicts.
+    # Resolver backtracking uses this internal attribution to reject only a
+    # provider branch that actually caused a conflict rather than discarding
+    # unrelated choices.  It is not part of bundle provenance.
     conflict_participants: List[str] = field(default_factory=list, compare=False, repr=False)
+    # Exact package identities on a dependency chain that ended in an
+    # unresolved requirement: the package that asked, the packages that pulled
+    # it in, and any already-selected package that could not satisfy it.  The
+    # same internal attribution as above, for unresolved requirements.
+    unresolved_participants: List[str] = field(default_factory=list, compare=False, repr=False)
 
     # Repositories needed for module runtime metadata, including metadata-only dependencies.
     module_metadata_packages: List[Package] = field(default_factory=list, compare=False, repr=False)

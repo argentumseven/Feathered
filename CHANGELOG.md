@@ -1,3 +1,16 @@
+# Unreleased
+
+## Fixed
+
+- RPM dependency resolution can now fall back to an older build of the same package. Retry bookkeeping keyed candidates by package name, so when the newest build of a provider had an unsatisfiable dependency or a conflict, an older build that installs cleanly was never tried and the request was reported unresolved. Candidates are now told apart by exact identity (NEVRA within one source), as the APT and pacman resolvers already did. Requested roots are not downgraded, a fallback is explained in the package's selection reason, and the search stays within the existing resolution pass budget.
+- Provider backtracking only reconsiders choices on the failing dependency chain. Previously an unresolved requirement could be blamed on any provider choice in the closure, which re-solved the whole request up to the pass limit and returned a closure shifted onto unrelated alternates. A request with a genuinely missing dependency no longer retries unrelated choices (about 12 times faster on an 18,000-package test repository), and a failure is reported against the most-preferred candidates rather than the last one tried.
+- Name the cause when an APT dependency exists only for another architecture, instead of the generic "none satisfy the requested version/architecture".
+
+## Documentation
+
+- State what running `install-offline.sh` directly does and does not protect against, and when to use `trusted_receiver.py`. Neither path is required and no defaults change.
+- Document that an APT bundle targets one architecture plus `all`.
+
 # 1.4.0 - 2026-09-27
 
 ## Added
