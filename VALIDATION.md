@@ -73,6 +73,24 @@ rejects dirty/untracked source, stale integrity metadata and existing output.
 Signing material is removed before packaging/publication. Branch builds do not
 publish releases, and a failed mandatory job prevents publication.
 
+An explicitly requested self-signed release uses `self-signed-release.yml`.
+It checks out the existing source tag separately from the publication tooling,
+verifies all eight platform test jobs against that exact source SHA, then runs
+the unchanged tagged production builder with its pinned wheel lock, complete
+Windows regression corpus and real ISO mount gate. The certificate is generated
+with a non-exportable private key on the ephemeral worker. Trust is installed
+only on that worker for signature verification and removed with the signing key
+before artifact upload. Every signed PE must match that certificate and have a
+timestamp. Downloads explicitly identify the certificate as self-signed; Windows
+does not automatically trust this publisher. The public certificate and notice
+are covered by the distribution manifest and archive checksums.
+
+`prepare_release_assets.py --source-root PATH --tag vX.Y.Z --self-signed` is
+required to package this variant; the default signed path rejects self-signed
+metadata. The `release/self-signed-v1.4.1` branch invokes recovery publication for
+the already tested `v1.4.1` tag; manual invocations select a tag and completed gate
+run. Neither invocation moves a release tag or overwrites an existing release.
+
 ## Native RPM module coverage
 
 `python native_conformance.py --require dnf` includes ordinary RPM dependency

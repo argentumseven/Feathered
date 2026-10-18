@@ -29,7 +29,7 @@ def source_version(root: Path) -> str:
     raise RuntimeError('Source does not declare a stable FEATHERED_VERSION')
 
 
-def prepare(root: Path, tag: str) -> list[Path]:
+def prepare(root: Path, tag: str, *, self_signed: bool = False) -> list[Path]:
     root = root.resolve()
     version = source_version(root)
     if tag != f'v{version}':
@@ -57,6 +57,15 @@ def prepare(root: Path, tag: str) -> list[Path]:
         raise RuntimeError('Distribution is not a production build of this release commit/version')
     if not (dist / 'Feathered.exe').is_file():
         raise RuntimeError('Production executable is missing')
+    signing = release.get('signing', {})
+    if self_signed:
+        certificate = dist / 'Feathered-CodeSigning.cer'
+        if (signing.get('kind') != 'self-signed' or not certificate.is_file()
+                or signing.get('certificate_sha256') != sha256(certificate)
+                or not (dist / 'SIGNING-NOTICE.txt').is_file()):
+            raise RuntimeError('Self-signed publication requires its certificate and signing notice')
+    elif signing.get('kind') == 'self-signed':
+        raise RuntimeError('Self-signed publication must be explicitly selected')
     notes = root / f'RELEASE-{version}.md'
     if not notes.is_file():
         raise RuntimeError('Version-specific release notes are missing')
@@ -71,26 +80,34 @@ def prepare(root: Path, tag: str) -> list[Path]:
         for name in sorted(sources):
             archive.write(root / name, prefix + name)
         archive.write(manifest_path, prefix + MANIFEST_NAME)
-    windows_zip = destination / f'Feathered_{version}_windows_x64.zip'
+    suffix = '_self_signed' if self_signed else ''
+    windows_zip = destination / f'Feathered_{version}_windows_x64{suffix}.zip'
     with ZipFile(windows_zip, 'w', ZIP_DEFLATED) as archive:
         for path in sorted(dist.rglob('*')):
             if path.is_file():
                 archive.write(path, prefix + path.relative_to(dist).as_posix())
 
+    downloads = [source_zip, windows_zip]
+    if self_signed:
+        certificate_asset = destination / f'Feathered_{version}_CodeSigning.cer'
+        certificate_asset.write_bytes((dist / 'Feathered-CodeSigning.cer').read_bytes())
+        downloads.append(certificate_asset)
     sums = destination / 'SHA256SUMS.txt'
     rows = []
-    for path in (source_zip, windows_zip):
+    for path in downloads:
         digest = sha256(path)
         rows.append(f'{digest}  {path.name}')
     sums.write_text('\n'.join(rows) + '\n', encoding='utf-8')
-    return [source_zip, windows_zip, sums]
+    return [*downloads, sums]
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--tag', required=True)
+    parser.add_argument('--source-root', type=Path, default=Path(__file__).resolve().parent)
+    parser.add_argument('--self-signed', action='store_true', help='Label and include an explicitly self-signed certificate')
     args = parser.parse_args()
-    for path in prepare(Path(__file__).resolve().parent, args.tag):
+    for path in prepare(args.source_root, args.tag, self_signed=args.self_signed):
         print(path)
     return 0
 

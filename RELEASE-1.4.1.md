@@ -8,7 +8,9 @@ Feathered 1.4.1 repairs offline Linux workload acquisition and repository planni
 - Isolate vendor-source failures to the workloads that need them, generate the selected Kubernetes repository correctly, and prefer observed stable distro releases.
 - Use native `syslog-ng` packages and init companions on Arch/Artix logging presets.
 
-The source archive supports the Linux GUI and CLI and Windows source launchers. The Windows x64 archive contains the signed executable, authenticated OpenPGP verifier and required sidecars; extract the entire archive before launching. `SHA256SUMS.txt` covers both downloadable archives, and each archive includes its own integrity metadata.
+The source archive supports the Linux GUI and CLI and Windows source launchers. The Windows x64 archive is signed with a release-specific, self-signed Feathered code-signing certificate. Windows does not automatically trust this publisher; this certificate is not a publicly trusted CA identity. The public certificate is provided as a download and inside the Windows archive. Its private key stays on the ephemeral build worker and is removed after signing.
+
+Extract the entire Windows archive before launching; it includes the authenticated OpenPGP verifier, required sidecars and `SIGNING-NOTICE.txt`. `SHA256SUMS.txt` covers the source archive, Windows archive and public certificate. Each archive includes its own integrity metadata. The existing `v1.4.1` source tag is preserved.
 
 The Java preset still requires Java 17. A target whose configured repositories no longer supply it needs a compatible Java 17 source; this release does not silently substitute another Java major. Other unavailable packages and unsupported repository combinations remain explicit failures. The live workload matrix is a compatibility observation, separate from the mandatory release gates.
 

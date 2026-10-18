@@ -1,0 +1,178 @@
+name: self-signed release
+
+on:
+  # Explicit recovery invocation for the existing, fully tested release tag.
+  push:
+    branches: [release/self-signed-v1.4.1]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build without moving it
+        required: true
+        default: v1.4.1
+      gate_run_id:
+        description: Completed windows-release workflow with every platform test gate passing
+        required: true
+        default: '39126431097'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: self-signed-${{ inputs.tag || 'v1.4.1' }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || 'v1.4.1' }}
+  GATE_RUN_ID: ${{ inputs.gate_run_id || '39126431097' }}
+
+jobs:
+  tooling:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - run: python3 -m pip install -r requirements.txt pytest==9.1.1
+      - run: python3 -m pytest -q tests/test_release_gate_checks.py tests/test_self_signed_release.py tests/test_release_assets.py
+
+  publish:
+    needs: tooling
+    runs-on: windows-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Preserve source bytes
+        shell: powershell
+        run: git config --global core.autocrlf false
+      - name: Check out publication tooling
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          path: automation
+          persist-credentials: false
+      - name: Check out exact existing release tag
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          path: source
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate source identity and prevent overwriting a published release
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ($env:RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') { throw 'A stable existing tag is required.' }
+          $commit = git -C source rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve release source.' }
+          $tagCommit = git -C source rev-parse "refs/tags/$($env:RELEASE_TAG)^{commit}"
+          if ($LASTEXITCODE -ne 0 -or $tagCommit -ne $commit) { throw 'Tag and checkout differ.' }
+          "RELEASE_COMMIT=$commit" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $version = $env:RELEASE_TAG.Substring(1)
+          if (-not (Test-Path "automation/RELEASE-$version.md")) { throw 'Publication notes are missing.' }
+          $raw = gh api "repos/$env:GITHUB_REPOSITORY/releases?per_page=100"
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect existing releases.' }
+          $releases = $raw | ConvertFrom-Json
+          if (@($releases | Where-Object { $_.tag_name -eq $env:RELEASE_TAG }).Count) { throw 'Preserve the existing release; do not overwrite it.' }
+      - name: Install authenticated CPython with Tcl/Tk
+        shell: powershell
+        run: .\source\install_windows_python.ps1
+      - name: Verify every platform test gate for this exact source commit
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          & $env:FEATHERED_RELEASE_PYTHON automation/verify_release_gate_run.py --repo $env:GITHUB_REPOSITORY --run-id $env:GATE_RUN_ID --commit $env:RELEASE_COMMIT
+          if ($LASTEXITCODE -ne 0) { throw 'Required source gates did not pass.' }
+      - name: Create release-specific code-signing certificate
+        shell: powershell
+        run: |
+          $cert = New-SelfSignedCertificate -Subject 'CN=Feathered' -Type CodeSigningCert -KeyAlgorithm RSA -KeyLength 3072 -HashAlgorithm SHA256 -KeyExportPolicy NonExportable -CertStoreLocation Cert:\CurrentUser\My -NotAfter (Get-Date).AddYears(3)
+          "FEATHERED_SIGN_CERT_SHA1=$($cert.Thumbprint)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $public = Join-Path $env:RUNNER_TEMP 'Feathered-CodeSigning.cer'
+          Export-Certificate -Cert $cert -FilePath $public -Type CERT | Out-Null
+          # Trust only this explicitly created certificate on the ephemeral
+          # worker so /pa still verifies its chain and signatures. This does
+          # not install trust on users' machines or claim a public CA identity.
+          Import-Certificate -FilePath $public -CertStoreLocation Cert:\CurrentUser\Root | Out-Null
+          Import-Certificate -FilePath $public -CertStoreLocation Cert:\CurrentUser\TrustedPublisher | Out-Null
+          "FEATHERED_PUBLIC_CERT=$public" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          'FEATHERED_TIMESTAMP_URL=http://timestamp.digicert.com' | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Locate signing tool and create real ISO fixture
+        shell: powershell
+        run: |
+          $root = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
+          $tool = Get-ChildItem $root -Filter signtool.exe -Recurse | Where-Object { $_.FullName -match '\\x64\\signtool\.exe$' } | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $tool) { throw 'Windows SDK x64 signtool.exe is required.' }
+          $tool.DirectoryName | Out-File $env:GITHUB_PATH -Encoding utf8 -Append
+          $fixture = Join-Path $env:RUNNER_TEMP 'feathered-self-signed-smoke'
+          New-Item -ItemType Directory $fixture | Out-Null
+          Set-Content (Join-Path $fixture 'SMOKE.txt') 'Feathered self-signed release mount gate' -Encoding ascii
+          $iso = Join-Path $env:RUNNER_TEMP 'feathered-self-signed-smoke.iso'
+          .\source\create_smoke_iso.ps1 -SourceDirectory $fixture -OutputPath $iso
+          "FEATHERED_SMOKE_ISO=$iso" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Run unchanged tagged production builder and all mandatory Windows gates
+        shell: cmd
+        working-directory: source
+        run: |
+          call build_exe.bat --release > "%RUNNER_TEMP%\feathered-self-signed-build.log" 2>&1
+          set "BUILD_EXIT=%ERRORLEVEL%"
+          type "%RUNNER_TEMP%\feathered-self-signed-build.log"
+          exit /b %BUILD_EXIT%
+      - name: Surface build failure diagnostics
+        if: failure()
+        shell: powershell
+        run: |
+          $log = Join-Path $env:RUNNER_TEMP 'feathered-self-signed-build.log'
+          if (Test-Path $log) {
+            Get-Content $log -Tail 35 | ForEach-Object { Write-Output ('::error::' + $_.Replace('%', '%25')) }
+          }
+      - name: Verify signatures against the generated identity and add public certificate
+        shell: powershell
+        run: |
+          $files = @('source/dist/Feathered.exe') + @(Get-ChildItem source/dist/gnupg -File | Where-Object { $_.Extension -in '.exe', '.dll' } | ForEach-Object { $_.FullName })
+          foreach ($file in $files) {
+            signtool.exe verify /pa $file
+            if ($LASTEXITCODE -ne 0) { throw "Authenticode verification failed: $file" }
+            $signature = Get-AuthenticodeSignature -FilePath $file
+            if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Thumbprint -ne $env:FEATHERED_SIGN_CERT_SHA1 -or -not $signature.TimeStamperCertificate) { throw "Signing identity or timestamp differs: $file" }
+          }
+          & $env:FEATHERED_RELEASE_PYTHON automation/finalize_self_signed_release.py --dist source/dist --certificate $env:FEATHERED_PUBLIC_CERT --thumbprint $env:FEATHERED_SIGN_CERT_SHA1 --commit $env:RELEASE_COMMIT --automation-commit $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { throw 'Signed distribution finalization failed.' }
+      - name: Remove signing key and worker-only certificate trust
+        if: always()
+        shell: powershell
+        run: |
+          if ($env:FEATHERED_SIGN_CERT_SHA1) {
+            Remove-Item -LiteralPath "Cert:\CurrentUser\My\$env:FEATHERED_SIGN_CERT_SHA1" -DeleteKey -Force -ErrorAction SilentlyContinue
+            foreach ($store in 'Root', 'TrustedPublisher') {
+              Remove-Item -LiteralPath "Cert:\CurrentUser\$store\$env:FEATHERED_SIGN_CERT_SHA1" -Force -ErrorAction SilentlyContinue
+            }
+          }
+      - name: Package exact tagged source and explicitly self-signed downloads
+        shell: powershell
+        working-directory: source
+        run: |
+          & $env:FEATHERED_RELEASE_PYTHON write_source_manifest.py
+          if ($LASTEXITCODE -ne 0) { throw 'Source manifest generation failed.' }
+          & $env:FEATHERED_RELEASE_PYTHON verify_source_checksums.py
+          if ($LASTEXITCODE -ne 0) { throw 'Source verification failed.' }
+          & $env:FEATHERED_RELEASE_PYTHON ../automation/prepare_release_assets.py --source-root . --tag $env:RELEASE_TAG --self-signed
+          if ($LASTEXITCODE -ne 0) { throw 'Release packaging failed.' }
+      - name: Retain build and certificate evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: self-signed-${{ env.RELEASE_TAG }}-${{ github.sha }}
+          path: |
+            source/build/github-release/
+            source/validation/release-gate/
+          if-no-files-found: warn
+      - name: Publish verified self-signed release
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = $env:RELEASE_TAG.Substring(1)
+          $assets = @(Get-ChildItem source/build/github-release -File | ForEach-Object { $_.FullName })
+          gh release create $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title "Feathered $version" --notes-file "automation/RELEASE-$version.md"
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed.' }
