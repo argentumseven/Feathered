@@ -143,7 +143,6 @@ jobs:
         working-directory: source
         run: |
           $PSNativeCommandUseErrorActionPreference = $false
-          $lastNotice = Get-Date
           $log = Join-Path $env:RUNNER_TEMP 'feathered-self-signed-build.log'
           # cmd.exe hides the Windows PowerShell child from pwsh's normal
           # PSModulePath compatibility handling. Give the tagged builder's
@@ -161,17 +160,11 @@ jobs:
           [IO.File]::WriteAllText($batch, ($content -replace '\r?\n', "`r`n"), [Text.UTF8Encoding]::new($false))
           Copy-Item ../automation/stage_gpgv.ps1 $buildTools
           $env:FEATHERED_BUILD_SOURCE_ROOT = (Get-Location).Path
-          & $batch --release 2>&1 | Tee-Object -FilePath $log | ForEach-Object {
-            $message = $_.ToString()
-            Write-Output $message
-            if ($message -match 'test gate PASSED|Downloading pinned GnuPG|Authenticated pinned|Extracting authenticated|Staged pinned GnuPG|Build complete:' -or
-                (((Get-Date) - $lastNotice).TotalSeconds -ge 45 -and $message -match '^Batch |Successfully signed|Successfully verified|INFO:')) {
-              Write-Output ('::notice::Build progress: ' + $message.Replace('%', '%25'))
-              $lastNotice = Get-Date
-            }
-          }
-          $buildExit = $LASTEXITCODE
-          exit $buildExit
+          # A file-backed native child avoids PowerShell's nested stdin/output
+          # pipeline. The supervisor relays the log and kills its process tree
+          # on timeout; package input and release gates are unchanged.
+          & $env:FEATHERED_RELEASE_PYTHON -u ../automation/run_windows_release_build.py --batch $batch --log $log --timeout 1200
+          exit $LASTEXITCODE
       - name: Surface build failure diagnostics
         if: failure()
         shell: powershell

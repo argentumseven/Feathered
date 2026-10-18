@@ -194,6 +194,7 @@ if "%RELEASE_MODE%"=="1" (
   REM Production requirement: Feathered's actual _mount_disc_image path must be
   REM exercised on the release builder using a caller-supplied real ISO fixture.
   set "BUILD_STEP=running Windows ISO mount smoke gate"
+echo Release build phase: running Windows ISO mount smoke gate
   powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File windows_release_smoke.ps1 -IsoPath "%FEATHERED_SMOKE_ISO%" -PythonExe "%PY%"
   if errorlevel 1 goto :fail
 )
@@ -204,9 +205,10 @@ mkdir dist
 if errorlevel 1 goto :fail
 
 REM Stage the pinned official GnuPG verifier. stage_gpgv.ps1 verifies the exact
-REM upstream installer SHA-256 before executing it and chooses a writable,
-REM space-free temporary path suitable for NSIS /D=.
+REM upstream installer SHA-256 before extracting it into a writable temporary
+REM path. The authenticated NSIS payload is extracted without running setup.
 set "BUILD_STEP=staging authenticated GnuPG verifier"
+echo Release build phase: staging authenticated GnuPG verifier
 powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0stage_gpgv.ps1" -Destination "dist\gnupg"
 if errorlevel 1 goto :fail
 
@@ -215,6 +217,7 @@ REM hashing it. This makes Windows signature inspection useful in addition to
 REM Feathered's exact SHA-256 policy enforcement.
 if "%RELEASE_MODE%"=="1" (
   set "BUILD_STEP=signing GnuPG verifier components"
+echo Release build phase: signing GnuPG verifier components
   for %%F in (dist\gnupg\*.exe dist\gnupg\*.dll) do (
     signtool.exe sign /sha1 "%FEATHERED_SIGN_CERT_SHA1%" /fd SHA256 /tr "%FEATHERED_TIMESTAMP_URL%" /td SHA256 "%%F"
     if errorlevel 1 goto :fail
@@ -229,10 +232,12 @@ if errorlevel 1 goto :fail
 REM Generate the exact sidecar hash set after optional signing. The JSON is
 REM embedded in Feathered.exe and therefore covered by Authenticode in release mode.
 set "BUILD_STEP=generating embedded verifier-integrity policy"
+echo Release build phase: generating embedded verifier-integrity policy
 "%PY%" write_verifier_policy.py
 if errorlevel 1 goto :fail
 
 set "BUILD_STEP=compiling Feathered.exe with PyInstaller"
+echo Release build phase: compiling Feathered.exe with PyInstaller
 "%PY%" -m PyInstaller --clean --noconsole --onefile --name Feathered --specpath build ^
   --hidden-import zstandard --collect-all zstandard ^
   --add-data "%CD%\verify_bundle_template.py;." ^
@@ -260,6 +265,7 @@ if errorlevel 1 goto :fail
 
 if "%RELEASE_MODE%"=="1" (
   set "BUILD_STEP=signing Feathered.exe"
+echo Release build phase: signing Feathered.exe
   signtool.exe sign /sha1 "%FEATHERED_SIGN_CERT_SHA1%" /fd SHA256 /tr "%FEATHERED_TIMESTAMP_URL%" /td SHA256 dist\Feathered.exe
   if errorlevel 1 goto :fail
   signtool.exe verify /pa dist\Feathered.exe
@@ -267,6 +273,7 @@ if "%RELEASE_MODE%"=="1" (
 )
 
 set "BUILD_STEP=writing and verifying distribution checksums"
+echo Release build phase: writing and verifying distribution checksums
 "%PY%" write_release_manifest.py
 if errorlevel 1 goto :fail
 "%PY%" verify_release_checksums.py dist
