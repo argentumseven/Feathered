@@ -84,6 +84,23 @@ jobs:
         run: |
           & $env:FEATHERED_RELEASE_PYTHON automation/verify_release_gate_run.py --repo $env:GITHUB_REPOSITORY --run-id $env:GATE_RUN_ID --commit $env:RELEASE_COMMIT
           if ($LASTEXITCODE -ne 0) { throw 'Required source gates did not pass.' }
+      - name: Reject corrupted verifier input before extraction
+        shell: powershell
+        run: |
+          & $env:FEATHERED_RELEASE_PYTHON automation/check_windows_verifier_staging.py
+          if ($LASTEXITCODE -ne 0) { throw 'Verifier corruption boundary check failed.' }
+      - name: Preflight authenticated verifier and cache its pinned installer
+        shell: powershell
+        timeout-minutes: 4
+        env:
+          FEATHERED_BUILD_TEMP: ${{ runner.temp }}/Feathered staging preflight
+        run: |
+          $cache = Join-Path $env:RUNNER_TEMP 'feathered-pinned-gnupg.exe'
+          $probe = Join-Path $env:RUNNER_TEMP 'Feathered verifier preflight'
+          .\automation\stage_gpgv.ps1 -Destination $probe -InstallerCachePath $cache
+          "FEATHERED_GNUPG_INSTALLER=$cache" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Remove-Item -LiteralPath $probe -Recurse -Force
+          Write-Output '::notice::Authenticated verifier acquisition and execution passed before certificate creation and the full Windows gate.'
       - name: Create release-specific code-signing certificate
         shell: powershell
         timeout-minutes: 2
@@ -135,7 +152,7 @@ jobs:
           & powershell.exe -NoLogo -NoProfile -NonInteractive -Command 'Import-Module Microsoft.PowerShell.Utility -ErrorAction Stop; Get-Command Get-FileHash -ErrorAction Stop | Select-Object Name,Source,Version'
           if ($LASTEXITCODE -ne 0) { throw 'Windows PowerShell hashing module is unavailable.' }
           # Keep the tagged application tree intact. Versioned automation fixes
-          # the spec-relative asset paths and bounds the upstream installer.
+          # the spec-relative asset paths and extracts the pinned verifier.
           # cmd.exe receives CRLF lines without altering tracked source bytes.
           $buildTools = Join-Path $env:RUNNER_TEMP 'feathered-build-tools'
           New-Item -ItemType Directory -Path $buildTools | Out-Null
@@ -147,7 +164,7 @@ jobs:
           & $batch --release 2>&1 | Tee-Object -FilePath $log | ForEach-Object {
             $message = $_.ToString()
             Write-Output $message
-            if ($message -match 'test gate PASSED|Downloading pinned GnuPG|Authenticated pinned|Installing authenticated|Staged pinned GnuPG|Build complete:' -or
+            if ($message -match 'test gate PASSED|Downloading pinned GnuPG|Authenticated pinned|Extracting authenticated|Staged pinned GnuPG|Build complete:' -or
                 (((Get-Date) - $lastNotice).TotalSeconds -ge 45 -and $message -match '^Batch |Successfully signed|Successfully verified|INFO:')) {
               Write-Output ('::notice::Build progress: ' + $message.Replace('%', '%25'))
               $lastNotice = Get-Date

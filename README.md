@@ -363,6 +363,8 @@ See [VALIDATION.md](VALIDATION.md) for the checks and reproduction instructions.
 
 `build_exe.bat` is the production Windows build entry point. Production dependencies are pinned with hashes in `requirements-build.lock` and installed as binary wheels only.
 
+The Windows build host also needs `curl.exe` and 7-Zip (`7z.exe` on PATH or in `Program Files\7-Zip`). The build verifies the pinned official GnuPG installer before extracting and testing its verifier payload. `FEATHERED_GNUPG_INSTALLER` can supply the same pinned installer for an offline build.
+
 The release pipeline includes source checks, regression tests, PyInstaller packaging, staged verifier policy generation, release-manifest generation, checksum generation, and optional Authenticode signing. Review the build script and required environment variables before producing a public binary.
 
 ## Security reports

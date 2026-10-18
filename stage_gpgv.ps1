@@ -1,5 +1,6 @@
 param(
-    [string]$Destination = "dist\gnupg"
+    [string]$Destination = "dist\gnupg",
+    [string]$InstallerCachePath = ""
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -19,8 +20,8 @@ if ($uri.Scheme -ne 'https' -or $uri.Host -ne $ExpectedInstallerHost) {
     throw "GnuPG installer source violates the pinned HTTPS host policy: $InstallerUrl"
 }
 
-function Test-WritableSpaceFreeRoot([string]$Candidate) {
-    if ([string]::IsNullOrWhiteSpace($Candidate) -or $Candidate -match '\s') { return $null }
+function Test-WritableRoot([string]$Candidate) {
+    if ([string]::IsNullOrWhiteSpace($Candidate)) { return $null }
     try {
         New-Item -ItemType Directory -Path $Candidate -Force | Out-Null
         $probe = Join-Path $Candidate ('.feathered-write-' + [Guid]::NewGuid().ToString('N'))
@@ -33,9 +34,8 @@ function Test-WritableSpaceFreeRoot([string]$Candidate) {
     }
 }
 
-# NSIS /D= must be unquoted and last, so its destination may not contain spaces.
 # Do not assume a standard user can create C:\feathered-build. Prefer writable
-# per-user/public locations and allow an explicit override for unusual systems.
+# per-user locations, including paths with spaces, and allow an explicit override.
 $candidates = @()
 if ($env:FEATHERED_BUILD_TEMP) { $candidates += $env:FEATHERED_BUILD_TEMP }
 if ($env:TEMP) { $candidates += (Join-Path $env:TEMP 'FeatheredBuild') }
@@ -46,11 +46,11 @@ if ($volumeRoot) { $candidates += (Join-Path $volumeRoot 'feathered-build') }
 
 $tempRoot = $null
 foreach ($candidate in $candidates) {
-    $resolved = Test-WritableSpaceFreeRoot $candidate
+    $resolved = Test-WritableRoot $candidate
     if ($resolved) { $tempRoot = $resolved; break }
 }
 if (-not $tempRoot) {
-    throw 'No writable space-free verifier staging directory was found. Set FEATHERED_BUILD_TEMP to a writable path containing no spaces and retry.'
+    throw 'No writable verifier staging directory was found. Set FEATHERED_BUILD_TEMP to a writable path and retry.'
 }
 
 $temp = Join-Path $tempRoot ("gpg-" + [Guid]::NewGuid().ToString('N'))
@@ -67,11 +67,15 @@ try {
     }
     else {
         Write-Host "Downloading pinned GnuPG $Version installer from $ExpectedInstallerHost ..."
+        $curl = (Get-Command curl.exe -CommandType Application -ErrorAction Stop).Source
         $downloaded = $false
         $lastDownloadError = $null
         foreach ($attempt in 1..3) {
             try {
-                Invoke-WebRequest -Uri $InstallerUrl -OutFile $installer -UseBasicParsing -MaximumRedirection 3 -TimeoutSec 60
+                # curl bounds the complete transfer; legacy Invoke-WebRequest
+                # can hang while consuming a response after its request timeout.
+                & $curl --fail --show-error --silent --location --proto '=https' --proto-redir '=https' --max-redirs 3 --connect-timeout 15 --max-time 60 --output $installer $InstallerUrl
+                if ($LASTEXITCODE -ne 0) { throw "curl.exe exited with code $LASTEXITCODE" }
                 $downloaded = $true
                 break
             }
@@ -91,26 +95,23 @@ try {
         throw "GnuPG installer SHA-256 mismatch. Expected $InstallerSha256, got $actual."
     }
     Write-Host "Authenticated pinned GnuPG $Version installer SHA-256: $actual"
+    if (-not [string]::IsNullOrWhiteSpace($InstallerCachePath)) {
+        Copy-Item -LiteralPath $installer -Destination ([IO.Path]::GetFullPath($InstallerCachePath))
+    }
 
     $installRoot = Join-Path $temp 'installed'
     New-Item -ItemType Directory -Path $installRoot | Out-Null
-    # /D= must remain the final NSIS argument and must not be quoted.
-    # Start-Process -Wait also waits for descendants, including long-lived
-    # GnuPG helpers. Bound the installer itself instead of waiting on daemons.
-    Write-Host "Installing authenticated GnuPG verifier into $installRoot"
-    $proc = Start-Process -FilePath $installer -ArgumentList @('/S', "/D=$installRoot") -PassThru
-    try {
-        if (-not $proc.WaitForExit(180000)) {
-            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-            throw 'Pinned GnuPG installer did not finish within 180 seconds.'
-        }
-        $exitCode = $proc.ExitCode
+    $sevenZip = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
+    if (-not (Test-Path -LiteralPath $sevenZip -PathType Leaf)) {
+        $sevenZip = (Get-Command 7z.exe -CommandType Application -ErrorAction Stop).Source
     }
-    finally { $proc.Dispose() }
-    if ($exitCode -ne 0) { throw "Pinned GnuPG installer exited with code $exitCode." }
+    Write-Host "Extracting authenticated GnuPG verifier into $installRoot"
+    $extractLog = Join-Path $temp 'extract.log'
+    & $sevenZip x -y "-o$installRoot" $installer > $extractLog 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "7-Zip could not extract the authenticated installer: $(Get-Content $extractLog -Tail 12 | Out-String)" }
 
     $gpgv = Get-ChildItem -LiteralPath $installRoot -Filter gpgv.exe -File -Recurse | Select-Object -First 1
-    if ($null -eq $gpgv) { throw 'Installed GnuPG payload did not contain gpgv.exe.' }
+    if ($null -eq $gpgv) { throw 'Extracted GnuPG payload did not contain gpgv.exe.' }
     $bin = $gpgv.Directory.FullName
 
     if (Test-Path -LiteralPath $Destination) { Remove-Item -LiteralPath $Destination -Recurse -Force }

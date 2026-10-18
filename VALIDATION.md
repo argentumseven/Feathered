@@ -79,7 +79,10 @@ verifies all eight platform test jobs against that exact source SHA, then uses
 the versioned automation builder with the tagged pinned wheel lock, complete
 Windows regression corpus and real ISO mount gate. The automation commit is
 recorded separately from the application source commit. It fixes build-only
-asset paths and installer process waiting without modifying the tagged tree.
+asset paths and extracts the authenticated GnuPG verifier with curl and 7-Zip.
+Verifier acquisition/execution and rejection of corrupted input run before
+certificate creation and the full Windows gate. The cached installer is checked
+against the same upstream SHA-256 again during the production build.
 The certificate is generated
 with a non-exportable private key on the ephemeral worker. Trust is installed
 only on that worker for signature verification and removed with the signing key
@@ -135,5 +138,7 @@ support the interpreter/platform combinations documented in the runtime lock.
 
 `stage_gpgv.ps1` pins the official Windows GnuPG installer and SHA-256.
 `install_windows_python.ps1` pins the release interpreter installer and SHA-256.
-Update version, filename, hash, and associated tests together. Downloading and
-hashing an installer validates the pin, but does not test executing it on Windows.
+Update version, filename, hash, and associated tests together. GnuPG staging
+extracts the authenticated payload with 7-Zip and executes the staged verifier;
+it requires curl.exe and 7z.exe on the Windows build host. Python bootstrap
+executes its separately pinned installer.
