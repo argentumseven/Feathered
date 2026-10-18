@@ -9,7 +9,7 @@ import re
 import subprocess
 from zipfile import ZIP_DEFLATED, ZipFile
 
-from source_manifest import MANIFEST_NAME
+from source_manifest import MANIFEST_NAME, is_excluded
 from verify_release_checksums import sha256, verify_distribution
 from write_source_manifest import build_manifest
 
@@ -37,7 +37,8 @@ def prepare(root: Path, tag: str, *, self_signed: bool = False) -> list[Path]:
     commit = _git(root, 'rev-parse', '--verify', 'HEAD^{commit}')
     if _git(root, 'rev-parse', '--verify', f'refs/tags/{tag}^{{commit}}') != commit:
         raise RuntimeError('Release tag does not point to the checked-out commit')
-    if subprocess.run(['git', '-C', str(root), 'diff', '--quiet', 'HEAD']).returncode:
+    changed = _git(root, 'diff', '--name-only', '-z', 'HEAD').split('\0')
+    if any(name and not is_excluded(name) for name in changed):
         raise RuntimeError('Refusing to package modified tracked source')
 
     sources = build_manifest(root)
