@@ -1175,8 +1175,14 @@ def _find_root(request: Tuple, packages: Sequence[DebPackage], preferred_arch: s
     repo_identity = request[6] if len(request) >= 7 else None
     vals = []
     for p in packages:
-        if p.name != name: continue
-        if version and p.version != version: continue
+        if p.name == name:
+            if version and p.version != version: continue
+        else:
+            # Browsed exact-package records identify an artifact, while an
+            # unbound workload root can name an advertised virtual capability.
+            if repo_identity or repo_name or exact_arch: continue
+            atom = DebAtom(name, "=" if version else None, version)
+            if not _pkg_satisfies_atom(p, atom): continue
         if source_scope == "distribution" and getattr(p.repo, "source_tier", "base") != "base": continue
         if role and p.repo.role != role: continue
         if repo_identity:
@@ -1186,7 +1192,8 @@ def _find_root(request: Tuple, packages: Sequence[DebPackage], preferred_arch: s
         if exact_arch and p.arch != exact_arch: continue
         if p.arch not in {preferred_arch, "all"}: continue
         vals.append(p)
-    return _best_package(vals, preferred_arch)
+    named = [p for p in vals if p.name == name]
+    return _best_package(named or vals, preferred_arch)
 
 
 def _inventory_atom_satisfied(inv: AptTargetInventory, atom: DebAtom, target_arch: str) -> Optional[str]:

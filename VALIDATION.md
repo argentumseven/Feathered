@@ -65,6 +65,14 @@ requires the configured jobs for the same Git SHA, authenticated dependency
 installation, the staged verifier, and the production signing path. A local
 source test run does not establish that these remote jobs passed.
 
+For version tags, the production job packages the verified signed distribution
+and complete source tree, then publishes both archives and their SHA-256 list to
+GitHub Releases. `prepare_release_assets.py --tag vX.Y.Z` requires the source
+version, checked-out commit, tag target and production manifest to agree. It
+rejects dirty/untracked source, stale integrity metadata and existing output.
+Signing material is removed before packaging/publication. Branch builds do not
+publish releases, and a failed mandatory job prevents publication.
+
 ## Native RPM module coverage
 
 `python native_conformance.py --require dnf` includes ordinary RPM dependency

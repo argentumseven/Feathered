@@ -531,7 +531,7 @@ def _debian_repos(version: str, arch: str) -> List[RepoTemplate]:
         EvidenceCandidate("https://debian.osuosl.org/debian", "OSU Open Source Lab Debian mirror", REL_EXACT_MIRROR, AUTH_INDEPENDENT),
         EvidenceCandidate("https://mirrors.mit.edu/debian", "MIT Debian mirror", REL_EXACT_MIRROR, AUTH_INDEPENDENT),
     ]
-    return [
+    rows = [
         RepoTemplate("Docker CE Stable", "https://download.docker.com/linux/debian", "docker", 10, True,
                      "Docker's official Debian APT repository.", version, "apt",
                      docker_suite(codename), "stable"),
@@ -547,6 +547,21 @@ def _debian_repos(version: str, arch: str) -> List[RepoTemplate]:
                      f"{codename}-security", comps),
         RepoTemplate(f"Debian {codename}-backports", "https://deb.debian.org/debian", "dependency", 90, False, "Optional backports; disabled by default.", version, "apt", f"{codename}-backports", comps, True, evidence_suggestions=evidence),
     ]
+    return _apt_release_rows(rows, "debian", version, codename)
+
+
+def _apt_release_rows(rows: List[RepoTemplate], key: str, version: str,
+                      codename: str) -> List[RepoTemplate]:
+    """Development suites receive updates in their base archive, not stable pockets.
+
+    Only an observed prerelease classification changes the repository plan;
+    stable and unknown manually entered releases retain their explicit sources.
+    """
+    profile = PROFILES.get(key)
+    prerelease = profile.prerelease_versions if profile is not None else []
+    if version in prerelease or codename in prerelease:
+        return [row for row in rows if row.role != "dependency" or row.suite == codename]
+    return rows
 
 
 
@@ -588,7 +603,7 @@ def _devuan_repos(version: str, arch: str) -> List[RepoTemplate]:
             f"Devuan {codename} but ship systemd unit files only; you must provide the init scripts for your init "
             "system (sysvinit/openrc/runit). Disabled until you opt in.",
             version, "apt", docker_suite(debian_suite), "stable", True))
-    return rows
+    return _apt_release_rows(rows, "devuan", version, codename)
 
 
 # Artix mirrors carrying the main repository set. Do not anchor the defaults to

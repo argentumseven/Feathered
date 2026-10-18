@@ -234,6 +234,7 @@ def run_apt_conformance() -> str:
             ("transitive depth", "fnc-deep", ("fnc-deep", "fnc-mid", "fnc-leaf")),
             ("version floor", "fnc-needs-new", ("fnc-needs-new", "fnc-versioned")),
             ("virtual provides", "fnc-needs-virtual", ("fnc-needs-virtual", "fnc-provider")),
+            ("virtual requested root", "fnc-virtual", ("fnc-provider",)),
             ("alternatives", "fnc-needs-alt", ("fnc-needs-alt", "fnc-alt-b")),
         ]
 
@@ -387,12 +388,23 @@ def run_dnf_conformance() -> str:
         _make_rpm(root, upstream, "fnc-needs-virtual", "fnc-virtual")
         _make_rpm(root, upstream, "fnc-accounts", provides="user(fnc-service), group(fnc-service)")
         _make_rpm(root, upstream, "fnc-needs-account", "user(fnc-service), group(fnc-service)")
+        _make_rpm(root, upstream, "fnc-trigger")
+        _make_rpm(root, upstream, "fnc-rich-provider", provides="fnc-left = 2, fnc-right = 2")
+        _make_rpm(root, upstream, "fnc-split-left", provides="fnc-left = 2")
+        _make_rpm(root, upstream, "fnc-split-right", provides="fnc-right = 2")
+        _make_rpm(root, upstream, "fnc-rich", "fnc-trigger, ((fnc-left >= 1 with (fnc-right >= 1 or fnc-other >= 1)) if fnc-trigger)")
+        _make_rpm(root, upstream, "fnc-extra")
+        _make_rpm(root, upstream, "fnc-conditional-or", "fnc-trigger, (fnc-extra if (fnc-trigger or fnc-other-trigger))")
+        _make_rpm(root, upstream, "fnc-grouped-leaf", "(fnc-leaf >= 1.0)")
 
         scenarios = [
             ("transitive depth", "fnc-deep", ("fnc-deep", "fnc-mid", "fnc-leaf")),
             ("version floor", "fnc-needs-new", ("fnc-needs-new", "fnc-versioned")),
             ("virtual provides", "fnc-needs-virtual", ("fnc-needs-virtual", "fnc-provider")),
             ("account dependencies", "fnc-needs-account", ("fnc-needs-account", "fnc-accounts")),
+            ("nested same-package WITH/OR", "fnc-rich", ("fnc-rich", "fnc-trigger", "fnc-rich-provider")),
+            ("conditional OR", "fnc-conditional-or", ("fnc-conditional-or", "fnc-trigger", "fnc-extra")),
+            ("parenthesized leaf", "fnc-grouped-leaf", ("fnc-grouped-leaf", "fnc-leaf")),
         ]
 
         repository_tools.rebuild_repository_metadata(upstream)
@@ -416,6 +428,8 @@ def run_dnf_conformance() -> str:
                 installroot = root / f"dnf-installroot-{index}-{transport}"
                 cachedir = root / f"dnf-cache-{index}-{transport}"
                 installroot.mkdir(); cachedir.mkdir()
+                (root / f"dnf-state-{index}-{transport}").mkdir()
+                (root / f"dnf-logs-{index}-{transport}").mkdir()
                 # tsflags=test asks RPM to validate the complete transaction
                 # without committing it. All configured system repositories are
                 # disabled and the only enabled source is Feathered's bundle.
@@ -425,7 +439,8 @@ def run_dnf_conformance() -> str:
                     "--releasever", "9",
                     "--setopt", "reposdir=/dev/null",
                     "--setopt", f"cachedir={cachedir}",
-                    "--setopt", "persistdir=/var/lib/dnf",
+                    "--setopt", f"persistdir={root / f'dnf-state-{index}-{transport}'}",
+                    "--setopt", f"logdir={root / f'dnf-logs-{index}-{transport}'}",
                     "--setopt", "install_weak_deps=False",
                     "--setopt", "tsflags=test",
                     "--disablerepo=*",

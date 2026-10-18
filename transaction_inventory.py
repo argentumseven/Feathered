@@ -85,6 +85,22 @@ def rpm_retained_failures(selected: Sequence[Package], inventory: TargetInventor
     def satisfied(req: Requirement) -> bool:
         if req.name.startswith('rpmlib('):
             return True
+        from rpm_resolution import (parse_grouped_requirement, parse_nested_rich_if_with_or,
+                                    parse_rich_if_or_condition)
+        grouped = parse_grouped_requirement(req)
+        if grouped:
+            return satisfied(grouped)
+        conditional_or = parse_rich_if_or_condition(req)
+        if conditional_or:
+            consequence, conditions = conditional_or
+            return not any(satisfied(condition) for condition in conditions) or satisfied(consequence)
+        nested = parse_nested_rich_if_with_or(req)
+        if nested:
+            left, alternatives, condition = nested
+            return not satisfied(condition) or any(
+                core.package_satisfies(package, left)
+                and any(core.package_satisfies(package, branch) for branch in alternatives)
+                for package in final)
         conditional = core.parse_simple_rich_if(req)
         if conditional:
             consequence, condition = conditional

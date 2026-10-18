@@ -226,7 +226,7 @@ set "BUILD_STEP=generating embedded verifier-integrity policy"
 if errorlevel 1 goto :fail
 
 set "BUILD_STEP=compiling Feathered.exe with PyInstaller"
-"%PY%" -m PyInstaller --clean --noconsole --onefile --name Feathered ^
+"%PY%" -m PyInstaller --clean --noconsole --onefile --name Feathered --specpath build ^
   --hidden-import zstandard --collect-all zstandard ^
   --add-data "verify_bundle_template.py;." ^
   --add-data "receiver_preflight.py;." ^

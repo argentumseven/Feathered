@@ -9,10 +9,11 @@ from transaction_model import architecture_eligible
 
 @dataclass(frozen=True)
 class MaterializedRoot:
-    """One semantic workload component bound to a concrete package name.
+    """One semantic workload component bound to a package name or capability.
 
     ``candidates`` is the ordered, explicitly approved identity set from the
-    workload catalog.  Feathered never chooses a package outside this set.
+    workload catalog. A repository may satisfy an approved virtual capability
+    through Provides; the backend then resolves its concrete provider.
     """
     component: str
     primary_package: str
@@ -83,7 +84,9 @@ def materialize_source_plan(
         candidates = tuple(policy.candidates or (policy.package,))
         chosen = None
         for candidate in candidates:
-            if any(str(getattr(pkg, "name", "")) == candidate
+            if any((str(getattr(pkg, "name", "")) == candidate
+                    or any(str(getattr(provide, "name", "")) == candidate
+                           for provide in getattr(pkg, "provides", ())))
                    and _arch_eligible(pkg, preferred_arch, package_family)
                    and _source_eligible(pkg, policy, tier_getter)
                    for pkg in package_rows):

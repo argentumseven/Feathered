@@ -124,6 +124,8 @@ jobs:
 
   production-release:
     name: Signed production build
+    permissions:
+      contents: write
     if: >-
       (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')) &&
       needs.windows-source-gate.result == 'success' &&
@@ -231,3 +233,24 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 30
+      - name: Package verified release downloads
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: powershell
+        run: |
+          & $env:FEATHERED_RELEASE_PYTHON write_source_manifest.py
+          if ($LASTEXITCODE -ne 0) { throw 'Source manifest generation failed.' }
+          & $env:FEATHERED_RELEASE_PYTHON verify_source_checksums.py
+          if ($LASTEXITCODE -ne 0) { throw 'Source manifest verification failed.' }
+          & $env:FEATHERED_RELEASE_PYTHON prepare_release_assets.py --tag $env:GITHUB_REF_NAME
+          if ($LASTEXITCODE -ne 0) { throw 'Release packaging validation failed.' }
+      - name: Publish verified tag release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = $env:GITHUB_REF_NAME.Substring(1)
+          $notes = "RELEASE-$version.md"
+          $assets = @(Get-ChildItem -LiteralPath 'build/github-release' -File | ForEach-Object { $_.FullName })
+          gh release create $env:GITHUB_REF_NAME @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title "Feathered $version" --notes-file $notes
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub release publication failed.' }

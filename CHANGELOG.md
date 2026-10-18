@@ -1,7 +1,12 @@
-# Unreleased
+# 1.4.1 - 2026-10-17
 
 ## Fixed
 
+- Resolve virtual workload roots through advertised RPM, APT and pacman providers, preserving architecture, source restrictions and concrete installer identities. This restores Debian's `dnsutils` and `postgresql-contrib` workloads when their implementations expose virtual names.
+- Support nested RPM WITH/OR conditional dependencies, conditional OR predicates and parenthesized versioned leaves in forward resolution and captured installed-state validation. Keep alternate valid providers available during dependency backtracking.
+- Scope live workload checks to the required vendor repositories, preserve Kubernetes flat APT layout, report unavailable sources per workload, and keep distinct source identities separate in the metadata cache.
+- Select observed stable releases for the live matrix. Known Debian/Devuan development targets use their base archive without invented stable update/security pockets.
+- Use `syslog-ng` and its init companion for Arch/Artix logging presets while retaining `rsyslog` for RPM and DEB targets.
 - RPM dependency resolution can now fall back to an older build of the same package. Retry bookkeeping keyed candidates by package name, so when the newest build of a provider had an unsatisfiable dependency or a conflict, an older build that installs cleanly was never tried and the request was reported unresolved. Candidates are now told apart by exact identity (NEVRA within one source), as the APT and pacman resolvers already did. Requested roots are not downgraded, a fallback is explained in the package's selection reason, and the search stays within the existing resolution pass budget.
 - RPM and APT provider backtracking only reconsiders choices on the failing dependency chain. Previously an unresolved requirement could be blamed on any provider choice in the closure, which re-solved the whole request up to the pass limit and returned a closure shifted onto unrelated alternates or older builds. A request with a genuinely missing dependency no longer retries unrelated choices (about 12 times faster for RPM on an 18,000-package test repository, 8 times for APT on 12,000), and a failure is reported against the most-preferred candidates rather than the last one tried.
 - Name the cause when an APT dependency exists only for another architecture, instead of the generic "none satisfy the requested version/architecture".
@@ -10,6 +15,10 @@
 
 - State what running `install-offline.sh` directly does and does not protect against, and when to use `trusted_receiver.py`. Neither path is required and no defaults change.
 - Document that an APT bundle targets one architecture plus `all`.
+
+## Release automation
+
+- Package complete source and signed Windows distributions with checksums. Publish tag releases only after the existing source, native package-manager, Linux installation, static-analysis and signed production-build gates pass for the same commit.
 
 # 1.4.0 - 2026-09-27
 
