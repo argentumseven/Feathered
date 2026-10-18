@@ -67,7 +67,7 @@ try {
     }
     else {
         Write-Host "Downloading pinned GnuPG $Version installer from $ExpectedInstallerHost ..."
-        $curl = (Get-Command curl.exe -CommandType Application -ErrorAction Stop).Source
+        $curl = (Get-Command curl.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
         $downloaded = $false
         $lastDownloadError = $null
         foreach ($attempt in 1..3) {
@@ -103,7 +103,7 @@ try {
     New-Item -ItemType Directory -Path $installRoot | Out-Null
     $sevenZip = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
     if (-not (Test-Path -LiteralPath $sevenZip -PathType Leaf)) {
-        $sevenZip = (Get-Command 7z.exe -CommandType Application -ErrorAction Stop).Source
+        $sevenZip = (Get-Command 7z.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
     }
     Write-Host "Extracting authenticated GnuPG verifier into $installRoot"
     $extractLog = Join-Path $temp 'extract.log'
