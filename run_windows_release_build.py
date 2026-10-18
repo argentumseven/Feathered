@@ -13,6 +13,7 @@ def main() -> int:
     parser.add_argument('--batch', required=True, type=Path)
     parser.add_argument('--log', required=True, type=Path)
     parser.add_argument('--timeout', type=float, default=1200)
+    parser.add_argument('--idle-timeout', type=float, default=180)
     args = parser.parse_args()
     if os.name != 'nt':
         parser.error('The release batch builder requires Windows.')
@@ -30,6 +31,7 @@ def main() -> int:
             stdout=output, stderr=subprocess.STDOUT,
         )
         deadline = time.monotonic() + args.timeout
+        last_output = time.monotonic()
         offset = 0
         with args.log.open('rb') as progress:
             try:
@@ -38,6 +40,7 @@ def main() -> int:
                     chunk = progress.read()
                     offset = progress.tell()
                     if chunk:
+                        last_output = time.monotonic()
                         print(chunk.decode('utf-8', errors='replace'), end='', flush=True)
                     status = process.poll()
                     if status is not None:
@@ -46,6 +49,10 @@ def main() -> int:
                         return status
                     if time.monotonic() >= deadline:
                         raise subprocess.TimeoutExpired(argv, args.timeout)
+                    if time.monotonic() - last_output >= args.idle_timeout:
+                        raise TimeoutError(
+                            f'Release builder produced no output for {args.idle_timeout} seconds'
+                        )
                     time.sleep(1)
             finally:
                 if process.poll() is None:
