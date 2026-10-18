@@ -5159,7 +5159,7 @@ def test_1058_verifier_resource_is_fail_closed(monkeypatch, tmp_path):
 
 def test_1058_build_script_embeds_verifier_and_stages_required_sidecars():
     script = Path("build_exe.bat").read_text(encoding="utf-8").lower()
-    assert '--add-data "verify_bundle_template.py;."' in script
+    assert '--add-data "%cd%\\verify_bundle_template.py;."' in script
     assert "target_inventory.sh" in script
     assert "workloads.example.json" in script
     assert Path("target_inventory.sh").is_file()
