@@ -1,3 +1,0 @@
-ordinary 1.615s 2 index builds
-one-constrained-root 4.593s 6 index builds
-sixteen-constrained-roots 4.587s 6 index builds

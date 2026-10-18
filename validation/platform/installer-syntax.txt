@@ -1,5 +1,0 @@
-Generated installer shell syntax (bash -n on the emitted install-offline.sh):
-  PASS RPM
-  PASS RPM (vendor-signed)
-  PASS APT
-  PASS Arch

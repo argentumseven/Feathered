@@ -1,2 +1,0 @@
-tests/test_checksum_release_fixes.py
-tests/test_chooser_stale_activation.py

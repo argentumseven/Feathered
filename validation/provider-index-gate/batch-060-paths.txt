@@ -1,2 +1,0 @@
-tests/test_release_integrity.py
-tests/test_reported_defects.py

@@ -1,2 +1,0 @@
-tests/test_build_worker_isolation.py
-tests/test_bundle_characterization.py

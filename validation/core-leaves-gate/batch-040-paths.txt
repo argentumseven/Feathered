@@ -1,4 +1,0 @@
-tests/test_bundle_characterization.py
-tests/test_bundle_records.py
-tests/test_bundle_writer_failures.py
-tests/test_cached_reporter_failures.py

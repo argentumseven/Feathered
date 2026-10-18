@@ -1,3 +1,0 @@
-tests/test_spec_decoding.py
-tests/test_target_release_transition.py
-tests/test_transaction_contract.py

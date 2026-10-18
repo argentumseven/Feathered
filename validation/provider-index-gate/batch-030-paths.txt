@@ -1,2 +1,0 @@
-tests/test_architecture.py
-tests/test_artifact_digests.py

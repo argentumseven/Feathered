@@ -1,2 +1,0 @@
-tests/test_root_requests.py
-tests/test_rpm_installer_gpgcheck.py
