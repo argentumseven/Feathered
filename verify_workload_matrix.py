@@ -2,7 +2,7 @@
 
 Repository contents and supported releases drift independently of Feathered.
 This harness discovers each profile's current release from live upstream metadata,
-loads the default enabled repositories (network required), then checks every
+loads the workload-scoped enabled repositories (network required), then checks every
 mapped package name - including Artix init companions for each init system -
 through scoped materialization, optionality, dependency closure and pinned installer roots.
 This is a live compatibility observation, not proof of a native target transaction.
@@ -30,23 +30,69 @@ from core import RepoSpec, Reporter, fetch_text
 
 
 def _repo_from_template(template, family: str) -> RepoSpec:
-    return RepoSpec(
+    repo = RepoSpec(
         template.name, template.url, template.role, template.priority,
         enabled=template.enabled, target_release=template.target_release,
         repo_format=template.repo_format or ("apt" if family == "deb" else "rpm"),
         suite=getattr(template, "suite", ""), components=getattr(template, "components", ""),
         expected_release_version=getattr(template, "expected_release_version", ""),
         verification_strategy="skip-provenance", optional=getattr(template, "optional", False))
+    repo.flat_repo = bool(getattr(template, "flat_repo", False))
+    return repo
 
 
-def load_universe(profile, release: str, arch: str, reporter: Reporter):
-    """Load every enabled repository; any metadata failure is release-gate evidence."""
+def _known_workload_roles(catalog) -> set[str]:
+    return {role for workload in catalog.values()
+            for role in workload.required_repository_roles()}
+
+
+def _templates_for_workload(profile, release, arch, workload, templates,
+                            known_roles, kubernetes_minor):
+    """Use the same role boundary as the production repository planner.
+
+    Unrelated vendor repositories must never participate in an OS workload.
+    Dynamic Kubernetes sources require an explicit minor like the GUI does.
+    """
+    required = set(workload.source_plan(profile.package_family).required_roles)
+    base = [t for t in templates if t.enabled and t.role not in known_roles]
+    vendor = [t for t in templates if t.enabled and t.role in required]
+    if "kubernetes" in required:
+        if not kubernetes_minor:
+            return base, ["Kubernetes minor must be provided with --kubernetes-minor"]
+        from kubernetes_workflow import repository_template
+        try:
+            generated = repository_template(profile.package_family, kubernetes_minor)
+        except ValueError as exc:
+            return base, [str(exc)]
+        # Explicit configured sources remain operator-owned, as in the GUI.
+        if not any(t.role == "kubernetes" and t.url for t in vendor):
+            vendor.append(generated)
+    present = {t.role for t in vendor if t.url}
+    missing = sorted(required - present)
+    if missing:
+        return base + vendor, [f"No configured workload repository for role: {role}"
+                               for role in missing]
+    return base + vendor, []
+
+
+def load_universe(profile, release: str, arch: str, reporter: Reporter,
+                  templates=None, cache=None):
+    """Load selected repositories; retain source identity across cached workloads."""
     packages = []
     repo_errors = []
-    for template in profile.repos_factory(release, arch):
+    for template in (profile.repos_factory(release, arch) if templates is None else templates):
         if not template.enabled:
             continue
         repo = _repo_from_template(template, profile.package_family)
+        repo.source_tier = ("workload" if repo.role in _known_workload_roles(
+            workloads_module.load_workloads()) else "base")
+        key = (repo.name, repo.repo_format, repo.url, repo.role, repo.priority,
+               repo.suite, repo.components, arch, repo.flat_repo,
+               repo.target_release, repo.expected_release_version)
+        if cache is not None and key in cache:
+            pkgs = cache[key]
+            packages.extend(pkgs)
+            continue
         try:
             if profile.package_family == "arch":
                 pkgs = arch_core.load_repository(repo, {arch, "any"}, reporter)
@@ -59,9 +105,8 @@ def load_universe(profile, release: str, arch: str, reporter: Reporter):
             reporter.warn(message)
             repo_errors.append(message)
             continue
-        roles = {r.role for w in workloads_module.load_workloads().values()
-                 for r in w.source_plan(profile.package_family).roots if r.role}
-        repo.source_tier = "workload" if repo.role in roles else "base"
+        if cache is not None:
+            cache[key] = pkgs
         packages.extend(pkgs)
     return packages, repo_errors
 
@@ -95,6 +140,7 @@ def check_workload(workload, profile, packages, arch, init=""):
         return {"status":"blocked" if result.unresolved or result.conflicts else "ok",
                 "skipped_optional":skipped, "selected":len(result.selected),
                 "unresolved":[backend.format_requirement(r) for r in result.unresolved],
+                "unresolved_notes":result.unresolved_notes,
                 "conflicts":result.conflicts, "installation_roots":installation_roots(result, profile.package_family),
                 "validation_scope":"forward-closure; target native validation still required"}
     except RuntimeError as exc:
@@ -108,10 +154,17 @@ def discover_current_release(profile, reporter: Reporter) -> str:
         return "rolling"
     if profile.package_family == "deb":
         root = (getattr(profile, "archive_discovery_url", "") or "").strip()
-        discovered = profiles_module.discover_apt_releases(root, reporter) if root else {}
+        prerelease = set()
+        discovered = profiles_module.discover_apt_releases(
+            root, reporter, prerelease_out=prerelease) if root else {}
         if not discovered:
             raise RuntimeError(f"{profile.key}: live APT release discovery returned no releases")
         profile.release_codenames.update(discovered)
+        profile.prerelease_versions = sorted(prerelease)
+        discovered = {version: codename for version, codename in discovered.items()
+                      if version not in prerelease and codename not in prerelease}
+        if not discovered:
+            raise RuntimeError(f"{profile.key}: archive supplied no stable release")
         if profile.release_style == "codename":
             by_codename = {codename: version for version, codename in discovered.items()}
             return max(set(discovered.values()),
@@ -124,6 +177,9 @@ def discover_current_release(profile, reporter: Reporter) -> str:
         raise RuntimeError(f"{profile.key}: no live release discovery endpoint configured")
     text = fetch_text(profile.release_url, reporter)
     releases = profiles_module.extract_versions(text, profile.release_pattern, profile.release_mode)
+    prerelease = profiles_module.extract_prerelease_versions(
+        text, profile.release_pattern, profile.release_mode)
+    releases = [release for release in releases if release not in prerelease]
     if not releases:
         raise RuntimeError(f"{profile.key}: live release listing contained no matching releases")
     return releases[0]
@@ -133,6 +189,8 @@ def main() -> int:
     parser.add_argument("--profiles", default="")
     parser.add_argument("--out", default="workload-matrix-report.json")
     parser.add_argument("--include-rhel", action="store_true")
+    parser.add_argument("--kubernetes-minor", default="",
+                        help="Explicit community package-repository minor, e.g. 1.35")
     args = parser.parse_args()
 
     catalog = workloads_module.load_workloads()
@@ -154,15 +212,20 @@ def main() -> int:
             print(f"== {key}: RELEASE DISCOVERY FAILED: {exc}", flush=True)
             continue
         print(f"== {key} ({release}/{arch})", flush=True)
-        packages, repo_errors = load_universe(profile, release, arch, reporter)
-        if repo_errors:
-            report[key] = {"error": "one or more enabled repositories failed to load",
-                           "repository_errors": repo_errors, "warnings": reporter.warnings}
+        templates = list(profile.repos_factory(release, arch))
+        known_roles = _known_workload_roles(catalog)
+        cache = {}
+        base_templates = [t for t in templates if t.enabled and t.role not in known_roles]
+        base_packages, base_errors = load_universe(
+            profile, release, arch, reporter, templates=base_templates, cache=cache)
+        if base_errors:
+            report[key] = {"error": "one or more base repositories failed to load",
+                           "repository_errors": base_errors, "warnings": reporter.warnings}
             failures += 1
-            print(f"   REPOSITORY LOAD FAILED: {len(repo_errors)} enabled source(s)", flush=True)
+            print(f"   REPOSITORY LOAD FAILED: {len(base_errors)} base source(s)", flush=True)
             continue
-        if not packages:
-            report[key] = {"error": "no repository metadata loaded", "warnings": reporter.warnings}
+        if not base_packages:
+            report[key] = {"error": "no base repository metadata loaded", "warnings": reporter.warnings}
             failures += 1
             continue
         entry = {}
@@ -171,8 +234,19 @@ def main() -> int:
                 continue
             if workload.supported_distros is not None and key not in workload.supported_distros:
                 continue
+            scoped_templates, source_errors = _templates_for_workload(
+                profile, release, arch, workload, templates, known_roles,
+                args.kubernetes_minor)
+            workload_templates = [t for t in scoped_templates if t.role in known_roles]
+            extra_packages, extra_errors = load_universe(
+                profile, release, arch, reporter, templates=workload_templates, cache=cache)
             for init in (profile.init_systems or [""]):
-                outcome = check_workload(workload, profile, packages, arch, init)
+                if source_errors or extra_errors:
+                    outcome = {"status": "source-unavailable",
+                               "errors": source_errors + extra_errors}
+                else:
+                    outcome = check_workload(
+                        workload, profile, base_packages + extra_packages, arch, init)
                 entry[f"{wkey}/{init or 'default'}"] = outcome
                 if outcome["status"] != "ok":
                     failures += 1

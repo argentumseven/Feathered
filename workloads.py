@@ -37,7 +37,7 @@ ARCH_PACKAGE_OVERRIDES: Dict[str, List[str]] = {
                         "arp-scan", "sysstat", "tcpflow"],
     # openscap and aide are AUR-only on Arch; official-repo names only here.
     "security-audit": ["audit", "apparmor", "clamav", "fail2ban",
-                       "openssl", "gnupg", "sudo", "logrotate", "rsyslog"],
+                       "openssl", "gnupg", "sudo", "logrotate", "syslog-ng"],
     "storage-tools": ["lvm2", "mdadm", "nfs-utils", "xfsprogs", "e2fsprogs", "btrfs-progs",
                       "parted", "gptfdisk", "dosfstools", "cryptsetup", "multipath-tools",
                       "open-iscsi", "smartmontools", "hdparm", "sg3_utils", "nvme-cli",
@@ -52,7 +52,7 @@ ARCH_PACKAGE_OVERRIDES: Dict[str, List[str]] = {
     # nmon is AUR-only and is omitted rather than shipped as a guaranteed miss.
     "monitoring-agents": ["sysstat", "htop", "iotop", "atop", "perf", "bcc-tools",
                           "numactl", "procps-ng", "lm_sensors", "smartmontools", "net-snmp",
-                          "rsyslog", "logrotate", "chrony"],
+                          "syslog-ng", "logrotate", "chrony"],
     "pki-tls": ["openssl", "ca-certificates", "nss", "gnutls", "gnupg", "p11-kit"],
 }
 
@@ -70,8 +70,8 @@ ARTIX_SERVICE_COMPANIONS: Dict[str, List[str]] = {
     "db-mariadb": ["mariadb"],
     "time-sync": ["chrony"],
     "ansible": ["openssh"],
-    "security-audit": ["fail2ban", "clamav", "rsyslog"],
-    "monitoring-agents": ["rsyslog"],
+    "security-audit": ["fail2ban", "clamav", "syslog-ng"],
+    "monitoring-agents": ["syslog-ng"],
 }
 
 

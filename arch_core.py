@@ -610,10 +610,17 @@ def _find_root(request: Tuple, packages: Sequence[ArchPackage], preferred_arch: 
     exact_arch = str(request[4] or "") if len(request) > 4 else ""
     repo_identity = str(request[6] or "") if len(request) > 6 else ""
     from transaction_model import root_source_eligible
-    candidates = [p for p in packages if p.name == name and p.arch in {preferred_arch, "any"}
+    requirement = ArchRelation(name, "=" if exact_version else "", exact_version, "root")
+    candidates = [p for p in packages
+                  if (p.name == name or (
+                      not (repo_identity or repo_name or exact_arch)
+                      and _relation_matches_package(p, requirement)))
+                  and p.arch in {preferred_arch, "any"}
                   and root_source_eligible(p, request)]
     if exact_version:
-        candidates = [p for p in candidates if compare_versions(p.version, exact_version) == 0]
+        candidates = [p for p in candidates if (
+            compare_versions(p.version, exact_version) == 0 if p.name == name
+            else _relation_matches_package(p, requirement))]
     if role:
         candidates = [p for p in candidates if p.repo.role == role]
     if repo_identity:

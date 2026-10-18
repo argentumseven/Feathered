@@ -103,6 +103,8 @@ def run_modular_conformance(root, make_rpm):
         installroot = case / 'installroot'
         modules = installroot / 'etc/dnf/modules.d'
         modules.mkdir(parents=True)
+        (case / 'state').mkdir()
+        (case / 'logs').mkdir()
         for name, state in states.items():
             (modules / f'{name}.module').write_text(
                 f'[{name}]\nname={name}\nstream={state.get("stream", "")}\n'
@@ -111,7 +113,8 @@ def run_modular_conformance(root, make_rpm):
         # The rejection case uses the source because no bundle should be built.
         command = ['dnf', '-y', '--installroot', str(installroot), '--releasever', '9',
                    '--setopt=reposdir=/dev/null', f'--setopt=cachedir={case / "cache"}',
-                   '--setopt=persistdir=/var/lib/dnf', '--setopt=module_platform_id=platform:el9',
+                   f'--setopt=persistdir={case / "state"}', f'--setopt=logdir={case / "logs"}',
+                   '--setopt=module_platform_id=platform:el9',
                    '--setopt=install_weak_deps=False', '--setopt=tsflags=test', '--disablerepo=*',
                    f'--repofrompath=feathered,{upstream.resolve().as_uri()}', '--enablerepo=feathered',
                    '--nogpgcheck', 'install', root_name if expected_version is None else f'{root_name}-{expected_version}-1.noarch']

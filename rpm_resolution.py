@@ -435,6 +435,28 @@ def parse_simple_rich_if(req: Requirement) -> Optional[Tuple[Requirement, Requir
     return consequence, condition
 
 
+def parse_grouped_requirement(req: Requirement) -> Optional[Requirement]:
+    """Unwrap a parenthesized leaf without interpreting unknown rich syntax."""
+    body = _rich_outer_body(req.name)
+    if body is None:
+        return None
+    leaf = _simple_requirement_from_text(body, req.kind)
+    return leaf if leaf is not None and not leaf.name.startswith("(") else None
+
+
+def parse_rich_if_or_condition(req: Requirement) -> Optional[Tuple[Requirement, List[Requirement]]]:
+    """Recognize `(A if (B or C))`, including versioned condition leaves."""
+    body = _rich_outer_body(req.name)
+    parts = _split_top_level_keyword(body, "if") if body is not None else []
+    if len(parts) != 2:
+        return None
+    consequence = _simple_requirement_from_text(parts[0], req.kind)
+    conditions = parse_simple_rich_or(Requirement(parts[1], kind="condition"))
+    if consequence is None or consequence.name.startswith("(") or conditions is None:
+        return None
+    return consequence, conditions
+
+
 def parse_simple_rich_or(req: Requirement) -> Optional[List[Requirement]]:
     """Parse the common RPM rich ``(A or B [or C])`` form.
 
@@ -477,6 +499,39 @@ def parse_simple_rich_with(req: Requirement) -> Optional[List[Requirement]]:
     if any(leaf is None for leaf in leaves):
         return None
     return [leaf for leaf in leaves if leaf is not None]
+
+
+def parse_nested_rich_if_with_or(req: Requirement) -> Optional[Tuple[Requirement, List[Requirement], Requirement]]:
+    """Recognize ``((A with (B or C)) if D)`` without weakening RPM semantics.
+
+    ``with`` requires the SAME RPM to provide A and one of B/C.  Other nested
+    expressions still fail closed; this narrowly fixes a real enterprise RPM
+    dependency shape without pretending to support RPM's complete rich grammar.
+    """
+    outer = _rich_outer_body(req.name)
+    if outer is None:
+        return None
+    conditional = _split_top_level_keyword(outer, "if")
+    if len(conditional) != 2:
+        return None
+    condition = _simple_requirement_from_text(conditional[1], "condition")
+    consequence = _rich_outer_body(conditional[0])
+    if condition is None or consequence is None:
+        return None
+    conjunction = _split_top_level_keyword(consequence, "with")
+    if len(conjunction) != 2:
+        return None
+    left = _simple_requirement_from_text(conjunction[0], req.kind)
+    alternatives_body = _rich_outer_body(conjunction[1])
+    if left is None or alternatives_body is None:
+        return None
+    parts = _split_top_level_keyword(alternatives_body, "or")
+    if len(parts) < 2:
+        return None
+    alternatives = [_simple_requirement_from_text(part, req.kind) for part in parts]
+    if any(part is None for part in alternatives):
+        return None
+    return left, [part for part in alternatives if part is not None], condition
 
 
 def _package_satisfies_all(index: Dict[str, List[ProviderMatch]], pkg: Package, reqs: Sequence[Requirement]) -> bool:
@@ -586,7 +641,17 @@ def _constraint_key(req: Requirement) -> Tuple[object, ...]:
 
 def _satisfies_constraints(index: Dict[str, List[ProviderMatch]], pkg: Package,
                            constraints: Sequence[Requirement]) -> bool:
-    return all(_indexed_package_satisfies(index, pkg, c) for c in constraints)
+    for requirement in constraints:
+        nested = parse_nested_rich_if_with_or(requirement)
+        if nested is not None:
+            left, alternatives, _condition = nested
+            if not (_indexed_package_satisfies(index, pkg, left)
+                    and any(_indexed_package_satisfies(index, pkg, branch)
+                            for branch in alternatives)):
+                return False
+        elif not _indexed_package_satisfies(index, pkg, requirement):
+            return False
+    return True
 
 
 def resolve(root_requests: Sequence[RootInput], packages: Sequence[Package],
@@ -864,7 +929,77 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
             if should_ignore(req):
                 continue
             reason_override = None
+            grouped = parse_grouped_requirement(req) if req.name.startswith("(") else None
+            if grouped is not None:
+                req = grouped
             if req.name.startswith("("):
+                nested = parse_nested_rich_if_with_or(req)
+                if nested is not None:
+                    left, alternatives, condition = nested
+                    current = list(selected_by_name.values()) + list(pending_by_name.values())
+                    condition_true = (
+                        _selected_or_pending_satisfies(
+                            current + list(getattr(options, "_transaction_candidates", [])),
+                            condition, index)
+                        or inventory_satisfies(options.target_inventory, condition)
+                    )
+                    if options.target_inventory is not None and not condition_true:
+                        reporter.log(f"SKIP conditional rich dependency {format_requirement(req)}")
+                        continue
+
+                    def nested_satisfied(candidate: Package, left: Requirement = left,
+                                         alternatives: Sequence[Requirement] = alternatives) -> bool:
+                        return (_indexed_package_satisfies(index, candidate, left)
+                                and any(_indexed_package_satisfies(index, candidate, branch)
+                                        for branch in alternatives))
+
+                    if any(nested_satisfied(candidate) for candidate in current):
+                        continue
+                    if any(inventory_satisfies_same_package(
+                            options.target_inventory, [left, branch]) for branch in alternatives):
+                        installed_satisfied.add(format_requirement(req))
+                        continue
+                    matches = [match for match in _provider_candidates(index, left)
+                               if nested_satisfied(match.package)]
+                    provider = pick(matches, canonical_capability_name(left.name))
+                    if provider is None:
+                        unresolved_at(pkg)
+                        key = (req.name, req.flags, req.evr, "nested-rich")
+                        if key not in unresolved_keys:
+                            unresolved_keys.add(key)
+                            unresolved.append(req)
+                            unresolved_notes[format_requirement(req)] = (
+                                "No enabled single RPM satisfies both sides of the nested "
+                                "WITH/OR rich dependency")
+                            reporter.log(f"UNRESOLVED nested rich dependency {format_requirement(req)} "
+                                         f"required by {pkg.nevra}")
+                        continue
+                    chosen = provider.package
+                    already = selected_by_name.get(chosen.name) or pending_by_name.get(chosen.name)
+                    if already is not None:
+                        if not nested_satisfied(already):
+                            unresolved_at(pkg, already)
+                            # Retain the complete WITH/OR predicate rather than
+                            # pinning one provider. Other valid builds must
+                            # remain available to dependency backtracking.
+                            discovered.append((chosen.name, req))
+                            key = (req.name, req.flags, req.evr, "nested-rich-conflict")
+                            if key not in unresolved_keys:
+                                unresolved_keys.add(key)
+                                unresolved.append(req)
+                                unresolved_notes[format_requirement(req)] = (
+                                    f"Selected package {already.nevra} cannot satisfy the "
+                                    "nested WITH/OR dependency")
+                        continue
+                    pending_by_name[chosen.name] = chosen
+                    dependency_parent.setdefault(chosen.name, pkg.name)
+                    queue.append(chosen)
+                    reasons.setdefault(chosen.nevra, reason_for(
+                        chosen, f"nested conditional dependency of {pkg.name}: "
+                                f"{format_requirement(req)}"))
+                    reporter.log(f"RICH IF/WITH/OR -> {chosen.nevra}")
+                    continue
+
                 rich_with = parse_simple_rich_with(req)
                 if rich_with is not None:
                     all_current = list(selected_by_name.values()) + list(pending_by_name.values())
@@ -964,7 +1099,8 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                     continue
 
                 parsed_rich = parse_simple_rich_if(req)
-                if parsed_rich is None:
+                conditional_or = parse_rich_if_or_condition(req)
+                if parsed_rich is None and conditional_or is None:
                     unresolved_at(pkg)
                     key = (req.name, req.flags, req.evr, "rich")
                     if key not in unresolved_keys:
@@ -972,22 +1108,31 @@ def _resolve_pass(root_requests: Sequence[Tuple], packages: Sequence[Package],
                         unresolved_notes[format_requirement(req)] = "Unsupported/ambiguous RPM rich dependency expression"
                         reporter.log(f"UNRESOLVED unsupported rich dependency {format_requirement(req)}")
                     continue
-                consequence, condition = parsed_rich
+                if conditional_or is not None:
+                    consequence, conditions = conditional_or
+                else:
+                    assert parsed_rich is not None
+                    consequence, condition = parsed_rich
+                    conditions = [condition]
+                condition_text = " or ".join(format_requirement(item) for item in conditions)
                 all_current = list(selected_by_name.values()) + list(pending_by_name.values())
-                condition_true = (_selected_or_pending_satisfies(all_current + list(getattr(options, "_transaction_candidates", [])), condition, index) or
-                                  inventory_satisfies(options.target_inventory, condition))
+                condition_true = any(
+                    _selected_or_pending_satisfies(
+                        all_current + list(getattr(options, "_transaction_candidates", [])), condition, index)
+                    or inventory_satisfies(options.target_inventory, condition)
+                    for condition in conditions)
                 if options.target_inventory is not None and not condition_true:
                     # With a concrete target inventory, honor the `if` and do
                     # not collect the consequence when its condition is absent.
-                    reporter.log(f"SKIP conditional dependency {format_requirement(consequence)}; target does not satisfy {format_requirement(condition)}")
+                    reporter.log(f"SKIP conditional dependency {format_requirement(consequence)}; target does not satisfy {condition_text}")
                     continue
                 # Without a target inventory we cannot know which standard OS
                 # capabilities are already installed. For an offline COMPLETE
                 # bundle, conservatively include the consequence so the bundle
                 # works when the condition is present on the destination.
                 req = consequence
-                reason_override = f"conditional dependency of {pkg.name}: {format_requirement(consequence)} if {format_requirement(condition)}"
-                reporter.log(f"RICH IF -> resolving {format_requirement(consequence)} (condition: {format_requirement(condition)})")
+                reason_override = f"conditional dependency of {pkg.name}: {format_requirement(consequence)} if {condition_text}"
+                reporter.log(f"RICH IF -> resolving {format_requirement(consequence)} (condition: {condition_text})")
             all_current = list(selected_by_name.values()) + list(pending_by_name.values())
             if _selected_or_pending_satisfies(all_current, req, index):
                 continue

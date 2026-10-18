@@ -57,7 +57,9 @@ jobs:
             exit 2
           fi
 
-          args=(--out workload-matrix-report.json)
+          # Pin the minor under test explicitly; the application likewise
+          # requires a Kubernetes minor before selecting a community repository.
+          args=(--out workload-matrix-report.json --kubernetes-minor 1.35)
           if [[ -n "$FEATHERED_PROFILES" ]]; then
             args+=(--profiles "$FEATHERED_PROFILES")
           fi
