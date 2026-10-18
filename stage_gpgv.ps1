@@ -2,6 +2,7 @@ param(
     [string]$Destination = "dist\gnupg"
 )
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 Set-StrictMode -Version Latest
 
 # Feathered stages the official GnuPG Windows installer directly. The requested
@@ -70,7 +71,7 @@ try {
         $lastDownloadError = $null
         foreach ($attempt in 1..3) {
             try {
-                Invoke-WebRequest -Uri $InstallerUrl -OutFile $installer -UseBasicParsing -MaximumRedirection 3
+                Invoke-WebRequest -Uri $InstallerUrl -OutFile $installer -UseBasicParsing -MaximumRedirection 3 -TimeoutSec 60
                 $downloaded = $true
                 break
             }
