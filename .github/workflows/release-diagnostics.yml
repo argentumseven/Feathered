@@ -1,0 +1,41 @@
+name: release diagnostics
+on:
+  push:
+    branches: [diagnostics/self-signed-v1.4.1]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect current build steps
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/39134460881/jobs?per_page=100" > current-jobs.json
+          python3 - <<'PY'
+          import json
+          for job in json.load(open('current-jobs.json'))['jobs']:
+              steps=[{'name':s['name'],'status':s['status'],'started_at':s.get('started_at'),'completed_at':s.get('completed_at')} for s in job.get('steps',[])]
+              print('::notice::'+json.dumps({'job':job['name'],'status':job['status'],'steps':steps}))
+          PY
+      - name: Inspect interrupted test evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 39133117467 --repo "$GITHUB_REPOSITORY" --name self-signed-v1.4.1-eeea51043b07e2405fe8f9bd92f803360ac1fad1 --dir previous
+          python3 - <<'PY'
+          from pathlib import Path
+          import collections,json
+          root=Path('previous')
+          summaries=list(root.rglob('summary.json'))
+          for p in summaries:
+              s=json.loads(p.read_text())
+              print('::notice::Previous gate summary: '+json.dumps({k:s.get(k) for k in ('status','counts','collected','failure')}))
+          reports=sorted(p for p in root.rglob('batch-*.json') if not p.name.endswith('-request.json'))
+          if reports:
+              s=json.loads(reports[-1].read_text())
+              print('::notice::Previous last batch: '+json.dumps({'report':reports[-1].name,'batches':len(reports),'complete':s.get('complete'),'exit_code':s.get('exit_code'),'files':sorted({n.split('::')[0] for n in s.get('nodes',[])}),'outcomes':dict(collections.Counter(p.get('outcome') for p in s.get('phases',[])))}))
+          print('::notice::Previous summary files: '+str(len(summaries)))
+          PY
