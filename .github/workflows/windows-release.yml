@@ -2,7 +2,7 @@ name: windows release gate
 
 on:
   push:
-    branches: ["**"]
+    branches: ["**", "!diagnostics/**"]
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
