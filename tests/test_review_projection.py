@@ -126,7 +126,7 @@ def test_multiple_verification_strategies_and_duplicate_vendor_profiles():
     assert "1 evidence source(s) configured" in text
     assert "1 vendor keyring profile(s)" in text
     assert "signatures required for 2 vendor(s)" in text
-    assert text.endswith("bundle signed")
+    assert text.endswith("bundle signing requested")
 
 
 def test_baseline_warning_and_target_platform_note():

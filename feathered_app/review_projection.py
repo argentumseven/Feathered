@@ -142,7 +142,7 @@ class ReviewProjectionService:
         if required:
             verification += f" | signatures required for {required} vendor(s)"
         if data.signing_key_configured:
-            verification += " · bundle signed"
+            verification += " · bundle signing requested"
 
         if data.capability is AcquisitionCapability.PACKAGE_ONLY:
             transfer = "Package-only artifacts; dependency completeness not derived"
