@@ -1,5 +1,7 @@
 @echo off
 setlocal EnableExtensions
+REM Preserve this before argument parsing: SHIFT without /1 also changes %%0.
+set "FEATHERED_BUILD_TOOLS_ROOT=%~dp0"
 REM Recovery automation may use this versioned builder for an existing source
 REM tag. All application inputs, the wheel lock and tests stay in that checkout.
 if defined FEATHERED_BUILD_SOURCE_ROOT (
@@ -19,7 +21,7 @@ set "RELEASE_MODE=0"
 set "BUILD_STEP=argument parsing"
 if /I "%~1"=="--release" (
   set "RELEASE_MODE=1"
-  shift
+  shift /1
 )
 if not "%~1"=="" (
   echo ERROR: unknown build option: %~1
@@ -125,9 +127,9 @@ REM path. The authenticated NSIS payload is extracted without running setup.
 set "BUILD_STEP=staging authenticated GnuPG verifier"
 echo Release build phase: staging authenticated GnuPG verifier
 if defined FEATHERED_GNUPG_STAGED_ROOT (
-  %BASE_PY% "%~dp0stage_cached_verifier.py" "%FEATHERED_GNUPG_STAGED_ROOT%" dist\gnupg
+  %BASE_PY% "%FEATHERED_BUILD_TOOLS_ROOT%stage_cached_verifier.py" "%FEATHERED_GNUPG_STAGED_ROOT%" dist\gnupg
 ) else (
-  powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0stage_gpgv.ps1" -Destination "dist\gnupg"
+  powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%FEATHERED_BUILD_TOOLS_ROOT%stage_gpgv.ps1" -Destination "dist\gnupg"
 )
 if errorlevel 1 goto :fail
 
@@ -135,7 +137,7 @@ REM Stage acquisition before the long corpus, then bind these exact bytes
 REM across the source gates. Re-reading the installer after that corpus can
 REM block on hosted Windows workers even though preflight succeeds.
 set "BUILD_STEP=recording authenticated verifier staging"
-%BASE_PY% "%~dp0verifier_stage_snapshot.py" record dist\gnupg build\unsigned-verifier-stage.json
+%BASE_PY% "%FEATHERED_BUILD_TOOLS_ROOT%verifier_stage_snapshot.py" record dist\gnupg build\unsigned-verifier-stage.json
 if errorlevel 1 goto :fail
 
 REM A fresh venv prevents an existing site-package from changing the build.
@@ -225,7 +227,7 @@ echo Release build phase: running Windows ISO mount smoke gate
 
 set "BUILD_STEP=checking authenticated verifier staging after source gates"
 echo Release build phase: checking authenticated verifier staging after source gates
-"%PY%" "%~dp0verifier_stage_snapshot.py" verify dist\gnupg build\unsigned-verifier-stage.json
+"%PY%" "%FEATHERED_BUILD_TOOLS_ROOT%verifier_stage_snapshot.py" verify dist\gnupg build\unsigned-verifier-stage.json
 if errorlevel 1 goto :fail
 
 REM Sign every PE verifier component with the Feathered release identity before
