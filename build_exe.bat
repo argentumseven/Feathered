@@ -1,6 +1,13 @@
 @echo off
 setlocal EnableExtensions
-cd /d "%~dp0"
+REM Recovery automation may use this versioned builder for an existing source
+REM tag. All application inputs, the wheel lock and tests stay in that checkout.
+if defined FEATHERED_BUILD_SOURCE_ROOT (
+  cd /d "%FEATHERED_BUILD_SOURCE_ROOT%"
+) else (
+  cd /d "%~dp0"
+)
+if errorlevel 1 exit /b 1
 
 REM Feathered Windows builder.
 REM   build_exe.bat           -> practical local unsigned EXE build
@@ -200,7 +207,7 @@ REM Stage the pinned official GnuPG verifier. stage_gpgv.ps1 verifies the exact
 REM upstream installer SHA-256 before executing it and chooses a writable,
 REM space-free temporary path suitable for NSIS /D=.
 set "BUILD_STEP=staging authenticated GnuPG verifier"
-powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File stage_gpgv.ps1 -Destination "dist\gnupg"
+powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0stage_gpgv.ps1" -Destination "dist\gnupg"
 if errorlevel 1 goto :fail
 
 REM Sign every PE verifier component with the Feathered release identity before
@@ -228,10 +235,10 @@ if errorlevel 1 goto :fail
 set "BUILD_STEP=compiling Feathered.exe with PyInstaller"
 "%PY%" -m PyInstaller --clean --noconsole --onefile --name Feathered --specpath build ^
   --hidden-import zstandard --collect-all zstandard ^
-  --add-data "verify_bundle_template.py;." ^
-  --add-data "receiver_preflight.py;." ^
-  --add-data "k8s_knowledge_seed.json;." ^
-  --add-data "verifier-integrity.json;." app.py
+  --add-data "%CD%\verify_bundle_template.py;." ^
+  --add-data "%CD%\receiver_preflight.py;." ^
+  --add-data "%CD%\k8s_knowledge_seed.json;." ^
+  --add-data "%CD%\verifier-integrity.json;." app.py
 if errorlevel 1 goto :fail
 
 set "BUILD_STEP=staging distribution sidecars"

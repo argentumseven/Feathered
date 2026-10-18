@@ -89,12 +89,24 @@ try {
     if ($actual -ne $InstallerSha256) {
         throw "GnuPG installer SHA-256 mismatch. Expected $InstallerSha256, got $actual."
     }
+    Write-Host "Authenticated pinned GnuPG $Version installer SHA-256: $actual"
 
     $installRoot = Join-Path $temp 'installed'
     New-Item -ItemType Directory -Path $installRoot | Out-Null
     # /D= must remain the final NSIS argument and must not be quoted.
-    $proc = Start-Process -FilePath $installer -ArgumentList @('/S', "/D=$installRoot") -Wait -PassThru
-    if ($proc.ExitCode -ne 0) { throw "Pinned GnuPG installer exited with code $($proc.ExitCode)." }
+    # Start-Process -Wait also waits for descendants, including long-lived
+    # GnuPG helpers. Bound the installer itself instead of waiting on daemons.
+    Write-Host "Installing authenticated GnuPG verifier into $installRoot"
+    $proc = Start-Process -FilePath $installer -ArgumentList @('/S', "/D=$installRoot") -PassThru
+    try {
+        if (-not $proc.WaitForExit(180000)) {
+            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            throw 'Pinned GnuPG installer did not finish within 180 seconds.'
+        }
+        $exitCode = $proc.ExitCode
+    }
+    finally { $proc.Dispose() }
+    if ($exitCode -ne 0) { throw "Pinned GnuPG installer exited with code $exitCode." }
 
     $gpgv = Get-ChildItem -LiteralPath $installRoot -Filter gpgv.exe -File -Recurse | Select-Object -First 1
     if ($null -eq $gpgv) { throw 'Installed GnuPG payload did not contain gpgv.exe.' }

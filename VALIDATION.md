@@ -75,9 +75,12 @@ publish releases, and a failed mandatory job prevents publication.
 
 An explicitly requested self-signed release uses `self-signed-release.yml`.
 It checks out the existing source tag separately from the publication tooling,
-verifies all eight platform test jobs against that exact source SHA, then runs
-the unchanged tagged production builder with its pinned wheel lock, complete
-Windows regression corpus and real ISO mount gate. The certificate is generated
+verifies all eight platform test jobs against that exact source SHA, then uses
+the versioned automation builder with the tagged pinned wheel lock, complete
+Windows regression corpus and real ISO mount gate. The automation commit is
+recorded separately from the application source commit. It fixes build-only
+asset paths and installer process waiting without modifying the tagged tree.
+The certificate is generated
 with a non-exportable private key on the ephemeral worker. Trust is installed
 only on that worker for signature verification and removed with the signing key
 before artifact upload. Every signed PE must match that certificate and have a

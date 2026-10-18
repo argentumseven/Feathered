@@ -79,7 +79,7 @@ def test_build_requires_signing_iso_and_embedded_verifier_policy():
     assert "feathered_smoke_iso" in lower
     assert "stage_gpgv.ps1" in lower
     assert "write_verifier_policy.py" in lower
-    assert '--add-data "verifier-integrity.json;."' in lower
+    assert '--add-data "%cd%\\verifier-integrity.json;."' in lower
     assert "signtool.exe verify /pa dist\\feathered.exe" in lower
     assert "--require-hashes" in lower
     assert "--only-binary=:all:" in lower

@@ -120,7 +120,7 @@ jobs:
           $iso = Join-Path $env:RUNNER_TEMP 'feathered-self-signed-smoke.iso'
           .\source\create_smoke_iso.ps1 -SourceDirectory $fixture -OutputPath $iso
           "FEATHERED_SMOKE_ISO=$iso" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-      - name: Run unchanged tagged production builder and all mandatory Windows gates
+      - name: Build exact tagged application with versioned release tooling and Windows gates
         shell: pwsh
         timeout-minutes: 30
         working-directory: source
@@ -134,10 +134,20 @@ jobs:
           $env:PSModulePath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\Modules;${env:ProgramFiles}\WindowsPowerShell\Modules"
           & powershell.exe -NoLogo -NoProfile -NonInteractive -Command 'Import-Module Microsoft.PowerShell.Utility -ErrorAction Stop; Get-Command Get-FileHash -ErrorAction Stop | Select-Object Name,Source,Version'
           if ($LASTEXITCODE -ne 0) { throw 'Windows PowerShell hashing module is unavailable.' }
-          & .\build_exe.bat --release 2>&1 | Tee-Object -FilePath $log | ForEach-Object {
+          # Keep the tagged application tree intact. Versioned automation fixes
+          # the spec-relative asset paths and bounds the upstream installer.
+          # cmd.exe receives CRLF lines without altering tracked source bytes.
+          $buildTools = Join-Path $env:RUNNER_TEMP 'feathered-build-tools'
+          New-Item -ItemType Directory -Path $buildTools | Out-Null
+          $batch = Join-Path $buildTools 'build_exe.bat'
+          $content = Get-Content ../automation/build_exe.bat -Raw
+          [IO.File]::WriteAllText($batch, ($content -replace '\r?\n', "`r`n"), [Text.UTF8Encoding]::new($false))
+          Copy-Item ../automation/stage_gpgv.ps1 $buildTools
+          $env:FEATHERED_BUILD_SOURCE_ROOT = (Get-Location).Path
+          & $batch --release 2>&1 | Tee-Object -FilePath $log | ForEach-Object {
             $message = $_.ToString()
             Write-Output $message
-            if ($message -match 'test gate PASSED|Downloading pinned GnuPG|Staged pinned GnuPG|Build complete:' -or
+            if ($message -match 'test gate PASSED|Downloading pinned GnuPG|Authenticated pinned|Installing authenticated|Staged pinned GnuPG|Build complete:' -or
                 (((Get-Date) - $lastNotice).TotalSeconds -ge 45 -and $message -match '^Batch |Successfully signed|Successfully verified|INFO:')) {
               Write-Output ('::notice::Build progress: ' + $message.Replace('%', '%25'))
               $lastNotice = Get-Date
