@@ -20,7 +20,7 @@ permissions:
 
 concurrency:
   group: self-signed-${{ inputs.tag || 'v1.4.1' }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 env:
   RELEASE_TAG: ${{ inputs.tag || 'v1.4.1' }}
@@ -37,6 +37,7 @@ jobs:
   publish:
     needs: tooling
     runs-on: windows-latest
+    timeout-minutes: 45
     permissions:
       contents: write
       actions: read
@@ -95,6 +96,8 @@ jobs:
           # not install trust on users' machines or claim a public CA identity.
           Import-Certificate -FilePath $public -CertStoreLocation Cert:\CurrentUser\Root | Out-Null
           Import-Certificate -FilePath $public -CertStoreLocation Cert:\CurrentUser\TrustedPublisher | Out-Null
+          $fingerprint = (Get-FileHash $public -Algorithm SHA256).Hash
+          Write-Output "::notice::Created self-signed Feathered code-signing certificate. SHA-256: $fingerprint"
           "FEATHERED_PUBLIC_CERT=$public" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           'FEATHERED_TIMESTAMP_URL=http://timestamp.digicert.com' | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Locate signing tool and create real ISO fixture
@@ -111,13 +114,24 @@ jobs:
           .\source\create_smoke_iso.ps1 -SourceDirectory $fixture -OutputPath $iso
           "FEATHERED_SMOKE_ISO=$iso" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Run unchanged tagged production builder and all mandatory Windows gates
-        shell: cmd
+        shell: pwsh
+        timeout-minutes: 30
         working-directory: source
         run: |
-          call build_exe.bat --release > "%RUNNER_TEMP%\feathered-self-signed-build.log" 2>&1
-          set "BUILD_EXIT=%ERRORLEVEL%"
-          type "%RUNNER_TEMP%\feathered-self-signed-build.log"
-          exit /b %BUILD_EXIT%
+          $PSNativeCommandUseErrorActionPreference = $false
+          $lastNotice = Get-Date
+          $log = Join-Path $env:RUNNER_TEMP 'feathered-self-signed-build.log'
+          & .\build_exe.bat --release 2>&1 | Tee-Object -FilePath $log | ForEach-Object {
+            $message = $_.ToString()
+            Write-Output $message
+            if ($message -match 'test gate PASSED|Downloading pinned GnuPG|Staged pinned GnuPG|Build complete:' -or
+                (((Get-Date) - $lastNotice).TotalSeconds -ge 45 -and $message -match '^Batch |Successfully signed|Successfully verified|INFO:')) {
+              Write-Output ('::notice::Build progress: ' + $message.Replace('%', '%25'))
+              $lastNotice = Get-Date
+            }
+          }
+          $buildExit = $LASTEXITCODE
+          exit $buildExit
       - name: Surface build failure diagnostics
         if: failure()
         shell: powershell
