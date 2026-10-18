@@ -124,7 +124,11 @@ REM upstream installer SHA-256 before extracting it into a writable temporary
 REM path. The authenticated NSIS payload is extracted without running setup.
 set "BUILD_STEP=staging authenticated GnuPG verifier"
 echo Release build phase: staging authenticated GnuPG verifier
-powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0stage_gpgv.ps1" -Destination "dist\gnupg"
+if defined FEATHERED_GNUPG_STAGED_ROOT (
+  %BASE_PY% "%~dp0stage_cached_verifier.py" "%FEATHERED_GNUPG_STAGED_ROOT%" dist\gnupg
+) else (
+  powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0stage_gpgv.ps1" -Destination "dist\gnupg"
+)
 if errorlevel 1 goto :fail
 
 REM Stage acquisition before the long corpus, then bind these exact bytes

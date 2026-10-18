@@ -12,7 +12,7 @@ The source archive supports the Linux GUI and CLI and Windows source launchers. 
 
 Extract the entire Windows archive before launching; it includes the authenticated OpenPGP verifier, required sidecars and `SIGNING-NOTICE.txt`. `SHA256SUMS.txt` covers the source archive, Windows archive and public certificate. Each archive includes its own integrity metadata. The existing `v1.4.1` source tag is preserved.
 
-Windows publication uses corrected release automation for PyInstaller data paths, bounded GnuPG downloads and authenticated payload extraction. `RELEASE-MANIFEST.json` records both the unchanged application source commit and the automation commit. The source archive retains the original tagged builder; use `build_exe.bat`, `stage_gpgv.ps1` and `verifier_stage_snapshot.py` from the recorded automation commit when rebuilding the Windows application.
+Windows publication uses corrected release automation for PyInstaller data paths, bounded GnuPG downloads and authenticated payload extraction. `RELEASE-MANIFEST.json` records both the unchanged application source commit and the automation commit. The source archive retains the original tagged builder; use `build_exe.bat`, `stage_gpgv.ps1`, `stage_cached_verifier.py` and `verifier_stage_snapshot.py` from the recorded automation commit when rebuilding the Windows application.
 
 The Java preset still requires Java 17. A target whose configured repositories no longer supply it needs a compatible Java 17 source; this release does not silently substitute another Java major. Other unavailable packages and unsupported repository combinations remain explicit failures. The live workload matrix is a compatibility observation, separate from the mandatory release gates.
 

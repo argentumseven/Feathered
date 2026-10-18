@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - run: python3 -m pip install -r requirements.txt pytest==9.1.1
-      - run: python3 -m pytest -q tests/test_release_gate_checks.py tests/test_self_signed_release.py tests/test_release_assets.py tests/test_verifier_stage_snapshot.py
+      - run: python3 -m pytest -q tests/test_release_gate_checks.py tests/test_self_signed_release.py tests/test_release_assets.py tests/test_verifier_stage_snapshot.py tests/test_cached_verifier.py
 
   publish:
     needs: tooling
@@ -89,17 +89,15 @@ jobs:
         run: |
           & $env:FEATHERED_RELEASE_PYTHON automation/check_windows_verifier_staging.py
           if ($LASTEXITCODE -ne 0) { throw 'Verifier corruption boundary check failed.' }
-      - name: Preflight authenticated verifier and cache its pinned installer
+      - name: Acquire and authenticate the verifier once for the entire build
         shell: powershell
         timeout-minutes: 4
         env:
           FEATHERED_BUILD_TEMP: ${{ runner.temp }}/Feathered staging preflight
         run: |
-          $cache = Join-Path $env:RUNNER_TEMP 'feathered-pinned-gnupg.exe'
           $probe = Join-Path $env:RUNNER_TEMP 'Feathered verifier preflight'
-          .\automation\stage_gpgv.ps1 -Destination $probe -InstallerCachePath $cache
-          "FEATHERED_GNUPG_INSTALLER=$cache" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
-          Remove-Item -LiteralPath $probe -Recurse -Force
+          .\automation\stage_gpgv.ps1 -Destination $probe
+          "FEATHERED_GNUPG_STAGED_ROOT=$probe" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Output '::notice::Authenticated verifier acquisition and execution passed before certificate creation and the full Windows gate.'
       - name: Create release-specific code-signing certificate
         shell: powershell
@@ -162,6 +160,7 @@ jobs:
           [IO.File]::WriteAllText($batch, ($content -replace '\r?\n', "`r`n"), [Text.UTF8Encoding]::new($false))
           Copy-Item ../automation/stage_gpgv.ps1 $buildTools
           Copy-Item ../automation/verifier_stage_snapshot.py $buildTools
+          Copy-Item ../automation/stage_cached_verifier.py $buildTools
           $env:FEATHERED_BUILD_SOURCE_ROOT = (Get-Location).Path
           # A file-backed native child avoids PowerShell's nested stdin/output
           # pipeline. The supervisor relays the log and kills its process tree
