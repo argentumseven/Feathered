@@ -114,6 +114,26 @@ if "%RELEASE_MODE%"=="1" (
   echo Running LOCAL UNSIGNED build. For a production artifact use: build_exe.bat --release
 )
 
+set "BUILD_STEP=preparing distribution directory"
+if exist dist rmdir /S /Q dist
+mkdir dist
+if errorlevel 1 goto :fail
+
+REM Stage the pinned official GnuPG verifier. stage_gpgv.ps1 verifies the exact
+REM upstream installer SHA-256 before extracting it into a writable temporary
+REM path. The authenticated NSIS payload is extracted without running setup.
+set "BUILD_STEP=staging authenticated GnuPG verifier"
+echo Release build phase: staging authenticated GnuPG verifier
+powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0stage_gpgv.ps1" -Destination "dist\gnupg"
+if errorlevel 1 goto :fail
+
+REM Stage acquisition before the long corpus, then bind these exact bytes
+REM across the source gates. Re-reading the installer after that corpus can
+REM block on hosted Windows workers even though preflight succeeds.
+set "BUILD_STEP=recording authenticated verifier staging"
+%BASE_PY% "%~dp0verifier_stage_snapshot.py" record dist\gnupg build\unsigned-verifier-stage.json
+if errorlevel 1 goto :fail
+
 REM A fresh venv prevents an existing site-package from changing the build.
 set "BUILD_STEP=creating build virtual environment"
 set "BUILD_VENV=%CD%\.release-venv"
@@ -199,17 +219,9 @@ echo Release build phase: running Windows ISO mount smoke gate
   if errorlevel 1 goto :fail
 )
 
-set "BUILD_STEP=preparing distribution directory"
-if exist dist rmdir /S /Q dist
-mkdir dist
-if errorlevel 1 goto :fail
-
-REM Stage the pinned official GnuPG verifier. stage_gpgv.ps1 verifies the exact
-REM upstream installer SHA-256 before extracting it into a writable temporary
-REM path. The authenticated NSIS payload is extracted without running setup.
-set "BUILD_STEP=staging authenticated GnuPG verifier"
-echo Release build phase: staging authenticated GnuPG verifier
-powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%~dp0stage_gpgv.ps1" -Destination "dist\gnupg"
+set "BUILD_STEP=checking authenticated verifier staging after source gates"
+echo Release build phase: checking authenticated verifier staging after source gates
+"%PY%" "%~dp0verifier_stage_snapshot.py" verify dist\gnupg build\unsigned-verifier-stage.json
 if errorlevel 1 goto :fail
 
 REM Sign every PE verifier component with the Feathered release identity before
