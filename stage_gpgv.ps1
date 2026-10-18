@@ -63,7 +63,10 @@ try {
             throw "FEATHERED_GNUPG_INSTALLER does not name a file: $supplied"
         }
         Write-Host "Using caller-supplied GnuPG installer: $supplied"
-        Copy-Item -LiteralPath $supplied -Destination $installer
+        # Keep this boundary independent of PowerShell's provider/pipeline
+        # state after a long native build. Both paths are absolute files.
+        [IO.File]::Copy($supplied, $installer, $false)
+        Write-Host "Copied pinned installer into isolated staging: $installer"
     }
     else {
         Write-Host "Downloading pinned GnuPG $Version installer from $ExpectedInstallerHost ..."
@@ -90,13 +93,23 @@ try {
         }
     }
 
-    $actual = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToUpperInvariant()
+    Write-Host "Hashing pinned installer: $installer"
+    $hasher = [Security.Cryptography.SHA256]::Create()
+    $stream = $null
+    try {
+        $stream = [IO.File]::OpenRead($installer)
+        $actual = ([BitConverter]::ToString($hasher.ComputeHash($stream))).Replace('-', '')
+    }
+    finally {
+        if ($null -ne $stream) { $stream.Dispose() }
+        $hasher.Dispose()
+    }
     if ($actual -ne $InstallerSha256) {
         throw "GnuPG installer SHA-256 mismatch. Expected $InstallerSha256, got $actual."
     }
     Write-Host "Authenticated pinned GnuPG $Version installer SHA-256: $actual"
     if (-not [string]::IsNullOrWhiteSpace($InstallerCachePath)) {
-        Copy-Item -LiteralPath $installer -Destination ([IO.Path]::GetFullPath($InstallerCachePath))
+        [IO.File]::Copy($installer, [IO.Path]::GetFullPath($InstallerCachePath), $true)
     }
 
     $installRoot = Join-Path $temp 'installed'

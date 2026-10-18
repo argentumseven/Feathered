@@ -141,6 +141,8 @@ jobs:
         shell: pwsh
         timeout-minutes: 30
         working-directory: source
+        env:
+          FEATHERED_BUILD_TEMP: ${{ runner.temp }}/Feathered isolated release staging
         run: |
           $PSNativeCommandUseErrorActionPreference = $false
           $log = Join-Path $env:RUNNER_TEMP 'feathered-self-signed-build.log'
