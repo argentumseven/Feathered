@@ -128,6 +128,12 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $false
           $lastNotice = Get-Date
           $log = Join-Path $env:RUNNER_TEMP 'feathered-self-signed-build.log'
+          # cmd.exe hides the Windows PowerShell child from pwsh's normal
+          # PSModulePath compatibility handling. Give the tagged builder's
+          # powershell.exe scripts their own Windows PowerShell modules.
+          $env:PSModulePath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\Modules;${env:ProgramFiles}\WindowsPowerShell\Modules"
+          & powershell.exe -NoLogo -NoProfile -NonInteractive -Command 'Import-Module Microsoft.PowerShell.Utility -ErrorAction Stop; Get-Command Get-FileHash -ErrorAction Stop | Select-Object Name,Source,Version'
+          if ($LASTEXITCODE -ne 0) { throw 'Windows PowerShell hashing module is unavailable.' }
           & .\build_exe.bat --release 2>&1 | Tee-Object -FilePath $log | ForEach-Object {
             $message = $_.ToString()
             Write-Output $message
@@ -187,6 +193,7 @@ jobs:
             source/build/github-release/
             source/validation/release-gate/
             ${{ runner.temp }}/Feathered-CodeSigning.cer
+            ${{ runner.temp }}/feathered-self-signed-build.log
           if-no-files-found: warn
       - name: Publish verified self-signed release
         shell: powershell
