@@ -86,20 +86,27 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Required source gates did not pass.' }
       - name: Create release-specific code-signing certificate
         shell: powershell
+        timeout-minutes: 2
         run: |
-          $cert = New-SelfSignedCertificate -Subject 'CN=Feathered' -Type CodeSigningCert -KeyAlgorithm RSA -KeyLength 3072 -HashAlgorithm SHA256 -KeyExportPolicy NonExportable -CertStoreLocation Cert:\CurrentUser\My -NotAfter (Get-Date).AddYears(3)
+          $cert = New-SelfSignedCertificate -Subject 'CN=Feathered' -Type CodeSigningCert -Provider 'Microsoft Software Key Storage Provider' -KeyProtection None -KeyAlgorithm RSA -KeyLength 3072 -HashAlgorithm SHA256 -KeyExportPolicy NonExportable -CertStoreLocation Cert:\CurrentUser\My -NotAfter (Get-Date).AddYears(3)
           "FEATHERED_SIGN_CERT_SHA1=$($cert.Thumbprint)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           $public = Join-Path $env:RUNNER_TEMP 'Feathered-CodeSigning.cer'
           Export-Certificate -Cert $cert -FilePath $public -Type CERT | Out-Null
-          # Trust only this explicitly created certificate on the ephemeral
-          # worker so /pa still verifies its chain and signatures. This does
-          # not install trust on users' machines or claim a public CA identity.
-          Import-Certificate -FilePath $public -CertStoreLocation Cert:\CurrentUser\Root | Out-Null
-          Import-Certificate -FilePath $public -CertStoreLocation Cert:\CurrentUser\TrustedPublisher | Out-Null
           $fingerprint = (Get-FileHash $public -Algorithm SHA256).Hash
           Write-Output "::notice::Created self-signed Feathered code-signing certificate. SHA-256: $fingerprint"
           "FEATHERED_PUBLIC_CERT=$public" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           'FEATHERED_TIMESTAMP_URL=http://timestamp.digicert.com' | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Trust generated certificate noninteractively on the ephemeral worker
+        shell: powershell
+        timeout-minutes: 2
+        run: |
+          # CurrentUser Root import can display an unattended trust dialog.
+          # Hosted Windows workers run elevated; the machine store supports
+          # explicit noninteractive import. Only this code-signing cert is added.
+          certutil.exe -f -addstore Root $env:FEATHERED_PUBLIC_CERT
+          if ($LASTEXITCODE -ne 0) { throw 'Worker certificate trust installation failed.' }
+          certutil.exe -user -f -addstore TrustedPublisher $env:FEATHERED_PUBLIC_CERT
+          if ($LASTEXITCODE -ne 0) { throw 'Worker publisher trust installation failed.' }
       - name: Locate signing tool and create real ISO fixture
         shell: powershell
         run: |
@@ -158,9 +165,8 @@ jobs:
         run: |
           if ($env:FEATHERED_SIGN_CERT_SHA1) {
             Remove-Item -LiteralPath "Cert:\CurrentUser\My\$env:FEATHERED_SIGN_CERT_SHA1" -DeleteKey -Force -ErrorAction SilentlyContinue
-            foreach ($store in 'Root', 'TrustedPublisher') {
-              Remove-Item -LiteralPath "Cert:\CurrentUser\$store\$env:FEATHERED_SIGN_CERT_SHA1" -Force -ErrorAction SilentlyContinue
-            }
+            Remove-Item -LiteralPath "Cert:\LocalMachine\Root\$env:FEATHERED_SIGN_CERT_SHA1" -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath "Cert:\CurrentUser\TrustedPublisher\$env:FEATHERED_SIGN_CERT_SHA1" -Force -ErrorAction SilentlyContinue
           }
       - name: Package exact tagged source and explicitly self-signed downloads
         shell: powershell
@@ -180,6 +186,7 @@ jobs:
           path: |
             source/build/github-release/
             source/validation/release-gate/
+            ${{ runner.temp }}/Feathered-CodeSigning.cer
           if-no-files-found: warn
       - name: Publish verified self-signed release
         shell: powershell

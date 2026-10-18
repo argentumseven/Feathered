@@ -44,6 +44,9 @@ def release(tmp_path):
     (root / '.gitignore').write_text('dist/\nbuild/\nSOURCE-SHA256.json\n.env\n')
     (root / 'core.py').write_text('FEATHERED_VERSION = "1.4.1"\n')
     (root / 'RELEASE-1.4.1.md').write_text('Release fixture\n')
+    legacy = root / 'validation/release-gate/summary.json'
+    legacy.parent.mkdir(parents=True)
+    legacy.write_text('{"status": "legacy evidence"}')
     git(root, 'add', '.')
     git(root, 'commit', '--quiet', '-m', 'release fixture')
     git(root, 'tag', 'v1.4.1')
@@ -126,6 +129,14 @@ def test_generated_pyinstaller_spec_stays_outside_source_archive(release):
     source, _, _ = assets.prepare(root, 'v1.4.1')
     with ZipFile(source) as archive:
         assert all(not name.endswith('.spec') for name in archive.namelist())
+
+
+def test_recording_new_validation_evidence_preserves_tagged_source(release):
+    root, _ = release
+    (root / 'validation/release-gate/summary.json').write_text('{"status": "passed"}')
+    source, _, _ = assets.prepare(root, 'v1.4.1')
+    with ZipFile(source) as archive:
+        assert all('/validation/' not in name for name in archive.namelist())
 
 
 def test_publication_is_after_verified_build_and_only_for_tags():
