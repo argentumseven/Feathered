@@ -118,6 +118,16 @@ def test_existing_archives_are_preserved(release):
     assert {p.name: p.read_bytes() for p in paths} == original
 
 
+def test_generated_pyinstaller_spec_stays_outside_source_archive(release):
+    root, _ = release
+    generated = root / 'build/Feathered.spec'
+    generated.parent.mkdir()
+    generated.write_text('generated build input')
+    source, _, _ = assets.prepare(root, 'v1.4.1')
+    with ZipFile(source) as archive:
+        assert all(not name.endswith('.spec') for name in archive.namelist())
+
+
 def test_publication_is_after_verified_build_and_only_for_tags():
     import yaml
     root = Path(__file__).resolve().parents[1]

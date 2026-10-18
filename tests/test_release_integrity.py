@@ -85,6 +85,7 @@ def test_build_requires_signing_iso_and_embedded_verifier_policy():
     assert "--only-binary=:all:" in lower
     assert "requirements-build.lock" in lower
     assert "-m venv" in lower and ".release-venv" in lower
+    assert "--specpath build" in lower
     assert "pyinstaller==%" not in lower and "pytest==%" not in lower
     assert "copy /y license dist\\license" in lower
     assert "copy /y notice.md dist\\notice.md" in lower
