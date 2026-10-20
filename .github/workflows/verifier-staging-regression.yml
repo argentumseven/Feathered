@@ -1,0 +1,125 @@
+name: Windows verifier staging regression
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'stage_gpgv.ps1'
+      - 'stage_cached_verifier.py'
+      - 'verifier_stage_snapshot.py'
+      - 'check_windows_verifier_staging.py'
+      - 'run_windows_release_build.py'
+      - 'build_exe.bat'
+      - 'install_windows_python.ps1'
+      - '.github/workflows/verifier-staging-regression.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'stage_gpgv.ps1'
+      - 'stage_cached_verifier.py'
+      - 'verifier_stage_snapshot.py'
+      - 'check_windows_verifier_staging.py'
+      - 'run_windows_release_build.py'
+      - 'build_exe.bat'
+      - 'install_windows_python.ps1'
+      - '.github/workflows/verifier-staging-regression.yml'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Install authenticated release Python
+        shell: powershell
+        run: .\install_windows_python.ps1
+      - name: Authenticate the installer and inventory its exact unsigned verifier components
+        shell: powershell
+        run: |
+          & $env:FEATHERED_RELEASE_PYTHON check_windows_verifier_staging.py
+          if ($LASTEXITCODE -ne 0) { throw 'Corrupted installer was not rejected.' }
+          $destination = Join-Path $env:RUNNER_TEMP 'authenticated verifier'
+          .\stage_gpgv.ps1 -Destination $destination
+          $snapshot = Join-Path $env:RUNNER_TEMP 'unsigned-verifier.json'
+          & $env:FEATHERED_RELEASE_PYTHON verifier_stage_snapshot.py record $destination $snapshot
+          if ($LASTEXITCODE -ne 0) { throw 'Verifier inventory failed.' }
+          $json = Get-Content $snapshot -Raw
+          Write-Output ('::notice::Pinned installer component inventory: ' + $json.Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A'))
+      - name: Create worker-only signing trust before payload reuse
+        shell: powershell
+        run: |
+          $cert = New-SelfSignedCertificate -Subject 'CN=Feathered Cache Probe' -Type CodeSigningCert -Provider 'Microsoft Software Key Storage Provider' -KeyProtection None -KeyAlgorithm RSA -KeyLength 3072 -HashAlgorithm SHA256 -KeyExportPolicy NonExportable -CertStoreLocation Cert:\CurrentUser\My -NotAfter (Get-Date).AddYears(3)
+          "PROBE_THUMBPRINT=$($cert.Thumbprint)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          $public = Join-Path $env:RUNNER_TEMP 'probe.cer'
+          Export-Certificate -Cert $cert -FilePath $public -Type CERT | Out-Null
+          certutil.exe -f -addstore Root $public
+          if ($LASTEXITCODE -ne 0) { throw 'Root trust failed.' }
+          certutil.exe -user -f -addstore TrustedPublisher $public
+          if ($LASTEXITCODE -ne 0) { throw 'Publisher trust failed.' }
+      - name: Reuse fixed-hash verifier components with actual release Python
+        shell: pwsh
+        timeout-minutes: 2
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          $source = Join-Path $env:RUNNER_TEMP 'authenticated verifier'
+          $destination = Join-Path $env:RUNNER_TEMP 'reused verifier'
+          & $env:FEATHERED_RELEASE_PYTHON stage_cached_verifier.py $source $destination
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned component reuse failed.' }
+          $snapshot = Join-Path $env:RUNNER_TEMP 'reused.json'
+          & $env:FEATHERED_RELEASE_PYTHON verifier_stage_snapshot.py record $destination $snapshot
+          if ($LASTEXITCODE -ne 0) { throw 'Snapshot recording failed.' }
+          & $env:FEATHERED_RELEASE_PYTHON verifier_stage_snapshot.py verify $destination $snapshot
+          if ($LASTEXITCODE -ne 0) { throw 'Unchanged snapshot verification failed.' }
+          Set-Content (Join-Path $destination 'unexpected.dll') 'injected runtime'
+          & $env:FEATHERED_RELEASE_PYTHON verifier_stage_snapshot.py verify $destination $snapshot
+          if ($LASTEXITCODE -eq 0) { throw 'Changed staged components escaped detection.' }
+          Remove-Item (Join-Path $destination 'unexpected.dll')
+          & $env:FEATHERED_RELEASE_PYTHON stage_cached_verifier.py $source $destination
+          if ($LASTEXITCODE -eq 0) { throw 'Existing verifier output was overwritten.' }
+          Write-Output '::notice::Authenticated release Python reused exact pinned components, executed the verifier, preserved existing output and rejected altered staging with signing trust installed.'
+          exit 0
+      - name: Exercise the actual release batch with tooling separate from its source checkout
+        shell: pwsh
+        timeout-minutes: 3
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          $tools = Join-Path $env:RUNNER_TEMP 'versioned release tools with spaces'
+          $source = Join-Path $env:RUNNER_TEMP 'tagged source without helper files'
+          New-Item -ItemType Directory $tools,$source | Out-Null
+          $content = Get-Content build_exe.bat -Raw
+          $batch = Join-Path $tools 'build_exe.bat'
+          [IO.File]::WriteAllText($batch, ($content -replace '\r?\n', "`r`n"), [Text.UTF8Encoding]::new($false))
+          Copy-Item stage_gpgv.ps1,stage_cached_verifier.py,verifier_stage_snapshot.py $tools
+          $env:FEATHERED_BUILD_SOURCE_ROOT = $source
+          $env:FEATHERED_GNUPG_STAGED_ROOT = Join-Path $env:RUNNER_TEMP 'authenticated verifier'
+          $env:FEATHERED_SIGN_CERT_SHA1 = $env:PROBE_THUMBPRINT
+          $env:FEATHERED_TIMESTAMP_URL = 'http://timestamp.digicert.com'
+          $env:FEATHERED_SMOKE_ISO = Join-Path $env:RUNNER_TEMP 'unused.iso'
+          $sdk = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
+          $signer = Get-ChildItem $sdk -Filter signtool.exe -Recurse | Where-Object { $_.FullName -match '\\x64\\signtool\.exe$' } | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signer) { throw 'SDK signing tool is missing.' }
+          $env:PATH = $signer.DirectoryName + ';' + $env:PATH
+          $log = Join-Path $env:RUNNER_TEMP 'actual-batch-path-probe.log'
+          & $env:FEATHERED_RELEASE_PYTHON -u run_windows_release_build.py --batch $batch --log $log --timeout 90 --idle-timeout 60
+          $status = $LASTEXITCODE
+          $text = Get-Content $log -Raw
+          if ($status -eq 0 -or $text -notmatch 'Staged verifier from exact pinned component hashes; execution passed' -or $text -notmatch 'Verifier staging snapshot record passed' -or $text -notmatch 'ERROR: build stopped during: installing build dependencies') { throw 'Actual release argument/source-root/tool-root integration failed.' }
+          if (Test-Path (Join-Path $source 'stage_cached_verifier.py')) { throw 'Probe accidentally copied tooling into source.' }
+          Write-Output '::notice::Actual build_exe.bat --release resolved external helpers after argument parsing with spaces in both roots, staged and sealed the verifier, then stopped at the deliberately missing dependency lock.'
+          exit 0
+      - name: Remove the probe signing key and worker trust
+        if: always()
+        shell: powershell
+        run: |
+          if ($env:PROBE_THUMBPRINT) {
+            Remove-Item -LiteralPath "Cert:\CurrentUser\My\$env:PROBE_THUMBPRINT" -DeleteKey -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath "Cert:\LocalMachine\Root\$env:PROBE_THUMBPRINT" -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath "Cert:\CurrentUser\TrustedPublisher\$env:PROBE_THUMBPRINT" -Force -ErrorAction SilentlyContinue
+          }
+      - name: Retain the authenticated component inventory
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unsigned-verifier-components
+          path: |
+            ${{ runner.temp }}/unsigned-verifier.json
+            ${{ runner.temp }}/actual-batch-path-probe.log

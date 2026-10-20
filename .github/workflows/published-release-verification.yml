@@ -1,0 +1,116 @@
+name: Verify published Windows release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing published stable tag (for example v1.4.1)
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download exact tagged release and verify all published asset hashes
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:RELEASE_TAG -cnotmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') { throw 'An exact stable release tag is required.' }
+          $version = $env:RELEASE_TAG.Substring(1)
+          $commit = (git rev-parse "refs/tags/$($env:RELEASE_TAG)^{commit}").Trim()
+          if ($LASTEXITCODE -ne 0 -or $commit -notmatch '^[0-9a-f]{40}$') { throw 'Release tag does not resolve to a checkout commit.' }
+          $release = gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --json tagName,isDraft,isPrerelease
+          if ($LASTEXITCODE -ne 0) { throw 'Release is not published.' }
+          $metadata = $release | ConvertFrom-Json
+          if ($metadata.isDraft -or $metadata.isPrerelease -or $metadata.tagName -ne $env:RELEASE_TAG) { throw 'Only published stable releases can be verified.' }
+          New-Item -ItemType Directory -Path downloads -Force | Out-Null
+          gh release download $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --dir downloads
+          if ($LASTEXITCODE -ne 0) { throw 'Release download failed.' }
+          $sums = Join-Path downloads 'SHA256SUMS.txt'
+          if (-not (Test-Path $sums)) { throw 'Published release is missing SHA256SUMS.txt.' }
+          $expected = @("Feathered_$version.zip", "Feathered_${version}_windows_x64_self_signed.zip", "Feathered_${version}_CodeSigning.cer")
+          $seen = @()
+          foreach ($line in Get-Content $sums) {
+            if ($line -cnotmatch '^([0-9a-f]{64})  ([A-Za-z0-9_.]+)$') { throw 'Malformed release checksum entry.' }
+            $digest, $name = $Matches[1], $Matches[2]
+            if ($name -notin $expected -or $name -in $seen) { throw 'Unexpected or duplicate release asset.' }
+            if ((Get-FileHash (Join-Path downloads $name) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $digest) { throw "Release asset digest mismatch: $name" }
+            $seen += $name
+          }
+          if ($seen.Count -ne 3 -or @(Get-ChildItem downloads -File).Count -ne 4) { throw 'Missing or unexpected release assets.' }
+          Expand-Archive (Join-Path downloads "Feathered_${version}_windows_x64_self_signed.zip") unpacked
+          $dist = (Resolve-Path "unpacked/Feathered_$version").Path
+          python verify_release_checksums.py $dist
+          if ($LASTEXITCODE -ne 0) { throw 'Downloaded distribution checksum validation failed.' }
+          $manifest = Get-Content (Join-Path $dist 'RELEASE-MANIFEST.json') -Raw | ConvertFrom-Json
+          if ($manifest.source_commit -ne $commit -or $manifest.feathered_version -ne $version -or $manifest.build_mode -ne 'release' -or $manifest.signing.kind -ne 'self-signed' -or $manifest.signing.automation_commit -notmatch '^[0-9a-f]{40}$') { throw 'Published release provenance mismatch.' }
+          $public = (Resolve-Path (Join-Path downloads "Feathered_${version}_CodeSigning.cer")).Path
+          $digest = (Get-FileHash $public -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($digest -ne $manifest.signing.certificate_sha256 -or (Get-FileHash (Join-Path $dist 'Feathered-CodeSigning.cer') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $digest) { throw 'Release certificate digest mismatch.' }
+          $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($public)
+          if ($cert.HasPrivateKey -or $cert.Thumbprint -ne $manifest.signing.certificate_thumbprint_sha1) { throw 'Published certificate identity mismatch.' }
+          Expand-Archive (Join-Path downloads "Feathered_$version.zip") source-unpacked
+          $src = (Resolve-Path "source-unpacked/Feathered_$version").Path
+          python verify_source_checksums.py $src
+          if ($LASTEXITCODE -ne 0) { throw 'Downloaded source checksum validation failed.' }
+          $sourceVersion = Get-Content (Join-Path $src 'core.py') -Raw
+          if ($sourceVersion -notmatch ('FEATHERED_VERSION\s*=\s*["\x27]' + [regex]::Escape($version) + '["\x27]')) { throw 'Published source version mismatch.' }
+          "VERIFY_DIST=$dist" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "VERIFY_CERT=$public" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "VERIFY_THUMBPRINT=$($cert.Thumbprint)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "::notice::Verified published $env:RELEASE_TAG against tagged source $commit, source and distribution manifests, all assets and certificate identity."
+      - name: Verify Authenticode and launch the downloaded frozen GUI
+        shell: powershell
+        run: |
+          # This explicit self-signed certificate is trusted only on this
+          # disposable verification worker, then removed in the always step.
+          certutil.exe -f -addstore Root $env:VERIFY_CERT
+          if ($LASTEXITCODE -ne 0) { throw 'Verification worker trust import failed.' }
+          $files = @(Join-Path $env:VERIFY_DIST 'Feathered.exe') + @(Get-ChildItem (Join-Path $env:VERIFY_DIST 'gnupg') -File | Where-Object { $_.Extension -in '.exe', '.dll' } | ForEach-Object { $_.FullName })
+          foreach ($file in $files) {
+            $signature = Get-AuthenticodeSignature -FilePath $file
+            if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Thumbprint -ne $env:VERIFY_THUMBPRINT -or -not $signature.TimeStamperCertificate) { throw "Downloaded PE signature or timestamp differs: $file" }
+          }
+          $process = Start-Process (Join-Path $env:VERIFY_DIST 'Feathered.exe') -WorkingDirectory $env:VERIFY_DIST -PassThru
+          # Retain the native handle before the process exits; WinPS 5.1 can
+          # otherwise expose a null ExitCode for Start-Process -PassThru.
+          $nativeHandle = $process.Handle
+          $deadline = (Get-Date).AddSeconds(60)
+          $window = $null
+          try {
+            while ((Get-Date) -lt $deadline) {
+              $process.Refresh()
+              if ($process.HasExited) { throw "Downloaded GUI exited before opening: $($process.ExitCode)" }
+              # PyInstaller one-file mode has a bootloader parent and GUI child.
+              $window = Get-Process -Name Feathered -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -eq 'Feathered' } | Select-Object -First 1
+              if ($window) { break }
+              Start-Sleep -Milliseconds 500
+            }
+            if (-not $window) { throw 'Downloaded GUI did not open a Feathered window within 60 seconds.' }
+            Start-Sleep -Seconds 3
+            $window.Refresh()
+            if ($window.HasExited -or -not $window.Responding -or $window.MainWindowTitle -ne 'Feathered') { throw 'Downloaded GUI did not remain responsive after startup.' }
+            "::notice::Downloaded frozen GUI opened: $($window.MainWindowTitle)"
+            if (-not $window.CloseMainWindow()) { throw 'Downloaded GUI refused a normal close request.' }
+            if (-not $process.WaitForExit(30000)) { throw 'Downloaded GUI did not exit after closing.' }
+            if ($process.ExitCode -ne 0) { throw "Downloaded GUI exited with status $($process.ExitCode)." }
+            "::notice::Verified Authenticode and timestamps for $($files.Count) downloaded PE files; the published GUI launched and closed successfully."
+          } finally {
+            Get-Process -Name Feathered -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          }
+      - name: Remove verification-worker trust
+        if: always()
+        shell: powershell
+        run: |
+          if ($env:VERIFY_THUMBPRINT) {
+            Remove-Item -LiteralPath "Cert:\LocalMachine\Root\$env:VERIFY_THUMBPRINT" -Force -ErrorAction SilentlyContinue
+          }
