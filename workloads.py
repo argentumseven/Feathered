@@ -354,7 +354,7 @@ def _builtins() -> List[WorkloadProfile]:
             version_role="dependency",
             versioned_packages=["buildah"],
             verification_commands=["buildah --version"],
-            supported_distros=["rhel", "rocky", "alma", "centos-stream", "fedora", "ubuntu", "debian", "arch", "artix", "devuan"],
+            supported_distros=["rhel", "rocky", "alma", "centos-stream", "fedora", "ubuntu", "debian", "arch", "devuan"],
         ),
         WorkloadProfile(
             key="skopeo",
@@ -365,7 +365,7 @@ def _builtins() -> List[WorkloadProfile]:
             version_role="dependency",
             versioned_packages=["skopeo"],
             verification_commands=["skopeo --version"],
-            supported_distros=["rhel", "rocky", "alma", "centos-stream", "fedora", "ubuntu", "debian", "arch", "artix", "devuan"],
+            supported_distros=["rhel", "rocky", "alma", "centos-stream", "fedora", "ubuntu", "debian", "arch", "devuan"],
         ),
         WorkloadProfile(
             key="podman-build-stack",
@@ -376,7 +376,7 @@ def _builtins() -> List[WorkloadProfile]:
             version_role="dependency",
             versioned_packages=["podman"],
             verification_commands=["podman --version", "buildah --version", "skopeo --version"],
-            supported_distros=["rhel", "rocky", "alma", "centos-stream", "fedora", "ubuntu", "debian", "arch", "artix", "devuan"],
+            supported_distros=["rhel", "rocky", "alma", "centos-stream", "fedora", "ubuntu", "debian", "arch", "devuan"],
         ),
         WorkloadProfile(
             key="web-nginx",

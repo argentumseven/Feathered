@@ -149,3 +149,13 @@ def test_arch_catalog_requires_native_syslog_service_and_companion(key):
     assert 'syslog-ng' not in workload.optional_for('arch')
     assert 'syslog-ng' in workloads.ARTIX_SERVICE_COMPANIONS[key]
     assert 'rsyslog' in workload.packages_for('rpm')
+
+
+@pytest.mark.parametrize('key', ['buildah', 'skopeo', 'podman-build-stack'])
+def test_unavailable_artix_container_build_presets_are_not_advertised(key):
+    """Artix system/world/galaxy lacked these required roots in the 2026-10-20 live matrix."""
+    workload = workloads.load_workloads()[key]
+    assert not workload.supports_target('artix', 'rolling')
+    assert 'arch' in workload.supported_distros
+    assert workload.supports_target('arch', 'rolling')
+    assert 'devuan' in workload.supported_distros
