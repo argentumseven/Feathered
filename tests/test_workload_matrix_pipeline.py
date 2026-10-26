@@ -123,6 +123,42 @@ def test_blocked_rpm_report_identifies_failing_provider_branch():
     assert outcome['conflict_participants'] == []
 
 
+def test_rpm_matrix_empty_target_skips_inactive_rich_condition():
+    """An absent installed-target capability must not become a fake drift."""
+    repo = core.RepoSpec('fedora', 'https://example.invalid/', repo_format='rpm')
+    app = core.Package('app', 'x86_64', '0', '1', '1', 'app.rpm', 'sha256', '0' * 64,
+                       repo, requires=[core.Requirement('(missing if kernel-rt-core)')])
+    workload = WorkloadProfile('fixture', 'fixture', ['app'], '')
+    profile = SimpleNamespace(package_family='rpm', key='fedora', init_style='')
+    empty = drift.check_workload(workload, profile, [app], 'x86_64')
+    unknown = drift.check_workload(workload, profile, [app], 'x86_64', rpm_target_mode='unknown')
+    assert empty['status'] == 'ok'
+    assert empty['validation_scope'].startswith('empty-target')
+    assert unknown['status'] == 'blocked'
+    assert unknown['unresolved'] == ['missing']
+
+
+def test_rpm_matrix_empty_target_still_enforces_active_rich_condition():
+    repo = core.RepoSpec('fedora', 'https://example.invalid/', repo_format='rpm')
+    app = core.Package('app', 'x86_64', '0', '1', '1', 'app.rpm', 'sha256', '0' * 64,
+                       repo, requires=[core.Requirement('(missing if kernel-rt-core)')])
+    condition = core.Package('kernel-rt-core', 'x86_64', '0', '1', '1', 'core.rpm',
+                             'sha256', '0' * 64, repo)
+    workload = WorkloadProfile('fixture', 'fixture', ['app', 'kernel-rt-core'], '')
+    profile = SimpleNamespace(package_family='rpm', key='fedora', init_style='')
+    result = drift.check_workload(workload, profile, [app, condition], 'x86_64')
+    assert result['status'] == 'blocked'
+    assert result['unresolved'] == ['missing']
+
+
+def test_alma_10_does_not_advertise_absent_openjdk_17_root():
+    from workloads import load_workloads
+
+    java = load_workloads()['java-runtime']
+    assert not java.supports_target('alma', '10.2')
+    assert java.supports_target('alma', '9.7')
+
+
 def test_flat_kubernetes_repository_reaches_loader(monkeypatch):
     from kubernetes_workflow import repository_template
     template = repository_template('deb', '1.35')

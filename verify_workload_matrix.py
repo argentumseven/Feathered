@@ -8,6 +8,12 @@ through scoped materialization, optionality, dependency closure and pinned insta
 This is a live compatibility observation, not proof of a native target transaction.
 No compiled release number selects the matrix target.
 
+For RPM, the default observation models a *fresh empty installed target*.
+Rich `if` branches are therefore activated by packages selected in the
+transaction, not by imagined pre-existing capabilities. Use
+`--rpm-target-mode unknown` to also inspect the conservative inventory-free
+mode used when the real target's installed state is unknown.
+
 Usage:
     python verify_workload_matrix.py [--profiles arch,artix,devuan] [--out report.json]
 
@@ -147,7 +153,8 @@ def cached_rpm_index_builder():
     return build
 
 
-def check_workload(workload, profile, packages, arch, init="", rpm_index_builder=None):
+def check_workload(workload, profile, packages, arch, init="", rpm_index_builder=None,
+                   rpm_target_mode="empty"):
     from workload_materialization import materialize_source_plan
     from source_model import SourcePlan, RootSourcePolicy
     from workload_resolution import repository_init_conflict
@@ -171,7 +178,15 @@ def check_workload(workload, profile, packages, arch, init="", rpm_index_builder
     requests = [(r.package, None, r.role, None, None, r.source_kind) for r in materialized.roots]
     backend = {"rpm":core,"deb":apt_core,"arch":arch_core}[profile.package_family]
     try:
-        options = core.BuildOptions(optional_roots={r.package for r in materialized.roots if r.optional})
+        options = core.BuildOptions(
+            optional_roots={r.package for r in materialized.roots if r.optional},
+            # The scheduled matrix has no installed-target capture. For RPM,
+            # test the same empty-target premise as the DNF5 native oracle:
+            # unselected conditional rich dependencies must not be forced.
+            # Keep the production unknown-target resolver unchanged.
+            target_inventory=(core.TargetInventory()
+                              if profile.package_family == "rpm" and rpm_target_mode == "empty"
+                              else None))
         reporter = Reporter()
         if profile.package_family == "rpm" and rpm_index_builder is not None:
             from transaction_model import resolve_transaction
@@ -192,7 +207,12 @@ def check_workload(workload, profile, packages, arch, init="", rpm_index_builder
                 "unresolved":[backend.format_requirement(r) for r in result.unresolved],
                 "unresolved_notes":result.unresolved_notes,
                 "conflicts":result.conflicts, "installation_roots":installation_roots(result, profile.package_family),
-                "validation_scope":"forward-closure; target native validation still required"}
+                "validation_scope":(
+                    "empty-target forward-closure; target native validation still required"
+                    if profile.package_family == "rpm" and rpm_target_mode == "empty"
+                    else "unknown-target conservative forward-closure; native validation still required"
+                    if profile.package_family == "rpm"
+                    else "forward-closure; target native validation still required")}
         if blocked:
             # These are precise package identities on the failing branches,
             # not every package in the often-large selected closure.
@@ -210,7 +230,7 @@ def discover_current_release(profile, reporter: Reporter) -> str:
         return "rolling"
     if profile.package_family == "deb":
         root = (getattr(profile, "archive_discovery_url", "") or "").strip()
-        prerelease = set()
+        prerelease: set[str] = set()
         discovered = profiles_module.discover_apt_releases(
             root, reporter, prerelease_out=prerelease) if root else {}
         if not discovered:
@@ -262,6 +282,8 @@ def main() -> int:
     parser.add_argument("--include-rhel", action="store_true")
     parser.add_argument("--kubernetes-minor", default="",
                         help="Explicit community package-repository minor, e.g. 1.35")
+    parser.add_argument("--rpm-target-mode", choices=("empty", "unknown"), default="empty",
+                        help="RPM rich-dependency baseline: empty target (default), or conservative unknown target")
     args = parser.parse_args()
 
     catalog = workloads_module.load_workloads()
@@ -269,7 +291,8 @@ def main() -> int:
         k for k in profiles_module.PROFILES
         if not k.startswith("custom-") and (args.include_rhel or k != "rhel")]
 
-    report, failures = {}, 0
+    report: dict[str, dict[str, object]] = {}
+    failures = 0
     for key in wanted:
         profile = profiles_module.PROFILES[key]
         arch = "x86_64" if "x86_64" in profile.arches else profile.arches[0]
@@ -285,7 +308,7 @@ def main() -> int:
         print(f"== {key} ({release}/{arch})", flush=True)
         templates = list(profile.repos_factory(release, arch))
         known_roles = _known_workload_roles(catalog)
-        cache = {}
+        cache: dict[tuple, list] = {}
         rpm_index_builder = cached_rpm_index_builder() if profile.package_family == "rpm" else None
         base_templates = [t for t in templates if t.enabled and t.role not in known_roles]
         base_packages, base_errors = load_universe(
@@ -324,12 +347,14 @@ def main() -> int:
                 else:
                     outcome = check_workload(
                         workload, profile, base_packages + extra_packages, arch, init,
-                        rpm_index_builder=rpm_index_builder)
+                        rpm_index_builder=rpm_index_builder, rpm_target_mode=args.rpm_target_mode)
                 entry[f"{wkey}/{init or 'default'}"] = outcome
                 if outcome["status"] not in {"ok", "operator-source-required"}:
                     failures += 1
                     print(f"   BLOCKED {wkey}/{init}: {outcome}")
         report[key] = {"release":release,"architecture":arch,"workloads":entry}
+        if profile.package_family == "rpm":
+            report[key]["rpm_target_mode"] = args.rpm_target_mode
     with open(args.out, "w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2, sort_keys=True)
     print(f"\nReport written to {args.out}; {failures} failing combination(s).")
