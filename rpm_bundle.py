@@ -461,5 +461,5 @@ def _write_workload_artifacts(output_dir, metadata_dir, metadata, result):
     lines += [f"{f['severity']}: {f['package']} {f['version']}: {f['message']}" for f in data['findings'] + data['platform_advisories']]
     assurance.write_text(previous + '\n' + '\n'.join(lines) + '\n', encoding='utf-8')
     if data.get('image_draft_context'):
-        from kubernetes_workflow import WorkloadContext, write_image_draft
-        write_image_draft(output_dir, WorkloadContext(**data['image_draft_context']), result)
+        from kubernetes_workflow import WorkloadContext, write_image_handoff
+        write_image_handoff(output_dir, WorkloadContext(**data['image_draft_context']), result)

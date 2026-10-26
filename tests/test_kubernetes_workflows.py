@@ -228,6 +228,24 @@ def test_vks_missing_inventory_does_not_block_build_preparation(local_kubernetes
     assert not prepared.plan.opts.workload_context.pin_baseline
 
 
+def test_vks_cli_without_installed_details_preserves_explicit_updates_source(local_kubernetes,tmp_path):
+    spec=workload_spec(local_kubernetes,tmp_path/'out','vks-node-additions',('cryptsetup',))
+    updates=core.RepoSpec('Ubuntu Updates',local_kubernetes.as_uri()+'/',repo_format='apt',
+                          suite='noble-updates',flat_repo=True)
+    # A version-only inventory does not contain the installed package details
+    # required to pin a baseline, even though its pathname is nonempty.
+    inventory=tmp_path/'version-only.txt'
+    inventory.write_text('META|family|deb\nDEB|libc6|1.0|amd64\n')
+    spec=replace(spec,target=replace(spec.target,inventory_path=str(inventory)),
+        content=replace(spec.content,pin_to_inventory_baseline=True),
+        sources=replace(spec.sources,repositories=spec.sources.repositories+
+                        (build_spec.RepositoryRecord.capture(updates),)))
+    prepared=prepare_build(spec,BuildServices(core.Reporter()))
+    assert not prepared.plan.opts.workload_context.pin_baseline
+    assert any(row.name=='Ubuntu Updates' and row.enabled for row in prepared.host.repo_rows)
+    assert any(row.name=='Ubuntu Updates' for row in prepared.plan.build_repositories)
+
+
 def test_baseline_rejects_installed_changes_but_keeps_ordinary_headers():
     repo=core.RepoSpec('base','https://example.invalid/')
     installed=apt_core.DebPackage('libc6','amd64','1','libc.deb','sha256','',repo)
@@ -239,7 +257,7 @@ def test_baseline_rejects_installed_changes_but_keeps_ordinary_headers():
     assert rolling_source(core.RepoSpec('Photon Updates','https://host/photon/5.0/photon_updates_5.0_x86_64/'))
 
 
-def test_vks_build_emits_image_draft_and_keeps_inventory_baseline(local_kubernetes,tmp_path):
+def test_vks_build_emits_non_executable_image_handoff_and_keeps_inventory_baseline(local_kubernetes,tmp_path):
     spec=workload_spec(local_kubernetes,tmp_path/'out','vks-node-additions',('cryptsetup','kernel-headers'))
     inventory=tmp_path/'inventory.txt'
     inventory.write_text('META|family|deb\nMETA|relationships|complete\nDEB|libc6|1.0|amd64\nDETAIL|'+json.dumps(
@@ -248,11 +266,16 @@ def test_vks_build_emits_image_draft_and_keeps_inventory_baseline(local_kubernet
                  content=replace(spec.content,pin_to_inventory_baseline=True))
     result=invoke(tmp_path,spec,'--accept-trust-findings')
     assert result.returncode==0,result.stdout+result.stderr
-    drafts=list((tmp_path/'out').rglob('imagebaker-image.yaml'))
-    assert len(drafts)==1
-    text=drafts[0].read_text()
-    assert 'UNVALIDATED' in text and 'node-additions' in text and 'kubernetesSpec: {}' in text
-    assert 'cryptsetup' in text and 'kernel-headers' in text and 'dists/' in text
+    handoffs=list((tmp_path/'out').rglob('vks-image-baker-handoff.json'))
+    assert len(handoffs)==1
+    handoff=json.loads(handoffs[0].read_text())
+    assert handoff['format']=='feathered-vks-image-baker-handoff/v1'
+    assert not handoff['usable_as_image_baker_config']
+    assert handoff['handoff_label']=='node-additions'
+    assert handoff['requested_package_roots']==['cryptsetup','kernel-headers']
+    assert any('dists/' in path for path in handoff['emitted_local_repository_metadata'])
+    assert all(value is None for value in handoff['required_operator_inputs'].values())
+    assert not list((tmp_path/'out').rglob('imagebaker-image.yaml'))
     assert len(list((tmp_path/'out').rglob('*.deb')))==2
     manifest=json.loads(next((tmp_path/'out').rglob('manifest.json')).read_text())['metadata']['kubernetes']
     assert manifest['pin_to_inventory_baseline'] and manifest['platform_note']=='VKr recorded-only'
@@ -362,7 +385,7 @@ def test_workload_artifacts_exist_before_indexing(local_kubernetes,tmp_path,monk
     original=apt_core.write_bundle_index
     checked=[]
     def inspect_index(folder,reporter,metadata,signing_key):
-        assert (folder/'imagebaker-image.yaml').is_file()
+        assert (folder/'vks-image-baker-handoff.json').is_file()
         assert list(folder.rglob('ASSURANCE.txt'))
         checked.append(True)
         return original(folder,reporter,metadata,signing_key)
@@ -371,7 +394,17 @@ def test_workload_artifacts_exist_before_indexing(local_kubernetes,tmp_path,monk
     BuildBackendMixin._write_bundle_backend(host,result,tmp_path/'sealed',opts,core.Reporter(),{})
     assert checked==[True]
     index=json.loads((tmp_path/'sealed/bundle-index.json').read_text())
-    assert 'imagebaker-image.yaml' in json.dumps(index) and 'ASSURANCE.txt' in json.dumps(index)
+    assert 'vks-image-baker-handoff.json' in json.dumps(index) and 'ASSURANCE.txt' in json.dumps(index)
+
+
+def test_vks_handoff_label_is_optional_for_package_only_work(tmp_path):
+    from kubernetes_workflow import write_image_handoff
+    context=WorkloadContext(workload='vks-node-additions',image_name='',distribution='Ubuntu',release='24.04')
+    context.validate()
+    write_image_handoff(tmp_path,context,SimpleNamespace(roots=[]))
+    artifact=json.loads((tmp_path/'vks-image-baker-handoff.json').read_text())
+    assert artifact['handoff_label']==''
+    assert artifact['requested_package_roots']==[]
 
 
 def test_saved_workload_patch_pin_builds_requested_version(local_kubernetes, tmp_path):

@@ -47,6 +47,12 @@ class BuildSourcesMixin:
         Cached indexes are reused when this is unchanged, so anything omitted
         here would serve stale packages after the operator edited it.
         """
+        try:
+            vks_baseline_active = self._vks_usable_baseline_inventory() is not None
+        except AttributeError:
+            # Lightweight metadata-loading hosts deliberately provide only the
+            # requested source rows, without a workload or inventory backend.
+            vks_baseline_active = False
         return (tuple((r.name, r.url, r.role, r.priority, r.enabled, r.client_cert,
                        r.client_key, r.ca_cert, tuple(getattr(r, "redirect_allow_origins", []) or []),
                        tuple(getattr(r, "sensitive_query_keys", []) or []),
@@ -59,7 +65,11 @@ class BuildSourcesMixin:
                        r.evidence_policy,
                        r.digest_preference, r.digest_requirement, r.verification_strategy)
                       for r in self.repo_rows),
-                BuildRequestMixin._selected_arch(self))
+                BuildRequestMixin._selected_arch(self),
+                # Only VKS pinning can change effective repository participation
+                # without editing source switches. Do not call build_scope here:
+                # explicit scoped loads must never consult unrelated host scope.
+                vks_baseline_active)
 
     def _load_enabled_repos(self, reporter: Reporter, repositories=None,
                             enforce_distribution_plan: bool = True):

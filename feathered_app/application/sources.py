@@ -187,11 +187,8 @@ class SourcesMixin(SourceSelectionMixin, BuildIntentMixin, BuildBackendMixin, Bu
         if i is None or not (0 <= i < len(self.repo_rows)):
             return
         repo = self.repo_rows[i]
-        if 'pin_to_inventory_baseline_var' in self.__dict__:
-            from kubernetes_workflow import VKS_KEY, rolling_source
-            if self._workload().key == VKS_KEY and self.pin_to_inventory_baseline_var.get() and rolling_source(repo):
-                self._log('Pin to inventory baseline keeps this rolling source disabled. Change the baseline option on Content to include it.')
-                return
+        # VKS baseline exclusion is an effective transaction-scope rule, not
+        # an edit to the operator's configured source switch.
         repo.enabled = not repo.enabled
         self.loaded_signature = None; self.loaded_packages = []; self.last_result = None
         self._refresh_repo_tree_if_open(); self._update_source_status()

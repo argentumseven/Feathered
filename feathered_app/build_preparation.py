@@ -38,6 +38,42 @@ class DecisionDeclined(Cancelled):
 class BuildPreparationMixin:
     """Rules shared by GUI preparation and a spec-driven host."""
 
+    def _vks_usable_baseline_inventory(self):
+        """Return a verified VKS inventory without changing repository switches.
+
+        Pinning is ineffective without installed *detail* records. The single
+        cached snapshot also makes repeated GUI source-readiness checks cheap;
+        a file change or target change invalidates that observation.
+        """
+        from kubernetes_workflow import VKS_KEY
+        try:
+            if self._mirror_mode() or self._workload().key != VKS_KEY:
+                return None
+        except (AttributeError, KeyError, TypeError):
+            return None
+        if not BuildRequestMixin._selected_workload_context(self).pin_baseline:
+            return None
+        path = BuildRequestMixin._selected_inventory(self)
+        if not path:
+            return None
+        source = Path(path)
+        try:
+            stat = source.stat()
+        except OSError:
+            return None  # Normal preparation still reports an invalid path.
+        key = (str(source), stat.st_mtime_ns, stat.st_size,
+               self._profile().key, BuildRequestMixin._selected_arch(self))
+        cached = self.__dict__.get('_vks_baseline_inventory_cache')
+        if cached is not None and cached[0] == key:
+            return cached[1]
+        try:
+            inventory = self._parse_target_inventory_backend(source)
+        except (ValueError, OSError, RuntimeError):
+            return None  # The preparation path reports the underlying error.
+        usable = inventory if getattr(inventory, 'retained_packages', None) else None
+        self.__dict__['_vks_baseline_inventory_cache'] = (key, usable)
+        return usable
+
     def _repository_target_compatible(self, repo) -> bool:
         """Whether a repository belongs to the currently selected Linux target.
 
@@ -89,9 +125,11 @@ class BuildPreparationMixin:
 
 
     def _participating_transaction_repositories(self):
-        if self._mirror_mode():
-            return [r for r in self.repo_rows if self._repository_participates_in_current_intent(r)]
-        return [r for r in self.repo_rows if self._repository_participates_in_current_intent(r)]
+        rows = [r for r in self.repo_rows if self._repository_participates_in_current_intent(r)]
+        if self._vks_usable_baseline_inventory() is not None:
+            from kubernetes_workflow import rolling_source
+            return [r for r in rows if not rolling_source(r)]
+        return rows
 
 
     def _package_coverage_repositories(self):

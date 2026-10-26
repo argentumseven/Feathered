@@ -12,7 +12,7 @@
    - **Kubernetes client tools (kubectl)** acquires the client.
    - **VKS node OS package additions** is a contextual package workflow. It uses
      the ordinary exact-package chooser and dependency resolver for additions such
-     as cryptsetup, then layers VKS policy checks and Image Baker draft output over
+     as cryptsetup, then layers VKS policy checks and an Image Baker input handoff over
      that selection. A captured installed inventory is optional and can be used to
      pin the existing node baseline.
 3. For Kubernetes workloads, choose **Kubernetes minor repository**, then
@@ -120,11 +120,13 @@ Installed inventory is optional. When inventory from the intended node is loaded
 including package detail records from target_inventory.sh with
 target_inventory_details.py, **Pin to inventory baseline** can keep the build aligned
 with that captured package set. With a usable inventory and pinning enabled, rolling
-update rows are excluded, installed capabilities participate in resolution, and
-publication refuses replacements of captured installed versions. Without inventory,
-pinning has no baseline to apply and does not block the build; Feathered resolves a
-complete repository-derived closure instead. Pinning does not reconstruct unavailable
-historical archives.
+update rows are excluded **from the effective resolution and build source scope**,
+while the operator's repository enabled switches remain unchanged. Installed
+capabilities participate in resolution, and publication refuses replacements of
+captured installed versions. Without inventory details, pinning has no baseline
+to apply and the GUI requires loading an inventory before enabling it; legacy
+saved requests fall back to a complete repository-derived closure instead.
+Pinning does not reconstruct unavailable historical archives.
 
 Managed node binaries, runtimes, kernels and cluster add-ons receive advisories.
 They remain selectable. Development packages such as kernel-headers, kernel-devel
@@ -132,14 +134,19 @@ and linux-headers-generic are not classified as kernel binaries. Direct installs
 may be replaced by node rollout; use the platform's supported image/add-on process
 for durable changes and verify its requirements for your release.
 
-Alongside the normal bundle and installer, VKS additions emit
-**imagebaker-image.yaml**. The name is editable on Content. This is an explicitly
-UNVALIDATED draft: OS identity and root package names are populated, Kubernetes
-settings remain a placeholder, and repository references describe the emitted
-local metadata. Reconcile all fields with your Image Baker/VKS schema and builder
-network paths before use. Feathered does not submit it to a cluster or claim that
-Image Baker will accept it. Draft and assurance files are written before bundle
-indexing so they participate in the final checksum file set.
+Alongside the normal bundle and installer, VKS additions emit a distinct
+**vks-image-baker-handoff.json**. It records the OS identity, requested package
+roots, and emitted local repository metadata. It is deliberately **not a runnable
+VMware Image Baker YAML**: the exact VKr, distribution image, base OS image,
+builder-accessible repository URLs and Image Baker schema version are not known
+from an offline OS package request. Supply and validate those inputs using the
+applicable VKS release's Image Baker tooling before attempting a bake. The
+optional Content label names only this handoff; it does not select a VKr.
+Legacy VKS image-builder supported VKr up to 1.34, while newer releases use
+Image Baker. The previous `imagebaker-image.yaml` pseudo-configuration has
+been removed because its schema and field names were unverified. Handoff and
+assurance files are written before bundle indexing, so they participate in
+the final checksum file set.
 
 ## Saved builds and limits
 
