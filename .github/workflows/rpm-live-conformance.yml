@@ -1,0 +1,45 @@
+name: RPM live native diagnostic
+
+# The regular matrix's forward closure is not a native DNF transaction. This
+# diagnostic records what DNF5 actually resolves against Fedora's own repos.
+# A green job only means evidence was captured; rejected transactions remain
+# explicit in report.json, and no system packages are installed.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/rpm-live-conformance.yml
+      - native_rpm_live_probe.py
+      - rpm_metadata.py
+      - runtime_limits.py
+      - rpm_resolution.py
+      - workloads.py
+      - verify_workload_matrix.py
+
+permissions:
+  contents: read
+
+jobs:
+  fedora-44:
+    runs-on: ubuntu-latest
+    container: fedora:44
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Install the diagnostic interpreter in the disposable CI container
+        run: dnf5 -y install python3
+      - name: Probe native DNF5 decisions without an RPM transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          dnf5 --version
+          python3 native_rpm_live_probe.py --release 44 \
+            --presets cockpit,kernel-dev,storage-tools \
+            --out validation/ci/fedora44-native
+          cat validation/ci/fedora44-native/report.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain native DNF5 reports and stored transactions
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fedora44-native-${{ github.sha }}
+          path: validation/ci/fedora44-native/
+          if-no-files-found: warn
