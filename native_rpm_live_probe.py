@@ -71,7 +71,9 @@ def probe(profile: str, release: str, presets: list[str], output: Path) -> dict:
             with tempfile.TemporaryDirectory(prefix="feathered-dnf5-") as root:
                 stored = output / f"{key}-transaction"
                 result = _run([
-                    "dnf5", f"--installroot={root}", f"--releasever={release}",
+                    # --store guarantees no installation, but DNF still asks
+                    # confirmation before writing the transaction plan.
+                    "dnf5", "-y", f"--installroot={root}", f"--releasever={release}",
                     "--setopt=reposdir=/etc/yum.repos.d", "install",
                     f"--store={stored.resolve()}", *roots,
                 ])
