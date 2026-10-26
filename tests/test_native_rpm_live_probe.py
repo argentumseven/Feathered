@@ -42,12 +42,14 @@ def test_native_probe_never_executes_a_package_install(tmp_path, monkeypatch):
     def fake_run(argv):
         commands.append(argv)
         if 'repoquery' in argv:
-            return SimpleNamespace(returncode=0, stdout='cockpit\ncockpit-system\n', stderr='')
+            names = ['cockpit', 'cockpit-system', *(f'package-{n}' for n in range(100))]
+            return SimpleNamespace(returncode=0, stdout='\n'.join(names) + '\n', stderr='')
         return SimpleNamespace(returncode=0, stdout='stored', stderr='')
 
     monkeypatch.setattr(live, '_run', fake_run)
     result = live.probe('fedora', '44', ['cockpit'], tmp_path)
     assert result['presets']['cockpit']['status'] == 'dnf-accepted'
+    assert commands[0][-1] == '--queryformat=%{name}\\n'
     assert commands[-1][-1] == 'cockpit-system'
     assert any(arg.startswith('--store=') for arg in commands[-1])
     assert any(arg.startswith('--installroot=') for arg in commands[-1])
