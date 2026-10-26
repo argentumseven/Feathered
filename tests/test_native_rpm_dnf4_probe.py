@@ -8,6 +8,8 @@ def test_dnf4_confirmation_aborted_after_full_solve_is_not_package_failure():
     text = 'Dependencies resolved.\nTransaction Summary\nInstall 26 Packages\nOperation aborted.\n'
     assert live.classify_dnf4(1, text) == 'dnf-proposed-no-install'
     assert live.classify_dnf4(1, 'Error: package not found') == 'dnf-no-transaction'
+    assert live.classify_dnf4(1, 'Failed to download metadata for repo') == 'probe-infrastructure-error'
+    assert live.classify_dnf4(1, 'Cannot prepare internal mirrorlist') == 'probe-infrastructure-error'
     assert live.classify_dnf4(0, 'Nothing to do') == 'dnf-indeterminate'
 
 
@@ -27,6 +29,7 @@ def test_dnf4_probe_uses_crb_and_fresh_installroot_without_automatic_yes(monkeyp
     assert '--enablerepo=crb' in seen[0]
     assert '--assumeno' in seen[1]
     assert '--setopt=reposdir=/etc/yum.repos.d' in seen[1]
+    assert '--setopt=varsdir=/etc/dnf/vars,/etc/yum/vars' in seen[1]
     assert any(arg.startswith('--installroot=') for arg in seen[1])
     assert '-y' not in seen[1] and '--assumeyes' not in seen[1]
     assert (tmp_path / 'report.json').is_file()
