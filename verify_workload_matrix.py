@@ -161,8 +161,8 @@ def check_workload(workload, profile, packages, arch, init=""):
         if blocked:
             # These are precise package identities on the failing branches,
             # not every package in the often-large selected closure.
-            outcome["unresolved_participants"] = result.unresolved_participants
-            outcome["conflict_participants"] = result.conflict_participants
+            outcome["unresolved_participants"] = list(getattr(result, "unresolved_participants", ()))
+            outcome["conflict_participants"] = list(getattr(result, "conflict_participants", ()))
         return outcome
     except RuntimeError as exc:
         return {"status":"resolution-error", "error":str(exc), "skipped_optional":skipped}
