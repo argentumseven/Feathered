@@ -23,6 +23,9 @@ def _run(command: list[str]) -> subprocess.CompletedProcess[str]:
 
 def classify_dnf4(exit_code: int, output: str) -> str:
     """An abort *after* a transaction summary is an accepted solve, not a failure."""
+    if ("Failed to download metadata for repo" in output
+            or "Cannot prepare internal mirrorlist" in output):
+        return "probe-infrastructure-error"
     if "Transaction Summary" in output:
         return "dnf-proposed-no-install"
     if exit_code != 0:
@@ -59,8 +62,13 @@ def probe(profile: str, release: str, presets: list[str], output: Path) -> dict:
             data["status"] = "no-selected-roots"
         else:
             with tempfile.TemporaryDirectory(prefix="feathered-dnf4-") as target:
+                # DNF4 reads vars from the EMPTY installroot when only
+                # reposdir is overridden. Explicit host varsdir keeps the
+                # source OS's $stream / $rltype repo substitutions intact.
                 command = [*base, f"--installroot={target}",
-                           "--setopt=reposdir=/etc/yum.repos.d", "--assumeno",
+                           "--setopt=reposdir=/etc/yum.repos.d",
+                           "--setopt=varsdir=/etc/dnf/vars,/etc/yum/vars",
+                           "--assumeno",
                            "install", *roots]
                 result = _run(command)
             output_text = result.stdout + result.stderr
@@ -87,7 +95,10 @@ def main() -> int:
     report = probe(args.profile, args.releasever, args.presets.split(","), args.out)
     for key, row in report["presets"].items():
         print(f"{key}: {row['status']} ({len(row['requested_roots'])} roots)")
-    return 0  # Completing diagnostic collection does not assert compatibility.
+    # A completed diagnostic does not assert compatibility, but broken repo
+    # acquisition must not count as successful evidence collection.
+    return int(any(row["status"] == "probe-infrastructure-error"
+                   for row in report["presets"].values()))
 
 
 if __name__ == "__main__":
