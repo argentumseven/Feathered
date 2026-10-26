@@ -45,8 +45,8 @@ class WorkloadContext:
             parse(self.minor)
             api_minor(self.oldest); api_minor(self.newest)
         if self.workload == VKS_KEY:
-            if not re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]{0,61}[a-z0-9])?', self.image_name):
-                raise ValueError('Enter an Image Baker draft name on Content (lowercase letters, digits, dots or hyphens; up to 63 characters).')
+            if self.image_name and not re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]{0,61}[a-z0-9])?', self.image_name):
+                raise ValueError('The optional Image Baker handoff label must use lowercase letters, digits, dots or hyphens (up to 63 characters).')
 
 
 def repository_template(family: str, minor: str):
@@ -150,17 +150,38 @@ def check_acknowledgement(data: dict) -> None:
         raise ValueError('Review and acknowledge these findings before building:\n' + '\n'.join(f"{f['package']} {f['version']}: {f['message']}" for f in conflicts))
 
 
-def write_image_draft(destination: Path, context: WorkloadContext, result) -> None:
-    # JSON scalar quoting is YAML-compatible and preserves arbitrary operator notes.
+def write_image_handoff(destination: Path, context: WorkloadContext, result) -> None:
+    """Record bounded inputs, not an unvalidated vendor Image Baker YAML.
+
+    VKS Image Baker requires a specific distribution/base image and a VKr
+    release image. Neither can be derived safely from an OS package request.
+    The former placeholder YAML used a schema identifier and field names that
+    do not match the published VKS 3.6 Image Baker example. This handoff is
+    deliberately not a configuration accepted by ``vcf kr bake``.
+    """
     repositories = sorted({str(p.relative_to(destination)) for p in destination.rglob('repodata/repomd.xml')})
     repositories += sorted({str(p.relative_to(destination)) for p in destination.rglob('Release')})
     names = list(dict.fromkeys(p.name for p in result.roots))
-    lines = ['# UNVALIDATED Image Baker draft: reconcile with your VKS/Image Baker schema version.',
-        '# Kubernetes settings must come from the intended VKr details; no version is inferred.',
-        'apiVersion: imagebaker.vmware.com/v1alpha1', 'kind: Image', 'metadata:',
-        '  name: ' + json.dumps(context.image_name), 'spec:', '  osSpec:',
-        '    distribution: ' + json.dumps(context.distribution), '    release: ' + json.dumps(context.release),
-        '  kubernetesSpec: {} # Fill from your VKr details using the supported schema.',
-        '  repositorySpec:', '    # Local emitted metadata paths; translate to the schema and accessible URLs used by your builder.',
-        '    localMetadata: ' + json.dumps(repositories), '  packages: ' + json.dumps(names)]
-    (destination / 'imagebaker-image.yaml').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    handoff = {
+        'format': 'feathered-vks-image-baker-handoff/v1',
+        'usable_as_image_baker_config': False,
+        'handoff_label': context.image_name,
+        'target_os': {'distribution': context.distribution, 'release': context.release},
+        'requested_package_roots': names,
+        'emitted_local_repository_metadata': repositories,
+        'required_operator_inputs': {
+            'vks_release_and_exact_vkr': None,
+            'image_baker_cli_and_schema_version': None,
+            'base_os_image_reference': None,
+            'vkr_kubernetes_distribution_image_reference': None,
+            'builder_accessible_package_repository_urls': None,
+        },
+        'limitations': [
+            'This file is a Feathered handoff, not a VMware Image Baker configuration; never pass it to vcf kr bake.',
+            'Local repository paths must be made accessible to the image build environment and mapped to its supported customization schema.',
+            'VKr and Kubernetes distribution image versions are independent of the OS package release; no version has been inferred.',
+            'Validate a configuration against the exact Image Baker release before baking or publishing any VKS node image.',
+        ],
+    }
+    (destination / 'vks-image-baker-handoff.json').write_text(
+        json.dumps(handoff, indent=2, sort_keys=True) + '\n', encoding='utf-8')

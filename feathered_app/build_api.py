@@ -115,7 +115,7 @@ def prepare_build(spec: BuildSpec, services: BuildServices,
                 raise PreparationRejected('Unsupported repository credential field.')
             setattr(repo, key, value)
     host = HeadlessHost(spec, services, repositories, workloads=inputs.workloads)
-    from kubernetes_workflow import KUBERNETES_KEYS, VKS_KEY, rolling_source
+    from kubernetes_workflow import KUBERNETES_KEYS, VKS_KEY
     workload = host._workload()
     if workload.key in KUBERNETES_KEYS | {VKS_KEY}:
         if not workload.supports_target(profile.key, spec.target.release):
@@ -131,10 +131,9 @@ def prepare_build(spec: BuildSpec, services: BuildServices,
                 return RepoSpec(template.name, template.url, role=template.role, priority=template.priority,
                     repo_format=template.repo_format, suite=template.suite, components=template.components, flat_repo=template.flat_repo)
             synchronize_repository(host.repo_rows, profile.package_family, context.minor, make_repository)
-        if workload.key == VKS_KEY and context.pin_baseline and spec.target.inventory_path.strip():
-            for repo in host.repo_rows:
-                if rolling_source(repo):
-                    repo.enabled = False
+        # VKS baseline exclusions belong to the effective transaction scope,
+        # after installed inventory details are verified. Never rewrite an
+        # operator's persisted repository enabled flags here.
     host.vendor_signature_profiles = copy.deepcopy(dict(inputs.vendor_signature_profiles))
     # The visible signature dropdown describes only the selected vendor row.
     # New specs carry the full required-vendor set; never apply that row's

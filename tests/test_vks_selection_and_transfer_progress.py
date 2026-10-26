@@ -8,10 +8,12 @@ from types import SimpleNamespace
 import core
 from acquisition_model import AcquisitionIntent
 from feathered_app.application.sources import SourcesMixin
+from feathered_app.build_preparation import BuildPreparationMixin
 from feathered_app.application.tools import ToolsMixin
 from feathered_app.application.operations import OperationsMixin
 from feathered_app.ui.layout import LayoutMixin
 from feathered_app.ui.panes import PaneMixin
+from feathered_app.ui.kubernetes import KubernetesWorkloadMixin
 
 
 class Var:
@@ -143,6 +145,64 @@ def test_vks_missing_addition_routes_to_vks_package_chooser():
     assert calls[0] == ("show", "repositories")
     assert calls[1][0:2] == ("focus", "repositories")
     assert calls[1][2] is host.exact_package_selection_card
+
+
+def test_vks_pin_requires_installed_inventory_and_never_rewrites_source_switches():
+    host = KubernetesWorkloadMixin()
+    host.repo_rows = [core.RepoSpec('Ubuntu Updates','https://example.invalid/',
+                                    repo_format='apt',suite='noble-updates')]
+    host.pin_to_inventory_baseline_var = Var(True)
+    host.inventory_var = Var('')
+    host._workload = lambda: SimpleNamespace(key='vks-node-additions')
+    host._vks_usable_baseline_inventory = lambda: None
+    host._log = lambda message: None
+    host._refresh_repo_tree_if_open = lambda: None
+    host._update_source_status = lambda: None
+    host._refresh_vks_repository_context = lambda: None
+    host._apply_vks_baseline_sources(require_inventory=True)
+    assert not host.pin_to_inventory_baseline_var.get()
+    assert host.repo_rows[0].enabled
+    host.pin_to_inventory_baseline_var.set(True)
+    host.inventory_var.set('/inventory.txt')
+    host._vks_usable_baseline_inventory = lambda: SimpleNamespace(retained_packages=[object()])
+    host._apply_vks_baseline_sources(require_inventory=True)
+    assert host.pin_to_inventory_baseline_var.get()
+    assert host.repo_rows[0].enabled
+    assert not hasattr(host.repo_rows[0], '_baseline_disabled')
+
+
+def test_vks_effective_scope_only_excludes_updates_with_a_usable_inventory(tmp_path):
+    class Host(BuildPreparationMixin):
+        pass
+    host=Host()
+    host.repo_rows=[core.RepoSpec('Base','https://example.invalid/base/',repo_format='apt'),
+                    core.RepoSpec('Ubuntu Updates','https://example.invalid/updates/',
+                                  repo_format='apt',suite='noble-updates')]
+    host._mirror_mode=lambda:False
+    host._workload=lambda:SimpleNamespace(key='vks-node-additions')
+    host._profile=lambda:SimpleNamespace(key='ubuntu')
+    host._repository_participates_in_current_intent=lambda row:row.enabled
+    host._live_value=lambda name:getattr(host,name).get()
+    host.arch_var=Var('amd64')
+    host.pin_to_inventory_baseline_var=Var(True)
+    inventory_path=tmp_path/'inventory.txt'
+    inventory_path.write_text('first')
+    host.inventory_var=Var(str(inventory_path))
+    state={'inventory':SimpleNamespace(retained_packages=[]),'loads':0}
+    def load(_path):
+        state['loads']+=1
+        return state['inventory']
+    host._parse_target_inventory_backend=load
+    assert len(host._participating_transaction_repositories())==2
+    assert all(row.enabled for row in host.repo_rows)
+    state['inventory']=SimpleNamespace(retained_packages=[object()])
+    inventory_path.write_text('second')
+    assert [row.name for row in host._participating_transaction_repositories()]==['Base']
+    assert [row.name for row in host._participating_transaction_repositories()]==['Base']
+    assert state['loads']==2  # Stable inventory stat uses the cached observation.
+    assert all(row.enabled for row in host.repo_rows)
+    host.pin_to_inventory_baseline_var.set(False)
+    assert len(host._participating_transaction_repositories())==2
 
 
 def test_streaming_package_copy_reports_bytes_as_each_chunk_arrives():

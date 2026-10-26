@@ -10,7 +10,7 @@ import apt_core
 import core
 from feathered_app.context import tk, ttk
 from feathered_app.build_request import BuildRequestMixin
-from kubernetes_workflow import KUBERNETES_KEYS, VKS_KEY, rolling_source, report
+from kubernetes_workflow import KUBERNETES_KEYS, VKS_KEY, report
 from k8s_version import parse
 import k8s_discovery
 import k8s_knowledge
@@ -60,21 +60,24 @@ class KubernetesWorkloadMixin:
         ttk.Label(self.vks_options, text='VKS customization policy', style='Panel.TLabel').pack(anchor='w')
         ttk.Label(
             self.vks_options,
-            text=('VKS mode layers managed-node checks and Image Baker draft output over the normal '
-                  'target OS package workflow. No package set is added automatically; use the package '
-                  'chooser on Repositories for both ordinary and advanced additions.'),
+            text=('Step 1: use the normal target OS package chooser on Repositories to create a VKS '
+                  'node package bundle; no package set is invented. Step 2: the output includes a '
+                  'separate Image Baker input handoff, not a runnable VMware configuration. '
+                  'Managed-node component changes receive explicit advisories.'),
             style='PanelHint.TLabel', wraplength=660).pack(anchor='w', pady=(0, 8))
         check = self._image_checkbutton(self.vks_options, self.pin_to_inventory_baseline_var,
                                         'Pin to inventory baseline',
-                                        command=self._apply_vks_baseline_sources)
+                                        command=lambda: self._apply_vks_baseline_sources(require_inventory=True))
         self._register_operation_control(check)
-        ttk.Label(self.vks_options, text='Image Baker draft name', style='Panel.TLabel').pack(anchor='w')
+        ttk.Label(self.vks_options, text='Image Baker handoff label (optional)', style='Panel.TLabel').pack(anchor='w')
         entry = ttk.Entry(self.vks_options, textvariable=self.image_baker_name_var)
         entry.pack(fill='x'); self._register_operation_control(entry)
-        ttk.Label(self.vks_options, text='A captured node inventory on Target is optional. It affects VKS baseline pinning only when that checkbox is enabled.',
+        ttk.Label(self.vks_options, text='A captured node inventory with installed package details is required for pinning. Image Baker output is an input handoff, not a validated bake configuration.',
                   style='PanelHint.TLabel', wraplength=660).pack(anchor='w')
         self.vks_options.grid_remove()
         self.k8s_minor_var.trace_add('write', self._k8s_minor_changed)
+        if 'inventory_var' in self.__dict__:
+            self.inventory_var.trace_add('write', lambda *_: self._apply_vks_baseline_sources(require_inventory=True))
         for var in (self.apiserver_oldest_minor_var, self.apiserver_newest_minor_var):
             var.trace_add('write', self._k8s_advice_changed)
 
@@ -95,8 +98,9 @@ class KubernetesWorkloadMixin:
         self._panel_hint(
             self.vks_repository_context_card,
             'The package chooser remains unrestricted to the enabled target OS repositories. '
-            'Feathered classifies selected packages for VKS-sensitive components, applies optional '
-            'inventory baseline policy, and emits the Image Baker draft from the same selection.',
+            'Feathered classifies selected packages for VKS-sensitive components and applies '
+            'optional inventory baseline policy. This produces an offline package bundle; '
+            'Image Baker needs separate VKr/base-image inputs before an image can be built.',
             pady=(0, 8))
         self.vks_repository_context_var = tk.StringVar(value='')
         ttk.Label(
@@ -120,10 +124,12 @@ class KubernetesWorkloadMixin:
         mode = mode_var.get() if mode_var is not None else 'Complete bundle (recommended)'
         pin_var = self.__dict__.get('pin_to_inventory_baseline_var')
         pin = bool(pin_var.get()) if pin_var is not None else False
+        inventory_notice = self.__dict__.get('_vks_baseline_notice', '')
         if not packages:
             var.set(
                 'No OS additions selected. Guided VKS checks are active, but Feathered does not '
-                'invent a node package set. Add packages with the chooser above. Dependency mode: ' + mode + '.')
+                'invent a node package set. Add packages with the chooser above. Dependency mode: '
+                + mode + ('. ' + inventory_notice if inventory_notice else '.'))
             return
         sensitive = []
         ordinary = []
@@ -142,7 +148,9 @@ class KubernetesWorkloadMixin:
             if len(ordinary) > 8:
                 shown += f' and {len(ordinary) - 8} more'
             details.append('Ordinary OS additions: ' + shown)
-        details.append('Inventory baseline pinning: ' + ('on' if pin else 'off'))
+        details.append('Inventory baseline pinning: ' + ('on; rolling sources excluded from analysis and build, without changing source switches' if pin else 'off'))
+        if inventory_notice:
+            details.append(inventory_notice)
         details.append('Dependency mode: ' + mode)
         var.set(' | '.join(details))
 
@@ -398,17 +406,24 @@ class KubernetesWorkloadMixin:
         self._update_k8s_knowledge_note()
         self._render_kubernetes_advice()
 
-    def _apply_vks_baseline_sources(self):
+    def _apply_vks_baseline_sources(self, require_inventory=False):
         if 'pin_to_inventory_baseline_var' not in self.__dict__:
             return
-        active = self._workload().key == VKS_KEY and self.pin_to_inventory_baseline_var.get()
-        changed = False
-        for repo in self.repo_rows:
-            if active and rolling_source(repo) and repo.enabled:
-                repo.enabled = False; repo._baseline_disabled = True; changed = True
-            elif not active and getattr(repo, '_baseline_disabled', False):
-                repo.enabled = True; repo._baseline_disabled = False; changed = True
-        if changed:
+        active = self._workload().key == VKS_KEY
+        pin = active and self.pin_to_inventory_baseline_var.get()
+        usable = self._vks_usable_baseline_inventory() if pin else None
+        self._vks_baseline_notice = ''
+        if pin and usable is None:
+            self._vks_baseline_notice = ('Load a target inventory with installed package details '
+                                         'before enabling VKS baseline pinning.')
+            if require_inventory:
+                self.pin_to_inventory_baseline_var.set(False)
+                pin = False
+                self._log(self._vks_baseline_notice)
+        inventory = self.__dict__.get('inventory_var')
+        scope = (active, bool(pin), inventory.get() if inventory is not None else '')
+        if self.__dict__.get('_vks_baseline_scope') != scope:
+            self._vks_baseline_scope = scope
             self.loaded_signature = None; self.loaded_packages = []; self.last_result = None
             self._refresh_repo_tree_if_open(); self._update_source_status()
         self._refresh_vks_repository_context()
