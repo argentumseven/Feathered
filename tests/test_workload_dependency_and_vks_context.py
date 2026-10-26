@@ -142,6 +142,9 @@ def test_vks_context_reset_discards_only_vks_owned_state():
         pin_to_inventory_baseline_var=Var(True),
         advisories_acknowledged_var=Var(True),
         image_baker_name_var=Var("custom-image"),
+        vks_release_var=Var("3.6"),
+        exact_vkr_var=Var("v1.35.0---vmware.2-vkr.4"),
+        image_builder_var=Var("image-baker"),
         _k8s_advice_scope=("old",),
     )
 
@@ -149,15 +152,23 @@ def test_vks_context_reset_discards_only_vks_owned_state():
     assert host.pin_to_inventory_baseline_var.get() is False
     assert host.advisories_acknowledged_var.get() is False
     assert host.image_baker_name_var.get() == "feathered-node-additions"
+    assert host.vks_release_var.get() == ""
+    assert host.exact_vkr_var.get() == ""
+    assert host.image_builder_var.get() == ""
     assert "_k8s_advice_scope" not in host.__dict__
 
     host.pin_to_inventory_baseline_var.set(True)
     host.advisories_acknowledged_var.set(True)
     host.image_baker_name_var.set("keep-name")
+    host.vks_release_var.set("3.6")
+    host.exact_vkr_var.set("v1.34.9+vmware.2")
+    host.image_builder_var.set("legacy-image-builder")
     KubernetesWorkloadMixin._reset_vks_context(host, target_changed=True)
     assert host.pin_to_inventory_baseline_var.get() is False
     assert host.advisories_acknowledged_var.get() is False
     assert host.image_baker_name_var.get() == "keep-name"
+    assert not host.vks_release_var.get() and not host.exact_vkr_var.get()
+    assert not host.image_builder_var.get()
 
 
 def test_package_only_mode_label_is_explicit_not_an_implicit_capability_name():

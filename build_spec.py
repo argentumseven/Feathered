@@ -186,6 +186,9 @@ class ContentSpec:
     pin_to_inventory_baseline: bool = False
     advisories_acknowledged: bool = False
     image_baker_name: str = "feathered-node-additions"
+    vks_release: str = ""
+    exact_vkr: str = ""
+    image_builder: str = ""
 
 
 
@@ -329,6 +332,9 @@ def capture(host) -> BuildSpec:
             pin_to_inventory_baseline=_flag(host, "pin_to_inventory_baseline_var", False),
             advisories_acknowledged=_flag(host, "advisories_acknowledged_var", False),
             image_baker_name=_var(host, "image_baker_name_var"),
+            vks_release=_var(host, "vks_release_var"),
+            exact_vkr=_var(host, "exact_vkr_var"),
+            image_builder=_var(host, "image_builder_var"),
 
             exact_packages=tuple(
                 ExactPackageRecord.capture(package)
@@ -386,6 +392,9 @@ FIELD_TO_VARIABLE: Tuple[Tuple[str, str, str], ...] = (
     ("content", "pin_to_inventory_baseline", "pin_to_inventory_baseline_var"),
     ("content", "advisories_acknowledged", "advisories_acknowledged_var"),
     ("content", "image_baker_name", "image_baker_name_var"),
+    ("content", "vks_release", "vks_release_var"),
+    ("content", "exact_vkr", "exact_vkr_var"),
+    ("content", "image_builder", "image_builder_var"),
 
     ("content", "selection_mode", "selection_mode_var"),
     ("content", "workload", "workload_var"),
@@ -527,6 +536,7 @@ def captured_variable_names() -> Tuple[str, ...]:
         "pin_to_inventory_baseline_var",
         "advisories_acknowledged_var",
         "image_baker_name_var",
+        "vks_release_var", "exact_vkr_var", "image_builder_var",
 
         "selection_mode_var", "workload_var", "custom_var",
         "package_version_var", "mode_var",

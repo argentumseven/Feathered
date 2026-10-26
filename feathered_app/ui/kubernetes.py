@@ -15,6 +15,7 @@ from k8s_version import parse
 import k8s_discovery
 import k8s_knowledge
 from k8s_policy import managed_kind
+from vks_compatibility import BUILDER_IMAGE_BAKER, BUILDER_LEGACY, assess
 
 
 class KubernetesWorkloadMixin:
@@ -30,6 +31,10 @@ class KubernetesWorkloadMixin:
         self.pin_to_inventory_baseline_var = tk.BooleanVar(value=False)
         self.advisories_acknowledged_var = tk.BooleanVar(value=False)
         self.image_baker_name_var = tk.StringVar(value='feathered-node-additions')
+        self.vks_release_var = tk.StringVar(value='')
+        self.exact_vkr_var = tk.StringVar(value='')
+        self.image_builder_var = tk.StringVar(value='')
+        self.vks_compatibility_var = tk.StringVar(value='')
         self.k8s_observation_var = tk.StringVar(value='')
         self.k8s_knowledge_var = tk.StringVar(value='')
         # Repository minor and full package build are independent selections.
@@ -69,6 +74,21 @@ class KubernetesWorkloadMixin:
                                         'Pin to inventory baseline',
                                         command=lambda: self._apply_vks_baseline_sources(require_inventory=True))
         self._register_operation_control(check)
+        ttk.Label(self.vks_options, text='Intended VKS platform release (e.g. 3.6)',
+                  style='Panel.TLabel').pack(anchor='w')
+        release_entry = ttk.Entry(self.vks_options, textvariable=self.vks_release_var)
+        release_entry.pack(fill='x'); self._register_operation_control(release_entry)
+        ttk.Label(self.vks_options, text='Exact VKr (e.g. v1.34.9+vmware.2, v1.35.0---vmware.2-vkr.4)',
+                  style='Panel.TLabel').pack(anchor='w')
+        vkr_entry = ttk.Entry(self.vks_options, textvariable=self.exact_vkr_var)
+        vkr_entry.pack(fill='x'); self._register_operation_control(vkr_entry)
+        ttk.Label(self.vks_options, text='Intended image builder (leave empty for package-only)',
+                  style='Panel.TLabel').pack(anchor='w')
+        builder = ttk.Combobox(self.vks_options, textvariable=self.image_builder_var,
+                               values=('', BUILDER_LEGACY, BUILDER_IMAGE_BAKER), state='readonly')
+        builder.pack(fill='x'); self._register_operation_control(builder)
+        ttk.Label(self.vks_options, textvariable=self.vks_compatibility_var,
+                  style='PanelHint.TLabel', wraplength=660).pack(fill='x', pady=(4, 8))
         ttk.Label(self.vks_options, text='Image Baker handoff label (optional)', style='Panel.TLabel').pack(anchor='w')
         entry = ttk.Entry(self.vks_options, textvariable=self.image_baker_name_var)
         entry.pack(fill='x'); self._register_operation_control(entry)
@@ -80,6 +100,20 @@ class KubernetesWorkloadMixin:
             self.inventory_var.trace_add('write', lambda *_: self._apply_vks_baseline_sources(require_inventory=True))
         for var in (self.apiserver_oldest_minor_var, self.apiserver_newest_minor_var):
             var.trace_add('write', self._k8s_advice_changed)
+        for var in (self.vks_release_var, self.exact_vkr_var, self.image_builder_var,
+                    self.distro_var, self.release_var):
+            var.trace_add('write', lambda *_: self._refresh_vks_compatibility())
+        self._refresh_vks_compatibility()
+
+    def _refresh_vks_compatibility(self):
+        var = self.__dict__.get('vks_compatibility_var')
+        if var is None:
+            return
+        assessment = assess(self.distro_var.get(), self.release_var.get(),
+                            vks_release=self.vks_release_var.get(),
+                            exact_vkr=self.exact_vkr_var.get(),
+                            builder=self.image_builder_var.get())
+        var.set('Image-build evidence (' + assessment.status + '): ' + assessment.message)
 
     def _reset_vks_context(self, *, target_changed=False):
         """Discard VKS-only state that no longer belongs to the current context."""
@@ -90,6 +124,9 @@ class KubernetesWorkloadMixin:
         self.__dict__.pop('_k8s_advice_scope', None)
         if not target_changed and 'image_baker_name_var' in self.__dict__:
             self.image_baker_name_var.set('feathered-node-additions')
+        for name in ('vks_release_var', 'exact_vkr_var', 'image_builder_var'):
+            if name in self.__dict__:
+                self.__dict__[name].set('')
 
     def _build_vks_repository_context_card(self, parent):
         """Explain the guided VKS layer beside the normal exact-package chooser."""

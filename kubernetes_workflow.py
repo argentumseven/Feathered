@@ -7,6 +7,7 @@ import re
 from k8s_version import api_minor, parse
 from k8s_policy import POLICY_SOURCE, Finding, evaluate, platform_findings
 from k8s_knowledge import Knowledge
+from vks_compatibility import BUILDERS, assess, vkr_minor
 
 KUBERNETES_KEYS = frozenset({'kubernetes-node', 'kubernetes-client'})
 VKS_KEY = 'vks-node-additions'
@@ -24,6 +25,9 @@ class WorkloadContext:
     acknowledged: bool = False
     platform_note: str = ''
     image_name: str = ''
+    vks_release: str = ''
+    exact_vkr: str = ''
+    image_builder: str = ''
     distribution: str = ''
     release: str = ''
     knowledge: Knowledge | None = None
@@ -36,7 +40,8 @@ class WorkloadContext:
         for flag in (self.pin_baseline, self.acknowledged):
             if type(flag) is not bool:
                 raise ValueError('Workload acknowledgement and baseline settings must be booleans.')
-        for text in (self.minor, self.oldest, self.newest, self.platform_note, self.image_name):
+        for text in (self.minor, self.oldest, self.newest, self.platform_note, self.image_name,
+                     self.vks_release, self.exact_vkr, self.image_builder):
             if not isinstance(text, str):
                 raise ValueError('Workload version and note fields must be text.')
         if self.workload in KUBERNETES_KEYS:
@@ -47,6 +52,12 @@ class WorkloadContext:
         if self.workload == VKS_KEY:
             if self.image_name and not re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]{0,61}[a-z0-9])?', self.image_name):
                 raise ValueError('The optional Image Baker handoff label must use lowercase letters, digits, dots or hyphens (up to 63 characters).')
+            if self.vks_release and not re.fullmatch(r'\d+\.\d+(?:\.\d+)?', self.vks_release):
+                raise ValueError('VKS platform release must be a version such as 3.6; it is not the VKr version.')
+            if self.exact_vkr and vkr_minor(self.exact_vkr) is None:
+                raise ValueError('Enter the full vendor VKr, such as v1.34.9+vmware.2 or v1.35.0---vmware.2-vkr.4, not just a Kubernetes minor.')
+            if self.image_builder not in BUILDERS:
+                raise ValueError('Select a recognized VKS image builder.')
 
 
 def repository_template(family: str, minor: str):
@@ -140,6 +151,9 @@ def report(context: WorkloadContext, packages) -> dict:
         'platform_advisories': [f.as_dict() for f in platform], 'component_sources': sources,
         'advisories_acknowledged': context.acknowledged, 'platform_note': context.platform_note,
         'pin_to_inventory_baseline': context.pin_baseline if context.workload == VKS_KEY else None,
+        'vks_image_build_compatibility': assess(context.distribution, context.release,
+            vks_release=context.vks_release, exact_vkr=context.exact_vkr,
+            builder=context.image_builder).as_dict() if context.workload == VKS_KEY else None,
         'proves': 'Records the acquired component versions and source URLs and the advisory evaluation for this acquisition. Assumed API versions are not observed cluster state; retained additive files are outside this evaluation.',
         'does_not_prove': LIMITS}
 
@@ -167,10 +181,16 @@ def write_image_handoff(destination: Path, context: WorkloadContext, result) -> 
         'usable_as_image_baker_config': False,
         'handoff_label': context.image_name,
         'target_os': {'distribution': context.distribution, 'release': context.release},
+        'vks_target': {'platform_release': context.vks_release or None,
+                       'exact_vkr': context.exact_vkr or None,
+                       'image_builder': context.image_builder or None},
+        'image_build_compatibility': assess(context.distribution, context.release,
+            vks_release=context.vks_release, exact_vkr=context.exact_vkr,
+            builder=context.image_builder).as_dict(),
         'requested_package_roots': names,
         'emitted_local_repository_metadata': repositories,
         'required_operator_inputs': {
-            'vks_release_and_exact_vkr': None,
+            'vks_release_and_exact_vkr': None if not (context.vks_release and context.exact_vkr) else 'recorded_in_vks_target; verify against platform',
             'image_baker_cli_and_schema_version': None,
             'base_os_image_reference': None,
             'vkr_kubernetes_distribution_image_reference': None,
