@@ -46,10 +46,16 @@ class BuildPreparationMixin:
         a file change or target change invalidates that observation.
         """
         from kubernetes_workflow import VKS_KEY
+        # Some source-validation callers intentionally construct a partial App
+        # without workload controls or a populated catalogue. Pinning cannot
+        # be active there; do not attempt workload discovery on that host.
+        if ('pin_to_inventory_baseline_var' not in self.__dict__
+                and self.__dict__.get('_build_snapshot') is None):
+            return None
         try:
             if self._mirror_mode() or self._workload().key != VKS_KEY:
                 return None
-        except (AttributeError, KeyError, TypeError):
+        except (AttributeError, KeyError, StopIteration, TypeError):
             return None
         if not BuildRequestMixin._selected_workload_context(self).pin_baseline:
             return None
