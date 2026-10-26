@@ -159,3 +159,28 @@ def test_unavailable_artix_container_build_presets_are_not_advertised(key):
     assert 'arch' in workload.supported_distros
     assert workload.supports_target('arch', 'rolling')
     assert 'devuan' in workload.supported_distros
+
+
+def test_devuan_docker_ce_preserves_explicit_compatible_source_path():
+    workload = workloads.load_workloads()['docker']
+    assert workload.supports_target('devuan', 'excalibur')
+    assert workload.supports_target('debian', 'trixie')
+
+
+@pytest.mark.parametrize('distro,release', [
+    ('centos-stream', '10-stream'), ('rocky', '10.2'), ('fedora', '44'),
+    ('debian', 'trixie'), ('debian', '13.2'),
+    ('devuan', 'excalibur'), ('devuan', '6.0'),
+])
+def test_unavailable_openjdk17_is_not_advertised(distro, release):
+    workload = workloads.load_workloads()['java-runtime']
+    assert not workload.supports_target(distro, release)
+    assert workload.supports_target('arch', 'rolling')
+    assert workload.supports_target('ubuntu', '26.10')
+
+
+def test_monitoring_htop_absence_does_not_invalidate_available_core_tools():
+    workload = workloads.load_workloads()['monitoring-agents']
+    assert 'htop' in workload.optional_for('rpm')
+    assert 'htop' in workload.optional_for('deb')
+    assert 'htop --version' not in workload.verification_commands

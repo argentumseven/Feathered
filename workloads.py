@@ -275,9 +275,15 @@ class WorkloadProfile:
     contextual_packages: bool = False
     version_axis: str = 'package'
     supported_releases: Dict[str, List[str]] = field(default_factory=dict)
+    # Known incompatible releases are excluded without hiding an otherwise
+    # supported distribution's older releases or future fixed repositories.
+    unsupported_releases: Dict[str, List[str]] = field(default_factory=dict)
 
     def supports_target(self, distro: str, release: str) -> bool:
         if self.supported_distros is not None and distro not in self.supported_distros:
+            return False
+        excluded = self.unsupported_releases.get(distro, ())
+        if any(release == v or release.startswith(v + '.') for v in excluded):
             return False
         allowed = self.supported_releases.get(distro)
         return allowed is None or any(release == v or release.startswith(v + '.') for v in allowed)
@@ -440,6 +446,13 @@ def _builtins() -> List[WorkloadProfile]:
             version_package="java-17-openjdk-headless",
             verification_commands=["java -version"],
             supported_distros=["rhel", "rocky", "alma", "centos-stream", "fedora", "ubuntu", "debian", "arch", "artix", "devuan"],
+            # 2026-10-20 live indexes did not offer the required OpenJDK 17
+            # roots on these releases. Do not silently substitute a newer JRE.
+            unsupported_releases={
+                "centos-stream": ["10-stream"], "rocky": ["10"],
+                "fedora": ["44"], "debian": ["13", "trixie"],
+                "devuan": ["6", "excalibur"],
+            },
         ),
         WorkloadProfile(
             key="ansible",
@@ -560,10 +573,10 @@ def _builtins() -> List[WorkloadProfile]:
             label="Monitoring and performance analysis",
             packages=["sysstat", "htop", "iotop", "atop", "nmon", "perf", "bcc-tools", "numactl", "procps-ng", "lm_sensors", "smartmontools", "net-snmp", "net-snmp-utils", "rsyslog", "logrotate", "chrony"],
             deb_packages=["sysstat", "htop", "iotop", "atop", "nmon", "linux-tools-generic", "bpfcc-tools", "numactl", "procps", "lm-sensors", "smartmontools", "snmpd", "snmp", "rsyslog", "logrotate", "chrony"],
-            optional_packages=["atop", "nmon", "iotop", "bcc-tools", "bpfcc-tools", "perf", "linux-tools-generic", "lm_sensors", "lm-sensors", "net-snmp", "net-snmp-utils", "snmpd", "snmp", "numactl"],
+            optional_packages=["htop", "atop", "nmon", "iotop", "bcc-tools", "bpfcc-tools", "perf", "linux-tools-generic", "lm_sensors", "lm-sensors", "net-snmp", "net-snmp-utils", "snmpd", "snmp", "numactl"],
             description="Local performance and health telemetry: CPU/IO/memory statistics, per-process resource use, kernel tracing, hardware sensors and SNMP exposure. Intended for a host with no external monitoring reachable, where diagnosis has to happen on the box itself.",
             version_package=None,
-            verification_commands=["sar -V", "iostat -V", "htop --version"],
+            verification_commands=["sar -V", "iostat -V"],
             supported_distros=["rhel", "rocky", "alma", "centos-stream", "fedora", "ubuntu", "debian", "arch", "artix", "devuan"],
         ),
         WorkloadProfile(
