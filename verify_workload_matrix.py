@@ -75,6 +75,20 @@ def _templates_for_workload(profile, release, arch, workload, templates,
     return base + vendor, []
 
 
+def _requires_operator_opt_in(workload, family, templates) -> bool:
+    """An explicitly optional, disabled vendor source is not preset drift.
+
+    Keep the preset available for an operator-provided compatible source,
+    but never label an untested default repository as a passing matrix row.
+    """
+    required = set(workload.source_plan(family).required_roles)
+    enabled = {t.role for t in templates if t.enabled and t.url}
+    disabled_opt_in = {
+        t.role for t in templates if not t.enabled and t.url and t.optional
+    }
+    return bool(required) and not (required & enabled) and required <= disabled_opt_in
+
+
 def load_universe(profile, release: str, arch: str, reporter: Reporter,
                   templates=None, cache=None):
     """Load selected repositories; retain source identity across cached workloads."""
@@ -172,12 +186,19 @@ def check_workload(workload, profile, packages, arch, init="", rpm_index_builder
                                          options, reporter, "rpm")
         else:
             result = backend.resolve(requests, universe, arch, options, reporter)
-        return {"status":"blocked" if result.unresolved or result.conflicts else "ok",
+        blocked = bool(result.unresolved or result.conflicts)
+        outcome = {"status":"blocked" if blocked else "ok",
                 "skipped_optional":skipped, "selected":len(result.selected),
                 "unresolved":[backend.format_requirement(r) for r in result.unresolved],
                 "unresolved_notes":result.unresolved_notes,
                 "conflicts":result.conflicts, "installation_roots":installation_roots(result, profile.package_family),
                 "validation_scope":"forward-closure; target native validation still required"}
+        if blocked:
+            # These are precise package identities on the failing branches,
+            # not every package in the often-large selected closure.
+            outcome["unresolved_participants"] = list(getattr(result, "unresolved_participants", ()))
+            outcome["conflict_participants"] = list(getattr(result, "conflict_participants", ()))
+        return outcome
     except RuntimeError as exc:
         return {"status":"resolution-error", "error":str(exc), "skipped_optional":skipped}
 
@@ -268,7 +289,7 @@ def main() -> int:
         for wkey, workload in catalog.items():
             if workload.custom:
                 continue
-            if workload.supported_distros is not None and key not in workload.supported_distros:
+            if not workload.supports_target(key, release):
                 continue
             scoped_templates, source_errors = _templates_for_workload(
                 profile, release, arch, workload, templates, known_roles,
@@ -277,7 +298,12 @@ def main() -> int:
             extra_packages, extra_errors = load_universe(
                 profile, release, arch, reporter, templates=workload_templates, cache=cache)
             for init in (profile.init_systems or [""]):
-                if source_errors or extra_errors:
+                if source_errors and not extra_errors and _requires_operator_opt_in(
+                        workload, profile.package_family, templates):
+                    outcome = {"status": "operator-source-required",
+                               "roles": workload.source_plan(profile.package_family).required_roles,
+                               "note": "Optional vendor repository is disabled until operator opt-in"}
+                elif source_errors or extra_errors:
                     outcome = {"status": "source-unavailable",
                                "errors": source_errors + extra_errors}
                 else:
@@ -285,7 +311,7 @@ def main() -> int:
                         workload, profile, base_packages + extra_packages, arch, init,
                         rpm_index_builder=rpm_index_builder)
                 entry[f"{wkey}/{init or 'default'}"] = outcome
-                if outcome["status"] != "ok":
+                if outcome["status"] not in {"ok", "operator-source-required"}:
                     failures += 1
                     print(f"   BLOCKED {wkey}/{init}: {outcome}")
         report[key] = {"release":release,"architecture":arch,"workloads":entry}

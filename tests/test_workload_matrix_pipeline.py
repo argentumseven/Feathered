@@ -19,6 +19,8 @@ def test_vendor_failure_does_not_hide_distribution_workload(tmp_path, monkeypatc
     catalog = {
         'native': WorkloadProfile('native', 'native', ['demo'], ''),
         'docker': WorkloadProfile('docker', 'docker', ['docker-ce'], '', requires_docker_repo=True),
+        'restricted': WorkloadProfile('restricted', 'restricted', ['demo'], '',
+                                      supported_releases={'fixture': ['2']}),
     }
     loaded = []
 
@@ -38,8 +40,49 @@ def test_vendor_failure_does_not_hide_distribution_workload(tmp_path, monkeypatc
     report = json.loads(output.read_text())['fixture']['workloads']
     assert report['native/default']['status'] == 'ok'
     assert report['docker/default']['status'] == 'source-unavailable'
+    assert 'restricted/default' not in report
     assert 'vendor does not publish' in report['docker/default']['errors'][0]
     assert loaded == ['dependency', 'docker']
+
+
+def test_disabled_opt_in_vendor_source_is_reported_without_false_drift(tmp_path, monkeypatch):
+    base = RepoTemplate('Devuan', 'https://example.invalid/base/', 'dependency', repo_format='apt')
+    disabled = RepoTemplate('Docker CE (Debian)', 'https://example.invalid/docker/', 'docker',
+                            enabled=False, repo_format='apt', optional=True)
+    profile = SimpleNamespace(key='devuan', package_family='deb', arches=['amd64'],
+                              init_systems=['sysvinit', 'openrc', 'runit'], init_style='bundled-scripts',
+                              repos_factory=lambda release, arch: [base, disabled])
+    catalog = {'docker': WorkloadProfile('docker', 'docker', ['docker-ce'], '',
+                                        requires_docker_repo=True)}
+
+    def load(repo, arches, reporter):
+        assert repo.role == 'dependency'
+        return [apt_core.DebPackage('demo', 'amd64', '1', 'demo.deb', 'sha256', '0' * 64, repo)]
+
+    monkeypatch.setattr(drift.profiles_module, 'PROFILES', {'devuan': profile})
+    monkeypatch.setattr(drift, 'discover_current_release', lambda *_: 'excalibur')
+    monkeypatch.setattr(drift.workloads_module, 'load_workloads', lambda: catalog)
+    monkeypatch.setattr(drift.apt_core, 'load_repository', load)
+    output = tmp_path / 'report.json'
+    monkeypatch.setattr(sys, 'argv', ['verify_workload_matrix.py', '--out', str(output)])
+    assert drift.main() == 0
+    report = json.loads(output.read_text())['devuan']['workloads']
+    for init in profile.init_systems:
+        assert report[f'docker/{init}']['status'] == 'operator-source-required'
+        assert report[f'docker/{init}']['roles'] == ['docker']
+
+
+def test_blocked_rpm_report_identifies_failing_provider_branch():
+    repo = core.RepoSpec('base', 'https://example.invalid/', repo_format='rpm')
+    app = core.Package('app', 'x86_64', '0', '1', '1', 'app.rpm', 'sha256', '0' * 64,
+                       repo, requires=[core.Requirement('missing')])
+    workload = WorkloadProfile('fixture', 'fixture', ['app'], '')
+    profile = SimpleNamespace(package_family='rpm', key='fedora', init_style='')
+    outcome = drift.check_workload(workload, profile, [app], 'x86_64')
+    assert outcome['status'] == 'blocked'
+    assert outcome['unresolved'] == ['missing']
+    assert outcome['unresolved_participants']
+    assert outcome['conflict_participants'] == []
 
 
 def test_flat_kubernetes_repository_reaches_loader(monkeypatch):
