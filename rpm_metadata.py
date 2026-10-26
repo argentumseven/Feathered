@@ -21,7 +21,7 @@ from repository_config import RepoSpec
 from runtime_limits import (
     MAX_METADATA_FILE_ENTRIES,
     MAX_METADATA_PACKAGE_RECORDS,
-    MAX_METADATA_RELATIONSHIP_RECORDS,
+    MAX_RPM_METADATA_RELATIONSHIP_RECORDS,
 )
 
 RPM_NS = {
@@ -230,10 +230,10 @@ def parse_primary(xml: Union[bytes, IO[bytes]], repo: RepoSpec, arches: Set[str]
             len(items) for items in (provides, requires, recommends, conflicts, obsoletes)
         )
         file_count += len(files)
-        if relationship_count > MAX_METADATA_RELATIONSHIP_RECORDS:
+        if relationship_count > MAX_RPM_METADATA_RELATIONSHIP_RECORDS:
             raise RuntimeError(
                 f"{repo.name}: primary metadata contains more than Feathered's "
-                f"{MAX_METADATA_RELATIONSHIP_RECORDS:,} relationship-entry safety limit")
+                f"{MAX_RPM_METADATA_RELATIONSHIP_RECORDS:,} relationship-entry safety limit")
         if file_count > MAX_METADATA_FILE_ENTRIES:
             raise RuntimeError(
                 f"{repo.name}: primary metadata contains more than Feathered's "

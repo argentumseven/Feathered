@@ -32,6 +32,14 @@ MAX_METADATA_PACKAGE_RECORDS = positive_env_int(
 MAX_METADATA_RELATIONSHIP_RECORDS = positive_env_int(
     "FEATHERED_MAX_METADATA_RELATIONSHIP_RECORDS", 4_000_000
 )
+# RPM primary.xml carries many more explicit provides/requires records than
+# comparable APT indexes.  The live AlmaLinux 10.2 BaseOS index contains
+# 4,232,225 such entries for x86_64/noarch, so the former 4m cross-format
+# default rejected an otherwise bounded repository before resolution.
+# Keep APT's existing ceiling and give RPM a separate finite 5m default.
+MAX_RPM_METADATA_RELATIONSHIP_RECORDS = positive_env_int(
+    "FEATHERED_MAX_RPM_METADATA_RELATIONSHIP_RECORDS", 5_000_000
+)
 MAX_METADATA_FILE_ENTRIES = positive_env_int(
     "FEATHERED_MAX_METADATA_FILE_ENTRIES", 4_000_000
 )
@@ -45,6 +53,7 @@ __all__ = [
     "MAX_METADATA_FILE_ENTRIES",
     "MAX_METADATA_PACKAGE_RECORDS",
     "MAX_METADATA_RELATIONSHIP_RECORDS",
+    "MAX_RPM_METADATA_RELATIONSHIP_RECORDS",
     "MAX_PACKAGE_DOWNLOAD_BYTES",
     "MAX_RETAINED_METADATA_CHARS",
     "positive_env_int",

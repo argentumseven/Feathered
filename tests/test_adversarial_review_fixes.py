@@ -5,6 +5,8 @@ import hashlib
 import os
 from pathlib import Path
 
+import pytest
+
 import apt_core
 import openpgp_verifier
 import rpm_metadata
@@ -241,6 +243,29 @@ def test_rpm_primary_parser_does_not_retain_duplicate_raw_xml() -> None:
     )
     assert len(packages) == 1
     assert packages[0].raw_metadata == ""
+
+
+def test_rpm_primary_parser_still_enforces_aggregate_relationship_cap(monkeypatch) -> None:
+    """An RPM-specific increase must not turn the safety ceiling into a skip."""
+    from runtime_limits import MAX_METADATA_RELATIONSHIP_RECORDS, MAX_RPM_METADATA_RELATIONSHIP_RECORDS
+
+    assert MAX_RPM_METADATA_RELATIONSHIP_RECORDS >= 4_232_225
+    assert MAX_METADATA_RELATIONSHIP_RECORDS <= 4_000_000
+    repo = RepoSpec("rpm", "https://example.invalid/rpm/")
+    xml = b'''<metadata xmlns="http://linux.duke.edu/metadata/common" xmlns:rpm="http://linux.duke.edu/metadata/rpm">
+      <package type="rpm"><name>demo</name><arch>x86_64</arch><version epoch="0" ver="1" rel="1"/>
+      <checksum type="sha256">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</checksum>
+      <location href="demo.rpm"/><format><rpm:provides>
+        <rpm:entry name="demo"/><rpm:entry name="virtual-one"/><rpm:entry name="virtual-two"/>
+      </rpm:provides></format></package></metadata>'''
+    monkeypatch.setattr(rpm_metadata, "MAX_RPM_METADATA_RELATIONSHIP_RECORDS", 2)
+    with pytest.raises(RuntimeError, match="2 relationship-entry safety limit"):
+        rpm_metadata.parse_primary(
+            io.BytesIO(xml), repo, {"x86_64"}, Reporter(),
+            normalized_hash_algorithm_fn=lambda value: value,
+            select_digest_from_map_fn=lambda values, _preference: ("sha256", values["sha256"]),
+            repo_trust_fn=lambda _repo: RepoTrust(repo="rpm"),
+        )
 
 
 def test_deb822_stream_parser_does_not_build_a_record_list() -> None:
