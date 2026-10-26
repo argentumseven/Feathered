@@ -620,12 +620,19 @@ def format_requirement(req: Requirement) -> str:
 
 
 def _indexed_package_satisfies(index: Dict[str, List[ProviderMatch]], pkg: Package, req: Requirement) -> bool:
-    if package_satisfies(pkg, req):
-        return True
     for match in _provider_candidates(index, req):
         if match.package is pkg and evr_satisfies(match.provide, req, pkg):
             return True
-    return False
+    # A complete provider index already includes this package's own name,
+    # versioned capabilities, virtual Provides, aliases and file capabilities.
+    # Re-scanning a kernel package's thousands of Provides for every unrelated
+    # dependency makes large upstream universes prohibitively slow.
+    if any(match.package is pkg and match.provide.name == pkg.name
+           for match in index.get(pkg.name, ())):
+        return False
+    # Constraint-filtered indexes may omit a package selected before a new
+    # floor was discovered; preserve the historic fallback in that case.
+    return package_satisfies(pkg, req)
 
 
 def _selected_or_pending_satisfies(packages: Iterable[Package], req: Requirement,

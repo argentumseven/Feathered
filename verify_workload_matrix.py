@@ -111,7 +111,29 @@ def load_universe(profile, release: str, arch: str, reporter: Reporter,
     return packages, repo_errors
 
 
-def check_workload(workload, profile, packages, arch, init=""):
+def cached_rpm_index_builder():
+    """Reuse an immutable RPM provider index across matrix workload closures.
+
+    Every workload needs its own dependency transaction, but parsing the same
+    large BaseOS universe into millions of ProviderMatch rows on every pass
+    wastes time and memory. Only the most recent exact universe is cached;
+    changing source packages or their order forces a new index.
+    """
+    last_identity = None
+    last_index = None
+
+    def build(packages, reporter=None):
+        nonlocal last_identity, last_index
+        identity = tuple(id(package) for package in packages)
+        if last_index is None or identity != last_identity:
+            last_index = core.build_provider_index(packages, reporter)
+            last_identity = identity
+        return last_index
+
+    return build
+
+
+def check_workload(workload, profile, packages, arch, init="", rpm_index_builder=None):
     from workload_materialization import materialize_source_plan
     from source_model import SourcePlan, RootSourcePolicy
     from workload_resolution import repository_init_conflict
@@ -135,8 +157,21 @@ def check_workload(workload, profile, packages, arch, init=""):
     requests = [(r.package, None, r.role, None, None, r.source_kind) for r in materialized.roots]
     backend = {"rpm":core,"deb":apt_core,"arch":arch_core}[profile.package_family]
     try:
-        result = backend.resolve(requests, universe, arch,
-            core.BuildOptions(optional_roots={r.package for r in materialized.roots if r.optional}), Reporter())
+        options = core.BuildOptions(optional_roots={r.package for r in materialized.roots if r.optional})
+        reporter = Reporter()
+        if profile.package_family == "rpm" and rpm_index_builder is not None:
+            from transaction_model import resolve_transaction
+            import rpm_resolution
+
+            def resolve_once(roots, rows, preferred_arch, opts, local_reporter):
+                return rpm_resolution._resolve_once(
+                    roots, rows, preferred_arch, opts, local_reporter,
+                    build_provider_index_fn=rpm_index_builder)
+
+            result = resolve_transaction(resolve_once, requests, universe, arch,
+                                         options, reporter, "rpm")
+        else:
+            result = backend.resolve(requests, universe, arch, options, reporter)
         return {"status":"blocked" if result.unresolved or result.conflicts else "ok",
                 "skipped_optional":skipped, "selected":len(result.selected),
                 "unresolved":[backend.format_requirement(r) for r in result.unresolved],
@@ -215,6 +250,7 @@ def main() -> int:
         templates = list(profile.repos_factory(release, arch))
         known_roles = _known_workload_roles(catalog)
         cache = {}
+        rpm_index_builder = cached_rpm_index_builder() if profile.package_family == "rpm" else None
         base_templates = [t for t in templates if t.enabled and t.role not in known_roles]
         base_packages, base_errors = load_universe(
             profile, release, arch, reporter, templates=base_templates, cache=cache)
@@ -246,7 +282,8 @@ def main() -> int:
                                "errors": source_errors + extra_errors}
                 else:
                     outcome = check_workload(
-                        workload, profile, base_packages + extra_packages, arch, init)
+                        workload, profile, base_packages + extra_packages, arch, init,
+                        rpm_index_builder=rpm_index_builder)
                 entry[f"{wkey}/{init or 'default'}"] = outcome
                 if outcome["status"] != "ok":
                     failures += 1

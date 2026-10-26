@@ -108,3 +108,23 @@ def test_cancelled_pass_does_not_retain_filtered_candidates():
         core._resolve_pass(requests, packages, 'x86_64', core.BuildOptions(), core.Reporter(log=cancel), constraints)
     result, _ = core._resolve_pass(requests, packages, 'x86_64', core.BuildOptions(), core.Reporter(), {})
     assert [p.version for p in result.roots] == ['2', '2']
+
+
+def test_indexed_satisfaction_does_not_rescan_large_unrelated_provides(monkeypatch):
+    import rpm_resolution as rpm
+    repo = core.RepoSpec('Base', 'https://fixture.invalid/base/')
+    package = core.Package('kernel-debug-core', 'x86_64', '0', '1', '1', 'kernel.rpm',
+                           'sha256', '', repo,
+                           provides=[core.Requirement(f'kernel(symbol-{i})') for i in range(1000)])
+    index = rpm.build_provider_index([package])
+    original = rpm.package_satisfies
+
+    def forbidden(*args):
+        raise AssertionError('indexed package must not scan every Provides')
+
+    monkeypatch.setattr(rpm, 'package_satisfies', forbidden)
+    assert rpm._indexed_package_satisfies(index, package, core.Requirement('kernel(symbol-999)'))
+    assert not rpm._indexed_package_satisfies(index, package, core.Requirement('unrelated'))
+    # A filtered index without this package still needs the legacy fallback.
+    monkeypatch.setattr(rpm, 'package_satisfies', original)
+    assert rpm._indexed_package_satisfies({}, package, core.Requirement('kernel(symbol-999)'))
