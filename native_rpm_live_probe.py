@@ -42,12 +42,16 @@ def probe(profile: str, release: str, presets: list[str], output: Path) -> dict:
     if profile != "fedora":
         raise ValueError("Only Fedora DNF5 repository configuration is currently verified")
     output.mkdir(parents=True, exist_ok=True)
+    # DNF5 does not append a newline per queryformat record by default.
+    # Without an explicit separator, every name becomes one long fake name.
     query = _run(["dnf5", "--refresh", "repoquery", "--available",
-                  "--queryformat=%{name}"])
+                  "--queryformat=%{name}\\n"])
     (output / "repoquery.log").write_text(query.stdout + query.stderr, encoding="utf-8")
     if query.returncode:
         raise RuntimeError(f"DNF5 repoquery failed with exit {query.returncode}; see repoquery.log")
     available = set(query.stdout.splitlines())
+    if len(available) < 100:
+        raise RuntimeError(f"DNF5 repoquery listed only {len(available)} names; refusing an empty diagnostic")
     catalog = load_workloads()
     results: dict = {}
     for key in presets:
