@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import hashlib
 import os
+import runpy
 from pathlib import Path
 
 import pytest
@@ -266,6 +267,25 @@ def test_rpm_primary_parser_still_enforces_aggregate_relationship_cap(monkeypatc
             select_digest_from_map_fn=lambda values, _preference: ("sha256", values["sha256"]),
             repo_trust_fn=lambda _repo: RepoTrust(repo="rpm"),
         )
+
+
+def test_rpm_relationship_budget_preserves_explicit_legacy_override(monkeypatch) -> None:
+    path = Path(__file__).resolve().parents[1] / 'runtime_limits.py'
+    monkeypatch.delenv('FEATHERED_MAX_METADATA_RELATIONSHIP_RECORDS', raising=False)
+    monkeypatch.delenv('FEATHERED_MAX_RPM_METADATA_RELATIONSHIP_RECORDS', raising=False)
+    defaults = runpy.run_path(str(path))
+    assert defaults['MAX_METADATA_RELATIONSHIP_RECORDS'] == 4_000_000
+    assert defaults['MAX_RPM_METADATA_RELATIONSHIP_RECORDS'] == 5_000_000
+
+    monkeypatch.setenv('FEATHERED_MAX_METADATA_RELATIONSHIP_RECORDS', '1000')
+    legacy = runpy.run_path(str(path))
+    assert legacy['MAX_METADATA_RELATIONSHIP_RECORDS'] == 1000
+    assert legacy['MAX_RPM_METADATA_RELATIONSHIP_RECORDS'] == 1000
+
+    monkeypatch.setenv('FEATHERED_MAX_RPM_METADATA_RELATIONSHIP_RECORDS', '1500')
+    explicit = runpy.run_path(str(path))
+    assert explicit['MAX_METADATA_RELATIONSHIP_RECORDS'] == 1000
+    assert explicit['MAX_RPM_METADATA_RELATIONSHIP_RECORDS'] == 1500
 
 
 def test_deb822_stream_parser_does_not_build_a_record_list() -> None:
