@@ -126,3 +126,48 @@ def test_cache_keeps_distinct_source_names_and_priorities(monkeypatch):
     assert one[0].repo.name == 'one' and two[0].repo.name == 'two'
     assert one[0].repo.priority == 10 and two[0].repo.priority == 20
     assert again[0] is one[0]
+
+
+def test_rpm_provider_index_reused_only_for_identical_universe(monkeypatch):
+    repo = core.RepoSpec('base', 'https://example.invalid/', repo_format='rpm')
+    app = core.Package('app', 'x86_64', '0', '1', '1', 'app.rpm', 'sha256', '0' * 64, repo)
+    dep = core.Package('dep', 'x86_64', '0', '1', '1', 'dep.rpm', 'sha256', '0' * 64, repo)
+    counted = []
+    original = core.build_provider_index
+
+    def build(packages, reporter=None):
+        counted.append(tuple(id(p) for p in packages))
+        return original(packages, reporter)
+
+    monkeypatch.setattr(core, 'build_provider_index', build)
+    cached = drift.cached_rpm_index_builder()
+    first = cached([app], core.Reporter())
+    assert cached([app], core.Reporter()) is first
+    assert cached([app, dep], core.Reporter()) is not first
+    assert len(counted) == 2
+
+
+def test_rpm_workloads_reuse_index_without_changing_outcomes(monkeypatch):
+    repo = core.RepoSpec('base', 'https://example.invalid/', repo_format='rpm')
+    package = core.Package('app', 'x86_64', '0', '1', '1', 'app.rpm', 'sha256', '0' * 64, repo)
+    workload = WorkloadProfile('fixture', 'fixture', ['app'], '')
+    profile = SimpleNamespace(package_family='rpm', key='alma', init_style='')
+    calls = []
+    original = core.build_provider_index
+
+    def counted(packages, reporter=None):
+        calls.append(1)
+        return original(packages, reporter)
+
+    monkeypatch.setattr(core, 'build_provider_index', counted)
+    builder = drift.cached_rpm_index_builder()
+    first = drift.check_workload(workload, profile, [package], 'x86_64',
+                                 rpm_index_builder=builder)
+    first_count = len(calls)
+    second = drift.check_workload(workload, profile, [package], 'x86_64',
+                                  rpm_index_builder=builder)
+    second_count = len(calls)
+    expected = drift.check_workload(workload, profile, [package], 'x86_64')
+    assert first == second == expected
+    assert first_count == second_count
+    assert len(calls) > second_count
