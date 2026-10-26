@@ -25,6 +25,8 @@ jobs:
     container: fedora:44
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Install the diagnostic interpreter in the disposable CI container
+        run: dnf5 -y install python3
       - name: Probe native DNF5 decisions without an RPM transaction
         shell: bash
         run: |
