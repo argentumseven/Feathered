@@ -37,8 +37,12 @@ MAX_METADATA_RELATIONSHIP_RECORDS = positive_env_int(
 # 4,232,225 such entries for x86_64/noarch, so the former 4m cross-format
 # default rejected an otherwise bounded repository before resolution.
 # Keep APT's existing ceiling and give RPM a separate finite 5m default.
+# An operator's explicit legacy cross-format override must continue to
+# constrain RPM unless they also choose the new RPM-specific override.
 MAX_RPM_METADATA_RELATIONSHIP_RECORDS = positive_env_int(
-    "FEATHERED_MAX_RPM_METADATA_RELATIONSHIP_RECORDS", 5_000_000
+    "FEATHERED_MAX_RPM_METADATA_RELATIONSHIP_RECORDS",
+    MAX_METADATA_RELATIONSHIP_RECORDS
+    if "FEATHERED_MAX_METADATA_RELATIONSHIP_RECORDS" in os.environ else 5_000_000,
 )
 MAX_METADATA_FILE_ENTRIES = positive_env_int(
     "FEATHERED_MAX_METADATA_FILE_ENTRIES", 4_000_000
