@@ -136,14 +136,28 @@ for durable changes and verify its requirements for your release.
 
 Alongside the normal bundle and installer, VKS additions emit a distinct
 **vks-image-baker-handoff.json**. It records the OS identity, requested package
-roots, and emitted local repository metadata. It is deliberately **not a runnable
-VMware Image Baker YAML**: the exact VKr, distribution image, base OS image,
-builder-accessible repository URLs and Image Baker schema version are not known
-from an offline OS package request. Supply and validate those inputs using the
-applicable VKS release's Image Baker tooling before attempting a bake. The
-optional Content label names only this handoff; it does not select a VKr.
-Legacy VKS image-builder supported VKr up to 1.34, while newer releases use
-Image Baker. The previous `imagebaker-image.yaml` pseudo-configuration has
+roots, emitted local repository metadata, and **optional explicit** VKS platform
+release, full vendor VKr version and builder generation. These fields are captured
+in saved build specs and the CLI handoff; a community Kubernetes repository minor
+or free-text platform note is **never** interpreted as the VKr. Leaving the fields
+empty does not block generic package acquisition.
+
+Feathered checks legacy Image Builder OS targets against the exact upstream
+`supported_os` lists for branches 1.31–1.34: Photon 5 and Ubuntu 22.04 appear in
+all four; Ubuntu 24.04 first appears in 1.33; RHEL 9 does not appear. For each
+branch, see `https://github.com/vmware/vks-image-builder/blob/release-1.34/supported-context.json`
+(substitute the corresponding minor). `os_listed` means **only** a branch-level
+OS listing, not that an exact VKr patch, architecture, VKS platform release or
+node image was validated. `not_listed` identifies a published exclusion. The
+legacy builder ends with VKr 1.34; 1.35+ uses Image Baker, for which Feathered
+returns `unverified` until exact builder/schema and OS image compatibility can
+be checked. All findings are recorded, including in the build manifest, but do
+not prevent creation of a generic package bundle.
+
+The handoff is deliberately **not runnable VMware Image Baker YAML**: the
+distribution image, base OS image, builder-accessible repository URLs and schema
+version still require authoritative release-specific validation. The previous
+`imagebaker-image.yaml` pseudo-configuration has
 been removed because its schema and field names were unverified. Handoff and
 assurance files are written before bundle indexing, so they participate in
 the final checksum file set.
@@ -151,7 +165,8 @@ the final checksum file set.
 ## Saved builds and limits
 
 Schema 3 records workload settings, API server bounds, baseline preference,
-acknowledgement, image name, platform note and flat source layout. Schema 1/2
+acknowledgement, image name, explicit VKS release/VKr/builder choices, platform
+note and flat source layout. Schema 1/2
 specs migrate without modifying the input document. Former Kubernetes target
 settings map to workload context; VKr/image identifiers become recorded notes.
 Exact selections and their full version/source pins are preserved. A former

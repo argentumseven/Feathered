@@ -204,6 +204,8 @@ Vendor-backed workloads such as Docker and Kubernetes keep their root packages t
 
 **VKS node OS package additions** is a contextual package workflow rather than a fixed package list. Selecting it keeps the ordinary target-OS package chooser and dependency resolver, then layers VKS-sensitive package classification, optional installed-inventory baseline pinning, and advisories over the selected additions. The offline node package bundle and the separate `vks-image-baker-handoff.json` have different purposes: the handoff is an input summary, **not** a validated Image Baker configuration. Changing to another Content choice clears VKS-owned package roots and policy state. Changing to an incompatible target removes the VKS workflow and returns the wizard to the normal workload layout. Downstream choices such as dependency mode do not exit VKS context.
 
+VKS Content also accepts an optional **explicit VKS platform release, full vendor VKr, and builder generation**. The saved spec, build manifest and Image Baker handoff retain these fields and report branch-level OS evidence for legacy Image Builder 1.31–1.34. An unlisted OS or unverified Image Baker 1.35+ combination remains a usable generic package bundle, **not an approved/runnable node image**. No image-builder compatibility is inferred from a Kubernetes community-repository minor.
+
 An optional `workloads.json` can replace or extend built-in workload definitions. Signed organization catalogs are supported through the companion workload-catalog signature/keyring convention described in the source.
 
 For Kubernetes-specific behavior, see [KUBERNETES.md](KUBERNETES.md).
