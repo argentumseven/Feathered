@@ -450,6 +450,7 @@ def _builtins() -> List[WorkloadProfile]:
             # roots on these releases. Do not silently substitute a newer JRE.
             unsupported_releases={
                 "centos-stream": ["10-stream"], "rocky": ["10"],
+                "alma": ["10"],
                 "fedora": ["44"], "debian": ["13", "trixie"],
                 "devuan": ["6", "excalibur"],
             },
