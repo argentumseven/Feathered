@@ -51,6 +51,7 @@ def test_native_probe_never_executes_a_package_install(tmp_path, monkeypatch):
     assert result['presets']['cockpit']['status'] == 'dnf-accepted'
     assert commands[0][-1] == '--queryformat=%{name}\\n'
     assert commands[-1][-1] == 'cockpit-system'
+    assert '-y' in commands[-1]
     assert any(arg.startswith('--store=') for arg in commands[-1])
     assert any(arg.startswith('--installroot=') for arg in commands[-1])
     assert (tmp_path / 'report.json').is_file()
