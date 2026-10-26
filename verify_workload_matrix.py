@@ -221,6 +221,21 @@ def discover_current_release(profile, reporter: Reporter) -> str:
                       if version not in prerelease and codename not in prerelease}
         if not discovered:
             raise RuntimeError(f"{profile.key}: archive supplied no stable release")
+        if profile.key == "devuan" and profile.release_url:
+            # The GUI discovers the Devuan->Debian vendor-suite relationship
+            # from the release table before constructing optional Docker CE
+            # rows. The live matrix must do likewise: the package archive only
+            # provides Devuan codenames, and without this relationship the
+            # disabled opt-in source disappears, falsely failing Docker.
+            try:
+                rows = profiles_module.extract_devuan_debian_suites(
+                    fetch_text(profile.release_url, reporter))
+                if rows:
+                    profiles_module.DEVUAN_TO_DEBIAN.update(rows)
+                else:
+                    reporter.warn('Devuan/Debian vendor-suite relationship unavailable; optional Docker source cannot be classified.')
+            except Exception as exc:
+                reporter.warn(f'Devuan/Debian vendor-suite relationship discovery failed: {exc}')
         if profile.release_style == "codename":
             by_codename = {codename: version for version, codename in discovered.items()}
             return max(set(discovered.values()),

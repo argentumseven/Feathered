@@ -5,9 +5,47 @@ from types import SimpleNamespace
 
 import apt_core
 import core
+import profiles
 from profiles import RepoTemplate
 import verify_workload_matrix as drift
 from workloads import WorkloadProfile
+
+
+def test_live_devuan_release_discovery_restores_disabled_docker_opt_in_source(monkeypatch):
+    """Use Devuan's documented Debian-suite table, not a compiled codename."""
+    profile = profiles.PROFILES['devuan']
+    published_table = '''<table><tr><th>Devuan release</th><th>Suite</th><th>Released</th>
+    <th>Planet nr.</th><th>Debian release</th></tr>
+    <tr><td>Excalibur 6</td><td>stable</td><td>2025-11-02</td><td>9499</td>
+    <td>Trixie 13</td></tr></table>'''
+    monkeypatch.setattr(profiles, 'DEVUAN_TO_DEBIAN', {})
+    monkeypatch.setattr(drift.profiles_module, 'discover_apt_releases',
+                        lambda *_args, **_kwargs: {'6.0': 'excalibur'})
+    monkeypatch.setattr(drift, 'fetch_text', lambda url, _: published_table)
+    assert drift.discover_current_release(profile, core.Reporter()) == 'excalibur'
+    optional = [row for row in profile.repos_factory('excalibur', 'amd64')
+                if row.role == 'docker']
+    assert len(optional) == 1
+    assert not optional[0].enabled and optional[0].optional
+    assert optional[0].suite == 'trixie'
+    workload = WorkloadProfile('docker', 'docker', ['docker-ce'], '',
+                              requires_docker_repo=True)
+    assert drift._requires_operator_opt_in(workload, 'deb',
+                                           profile.repos_factory('excalibur', 'amd64'))
+
+
+def test_failed_vendor_mapping_never_fabricates_docker_source(monkeypatch):
+    profile = profiles.PROFILES['devuan']
+    monkeypatch.setattr(profiles, 'DEVUAN_TO_DEBIAN', {})
+    monkeypatch.setattr(drift.profiles_module, 'discover_apt_releases',
+                        lambda *_args, **_kwargs: {'6.0': 'excalibur'})
+    monkeypatch.setattr(drift, 'fetch_text', lambda *_: '<table></table>')
+    reporter = core.Reporter()
+    assert drift.discover_current_release(profile, reporter) == 'excalibur'
+    assert not [row for row in profile.repos_factory('excalibur', 'amd64')
+                if row.role == 'docker']
+    assert any('vendor-suite relationship unavailable' in warning
+               for warning in reporter.warnings)
 
 
 def test_vendor_failure_does_not_hide_distribution_workload(tmp_path, monkeypatch):
