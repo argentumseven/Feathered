@@ -3,7 +3,10 @@ from __future__ import annotations
 import io
 import hashlib
 import os
+import runpy
 from pathlib import Path
+
+import pytest
 
 import apt_core
 import openpgp_verifier
@@ -241,6 +244,48 @@ def test_rpm_primary_parser_does_not_retain_duplicate_raw_xml() -> None:
     )
     assert len(packages) == 1
     assert packages[0].raw_metadata == ""
+
+
+def test_rpm_primary_parser_still_enforces_aggregate_relationship_cap(monkeypatch) -> None:
+    """An RPM-specific increase must not turn the safety ceiling into a skip."""
+    from runtime_limits import MAX_METADATA_RELATIONSHIP_RECORDS, MAX_RPM_METADATA_RELATIONSHIP_RECORDS
+
+    assert MAX_RPM_METADATA_RELATIONSHIP_RECORDS >= 4_232_225
+    assert MAX_METADATA_RELATIONSHIP_RECORDS <= 4_000_000
+    repo = RepoSpec("rpm", "https://example.invalid/rpm/")
+    xml = b'''<metadata xmlns="http://linux.duke.edu/metadata/common" xmlns:rpm="http://linux.duke.edu/metadata/rpm">
+      <package type="rpm"><name>demo</name><arch>x86_64</arch><version epoch="0" ver="1" rel="1"/>
+      <checksum type="sha256">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</checksum>
+      <location href="demo.rpm"/><format><rpm:provides>
+        <rpm:entry name="demo"/><rpm:entry name="virtual-one"/><rpm:entry name="virtual-two"/>
+      </rpm:provides></format></package></metadata>'''
+    monkeypatch.setattr(rpm_metadata, "MAX_RPM_METADATA_RELATIONSHIP_RECORDS", 2)
+    with pytest.raises(RuntimeError, match="2 relationship-entry safety limit"):
+        rpm_metadata.parse_primary(
+            io.BytesIO(xml), repo, {"x86_64"}, Reporter(),
+            normalized_hash_algorithm_fn=lambda value: value,
+            select_digest_from_map_fn=lambda values, _preference: ("sha256", values["sha256"]),
+            repo_trust_fn=lambda _repo: RepoTrust(repo="rpm"),
+        )
+
+
+def test_rpm_relationship_budget_preserves_explicit_legacy_override(monkeypatch) -> None:
+    path = Path(__file__).resolve().parents[1] / 'runtime_limits.py'
+    monkeypatch.delenv('FEATHERED_MAX_METADATA_RELATIONSHIP_RECORDS', raising=False)
+    monkeypatch.delenv('FEATHERED_MAX_RPM_METADATA_RELATIONSHIP_RECORDS', raising=False)
+    defaults = runpy.run_path(str(path))
+    assert defaults['MAX_METADATA_RELATIONSHIP_RECORDS'] == 4_000_000
+    assert defaults['MAX_RPM_METADATA_RELATIONSHIP_RECORDS'] == 5_000_000
+
+    monkeypatch.setenv('FEATHERED_MAX_METADATA_RELATIONSHIP_RECORDS', '1000')
+    legacy = runpy.run_path(str(path))
+    assert legacy['MAX_METADATA_RELATIONSHIP_RECORDS'] == 1000
+    assert legacy['MAX_RPM_METADATA_RELATIONSHIP_RECORDS'] == 1000
+
+    monkeypatch.setenv('FEATHERED_MAX_RPM_METADATA_RELATIONSHIP_RECORDS', '1500')
+    explicit = runpy.run_path(str(path))
+    assert explicit['MAX_METADATA_RELATIONSHIP_RECORDS'] == 1000
+    assert explicit['MAX_RPM_METADATA_RELATIONSHIP_RECORDS'] == 1500
 
 
 def test_deb822_stream_parser_does_not_build_a_record_list() -> None:
