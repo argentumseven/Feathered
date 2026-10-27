@@ -422,7 +422,11 @@ def _centos_repos(version: str, arch: str) -> List[RepoTemplate]:
     return [
         RepoTemplate("Docker CE Stable", f"https://download.docker.com/linux/centos/{major}/{arch}/stable/", "docker", 10, True, "", version),
         RepoTemplate("CentOS Stream BaseOS", f"https://mirror.stream.centos.org/{stream}/BaseOS/{arch}/os/", "dependency", 40, True, "", version, evidence_suggestions=[centos_mirror("BaseOS")]),
-        RepoTemplate("CentOS Stream AppStream", f"https://mirror.stream.centos.org/{stream}/AppStream/{arch}/os/", "dependency", 45, True, "", version, evidence_suggestions=[centos_mirror("AppStream")]),
+        # Native DNF treats CentOS BaseOS and AppStream as peers. A lower
+        # AppStream preference forced historical BaseOS python3-libselinux /
+        # python3-libsemanage builds ahead of newer AppStream siblings, whose
+        # exact-version dependencies then conflicted with current BaseOS.
+        RepoTemplate("CentOS Stream AppStream", f"https://mirror.stream.centos.org/{stream}/AppStream/{arch}/os/", "dependency", 40, True, "", version, evidence_suggestions=[centos_mirror("AppStream")]),
         RepoTemplate("CentOS Stream CRB", f"https://mirror.stream.centos.org/{stream}/CRB/{arch}/os/", "dependency", 55, True, "", version, optional=True, evidence_suggestions=[centos_mirror("CRB")]),
     ]
 

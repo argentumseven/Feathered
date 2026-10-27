@@ -1,4 +1,5 @@
 """Live DNF evidence collector has a pure, testable catalog-selection path."""
+from pathlib import Path
 from types import SimpleNamespace
 
 import native_rpm_live_probe as live
@@ -55,3 +56,29 @@ def test_native_probe_never_executes_a_package_install(tmp_path, monkeypatch):
     assert any(arg.startswith('--store=') for arg in commands[-1])
     assert any(arg.startswith('--installroot=') for arg in commands[-1])
     assert (tmp_path / 'report.json').is_file()
+
+
+def test_native_probe_tests_stored_rpms_without_installing(tmp_path, monkeypatch):
+    commands = []
+
+    def fake_run(argv):
+        commands.append(argv)
+        if 'repoquery' in argv:
+            names = ['cockpit', 'cockpit-system', *(f'package-{n}' for n in range(100))]
+            return SimpleNamespace(returncode=0, stdout='\n'.join(names) + '\n', stderr='')
+        if argv[0] == 'dnf5':
+            stored = Path(next(arg.removeprefix('--store=') for arg in argv
+                               if arg.startswith('--store=')))
+            (stored / 'packages').mkdir(parents=True)
+            (stored / 'packages' / 'fixture.rpm').touch()
+            return SimpleNamespace(returncode=0, stdout='stored', stderr='')
+        assert argv[:1] == ['rpm'] and '--test' in argv and '-U' in argv
+        assert '--root' in argv and '--nodeps' not in argv
+        return SimpleNamespace(returncode=1, stdout='', stderr='unresolved rich requirement')
+
+    monkeypatch.setattr(live, '_run', fake_run)
+    result = live.probe('fedora', '44', ['cockpit'], tmp_path, rpm_test=True)
+    assert result['presets']['cockpit']['status'] == 'dnf-accepted'
+    assert result['presets']['cockpit']['rpm_test_status'] == 'rpm-test-rejected'
+    assert len(commands) == 3
+    assert (tmp_path / 'cockpit-rpm-test.log').read_text() == 'unresolved rich requirement'

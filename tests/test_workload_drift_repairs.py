@@ -184,3 +184,42 @@ def test_monitoring_htop_absence_does_not_invalidate_available_core_tools():
     assert 'htop' in workload.optional_for('rpm')
     assert 'htop' in workload.optional_for('deb')
     assert 'htop --version' not in workload.verification_commands
+
+
+def test_centos_baseos_and_appstream_do_not_force_stale_sibling_builds():
+    """Native DNF can choose a newer AppStream sibling over an older BaseOS copy."""
+    templates = profiles.PROFILES['centos-stream'].repos_factory('10-stream', 'x86_64')
+    base = next(row for row in templates if row.name == 'CentOS Stream BaseOS')
+    appstream = next(row for row in templates if row.name == 'CentOS Stream AppStream')
+    assert base.priority == appstream.priority
+
+    old_repo = core.RepoSpec(base.name, base.url, priority=base.priority)
+    new_repo = core.RepoSpec(appstream.name, appstream.url, priority=appstream.priority)
+    older = core.Package('python3-libselinux', 'x86_64', '0', '3.10', '2.el10',
+        'old.rpm', 'sha256', '0' * 64, old_repo)
+    newer = core.Package('python3-libselinux', 'x86_64', '0', '3.11', '3.el10',
+        'new.rpm', 'sha256', '0' * 64, new_repo)
+    match = rpm.choose_provider(
+        [core.ProviderMatch(older, core.Requirement('python3-libselinux')),
+         core.ProviderMatch(newer, core.Requirement('python3-libselinux'))],
+        'x86_64', 'python3-libselinux')
+    assert match is not None and match.package is newer
+
+    def row(name, repo, version, release, requires=()):
+        return core.Package(name, 'x86_64', '0', version, release,
+            f'{name}.rpm', 'sha256', '0' * 64, repo, requires=list(requires))
+
+    exact_old = core.Requirement('libselinux(x86-64)', 'EQ', '0', '3.10', '2.el10')
+    exact_new = core.Requirement('libselinux(x86-64)', 'EQ', '0', '3.11', '3.el10')
+    older.requires.append(exact_old)
+    newer.requires.append(exact_new)
+    root = row('container-tools', old_repo, '1', '1',
+        [core.Requirement('python3-libselinux'), core.Requirement('libselinux-utils')])
+    util = row('libselinux-utils', old_repo, '3.11', '3.el10', [exact_new])
+    packages = [root, older, newer, util,
+                row('libselinux', old_repo, '3.10', '2.el10'),
+                row('libselinux', old_repo, '3.11', '3.el10')]
+    profile = SimpleNamespace(key='centos-stream', package_family='rpm', init_style='')
+    workload = workloads.WorkloadProfile('fixture', 'fixture', ['container-tools'], '')
+    outcome = drift.check_workload(workload, profile, packages, 'x86_64')
+    assert outcome['status'] == 'ok'
