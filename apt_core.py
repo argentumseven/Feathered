@@ -883,11 +883,23 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
     metadata_record_count = 0
     relationship_count = 0
     retained_metadata_chars = 0
+    seen_packages: Dict[Tuple[str, str, str, str], DebPackage] = {}
     skip_provenance = repository_verification_strategy(repo) == "skip-provenance"
     index_verified = False
-    for component, semantic_component in bindings:
+    index_bindings = [(component, semantic, arch) for component, semantic in bindings]
+    if not repo.flat_repo and arch != "all":
+        for component, semantic in bindings:
+            # Some archives, including Devuan's merged archive, publish
+            # Architecture: all packages in a separate signed binary-all
+            # index rather than duplicating them in binary-<target>.
+            arch_paths = _component_index_candidates(component, semantic, arch)
+            all_paths = _component_index_candidates(component, semantic, "all")
+            if any(path in checksums for path in arch_paths) and any(
+                    path in checksums for path in all_paths):
+                index_bindings.append((component, semantic, "all"))
+    for component, semantic_component, index_arch in index_bindings:
         candidates = (["Packages" + ext for ext in (".xz", ".gz", ".zst", ".bz2", "")]
-                      if repo.flat_repo else _component_index_candidates(component, semantic_component, arch))
+                      if repo.flat_repo else _component_index_candidates(component, semantic_component, index_arch))
         index_path = next((path for path in candidates if path in checksums), None)
         if index_path is None:
             # The index is not listed in the Release checksum manifest, so it
@@ -897,7 +909,7 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
             if not repo.allow_unverified_index and not skip_provenance:
                 reporter.log(
                     f"{repo.name}: no signed Packages index for component '{component}' "
-                    f"(advertised as '{semantic_component}') on binary-{arch}; skipping that component.")
+                    f"(advertised as '{semantic_component}') on binary-{index_arch}; skipping that component.")
                 skipped_components.append(component)
                 continue
             probe_errors = []
@@ -914,9 +926,9 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
                 detail = "; ".join(probe_errors) or "no candidate index paths responded"
                 if repo.optional:
                     reporter.log(f"APT component unavailable in optional source {repo.name}: "
-                                 f"{component}/{arch} ({detail})")
+                                 f"{component}/{index_arch} ({detail})")
                     continue
-                raise RuntimeError(f"{repo.name}: no Packages index for {component}/binary-{arch}: {detail}")
+                raise RuntimeError(f"{repo.name}: no Packages index for {component}/binary-{index_arch}: {detail}")
             index_verified = False
             unverified_indexes.append(f"{repo.suite}/{index_path}")
             if skip_provenance:
@@ -956,6 +968,14 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
                 if not (name and version and parch and location):
                     continue
                 if parch not in {arch, "all"}:
+                    continue
+                identity = (name, version, parch, location)
+                existing = seen_packages.get(identity)
+                if existing is not None:
+                    if existing.raw_fields != rec:
+                        raise RuntimeError(
+                            f"{repo.name}: conflicting metadata for duplicate APT package "
+                            f"{name} {version} ({parch}) across signed indexes")
                     continue
                 digests = {
                     algo: value
@@ -999,6 +1019,7 @@ def _load_repository_once(repo: RepoSpec, arches: Set[str], reporter: Reporter) 
                     size=size, multi_arch=rec.get("Multi-Arch", "").strip(),
                     raw_fields=dict(rec),
                 ))
+                seen_packages[identity] = packages[-1]
                 packages[-1].verification = ArtifactVerification(
                     archive_signature_verified=archive_verified,
                     index_digest_verified=index_verified,
