@@ -97,6 +97,26 @@ def test_rpm_parenthesized_leaf_keeps_version_bound():
     assert not result.unresolved and newer in result.selected and older not in result.selected
 
 
+def test_fedora_release_unversioned_provide_satisfies_lvm2_rich_requirement():
+    """RPM matches unversioned Provides against versioned Requires (existence test)."""
+    lvm = package('lvm2', [core.Requirement('(system-release >= 23 if system-release)')])
+    release = package('fedora-release', provides=[core.Requirement('system-release', kind='provides')],
+                      version='44')
+    root = package('storage-tools', [core.Requirement('lvm2'), core.Requirement('fedora-release')])
+    result = core.resolve([('storage-tools', None, None)], [root, release, lvm], 'x86_64',
+                          core.BuildOptions(), core.Reporter())
+    assert not result.unresolved
+    assert {p.name for p in result.selected} == {'storage-tools', 'lvm2', 'fedora-release'}
+
+
+def test_unversioned_rpm_provide_is_an_existence_match_but_versioned_provides_still_compare():
+    versioned = core.Requirement('system-release', 'GE', '0', '23')
+    assert rpm.evr_satisfies(core.Requirement('system-release', kind='provides'), versioned)
+    assert not rpm.evr_satisfies(core.Requirement('system-release', 'EQ', '0', '22'), versioned)
+    distinct = package('fedora-release', provides=[core.Requirement('system-release(44)', kind='provides')])
+    assert not rpm.package_satisfies(distinct, versioned)
+
+
 @pytest.mark.parametrize('present,missing', [([], False), (['PackageKit'], True),
     (['libdnf5-plugin-appstream', 'appstream-data'], False)])
 def test_retained_inventory_conditional_or_matches_forward_semantics(present, missing):
