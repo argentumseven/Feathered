@@ -106,7 +106,10 @@ def probe(profile: str, release: str, presets: list[str], output: Path,
             data["log"] = f"{key}.log"
         results[key] = data
     report = {"profile": profile, "release": release,
-              "validation_scope": "DNF5 native solver on empty RPMDB, stored transaction only; no packages installed",
+              "validation_scope": (
+                  "DNF5 native solver and RPM --test of stored RPMs in disposable empty roots; "
+                  "no packages installed" if rpm_test else
+                  "DNF5 native solver on empty RPMDB, stored transaction only; no packages installed"),
               "presets": results}
     (output / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n",
                                          encoding="utf-8")
@@ -125,7 +128,8 @@ def main() -> int:
     report = probe(args.profile, args.release, args.presets.split(","), args.out,
                    rpm_test=args.rpm_test)
     for key, row in report["presets"].items():
-        print(f"{key}: {row['status']} ({len(row['requested_roots'])} roots)")
+        native_note = f", {row['rpm_test_status']}" if 'rpm_test_status' in row else ''
+        print(f"{key}: {row['status']}{native_note} ({len(row['requested_roots'])} roots)")
     return 0  # Diagnostic completion is not a compatibility assertion.
 
 

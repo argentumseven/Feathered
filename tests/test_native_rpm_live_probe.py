@@ -80,5 +80,6 @@ def test_native_probe_tests_stored_rpms_without_installing(tmp_path, monkeypatch
     result = live.probe('fedora', '44', ['cockpit'], tmp_path, rpm_test=True)
     assert result['presets']['cockpit']['status'] == 'dnf-accepted'
     assert result['presets']['cockpit']['rpm_test_status'] == 'rpm-test-rejected'
+    assert 'RPM --test' in result['validation_scope']
     assert len(commands) == 3
     assert (tmp_path / 'cockpit-rpm-test.log').read_text() == 'unresolved rich requirement'
