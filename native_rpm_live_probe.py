@@ -1,8 +1,10 @@
-"""Capture native DNF5 decisions for live RPM workload presets, without install.
+"""Capture native DNF5 and optional RPM --test decisions, without install.
 
 This is a diagnostic comparison oracle, not a release gate. A successful
 probe means DNF accepted the requested roots for an *empty* target RPMDB;
 it does not validate Feathered's selected package set or an existing host.
+With --rpm-test, the stored DNF transaction is also checked by RPM in a
+disposable empty root; neither mode installs target packages.
 """
 from __future__ import annotations
 
@@ -38,7 +40,8 @@ def select_roots(plan, available: set[str]) -> tuple[list[str], list[str], list[
     return roots, missing, skipped
 
 
-def probe(profile: str, release: str, presets: list[str], output: Path) -> dict:
+def probe(profile: str, release: str, presets: list[str], output: Path,
+          *, rpm_test: bool = False) -> dict:
     if profile != "fedora":
         raise ValueError("Only Fedora DNF5 repository configuration is currently verified")
     output.mkdir(parents=True, exist_ok=True)
@@ -77,6 +80,25 @@ def probe(profile: str, release: str, presets: list[str], output: Path) -> dict:
                     "--setopt=reposdir=/etc/yum.repos.d", "install",
                     f"--store={stored.resolve()}", *roots,
                 ])
+                if result.returncode == 0 and rpm_test:
+                    # DNF's accepted plan is a solver observation. Check its
+                    # *actual stored RPM set* with RPM's dependency validator,
+                    # still against an empty disposable root and without any
+                    # installation or dependency bypass.
+                    package_files = sorted((stored / "packages").glob("*.rpm"))
+                    if not package_files:
+                        raise RuntimeError(
+                            f"DNF5 accepted {key} but stored no RPMs for a transaction check")
+                    checked = _run([
+                        "rpm", "--root", root, "-U", "--test", "--nosignature",
+                        *(str(path.resolve()) for path in package_files),
+                    ])
+                    (output / f"{key}-rpm-test.log").write_text(
+                        checked.stdout + checked.stderr, encoding="utf-8")
+                    data["rpm_test_status"] = (
+                        "rpm-test-accepted" if checked.returncode == 0 else "rpm-test-rejected")
+                    data["rpm_test_exit_code"] = checked.returncode
+                    data["rpm_test_log"] = f"{key}-rpm-test.log"
             (output / f"{key}.log").write_text(result.stdout + result.stderr,
                                                    encoding="utf-8")
             data["status"] = "dnf-accepted" if result.returncode == 0 else "dnf-rejected"
@@ -84,7 +106,10 @@ def probe(profile: str, release: str, presets: list[str], output: Path) -> dict:
             data["log"] = f"{key}.log"
         results[key] = data
     report = {"profile": profile, "release": release,
-              "validation_scope": "DNF5 native solver on empty RPMDB, stored transaction only; no packages installed",
+              "validation_scope": (
+                  "DNF5 native solver and RPM --test of stored RPMs in disposable empty roots; "
+                  "no packages installed" if rpm_test else
+                  "DNF5 native solver on empty RPMDB, stored transaction only; no packages installed"),
               "presets": results}
     (output / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n",
                                          encoding="utf-8")
@@ -97,10 +122,14 @@ def main() -> int:
     parser.add_argument("--release", required=True)
     parser.add_argument("--presets", default="cockpit,kernel-dev,storage-tools")
     parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--rpm-test", action="store_true",
+                        help="Also test the stored RPM transaction in a disposable empty root")
     args = parser.parse_args()
-    report = probe(args.profile, args.release, args.presets.split(","), args.out)
+    report = probe(args.profile, args.release, args.presets.split(","), args.out,
+                   rpm_test=args.rpm_test)
     for key, row in report["presets"].items():
-        print(f"{key}: {row['status']} ({len(row['requested_roots'])} roots)")
+        native_note = f", {row['rpm_test_status']}" if 'rpm_test_status' in row else ''
+        print(f"{key}: {row['status']}{native_note} ({len(row['requested_roots'])} roots)")
     return 0  # Diagnostic completion is not a compatibility assertion.
 
 

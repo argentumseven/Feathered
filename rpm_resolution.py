@@ -140,6 +140,12 @@ def should_ignore(req: Requirement) -> bool:
 def evr_satisfies(provider: Requirement, req: Requirement, package: Optional[Package] = None) -> bool:
     if not req.flags or req.evr is None:
         return True
+    # RPM's rpmdsCompareIndex treats an unversioned Provide as an existence
+    # test: it overlaps a same-name Require even when that Require has an EVR.
+    # Fedora release RPMs deliberately publish bare `system-release` this way;
+    # rejecting it creates a false failure for lvm2's conditional requirement.
+    if not provider.flags:
+        return True
     pevr = provider.evr
     if pevr is None and package is not None and provider.name == package.name:
         pevr = package.evr

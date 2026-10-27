@@ -97,6 +97,26 @@ def test_rpm_parenthesized_leaf_keeps_version_bound():
     assert not result.unresolved and newer in result.selected and older not in result.selected
 
 
+def test_fedora_release_unversioned_provide_satisfies_lvm2_rich_requirement():
+    """RPM matches unversioned Provides against versioned Requires (existence test)."""
+    lvm = package('lvm2', [core.Requirement('(system-release >= 23 if system-release)')])
+    release = package('fedora-release', provides=[core.Requirement('system-release', kind='provides')],
+                      version='44')
+    root = package('storage-tools', [core.Requirement('lvm2'), core.Requirement('fedora-release')])
+    result = core.resolve([('storage-tools', None, None)], [root, release, lvm], 'x86_64',
+                          core.BuildOptions(), core.Reporter())
+    assert not result.unresolved
+    assert {p.name for p in result.selected} == {'storage-tools', 'lvm2', 'fedora-release'}
+
+
+def test_unversioned_rpm_provide_is_an_existence_match_but_versioned_provides_still_compare():
+    versioned = core.Requirement('system-release', 'GE', '0', '23')
+    assert rpm.evr_satisfies(core.Requirement('system-release', kind='provides'), versioned)
+    assert not rpm.evr_satisfies(core.Requirement('system-release', 'EQ', '0', '22'), versioned)
+    distinct = package('fedora-release', provides=[core.Requirement('system-release(44)', kind='provides')])
+    assert not rpm.package_satisfies(distinct, versioned)
+
+
 @pytest.mark.parametrize('present,missing', [([], False), (['PackageKit'], True),
     (['libdnf5-plugin-appstream', 'appstream-data'], False)])
 def test_retained_inventory_conditional_or_matches_forward_semantics(present, missing):
@@ -184,3 +204,42 @@ def test_monitoring_htop_absence_does_not_invalidate_available_core_tools():
     assert 'htop' in workload.optional_for('rpm')
     assert 'htop' in workload.optional_for('deb')
     assert 'htop --version' not in workload.verification_commands
+
+
+def test_centos_baseos_and_appstream_do_not_force_stale_sibling_builds():
+    """Native DNF can choose a newer AppStream sibling over an older BaseOS copy."""
+    templates = profiles.PROFILES['centos-stream'].repos_factory('10-stream', 'x86_64')
+    base = next(row for row in templates if row.name == 'CentOS Stream BaseOS')
+    appstream = next(row for row in templates if row.name == 'CentOS Stream AppStream')
+    assert base.priority == appstream.priority
+
+    old_repo = core.RepoSpec(base.name, base.url, priority=base.priority)
+    new_repo = core.RepoSpec(appstream.name, appstream.url, priority=appstream.priority)
+    older = core.Package('python3-libselinux', 'x86_64', '0', '3.10', '2.el10',
+        'old.rpm', 'sha256', '0' * 64, old_repo)
+    newer = core.Package('python3-libselinux', 'x86_64', '0', '3.11', '3.el10',
+        'new.rpm', 'sha256', '0' * 64, new_repo)
+    match = rpm.choose_provider(
+        [core.ProviderMatch(older, core.Requirement('python3-libselinux')),
+         core.ProviderMatch(newer, core.Requirement('python3-libselinux'))],
+        'x86_64', 'python3-libselinux')
+    assert match is not None and match.package is newer
+
+    def row(name, repo, version, release, requires=()):
+        return core.Package(name, 'x86_64', '0', version, release,
+            f'{name}.rpm', 'sha256', '0' * 64, repo, requires=list(requires))
+
+    exact_old = core.Requirement('libselinux(x86-64)', 'EQ', '0', '3.10', '2.el10')
+    exact_new = core.Requirement('libselinux(x86-64)', 'EQ', '0', '3.11', '3.el10')
+    older.requires.append(exact_old)
+    newer.requires.append(exact_new)
+    root = row('container-tools', old_repo, '1', '1',
+        [core.Requirement('python3-libselinux'), core.Requirement('libselinux-utils')])
+    util = row('libselinux-utils', old_repo, '3.11', '3.el10', [exact_new])
+    packages = [root, older, newer, util,
+                row('libselinux', old_repo, '3.10', '2.el10'),
+                row('libselinux', old_repo, '3.11', '3.el10')]
+    profile = SimpleNamespace(key='centos-stream', package_family='rpm', init_style='')
+    workload = workloads.WorkloadProfile('fixture', 'fixture', ['container-tools'], '')
+    outcome = drift.check_workload(workload, profile, packages, 'x86_64')
+    assert outcome['status'] == 'ok'
