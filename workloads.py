@@ -446,12 +446,13 @@ def _builtins() -> List[WorkloadProfile]:
             version_package="java-17-openjdk-headless",
             verification_commands=["java -version"],
             supported_distros=["rhel", "rocky", "alma", "centos-stream", "fedora", "ubuntu", "debian", "arch", "artix", "devuan"],
-            # 2026-10-20 live indexes did not offer the required OpenJDK 17
-            # roots on these releases. Do not silently substitute a newer JRE.
+            # Live upstream indexes did not offer the required OpenJDK 17
+            # roots on these releases (Fedora 45 confirmed 2026-11-03).
+            # Do not silently substitute a newer JRE.
             unsupported_releases={
                 "centos-stream": ["10-stream"], "rocky": ["10"],
                 "alma": ["10"],
-                "fedora": ["44"], "debian": ["13", "trixie"],
+                "fedora": ["44", "45"], "debian": ["13", "trixie"],
                 "devuan": ["6", "excalibur"],
             },
         ),
