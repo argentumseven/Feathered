@@ -188,7 +188,8 @@ def test_devuan_docker_ce_preserves_explicit_compatible_source_path():
 
 
 @pytest.mark.parametrize('distro,release', [
-    ('centos-stream', '10-stream'), ('rocky', '10.2'), ('fedora', '44'),
+    ('centos-stream', '10-stream'), ('rocky', '10.2'),
+    ('fedora', '44'), ('fedora', '45'),
     ('debian', 'trixie'), ('debian', '13.2'),
     ('devuan', 'excalibur'), ('devuan', '6.0'),
 ])
