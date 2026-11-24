@@ -1,3 +1,11 @@
+# Unreleased
+
+## Fixed
+
+- The payload cache no longer grows without limit. `.feathered-cache` kept a copy of every package from every build forever, so refreshing a bundle repeatedly filled the output drive (and, with the output on removable media, the transfer drive). It is now bounded: after each build, including a failed or cancelled one, entries the build did not use are expired after 30 days and then trimmed oldest-first to 2 GiB, while everything the build used is kept so a retry can still resume. Abandoned temporary files, orphaned payloads and dangling index entries are removed as well, and an older oversized cache is trimmed by the next build. Tune with `FEATHERED_PAYLOAD_CACHE_BYTES` and `FEATHERED_PAYLOAD_CACHE_DAYS`; `FEATHERED_PAYLOAD_CACHE_BYTES=0` turns the cache off.
+- A payload-cache problem no longer fails the build. A cache folder that was a symlink, group- or world-writable or owned by another user, a full disk while keeping a copy, or a malformed index entry aborted the build even though the package had already downloaded and verified. Feathered now logs one line and downloads as needed. The cache also declines to take the last 512 MB of free space, and a partly copied restore is removed.
+- Cache entries that cannot be used are removed instead of being retried by every later build: tampered payloads, entries that fail verification, and index entries whose payload is gone.
+
 # 1.4.1 - 2026-10-17
 
 ## Fixed

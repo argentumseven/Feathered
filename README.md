@@ -279,6 +279,21 @@ Feathered includes repository-maintenance workflows for existing package directo
 
 Existing-output publication is transactional. Additive publication verifies inherited payloads against their recorded provenance before reusing prior evidence.
 
+## Payload cache
+
+While building, Feathered keeps a verified copy of each downloaded package in a `.feathered-cache` folder beside the bundle folder. A build that fails or is cancelled discards its half-built output, so this is what lets the next attempt resume without downloading everything again. It also lets a rebuilt bundle reuse packages that did not change.
+
+The cache is bounded and best effort. After every build, including one that fails, anything the build did not use is removed when it has gone unused for 30 days, and then oldest-first until the cache is within 2 GiB. What the build did use is always kept. Abandoned temporary files, tampered or unverifiable entries, and entries whose payload is gone are removed too. If the cache folder cannot be used or the disk is nearly full, Feathered logs one line and downloads as needed; it never fails a build or takes the last of the free space from the bundle being written.
+
+Two environment variables tune this; neither needs to be set:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `FEATHERED_PAYLOAD_CACHE_BYTES` | `2147483648` | Size limit for entries from earlier builds. `0` turns the cache off. |
+| `FEATHERED_PAYLOAD_CACHE_DAYS` | `30` | Days without use before an entry expires. `0` means no age limit; the size limit still applies. |
+
+The folder is safe to delete at any time. A cache created by an earlier version is trimmed to these limits by the next build.
+
 ## Bundle sealing and receiver verification
 
 A bundle can be sealed with a signed index. Sealed direct-install workflows verify the expected file set before target checks or package-manager execution.

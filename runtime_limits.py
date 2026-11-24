@@ -12,6 +12,15 @@ def positive_env_int(name: str, default: int) -> int:
         return default
 
 
+def nonnegative_env_int(name: str, default: int) -> int:
+    """Like ``positive_env_int`` but 0 is a real setting, not a request for the default."""
+    try:
+        value = int(os.environ.get(name, str(default)))
+        return value if value >= 0 else default
+    except (TypeError, ValueError):
+        return default
+
+
 MAX_METADATA_DOWNLOAD_BYTES = positive_env_int(
     "FEATHERED_MAX_METADATA_DOWNLOAD_BYTES", 256 * 1024 * 1024
 )
@@ -51,6 +60,16 @@ MAX_RETAINED_METADATA_CHARS = positive_env_int(
     "FEATHERED_MAX_RETAINED_METADATA_CHARS", 128 * 1024 * 1024
 )
 
+# The payload cache is an optimisation beside the output folder, so it is bounded
+# rather than left to grow with every refresh. Entries the current build used are
+# never pruned; the limits apply to everything older. 0 bytes disables the cache.
+PAYLOAD_CACHE_MAX_BYTES = nonnegative_env_int(
+    "FEATHERED_PAYLOAD_CACHE_BYTES", 2 * 1024 * 1024 * 1024
+)
+# Days since an entry was last used before it expires. 0 means no age limit; the
+# size limit still applies.
+PAYLOAD_CACHE_MAX_AGE_DAYS = nonnegative_env_int("FEATHERED_PAYLOAD_CACHE_DAYS", 30)
+
 __all__ = [
     "MAX_METADATA_DOWNLOAD_BYTES",
     "MAX_METADATA_EXPANDED_BYTES",
@@ -60,5 +79,8 @@ __all__ = [
     "MAX_RPM_METADATA_RELATIONSHIP_RECORDS",
     "MAX_PACKAGE_DOWNLOAD_BYTES",
     "MAX_RETAINED_METADATA_CHARS",
+    "PAYLOAD_CACHE_MAX_AGE_DAYS",
+    "PAYLOAD_CACHE_MAX_BYTES",
+    "nonnegative_env_int",
     "positive_env_int",
 ]

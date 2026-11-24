@@ -29,7 +29,25 @@ def acquire_payloads(
     family: PackageFamily, *, verify: Callable[[P, Path], object],
     download: Callable[[P, Path], None],
 ) -> None:
-    """Acquire staged payloads while retaining the backend's ordered events."""
+    """Acquire staged payloads while retaining the backend's ordered events.
+
+    The payload cache is bounded afterwards, including when acquisition fails
+    or is cancelled, so it cannot grow without limit across builds. What this
+    build used is kept either way, which is what lets a retry resume.
+    """
+    try:
+        _acquire_payloads(packages, filenames, payload_dir, cache_parent, options,
+                          reporter, family, verify=verify, download=download)
+    finally:
+        artifact_cache.prune(cache_parent, packages, reporter)
+
+
+def _acquire_payloads(
+    packages: Sequence[P], filenames: Mapping[int, str], payload_dir: Path,
+    cache_parent: Path, options: BuildOptions[I], reporter: Reporter,
+    family: PackageFamily, *, verify: Callable[[P, Path], object],
+    download: Callable[[P, Path], None],
+) -> None:
     total = max(1, len(packages))
     for i, pkg in enumerate(packages, 1):
         reporter.check_cancel()
